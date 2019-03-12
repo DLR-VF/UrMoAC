@@ -1,0 +1,214 @@
+/**
+ * German Aerospace Center (DLR)
+ * Institute of Transport Research (VF)
+ * Rutherfordstraﬂe 2
+ * 12489 Berlin
+ * Germany
+ * 
+ * Copyright © 2016-2019 German Aerospace Center 
+ * All rights reserved
+ */
+package de.dlr.ivf.urmo.router.shapes;
+
+import com.infomatiq.jsi.Point;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.LineString;
+
+public class GeomHelper {
+	/**
+	 * @brief Returns the point at the linestring at the given distance
+	 * @param ls The line string to get the point from
+	 * @param distance The distance to get the point at
+	 * @return The point at the given line string at the given distance
+	 */
+	public static Coordinate getPointAtDistance(LineString ls, double distance) {
+	    double seenLength = 0;
+		Coordinate tcoord[] = ls.getCoordinates();
+	    int numPoints = ls.getNumPoints();
+		for(int i=0; i<numPoints-1; ++i) {
+			double nextLength = distance(tcoord[i], tcoord[i+1]);
+			if (seenLength + nextLength > distance) {
+				double offset = distance - seenLength;
+				return new Coordinate(tcoord[i].x+(tcoord[i+1].x-tcoord[i].x)*offset/nextLength, tcoord[i].y+(tcoord[i+1].y-tcoord[i].y)*offset/nextLength, 0);
+			}
+			seenLength += nextLength;
+		}
+	    return tcoord[numPoints-1];
+	}
+
+
+	/**
+	 * @brief Returns the part of the given line string until the given distance
+	 * @param ls The line string to strip
+	 * @param distance The distance at which the returns line string shall end
+	 * @return The line string until the given distance
+	 */
+	public static LineString getGeomUntilDistance(LineString ls, double distance) {
+		distance = patchDistance(ls, distance);
+	    double seenLength = 0;
+		Coordinate tcoord[] = ls.getCoordinates();
+	    int numPoints = ls.getNumPoints();
+	    int i1 = 0;
+		for(; i1<numPoints-1&&seenLength<distance; ++i1) {
+			double nextLength = distance(tcoord[i1], tcoord[i1+1]);
+			seenLength += nextLength;
+		}
+		Coordinate ncoord[] = new Coordinate[i1+1];
+		for(int i=0; i<i1; ++i) {
+			ncoord[i] = tcoord[i];
+		}
+		ncoord[i1] = getPointAtDistance(ls, distance);
+	    return new LineString(ncoord, ls.getPrecisionModel(), ls.getSRID());
+	}
+
+
+	/**
+	 * @brief Returns the part of the given line string that starts at the given distance
+	 * @param ls The line string to strip
+	 * @param distance The distance at which the returned part shall start
+	 * @return The part of the lines string that starts at the given distance
+	 */
+	public static LineString getGeomBehindDistance(LineString ls, double distance) {
+		distance = patchDistance(ls, distance);
+	    double seenLength = 0;
+		Coordinate tcoord[] = ls.getCoordinates();
+	    int numPoints = ls.getNumPoints();
+	    int i1 = 0;
+		for(; i1<numPoints-1&&seenLength<distance; ++i1) {
+			double nextLength = distance(tcoord[i1], tcoord[i1+1]);
+			seenLength += nextLength;
+		}
+		Coordinate ncoord[] = new Coordinate[numPoints-i1+1];
+		ncoord[0] = getPointAtDistance(ls, distance);
+		for(int i=1; i1<numPoints; ++i, ++i1) {
+			ncoord[i] = tcoord[i1];
+		}
+	    return new LineString(ncoord, ls.getPrecisionModel(), ls.getSRID());
+	}
+
+	
+	/**
+	 * @brief Assure that the distance is not longer than the given line string's length
+	 * @param ls The line string
+	 * @param distance The distance
+	 * @return A distance prunned to the line string's length
+	 */
+	private static double patchDistance(LineString ls, double distance) {
+		double len = ls.getLength();
+		double offset = len<.1 ? len / 4. : .1;  
+		return Math.min(len-offset, Math.max(offset, distance));
+	}
+
+	
+	/**
+	 * @brief Returns the euclidian distance between two points
+	 * @param p1 Point 1
+	 * @param p2 Point 2
+	 * @return The distance between both points
+	 */
+	public static double distance(Point p1, Point p2) {
+		double dx = p1.x - p2.x;
+		double dy = p1.y - p2.y;
+		return Math.sqrt(dx*dx + dy*dy);
+	}
+	
+	
+	/**
+	 * @brief Returns the euclidian distance between two coordinates
+	 * @param p1 Coordinate 1
+	 * @param p2 Coordinate 2
+	 * @return The distance between both coordinates
+	 */
+	public static double distance(Coordinate p1, Coordinate p2) {
+		double dx = p1.x - p2.x;
+		double dy = p1.y - p2.y;
+		return Math.sqrt(dx*dx + dy*dy);
+	}
+	
+	
+	/**
+	 * @brief Returns the distance to the given point from the given line
+	 * @param lineStart The begin of the line
+	 * @param lineEnd The end of the line
+	 * @param p The point
+	 * @param perpendicular Whether the point has to be perpendicular to the line
+	 * @return The distance to the point, -1 if the point is not perpendicular but should be
+	 */
+	public static double getDistanceOnLine(Point lineStart, Point lineEnd, Point p, boolean perpendicular) {
+		double lineLength2D = distance(lineStart, lineEnd);
+		if(lineLength2D==0) {
+			return 0;
+		}
+        double u = (((p.x - lineStart.x) * (lineEnd.x - lineStart.x)) + ((p.y - lineStart.y) * (lineEnd.y - lineStart.y)) ) / (lineLength2D * lineLength2D);
+        if (u < 0.0f || u > 1.0f) {  // closest point does not fall within the line segment
+        	if (perpendicular) {
+        		return -1;
+        	}
+        	if (u < 0.0f) {
+        		return 0.0f;
+        	}
+        	return lineLength2D;
+        }
+        return u * lineLength2D;
+	}
+	
+	
+	/**
+	 * @brief Returns the distance to the given point from the given line
+	 * @param lineStart The begin of the line
+	 * @param lineEnd The end of the line
+	 * @param p The point
+	 * @param perpendicular Whether the point has to be perpendicular to the line
+	 * @return The distance to the point, -1 if the point is not perpendicular but should be
+	 */
+	public static double getDistanceOnLine(Coordinate lineStart, Coordinate lineEnd, Coordinate p, boolean perpendicular) {
+		double lineLength2D = distance(lineStart, lineEnd);
+		if(lineLength2D==0) {
+			return 0;
+		}
+        double u = (((p.x - lineStart.x) * (lineEnd.x - lineStart.x)) + ((p.y - lineStart.y) * (lineEnd.y - lineStart.y)) ) / (lineLength2D * lineLength2D);
+        if (u < 0.0f || u > 1.0f) {  // closest point does not fall within the line segment
+        	if (perpendicular) {
+        		return -1;
+        	}
+        	if (u < 0.0f) {
+        		return 0.0f;
+        	}
+        	return lineLength2D;
+        }
+        return u * lineLength2D;
+	}
+	
+	
+	/**
+	 * @brief Returns the distance to the given point from the given line string
+	 * @param e The DBEdge representation of the line
+	 * @param point The point represented as a coordinate
+	 * @param opivot The point represented as a point
+	 * @return The distance to the point, -1 if the point is not perpendicular
+	 */
+	public static double getDistanceOnLineString(DBEdge e, Coordinate point, com.vividsolutions.jts.geom.Point opivot) {
+		double minDist = -1;
+		double pos = 0;
+		double minPos = 0;
+		int numPoints = e.geom.getNumPoints();
+		Coordinate tcoord[] = e.geom.getCoordinates();
+		Coordinate coord[] = new Coordinate[2];
+		for(int i=0; i<numPoints-1; ++i) {
+			coord[0] = tcoord[i];
+			coord[1] = tcoord[i+1];
+			LineString ls = new LineString(coord, e.geom.getPrecisionModel(), e.geom.getSRID());
+			double dist = opivot.distance(ls);
+			if(minDist<0 || minDist>dist) {
+				minDist = dist;
+				double d2 = getDistanceOnLine(coord[0], coord[1], point, true);
+				if(d2<0) {
+					d2 = distance(coord[0], point)<distance(coord[1], point) ? 0 : distance(coord[0], coord[1]);
+				}
+				minPos = pos + d2;
+			}
+			pos += ls.getLength();
+		}
+		return Math.max(0, Math.min(e.length, minPos));
+	}
+}
