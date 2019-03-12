@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.dlr.ivf.urmo</groupId>
   <artifactId>UrMoAccessibilityComputer</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.1-PRERELEASE</version>
   <packaging>jar</packaging>
   
   <build>
