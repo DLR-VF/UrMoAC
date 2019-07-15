@@ -1,4 +1,5 @@
-# [[https://github.com/DLR-VF/UrMoAC/blob/master/logo.png]] UrMoAC
+# UrMoAC
+[[https://github.com/DLR-VF/UrMoAC/blob/master/logo.png]] 
 A tool for computing accessibility measures, supporting aggregation, variable limits, and intermodality.
 
 When using it, you are obligated to cite it as:
