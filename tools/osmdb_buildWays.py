@@ -7,7 +7,7 @@
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Imports an OSM-file into the database
 # Call with
-#  osmdb_BuildWays <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD> <FILE>
+#  osmdb_BuildWays <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD>
 # =========================================================
 # ToDo
 # - modi
