@@ -1,0 +1,8 @@
+[node]
+building=*
+
+[way]
+building=*
+
+[relation]
+building=*
