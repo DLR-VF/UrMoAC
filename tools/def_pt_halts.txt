@@ -1,0 +1,3 @@
+[node]
+public_transport=stop_position
+highway=bus_stop
