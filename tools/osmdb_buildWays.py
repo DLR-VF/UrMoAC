@@ -7,7 +7,7 @@
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Imports an OSM-file into the database
 # Call with
-#  osmdb_BuildWays <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD>
+#  osmdb_buildWays <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD>
 # =========================================================
 # ToDo
 # - modi
@@ -390,11 +390,11 @@ cursor.execute("""CREATE TABLE %s.%s_network (
   mode_mit boolean,    
   modes bigint,
   nodes bigint[],
-  sidewalk varchar(40),
-  cycleway varchar(40),
+  sidewalk text,
+  cycleway text,
   width double precision,
-  surface varchar(40),
-  lit varchar(40),
+  surface text,
+  lit text,
   name text,
   slope real    
 );""" % (schema, prefix))

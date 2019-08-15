@@ -7,7 +7,7 @@
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Extracts specific structures (not the network) from an OSM-database representation
 # Call with
-#  osmdb_getStructures.py <INPUT_TABLE> <DEF_FILE> <OUTPUT_TABLE> 
+#  osmdb_buildStructures.py <INPUT_TABLE> <DEF_FILE> <OUTPUT_TABLE> 
 # where <INPUT_TABLE> is defined as:
 #  <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD>  
 # and <OUTPUT_TABLE> is defined as:
