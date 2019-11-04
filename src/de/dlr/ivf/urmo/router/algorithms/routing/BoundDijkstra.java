@@ -53,6 +53,7 @@ public class BoundDijkstra {
 			int boundNumber, double boundTT, double boundDist, double boundVar, boolean shortestOnly) {
 		
 		DBEdge startEdge = source.edge;
+		boolean hadExtension = false;
 		long availableModes = modes;
 		Mode usedMode = Modes.getMode(_usedMode);
 		double tt = startEdge.getTravelTime("", usedMode.vmax, time);
@@ -65,8 +66,10 @@ public class BoundDijkstra {
 		next.add(nm);
 		ret.addNodeInfo(startEdge.getToNode(), availableModes, nm);
 		if(ret.addEdgeInfo(measure, startEdge, nm)) {
-			boundDist = startEdge.getLength();
-			// !!! TODO: check whether boundDist should also be adapted when a sink is found in later steps
+			if(!hadExtension&&!ret.allFound()) {
+				boundTT = Math.max(boundTT, tt*2);
+				hadExtension = true;
+			}
 		} 
 		
 		// consider starting in the opposite direction
@@ -79,7 +82,10 @@ public class BoundDijkstra {
 			next.add(nm);
 			ret.addNodeInfo(e.getToNode(), availableModes, nm);
 			if(ret.addEdgeInfo(measure, e, nm)) {
-				boundDist = e.getLength();
+				if(!hadExtension&&!ret.allFound()) {
+					boundTT = Math.max(boundTT, tt*2);
+					hadExtension = true;
+				}
 			}
 		}
 		
@@ -129,14 +135,20 @@ public class BoundDijkstra {
 					ret.addNodeInfo(n, availableModes, newValue);
 				}
 				if(ret.addEdgeInfo(measure, oe, newValue)) {
-					next.clear();
+					if(!hadExtension&&!ret.allFound()) {
+						boundTT = Math.max(boundTT, tt+newValue.first.ttt+ttt);
+						hadExtension = true;
+					}
 				}
 				
 				// check opposite direction
 				if(oe.opposite!=null && oe.opposite.getAttachedObjectsNumber()!=0) {
 					DijkstraEntry newOppositeValue = new DijkstraEntry(measure, nns, n, oe.opposite, availableModes, usedMode, distance, tt, line, ttt, interchangeTT, true);
 					if(ret.addEdgeInfo(measure, oe.opposite, newOppositeValue)) {
-						next.clear();
+						if(!hadExtension&&!ret.allFound()) {
+							boundTT = Math.max(boundTT, tt+newOppositeValue.first.ttt+ttt);
+							hadExtension = true;
+						}
 					}
 				}
 				

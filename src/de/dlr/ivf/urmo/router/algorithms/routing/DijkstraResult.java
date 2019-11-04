@@ -110,5 +110,10 @@ public class DijkstraResult {
 	public DijkstraEntry getEdgeInfo(DBEdge edge) {
 		return edgeMap.get(edge);
 	}
+	
+	
+	public boolean allFound() {
+		return toFind.size()==0;
+	}
 
 }
