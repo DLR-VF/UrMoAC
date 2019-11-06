@@ -27,7 +27,7 @@ class OSMDB:
     return self.cursor.fetchall()      
     
   def getWay(self, wID):
-    query = "SELECT * from %s.%s_way WHERE id='%s';" % (self.schema, self.dbprefix, wID)
+    query = "SELECT id,refs from %s.%s_way WHERE id='%s';" % (self.schema, self.dbprefix, wID)
     return self.fetchAllFromQuery(query);
   
   def getWayKV_forID(self, sid):

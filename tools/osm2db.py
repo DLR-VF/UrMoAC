@@ -101,7 +101,7 @@ class OSMReader(handler.ContentHandler):
     self.elements = self.elements[:-1]
 
   def checkCommit(self, force):
-    if not force and (len(self.nodes)+len(self.ways)+len(self.relations))<1000:
+    if not force and (len(self.nodes)+len(self.ways)+len(self.relations))<10000:
       return
     ntagsNum = 0
     wtagsNum = 0

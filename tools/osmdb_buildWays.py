@@ -17,18 +17,11 @@
 
 import os, string, sys
 import datetime
-
 from optparse import OptionParser
 from xml.sax import saxutils, make_parser, handler
-
 import psycopg2, osmdb
-
-from pylab import *
-import matplotlib.patches as patches
-from matplotlib.collections import PatchCollection
-
 from osmmodes import *
-import datetime
+
 
 def parsePOINT2XY(which, scale=1.):
   which = which[6:-1]
@@ -301,7 +294,7 @@ accessAllows = {
   "customers":True,
   "official":True, # should be "designated"
   "emergency":False,
-  "service":False,
+  "service":True,
 }
 
 
@@ -415,8 +408,8 @@ for upperType in ["highway", "railway"]:
       continue
     seen.add(hID)
     htype = h[1]+"_"+h[2]
-    if htype=="highway_proposed": htype="highway_residential"
-    if htype=="highway_construction": htype="highway_residential"
+    #if htype=="highway_proposed": htype="highway_residential"
+    #if htype=="highway_construction": htype="highway_residential"
 
     if htype not in highways:
       print "unrecognized highway type %s" % htype
@@ -437,8 +430,8 @@ for upperType in ["highway", "railway"]:
     if hID in seen:
       continue
     htype = h[1]+"_"+h[2]
-    if htype=="highway_proposed": htype="highway_residential"
-    if htype=="highway_construction": htype="highway_residential"
+    #if htype=="highway_proposed": htype="highway_residential"
+    #if htype=="highway_construction": htype="highway_residential"
     if htype not in highways:
       continue
     else:
@@ -482,11 +475,14 @@ for upperType in ["highway", "railway"]:
       ni = 0
       hGeom = []
       nodeIDs = []
+
       while ni!=len(hNodes):
         n = hNodes[ni]
         p = parsePOINT2XY(n[1])
         nodeIDs.append(n[0])
         hGeom.append("%s %s" % (p[0], p[1]))
+        if n[0] not in nodes:
+          print "Critical error: way %s has a node %s not seen before; all nodes: %s" % (hID, n[0], n)
         if nodes[n[0]]>1 and ni>0:
           # store the road
           if modesF!=0:
