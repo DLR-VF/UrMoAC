@@ -24,7 +24,6 @@ import com.vividsolutions.jts.operation.buffer.validate.DistanceToPointFinder;
 import com.vividsolutions.jts.operation.buffer.validate.PointPairDistance;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraEntry;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 
 /**
@@ -46,7 +45,7 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 	 * @throws SQLException When something fails
 	 */
 	public EdgeMappingWriter(String url, String tableName, String user, String pw, int rsid, boolean dropPrevious) throws SQLException {
-		super(url, user, pw, tableName, "(gid bigint, rid varchar(40))", "VALUES (?, ?, ST_GeomFromText(?, " + rsid + "))", dropPrevious);
+		super(url, user, pw, tableName, "(gid bigint, rid text, rpos real, dist real)", "VALUES (?, ?, ?, ?, ST_GeomFromText(?, " + rsid + "))", dropPrevious);
 		addGeometryColumn("pos", rsid, "LINESTRING", 2);
 	}
 
@@ -89,6 +88,8 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 				if (intoDB()) {
 					ps.setLong(1, o.em.getOuterID());
 					ps.setString(2, e.id);
+					ps.setFloat(3, (float) o.pos);
+					ps.setFloat(4, (float) o.dist);
 
 					/*
 					 * Coordinate dest1 = new Coordinate(); Coordinate dest2 =
@@ -101,12 +102,12 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 					 */
 					String p1 = ppd.getCoordinate(0).x + " " + ppd.getCoordinate(0).y;
 					String p2 = ppd.getCoordinate(1).x + " " + ppd.getCoordinate(1).y;
-					ps.setString(3, "LINESTRING(" + p1 + "," + p2 + ")");
+					ps.setString(5, "LINESTRING(" + p1 + "," + p2 + ")");
 					ps.addBatch();
 				} else {
-					fileWriter.append(o.em.getOuterID() + ";" + e.id + ";" + ppd.getCoordinate(0).x + ";"
-							+ ppd.getCoordinate(0).y + ";" + ppd.getCoordinate(1).x + ";" + ppd.getCoordinate(1).y + ";"
-							+ ppd.getDistance() + "\n");
+					fileWriter.append(o.em.getOuterID() + ";" + e.id + ";" + o.pos + ";" + o.dist + ";" 
+							+ ppd.getCoordinate(0).x + ";" + ppd.getCoordinate(0).y + ";" 
+							+ ppd.getCoordinate(1).x + ";" + ppd.getCoordinate(1).y + "\n");
 				}
 			}
 
