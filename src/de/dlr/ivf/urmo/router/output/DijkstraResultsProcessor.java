@@ -79,9 +79,11 @@ public class DijkstraResultsProcessor {
 					continue;
 				}
 				Vector<MapResult> toObjects = nearestToEdges.get(destEdge);
-				for(MapResult toObject : toObjects) {
-					AbstractSingleResult result = agg.parent.buildResult(beginTime, mr, toObject, dr);
-					results.add(result);
+				if(toObjects!=null) {
+					for(MapResult toObject : toObjects) {
+						AbstractSingleResult result = agg.parent.buildResult(beginTime, mr, toObject, dr);
+						results.add(result);
+					}
 				}
 			}
 			results.sort(comparator);

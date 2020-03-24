@@ -93,7 +93,7 @@ public class DBEdge {
 	/// @brief The length of this edge
 	public double length;
 	/// @brief Objects assigned to this edge
-	public HashMap<EdgeMappable, Object> objects = new HashMap<>();
+	public HashSet<EdgeMappable> objects = null;
 	/// @brief The list of travel time informations for this edge
 	public Vector<V> speeds = null;
 	/// @brief The sum of attached values
@@ -236,7 +236,10 @@ public class DBEdge {
 	 * @param em The object to add
 	 */
 	public void addMappedObject(EdgeMappable em) {
-		objects.put(em, null); // !!! Set?
+		if(objects==null) {
+			objects = new HashSet<>();
+		}
+		objects.add(em);
 		attachedValuesSum += ((LayerObject) em).getAttachedValue();
 	}
 
@@ -245,7 +248,7 @@ public class DBEdge {
 	 * @brief Returns the attached objects
 	 * @return The objects attached to this edge
 	 */
-	public HashMap<EdgeMappable, Object> getMappedObjects() {
+	public Set<EdgeMappable> getMappedObjects() {
 		return objects;
 	}
 
@@ -264,6 +267,9 @@ public class DBEdge {
 	 * @return The number of attached objects
 	 */
 	public int getAttachedObjectsNumber() {
+		if(objects==null) {
+			return 0;
+		}
 		return objects.size();
 	}
 
