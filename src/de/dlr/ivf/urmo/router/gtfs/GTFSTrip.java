@@ -23,10 +23,6 @@ public class GTFSTrip {
 	public String serviceID;
 	/// @brief The id of the trip
 	public int tripID;
-	/// @brief The headsign at the pt vehicle
-	public String headSign;
-	/// @brief The name of this trip
-	public String name;
 
 
 	/**
@@ -34,16 +30,11 @@ public class GTFSTrip {
 	 * @param _routeID The id of the route
 	 * @param _serviceID The id of the service
 	 * @param _tripID The id of the trip
-	 * @param _headSign The headsign at the pt vehicle
-	 * @param _name The name of this trip
-	 * @param _blockID The id of the block (parent station)
 	 */
-	public GTFSTrip(String _routeID, String _serviceID, int _tripID, String _headSign, String _name) {
+	public GTFSTrip(String _routeID, String _serviceID, int _tripID) {
 		routeID = _routeID;
 		serviceID = _serviceID;
 		tripID = _tripID;
-		headSign = _headSign;
-		name = _name;
 	}
 
 }

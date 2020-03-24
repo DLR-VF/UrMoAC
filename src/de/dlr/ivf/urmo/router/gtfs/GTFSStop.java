@@ -31,8 +31,6 @@ import de.dlr.ivf.urmo.router.shapes.DBNode;
 public class GTFSStop extends DBNode implements EdgeMappable {
 	/// @brief The stop's id
 	public String mid;
-	/// @brief The stop's name
-	public String name;
 	/// @brief The location of this stop
 	public Point point;
 	/// @brief A map of one-hop destinations to routes to pt edges that start at this node
@@ -45,14 +43,12 @@ public class GTFSStop extends DBNode implements EdgeMappable {
 	 * @brief Constructor
 	 * @param _id The stop's id
 	 * @param _mid The stop's id !!!clarify why twice
-	 * @param _name The stop's name
 	 * @param _pos The location of this stop
 	 * @param _point The location of this stop!!!clarify why twice
 	 */
-	public GTFSStop(long _id, String _mid, String _name, Coordinate _pos, Point _point) {
+	public GTFSStop(long _id, String _mid, Coordinate _pos, Point _point) {
 		super(_id, _pos);
 		mid = _mid;
-		name = _name;
 		point = _point;
 	}
 

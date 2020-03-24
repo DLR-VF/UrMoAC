@@ -10,9 +10,16 @@
  */
 package de.dlr.ivf.urmo.router.gtfs;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
+import java.util.Vector;
+
+import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
+import de.dlr.ivf.urmo.router.shapes.DBNet;
 
 /**
  * @class GTFSData
@@ -28,11 +35,18 @@ public class GTFSData {
 	/// @brief A map of ids to the respective trip
 	public HashMap<Integer, GTFSTrip> trips;
 	/// @brief A set of edges (!!! unused?)
-	public Set<GTFSEdge> connections;
+	public Set<GTFSEdge> ptedges = new HashSet<>();
+	/// @brief The network to refer to
+	private DBNet net;
+	/// @brief The entrainment map used
+	private EntrainmentMap entrainmentMap;
+	
 
 	/// @brief TODO: some kind of an intermediate storage for dealing with a
 	/// line names; to be replaced by something honest
-	HashMap<String, String> namemap = new HashMap<>();
+	private HashMap<String, String> namemap = new HashMap<>();
+	
+	
 
 
 	/**
@@ -42,12 +56,12 @@ public class GTFSData {
 	 * @param _trips A list of trips
 	 * @param _connections A set of edges (!!! unused?)
 	 */
-	public GTFSData(HashMap<Long, GTFSStop> _stops, HashMap<String, GTFSRoute> _routes, HashMap<Integer, GTFSTrip> _trips,
-			Set<GTFSEdge> _connections) {
+	public GTFSData(DBNet _net, EntrainmentMap _entrainmentMap, HashMap<Long, GTFSStop> _stops, HashMap<String, GTFSRoute> _routes, HashMap<Integer, GTFSTrip> _trips) {
+		net = _net;
+		entrainmentMap = _entrainmentMap;
 		stops = _stops;
 		routes = _routes;
 		trips = _trips;
-		connections = _connections;
 
 		namemap.put("100", "RE");
 		namemap.put("109", "S-Bahn");
@@ -55,7 +69,6 @@ public class GTFSData {
 		namemap.put("700", "Bus");
 		namemap.put("900", "Tram");
 		namemap.put("1000", "Ferry");
-
 	}
 
 
@@ -97,4 +110,115 @@ public class GTFSData {
 		return modes.toString();
 	}
 
+
+
+	/** @brief Revisits connections correcting the times and inserts them into respective edges
+	 * 
+	 * It may happen that a pt carrier departs a stop and enters the next at the same time. This is patched by adding / subtracting
+	 * 15s.
+	 * 
+	 * After this is done, the connections are inserted into the respective edges.
+	 * 
+	 * @param lastConnections The connections to recheck
+	 */
+	public int recheckTimesAndInsert(int tripID, Vector<GTFSStopTime> stopTimes, HashMap<String, GTFSStop> id2stop) {
+		Collections.sort(stopTimes, new Comparator<GTFSStopTime>() {
+            public int compare(GTFSStopTime obj1, GTFSStopTime obj2) {
+                return obj1.arrivalTime - obj2.arrivalTime;
+            }
+		});
+		
+		Vector<GTFSConnection> connections = new Vector<>();
+		GTFSStopTime lastStopTime = null;
+		for(Iterator<GTFSStopTime> i=stopTimes.iterator(); i.hasNext();) {
+			GTFSStopTime stopTime = i.next();
+			if (lastStopTime == null) {
+				lastStopTime = stopTime;
+				continue;
+			}
+			GTFSStop stop = id2stop.get(stopTime.stopID);
+			GTFSStop lastStop = id2stop.get(lastStopTime.stopID);
+			if(stop!=null && lastStop!=null) {
+				GTFSTrip trip = trips.get(tripID);
+				GTFSRoute route = routes.get(trip.routeID);
+				GTFSEdge e = lastStop.getEdgeTo(stop, net.getNextID(), route, entrainmentMap, net.getPrecisionModel(), net.getSRID());
+				ptedges.add(e);
+				GTFSConnection c = new GTFSConnection(e, trip.serviceID, trip.tripID, lastStopTime.departureTime, stopTime.arrivalTime);
+				connections.add(c);
+			}
+			lastStopTime = stopTime;		
+		}
+		
+		
+		
+		
+		// check arrival / departure times
+		int err = 0;
+		for(int i=0; i<connections.size(); ++i) {
+			GTFSConnection curr = connections.elementAt(i);
+			if(curr.departureTime>curr.arrivalTime) {
+				//int n = curr.departureTime;
+				//curr.departureTime = curr.arrivalTime;
+				//curr.arrivalTime = n;
+				//System.err.println("A connection of line " + curr.line + " departs at " + curr.departureTime + " and arrives at " + curr.arrivalTime + ".");
+				++err;
+				continue;
+				//throw new RuntimeException("A connection of line " + curr.line + " departs at " + curr.departureTime + " and arrives at " + curr.arrivalTime + ".");
+			}
+			if(curr.departureTime!=curr.arrivalTime) {
+				continue;
+			}
+			// patch the departure time if possible
+			// search backwards for to find some seconds that can be used
+			int ib = i;
+			while(ib>=0) {
+				GTFSConnection beg = connections.elementAt(ib);
+				if(beg.departureTime!=curr.departureTime) {
+					break;
+				}
+				--ib;
+			}
+			if(ib<0) {
+				ib = 0;
+			}
+			int ie = i;
+			while(ie<connections.size()) {
+				GTFSConnection end = connections.elementAt(ie);
+				if(end.arrivalTime!=curr.arrivalTime) {
+					break;
+				}
+				++ie;
+			}
+			if(ie==connections.size()) {
+				ie = connections.size()-1;
+			}
+			if(ie==ib) {
+				connections.elementAt(i).departureTime -= 15;
+				connections.elementAt(i).arrivalTime += 15;
+				
+			} else {
+				int timeSpan = connections.elementAt(ie).arrivalTime - connections.elementAt(ib).departureTime;
+				int dt = timeSpan / (ie-ib+1);
+				int t = connections.elementAt(ib).departureTime;
+				for(int j=ib; j<=ie; ++j) {
+					connections.elementAt(j).departureTime = t;
+					t = t + dt;
+					connections.elementAt(j).arrivalTime = t;
+				}
+			}
+		}
+		// insert into edges
+		for(GTFSConnection c : connections) {
+			c.edge.addConnection(c);
+		}
+		return err;
+	}	
+
+	
+	public void sortConnections() {
+		for (GTFSEdge e : ptedges) {
+			e.sortConnections();
+		}
+	}
+	
 }

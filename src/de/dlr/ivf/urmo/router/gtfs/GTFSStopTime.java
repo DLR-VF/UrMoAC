@@ -23,10 +23,6 @@ public class GTFSStopTime {
 	public int arrivalTime;
 	/// @brief The departure time from the station
 	public int departureTime;
-	/// @brief The pickup type at this station
-	public int pickupType;
-	/// @brief The drop-off type at this station
-	public int dropOffType;
 	/// @brief The id of the station
 	public String stopID;
 
@@ -37,16 +33,11 @@ public class GTFSStopTime {
 	 * @param _arrivalTime The arrival time at the station
 	 * @param _departureTime The departure time from the station
 	 * @param _stopID The id of the station
-	 * @param _pickupType The pickup type at this station
-	 * @param _dropOffType The drop-off type at this station
 	 */
-	public GTFSStopTime(int _id, int _arrivalTime, int _departureTime, String _stopID, int _pickupType,
-			int _dropOffType) {
+	public GTFSStopTime(int _id, int _arrivalTime, int _departureTime, String _stopID) {
 		id = _id;
 		arrivalTime = _arrivalTime;
 		departureTime = _departureTime;
-		pickupType = _pickupType;
-		dropOffType = _dropOffType;
 		stopID = _stopID;
 	}
 

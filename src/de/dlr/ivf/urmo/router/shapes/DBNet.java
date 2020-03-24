@@ -312,4 +312,62 @@ public class DBNet {
 		return srid;
 	}
 
+	
+	/**
+	 * @brief goes through the edges, sorts their speed reductions
+	 */
+	public void sortSpeedReductions() {
+		for(DBEdge e : name2edge.values()) {
+			e.sortSpeedReductions();
+		}
+	}
+
+
+	/**
+	 * @brief Extends the network by adding opposite edges for pedestrians
+	 * @param index the next edge id to use
+	 */
+	public void extendDirections() {
+		Vector<DBEdge> newEdges = new Vector<>();
+		long modeFoot = Modes.getMode("foot").id;
+		for(DBEdge e : name2edge.values()) {
+			DBNode to = e.getToNode();
+			Vector<DBEdge> edges2 = to.getOutgoing();
+			DBEdge opposite = null;
+			for(DBEdge e2 : edges2) {
+				if(e2.getToNode()==e.getFromNode() && Math.abs(e.length-e2.length)<1.) {
+					// check whether the edges are parallel
+					LineString eg = e.geom;
+					boolean distant = false;
+					for(int i=0; i<eg.getNumPoints()&&!distant; ++i) {
+						if(e2.geom.distance(eg.getPointN(i))>.1) {
+							distant = true;
+						}
+					}
+					if(!distant) {
+						// opposite direction found
+						opposite = e2;
+						if(!e2.allows(modeFoot)&&e.allows(modeFoot)) {
+							e2.addMode(modeFoot);
+						}
+						break;
+					}
+				}
+			}
+			// add a reverse direction edge for pedestrians
+			if(opposite==null && e.allows(modeFoot)) {
+				opposite = new DBEdge(getNextID(), "opp_"+e.id, e.to, e.from, modeFoot, e.vmax, (LineString) e.geom.reverse(), e.length);
+				newEdges.add(opposite);
+			}
+			// add the information about the opposite edge
+			if(opposite!=null) {
+				opposite.opposite = e;
+				e.opposite = opposite;
+			}
+		}
+		for(DBEdge e : newEdges) {
+			addEdge(e);
+		}
+	}
+	
 }

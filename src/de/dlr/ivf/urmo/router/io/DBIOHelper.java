@@ -61,7 +61,7 @@ public class DBIOHelper {
 		connection.setAutoCommit(true);
 		connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 		((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-		String query = "SELECT *,";
+		String query = "SELECT " + idS + ",";
 		if(!"".equals(varName)) {
 			query += varName + ",";
 		}
@@ -74,7 +74,12 @@ public class DBIOHelper {
 		while (rs.next()) {
 			ResultSetMetaData rsmd = rs.getMetaData();
 			int numColumns = rsmd.getColumnCount();
-			Geometry geom = wkbRead.read(rs.getBytes(numColumns));
+			byte[] bytes = rs.getBytes(numColumns);
+			if(bytes==null) {
+				System.err.println(" Object '" + rs.getLong(idS) + "' has no geometry.");
+				continue;
+			}
+			Geometry geom = wkbRead.read(bytes);
 			double var = 1;
 			if (!"".equals(varName)) {
 				var = rs.getDouble(numColumns-1);
@@ -82,6 +87,8 @@ public class DBIOHelper {
 			LayerObject o = new LayerObject(idGiver.getNextRunningID(), rs.getLong(idS), var, geom);
 			layer.addObject(o);
 		}
+		rs.close();
+		s.close();
 		return layer;
 	}
 	
@@ -100,6 +107,8 @@ public class DBIOHelper {
 		while (rs.next()) {
 			em.add(""+rs.getString("carrier")+rs.getInt("carrier_subtype"), Modes.getMode(rs.getString("carried")).id);
 		}
+		rs.close();
+		s.close();
 		return em;
 	}
 
@@ -109,17 +118,20 @@ public class DBIOHelper {
 		connection.setAutoCommit(true);
 		connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 		((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-		String query = "SELECT *,ST_AsBinary(ST_TRANSFORM(" + geomS + "," + epsg + ")) FROM " + table + ";";
+		String query = "SELECT ST_AsBinary(ST_TRANSFORM(" + geomS + "," + epsg + ")) FROM " + table + ";";
 		Statement s = connection.createStatement();
 		ResultSet rs = s.executeQuery(query);
-
+		Geometry geom = null;
 		WKBReader wkbRead = new WKBReader();
-		while (rs.next()) {
-			ResultSetMetaData rsmd = rs.getMetaData();
-			Geometry geom = wkbRead.read(rs.getBytes(rsmd.getColumnCount()));
-			return geom;
+		if (rs.next()) {
+			geom = wkbRead.read(rs.getBytes(0));
 		}
-		return null;
+		rs.close();
+		s.close();
+		return geom;
+	}
+	
+	
 	}
 	
 	

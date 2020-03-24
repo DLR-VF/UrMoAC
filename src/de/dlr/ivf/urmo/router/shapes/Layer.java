@@ -33,8 +33,6 @@ public class Layer {
 	public boolean visible;
 	/// @brief List of objects stored in this layer
 	Vector<EdgeMappable> objects;
-	/// @brief A spatial index objects in this layer
-	public SpatialIndex rtree = new RTree();
 
 
 	/**
@@ -45,7 +43,6 @@ public class Layer {
 		name = _name;
 		objects = new Vector<>();
 		visible = true;
-		rtree.init(null);
 	}
 
 
@@ -81,7 +78,6 @@ public class Layer {
 			}
 			r = new Rectangle((float) (minX - 1.), (float) (minY - 1.), (float) (maxX + 1.), (float) (maxY + 1.));
 		}
-		rtree.add(r, (int) o.getUniqueID()); // !!!
 	}
 
 

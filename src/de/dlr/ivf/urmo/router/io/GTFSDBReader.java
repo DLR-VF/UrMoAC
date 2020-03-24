@@ -37,9 +37,7 @@ import com.vividsolutions.jts.io.WKBReader;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.NearestEdgeFinder;
-import de.dlr.ivf.urmo.router.gtfs.GTFSConnection;
 import de.dlr.ivf.urmo.router.gtfs.GTFSData;
-import de.dlr.ivf.urmo.router.gtfs.GTFSEdge;
 import de.dlr.ivf.urmo.router.gtfs.GTFSRoute;
 import de.dlr.ivf.urmo.router.gtfs.GTFSStop;
 import de.dlr.ivf.urmo.router.gtfs.GTFSStopTime;
@@ -105,7 +103,7 @@ public class GTFSDBReader {
 		
 		// read stops, extend network accordingly
 		System.out.println(" ... reading stops ...");
-		String query = "SELECT *,ST_AsBinary(ST_TRANSFORM(pos," + epsg + ")) FROM " + tablePrefix + "_stops" + boundsFilter + ";";
+		String query = "SELECT stop_id,ST_AsBinary(ST_TRANSFORM(pos," + epsg + ")) FROM " + tablePrefix + "_stops" + boundsFilter + ";";
 		Statement s = connection.createStatement();
 		ResultSet rs = s.executeQuery(query);
 		WKBReader wkbRead = new WKBReader();
@@ -116,12 +114,15 @@ public class GTFSDBReader {
 			ResultSetMetaData rsmd = rs.getMetaData();
 			Geometry geom = wkbRead.read(rs.getBytes(rsmd.getColumnCount()));
 			Coordinate[] cs = geom.getCoordinates();
-			GTFSStop stop = new GTFSStop(net.getNextID(), rs.getString("stop_id"), rs.getString("stop_desc"), cs[0], gf.createPoint(cs[0])); // !!! new id - the nodes should have a new id as well
+			GTFSStop stop = new GTFSStop(net.getNextID(), rs.getString("stop_id"), cs[0], gf.createPoint(cs[0])); // !!! new id - the nodes should have a new id as well
 			net.addNode(stop);
 			stops.put(stop.id, stop);
 			id2stop.put(stop.mid, stop);
 			stopsV.add(stop);
 		}
+		rs.close();
+		s.close();
+		
 		// map stops to edges
 		long accessModes = Modes.getMode("foot").id|Modes.getMode("bicycle").id;
 		NearestEdgeFinder nef = new NearestEdgeFinder(stopsV, net, accessModes);
@@ -174,17 +175,18 @@ public class GTFSDBReader {
 
 		// read routes
 		System.out.println(" ... reading routes ...");
-		query = "SELECT * FROM " + tablePrefix + "_routes;";
+		query = "SELECT route_id,route_short_name,route_type FROM " + tablePrefix + "_routes;";
 		s = connection.createStatement();
 		rs = s.executeQuery(query);
 		HashMap<String, GTFSRoute> routes = new HashMap<>();
 		while (rs.next()) {
-			GTFSRoute route = new GTFSRoute(rs.getString("route_id"), rs.getString("route_short_name"),
-					rs.getString("route_long_name"), rs.getInt("route_type"), -1);
+			GTFSRoute route = new GTFSRoute(rs.getString("route_id"), rs.getString("route_short_name"), rs.getInt("route_type"));
 			if(allowedCarrier==null || allowedCarrier.contains(route.type)) {
 				routes.put(rs.getString("route_id"), route);
 			}
 		}
+		rs.close();
+		s.close();
 
 		// read services
 		System.out.println(" ... reading services ...");
@@ -207,7 +209,7 @@ public class GTFSDBReader {
 		}
 		Set<String> services = new HashSet<String>();
 		if(dateI!=0) {
-			query = "SELECT * FROM " + tablePrefix + "_calendar;";
+			query = "SELECT service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date FROM " + tablePrefix + "_calendar;";
 			s = connection.createStatement();
 			rs = s.executeQuery(query);
 			while (rs.next()) {
@@ -221,7 +223,9 @@ public class GTFSDBReader {
 					services.add(rs.getString("service_id"));
 				}
 			}
-			query = "SELECT * FROM " + tablePrefix + "_calendar_dates;";
+			rs.close();
+			s.close();
+			query = "SELECT service_id,date,exception_type FROM " + tablePrefix + "_calendar_dates;";
 			s = connection.createStatement();
 			rs = s.executeQuery(query);
 			while (rs.next()) {
@@ -239,15 +243,16 @@ public class GTFSDBReader {
 					throw new ParseException("Unkonwn exception type in " + tablePrefix + "_calendar_dates.");
 				}
 			}
+			rs.close();
+			s.close();
 		}
 		
 		// read trips and stop times
 		System.out.println(" ... reading trips ...");
-		query = "SELECT * FROM " + tablePrefix + "_trips;";
+		query = "SELECT service_id,route_id,trip_id FROM " + tablePrefix + "_trips;";
 		s = connection.createStatement();
 		rs = s.executeQuery(query);
 		HashMap<Integer, GTFSTrip> trips = new HashMap<>();
-		Set<GTFSEdge> connections = new HashSet<>();
 		while (rs.next()) {
 			String service_id = rs.getString("service_id");
 			if(dateI!=0&&!services.contains(service_id)) {
@@ -256,30 +261,35 @@ public class GTFSDBReader {
 			if(!routes.containsKey(rs.getString("route_id"))) {
 				continue;
 			}
-			GTFSTrip trip = new GTFSTrip(rs.getString("route_id"), service_id, rs.getInt("trip_id"),
-					rs.getString("trip_headsign"), rs.getString("trip_short_name"));
+			GTFSTrip trip = new GTFSTrip(rs.getString("route_id"), service_id, rs.getInt("trip_id"));
 			trips.put(rs.getInt("trip_id"), trip);
 		}
+		rs.close();
+		s.close();
+		
+		// build intermediate container 
+		GTFSData ret = new GTFSData(net, entrainmentMap, stops, routes, trips);
+		
+		// read stop times, add to the read GTFS data
 		System.out.println(" ... reading stop times ...");
-		query = "SELECT * FROM " + tablePrefix + "_stop_times ORDER BY trip_id,stop_sequence;";
+		query = "SELECT trip_id,arrival_time,departure_time,stop_id FROM " + tablePrefix + "_stop_times ORDER BY trip_id,stop_sequence;";
 		s = connection.createStatement();
 		rs = s.executeQuery(query);
 		int lastTripID = -1;
-		GTFSStopTime lastStopTime = null;
-		Vector<GTFSConnection> lastConnections = new Vector<>();
+		Vector<GTFSStopTime> stopTimes = new Vector<>();
+		int abs = 0;
+		int err = 0;
 		while (rs.next()) {
 			int tripID = rs.getInt("trip_id");
 			if(!trips.containsKey(tripID)) {
-				lastStopTime = null;
 				continue;
 			}
-			if(tripID!=lastTripID) {
-				lastStopTime = null;
-				recheckTimesAndInsert(lastConnections);
-				lastConnections.clear();
+			if(tripID!=lastTripID&&lastTripID!=-1) {
+				err += ret.recheckTimesAndInsert(lastTripID, stopTimes, id2stop);
+				abs += stopTimes.size() - 1;
+				stopTimes.clear();
 			}
 			lastTripID = tripID;
-			
 			String arrivalTimeS = rs.getString("arrival_time");
 			String departureTimeS = rs.getString("departure_time");
 			int arrivalTime, departureTime;
@@ -290,34 +300,20 @@ public class GTFSDBReader {
 				arrivalTime = Integer.parseInt(arrivalTimeS);
 				departureTime = Integer.parseInt(departureTimeS);
 			}
-			
-			GTFSStopTime stopTime = new GTFSStopTime(tripID, arrivalTime, departureTime, 
-					rs.getString("stop_id"), rs.getInt("pickup_type"), rs.getInt("drop_off_type"));
-			if (lastStopTime == null) {
-				lastStopTime = stopTime;
-				continue;
-			}
-			GTFSStop stop = id2stop.get(stopTime.stopID);
-			GTFSStop lastStop = id2stop.get(lastStopTime.stopID);
-			if(stop!=null && lastStop!=null) {
-				GTFSTrip trip = trips.get(tripID);
-				GTFSRoute route = routes.get(trip.routeID);
-				GTFSEdge e = lastStop.getEdgeTo(stop, nextID + 1, route, entrainmentMap, net.getPrecisionModel(), net.getSRID());
-				connections.add(e);
-				nextID = Math.max(nextID, e.numID);
-				GTFSConnection c = new GTFSConnection(e, trip.serviceID, trip.tripID, lastStopTime.departureTime, stopTime.arrivalTime);
-				lastConnections.add(c);
-			}
-			lastStopTime = stopTime;
+			GTFSStopTime stopTime = new GTFSStopTime(tripID, arrivalTime, departureTime, rs.getString("stop_id"));
+			stopTimes.add(stopTime);
 		}
-		recheckTimesAndInsert(lastConnections);
-		for (GTFSEdge e : connections) {
-			e.sortConnections();
-		}
+		rs.close();
+		s.close();
+		err += ret.recheckTimesAndInsert(lastTripID, stopTimes, id2stop);
+		abs += stopTimes.size() - 1;
+		stopTimes.clear();
+		ret.sortConnections();
+		System.out.println("  " + abs + " connections found of which " + err + " were erroneous");
 
 		// read transfers times
 		System.out.println(" ... reading transfer times ...");
-		query = "SELECT * FROM " + tablePrefix + "_transfers;";
+		query = "SELECT from_stop_id,to_stop_id,transfer_type,from_trip_id,to_trip_id,min_transfer_time FROM " + tablePrefix + "_transfers;";
 		s = connection.createStatement();
 		rs = s.executeQuery(query);
 		while (rs.next()) {
@@ -345,75 +341,13 @@ public class GTFSDBReader {
 			} catch(NumberFormatException e) {
 			}
 		}
+		rs.close();
+		s.close();
 		
-		return new GTFSData(stops, routes, trips, connections);
+		return ret;
 		// !!! dismiss stops which do not have a route assigned?
 	}
 
-
-	/** @brief Revisits connections correcting the times and inserts them into respective edges
-	 * 
-	 * It may happen that a pt carrier departs a stop and enters the next at the same time. This is patched by adding / subtracting
-	 * 15s.
-	 * 
-	 * After this is done, the connections are inserted into the respective edges.
-	 * 
-	 * @param lastConnections The connections to recheck
-	 */
-	private static void recheckTimesAndInsert(Vector<GTFSConnection> lastConnections) {
-		// check arrival / departure times
-		for(int i=0; i<lastConnections.size(); ++i) {
-			GTFSConnection curr = lastConnections.elementAt(i);
-			if(curr.departureTime>curr.arrivalTime) {
-				throw new RuntimeException("A connection of line " + curr.line + " departs at " + curr.departureTime + " and arrives at " + curr.arrivalTime + ".");
-			}
-			if(curr.departureTime!=curr.arrivalTime) {
-				continue;
-			}
-			// patch the departure time if possible
-			// search backwards for to find some seconds that can be used
-			int ib = i;
-			while(ib>=0) {
-				GTFSConnection beg = lastConnections.elementAt(ib);
-				if(beg.departureTime!=curr.departureTime) {
-					break;
-				}
-				--ib;
-			}
-			if(ib<0) {
-				ib = 0;
-			}
-			int ie = i;
-			while(ie<lastConnections.size()) {
-				GTFSConnection end = lastConnections.elementAt(ie);
-				if(end.arrivalTime!=curr.arrivalTime) {
-					break;
-				}
-				++ie;
-			}
-			if(ie==lastConnections.size()) {
-				ie = lastConnections.size()-1;
-			}
-			if(ie==ib) {
-				lastConnections.elementAt(i).departureTime -= 15;
-				lastConnections.elementAt(i).arrivalTime += 15;
-				
-			} else {
-				int timeSpan = lastConnections.elementAt(ie).arrivalTime - lastConnections.elementAt(ib).departureTime;
-				int dt = timeSpan / (ie-ib+1);
-				int t = lastConnections.elementAt(ib).departureTime;
-				for(int j=ib; j<=ie; ++j) {
-					lastConnections.elementAt(j).departureTime = t;
-					t = t + dt;
-					lastConnections.elementAt(j).arrivalTime = t;
-				}
-			}
-		}
-		// insert into edges
-		for(GTFSConnection c : lastConnections) {
-			c.edge.addConnection(c);
-		}
-	}
 
 
 	/** 

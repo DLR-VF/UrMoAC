@@ -21,12 +21,8 @@ public class GTFSRoute {
 	public String id;
 	/// @brief The route's short name
 	public String nameS;
-	/// @brief The route's long name
-	public String nameL;
 	/// @brief The route's type
 	public int type;
-	/// @brief The route's color (as RGB-int)
-	public int color;
 	/// @brief A compound name for a single mode / line representation
 	public String nameHack;
 
@@ -35,16 +31,12 @@ public class GTFSRoute {
 	 * @brief Constructor
 	 * @param _id The route's id
 	 * @param _nameS The route's short name
-	 * @param _nameL The route's long name
 	 * @param _type The route's type
-	 * @param _color The route's color (as RGB-int)
 	 */
-	public GTFSRoute(String _id, String _nameS, String _nameL, int _type, int _color) {
+	public GTFSRoute(String _id, String _nameS, int _type) {
 		id = _id;
 		nameS = _nameS;
-		nameL = _nameL;
 		type = _type;
-		color = _color;
 		nameHack = _nameHack();
 	}
 	
