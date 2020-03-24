@@ -468,6 +468,10 @@ public class UrMoAccessibilityComputer implements IDGiver {
 					"from", worker, epsg);
 			if (worker.verbose)
 				System.out.println(" " + fromLayer.getObjects().size() + " origin places loaded");
+			if (fromLayer.getObjects().size()==0) {
+				System.out.println("Quitting.");
+				return;
+			}
 			// from aggregation
 			Layer fromAggLayer = null;
 			if (options.hasOption("from-agg") && !options.getOptionValue("from-agg", "").equals("all")) {
@@ -491,6 +495,10 @@ public class UrMoAccessibilityComputer implements IDGiver {
 					"to", worker, epsg);
 			if (worker.verbose)
 				System.out.println(" " + toLayer.getObjects().size() + " destination places loaded");
+			if (toLayer.getObjects().size()==0) {
+				System.out.println("Quitting.");
+				return;
+			}
 			// to aggregation
 			Layer toAggLayer = null;
 			if (options.hasOption("to-agg") && !options.getOptionValue("to-agg", "").equals("all")) {
