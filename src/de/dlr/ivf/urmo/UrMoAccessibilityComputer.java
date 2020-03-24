@@ -742,6 +742,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			if(!"".equals(argO.getValue(""))) {
 				String value = argO.getValue();
 				value = value.replace("'", "''");
+				if(value.indexOf("jdbc")>=0) {
+					value = value.substring(0, value.lastIndexOf(";")+1) + "---";
+				}
 				sb.append("--").append(argO.getLongOpt()).append(' ').append(value).append('\n');
 			}
 		}
