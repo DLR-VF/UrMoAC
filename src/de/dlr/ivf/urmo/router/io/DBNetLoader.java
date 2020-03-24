@@ -44,7 +44,7 @@ public class DBNetLoader {
 	 * @throws SQLException
 	 * @throws ParseException
 	 */
-	public static DBNet loadNet(IDGiver idGiver, String url, String table, String user, String pw, int epsg) throws SQLException, ParseException {
+	public static DBNet loadNet(IDGiver idGiver, String url, String table, String user, String pw, int epsg, long uModes) throws SQLException, ParseException {
 		Connection connection = DriverManager.getConnection(url, user, pw);
 		connection.setAutoCommit(true);
 		connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
