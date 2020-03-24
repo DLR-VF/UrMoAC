@@ -15,7 +15,6 @@ import java.util.Map;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
-import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.output.AbstractSingleResult;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 
@@ -31,14 +30,11 @@ public class EUSingleResult extends AbstractSingleResult {
 	 * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
 	 */
 	class EdgeParam {
-		/// @brief The number of walking routes over this edge 
-		public long numWalk = 0;
-		/// @brief The number of bicycle routes over this edge 
-		public long numBike = 0;
-		/// @brief The number of public transport routes over this edge 
-		public long numPT = 0;
-		/// @brief The number of passenger car routes over this edge 
-		public long numCar = 0;
+		/// @brief The weight number of routes over this edge
+		public double num = 0;
+		/// @brief The sum of sources weights
+		public double sourcesWeight = 0;
+
 	}
 	
 	/// @brief Map of edges to numbers
@@ -74,7 +70,7 @@ public class EUSingleResult extends AbstractSingleResult {
 	 * @param asr The result to add
 	 */
 	@Override
-	public void addCounting(AbstractSingleResult asr) {
+	public synchronized void addCounting(AbstractSingleResult asr) {
 		EUSingleResult srnm = (EUSingleResult) asr;
 		for(String id : srnm.stats.keySet()) {
 			if(!stats.containsKey(id)) {
@@ -82,10 +78,8 @@ public class EUSingleResult extends AbstractSingleResult {
 			}
 			EdgeParam ssstats = srnm.stats.get(id);
 			EdgeParam dsstats = stats.get(id);
-			dsstats.numWalk += ssstats.numWalk;
-			dsstats.numBike += ssstats.numBike;
-			dsstats.numPT += ssstats.numPT;
-			dsstats.numCar += ssstats.numCar;
+			dsstats.num += ssstats.num;
+			dsstats.sourcesWeight += ssstats.sourcesWeight;
 		}
 	}
 	
@@ -96,16 +90,14 @@ public class EUSingleResult extends AbstractSingleResult {
 	 * @param sourcesWeight The sum of the sources' weights
 	 */
 	@Override
-	public AbstractSingleResult getNormed(int numSources, double sourcesWeight) {
+	public synchronized AbstractSingleResult getNormed(int numSources, double sourcesWeight) {
 		EUSingleResult srnm = new EUSingleResult(srcID, destID);
 		for(String id : stats.keySet()) {
 			srnm.stats.put(id, new EdgeParam());
 			EdgeParam ssstats = stats.get(id);
 			EdgeParam dsstats = srnm.stats.get(id);
-			dsstats.numWalk += ssstats.numWalk;
-			dsstats.numBike += ssstats.numBike;
-			dsstats.numPT += ssstats.numPT;
-			dsstats.numCar += ssstats.numCar;
+			dsstats.num += ssstats.num;
+			dsstats.sourcesWeight += ssstats.sourcesWeight;
 		}
 		return srnm;
 	}
@@ -114,24 +106,20 @@ public class EUSingleResult extends AbstractSingleResult {
 	/**
 	 * @brief Adds the information about a single edge
 	 * @param e The edge to add the information about
-	 * @param usedMode The mode used to pass this edge
+	 * @param value The (variable) value of the destination
+	 * @param sourcesWeight The weight of the source
 	 */
-	public void addSingle(DBEdge e, Mode usedMode) {
+	public synchronized void addSingle(DBEdge e, double value, double sourcesWeight) {
+		/*
+		if(!e.id.equals("cycle#1") && !e.id.equals("-cycle#1")) {
+			return;
+		}
+		*/
 		if(!stats.containsKey(e.id)) {
 			stats.put(e.id, new EdgeParam());
 		}
 		EdgeParam curr = stats.get(e.id);
-		String modeID = usedMode.mml;
-		if(modeID=="passenger") {
-			curr.numCar += 1;
-		} else if(modeID=="bus") {
-			curr.numPT += 1;
-		} else if(modeID=="bicycle") {
-			curr.numBike += 1;
-		} else if(modeID=="foot") {
-			curr.numWalk += 1;
-		} else {
-			throw new RuntimeException("Unsupported mode '" + modeID + "' occured in edge output");
-		}
+		curr.num += value;
+		curr.sourcesWeight = sourcesWeight;
 	}
 }

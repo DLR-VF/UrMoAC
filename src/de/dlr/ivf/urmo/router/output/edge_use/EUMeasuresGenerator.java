@@ -14,6 +14,7 @@ import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraEntry;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
 import de.dlr.ivf.urmo.router.output.MeasurementGenerator;
+import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
 /**
  * @class EUMeasuresGenerator
@@ -32,10 +33,11 @@ public class EUMeasuresGenerator extends MeasurementGenerator<EUSingleResult> {
 	 */
 	public EUSingleResult buildResult(int beginTime, MapResult from, MapResult to, DijkstraResult dr) {
 		DijkstraEntry current = dr.getEdgeInfo(to.edge);
-		EUSingleResult e = new EUSingleResult(from.em.getOuterID(), to.em.getOuterID());
+		EUSingleResult e = new EUSingleResult(from.em.getOuterID(), to.em.getOuterID(), from, to, dr);
+		double value = ((LayerObject) to.em).getAttachedValue() * e.val;
 		do {
 			DijkstraEntry next = current;
-			e.addSingle(next.e, next.usedMode);
+			e.addSingle(next.e, value, e.val);
 			current = current.prev;
 		} while(current!=null);
 		return e;

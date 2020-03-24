@@ -39,8 +39,7 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 	 */
 	public EUWriter(String url, String tableName, String user, String pw, boolean dropPrevious) throws SQLException {
 		super(url, user, pw, tableName,
-				"(fid bigint, sid bigint, eid text, num_walk bigint, num_car bigint, num_pt bigint, num_bike bigint)",
-				"VALUES (?, ?, ?, ?, ?, ?, ?)", dropPrevious);
+				"(fid bigint, sid bigint, eid text, num real, srcweight real, normed real)", "VALUES (?, ?, ?, ?, ?, ?)", dropPrevious);
 	}
 
 
@@ -70,10 +69,9 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 				ps.setLong(1, result.srcID);
 				ps.setLong(2, result.destID);
 				ps.setString(3, id);
-				ps.setLong(4, ep.numWalk);
-				ps.setLong(5, ep.numCar);
-				ps.setLong(6, ep.numPT);
-				ps.setLong(7, ep.numBike);
+				ps.setFloat(4, (float) ep.num);
+				ps.setFloat(5, (float) ep.sourcesWeight);
+				ps.setFloat(6, (float) (ep.num / ep.sourcesWeight));
 				ps.addBatch();
 				++batchCount;
 				if(batchCount>10000) {
@@ -84,8 +82,8 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 		} else {
 			for(String id : result.stats.keySet()) {
 				EdgeParam ep = result.stats.get(id);
-				fileWriter.append(result.srcID + ";" + result.destID + ";" + id + ";" +
-						ep.numWalk + ";" + ep.numCar + ";" + ep.numPT + ";" + ep.numBike + "\n");
+				fileWriter.append(result.srcID + ";" + result.destID + ";" + id + ";" + ep.num 
+						+ ";" + ep.sourcesWeight + ";" + (ep.num / ep.sourcesWeight) + "\n");
 			}
 		}
 	}
