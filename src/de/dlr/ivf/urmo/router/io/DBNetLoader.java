@@ -44,7 +44,7 @@ public class DBNetLoader {
 	 * @throws SQLException
 	 * @throws ParseException
 	 */
-	public static DBNet loadNet(String url, String table, String user, String pw, int epsg) throws SQLException, ParseException {
+	public static DBNet loadNet(IDGiver idGiver, String url, String table, String user, String pw, int epsg) throws SQLException, ParseException {
 		Connection connection = DriverManager.getConnection(url, user, pw);
 		connection.setAutoCommit(true);
 		connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
@@ -74,7 +74,7 @@ public class DBNetLoader {
 			if(rs.getBoolean("mode_mit")) modes = modes | Modes.getMode("passenger").id;
 			//if (modes == 4)
 				//modes = modes | Modes.getMode("foot").id | Modes.getMode("bicycle").id | Modes.getMode("passenger").id;
-			DBEdge e = new DBEdge(index, rs.getString("oid"), fromNode, toNode, modes, rs.getDouble("vmax") / 3.6, geom2, rs.getDouble("length"));
+			DBEdge e = new DBEdge(net.getNextID(), rs.getString("oid"), fromNode, toNode, modes, rs.getDouble("vmax") / 3.6, geom2, rs.getDouble("length"));
 			net.addEdge(e);
 			++index;
 		}

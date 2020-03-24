@@ -97,7 +97,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	// member variables
 	// --------------------------------------------------------
 	/// @brief A running id for the loaded objects
-	private int runningID = 0;
+	private long runningID = 0;
 	/// @brief A mapping from an edge to allocated sources
 	HashMap<DBEdge, Vector<MapResult>> nearestFromEdges;
 	/// @brief A mapping from an edge to allocated destinations
@@ -236,7 +236,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 * @return A running number
 	 */
 	@Override
-	public synchronized int getNextRunningID() {
+	public synchronized long getNextRunningID() {
 		return ++runningID;
 	}
 	
@@ -507,7 +507,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			if (worker.verbose)
 				System.out.println("Reading the road network");
 			String nd[] = DBIOHelper.parseOption(options.getOptionValue("net", ""));
-			DBNet net = DBNetLoader.loadNet(nd[0], nd[1], nd[2], nd[3], epsg);
+			DBNet net = DBNetLoader.loadNet(worker, nd[0], nd[1], nd[2], nd[3], epsg);
 			if (worker.verbose)
 				System.out.println(" " + net.getEdges().size() + " edges loaded (" + net.getNodes().size() + " nodes)");
 			net.pruneForModes(modes); // TODO (implement, add message)

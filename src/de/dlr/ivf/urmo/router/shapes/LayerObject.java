@@ -28,7 +28,7 @@ public class LayerObject implements EdgeMappable {
 	/// @brief The application's running object id
 	private long id;
 	/// @brief The original id of the object (in the database, e.g.)
-	private int outerID;
+	private long outerID;
 	/// @brief An optionally attached variable value
 	private double attachedVar;
 	/// @brief The object's geometry (usually its position)
@@ -42,7 +42,7 @@ public class LayerObject implements EdgeMappable {
 	 * @param _attachedVar An optionally attached variable value
 	 * @param _geom The object's geometry (usually its position)
 	 */
-	public LayerObject(long _id, int _outerID, double _attachedVar, Geometry _geom) {
+	public LayerObject(long _id, long _outerID, double _attachedVar, Geometry _geom) {
 		id = _id;
 		outerID = _outerID;
 		geom = _geom;

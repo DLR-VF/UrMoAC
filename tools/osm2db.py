@@ -184,16 +184,19 @@ cursor.execute("""CREATE TABLE %s.%s_ntag (
     k text,        
     v text        
 );""" % (schema, prefix, schema, prefix))
+cursor.execute("""CREATE INDEX ON %s.%s_ntag (id);""" % (schema, prefix))
 cursor.execute("""CREATE TABLE %s.%s_wtag (
     id bigint REFERENCES %s.%s_way (id),
     k text,        
     v text        
 );""" % (schema, prefix, schema, prefix))
+cursor.execute("""CREATE INDEX ON %s.%s_wtag (id);""" % (schema, prefix))
 cursor.execute("""CREATE TABLE %s.%s_rtag (
     id bigint REFERENCES %s.%s_rel (id),
     k text,        
     v text        
 );""" % (schema, prefix, schema, prefix))
+cursor.execute("""CREATE INDEX ON %s.%s_rtag (id);""" % (schema, prefix))
 
 # relation members
 cursor.execute("""CREATE TABLE %s.%s_member (
@@ -203,6 +206,8 @@ cursor.execute("""CREATE TABLE %s.%s_member (
     role text,        
     idx integer        
 );""" % (schema, prefix, schema, prefix))
+cursor.execute("""CREATE INDEX ON %s.%s_member (rid);""" % (schema, prefix))
+cursor.execute("""CREATE INDEX ON %s.%s_member (elemID);""" % (schema, prefix))
 conn.commit()
 
 # parsing the document and adding contents to the db
@@ -212,11 +217,6 @@ r = OSMReader(schema, prefix, conn, cursor)
 parser.setContentHandler(r)
 parser.parse(sys.argv[2])
 r.checkCommit(True)
-cursor.execute("CREATE INDEX ON %s.%s_ntag(id)" % (schema, prefix))
-cursor.execute("CREATE INDEX ON %s.%s_wtag(id)" % (schema, prefix))
-cursor.execute("CREATE INDEX ON %s.%s_rtag(id)" % (schema, prefix))
-cursor.execute("CREATE INDEX ON %s.%s_member(rid)" % (schema, prefix))
-conn.commit()
 cursor.close()
 conn.close()
 

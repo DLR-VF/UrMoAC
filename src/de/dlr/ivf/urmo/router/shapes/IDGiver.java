@@ -17,6 +17,6 @@ package de.dlr.ivf.urmo.router.shapes;
  */
 public interface IDGiver {
 	/// @brief Returns the next running id
-	public int getNextRunningID();
+	public long getNextRunningID();
 
 }

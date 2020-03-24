@@ -45,12 +45,14 @@ public class DBNet {
 	public PrecisionModel precisionModel = null;
 	/// @brief The used srid
 	public int srid = 0;
+	IDGiver idGiver;
 
 
 	/**
 	 * @brief Constructor
 	 */
-	public DBNet() {
+	public DBNet(IDGiver _idGiver) {
+		idGiver = _idGiver;
 		rtree.init(null);
 	}
 
@@ -132,7 +134,7 @@ public class DBNet {
 
 	/**
 	 * @brief Returns the named edge (by id)
-	 * @param name The id of the edge
+	 * @param id The id of the edge
 	 * @return The edge (if known, otherwise null)
 	 */
 	public DBEdge getEdgeByID(int id) {
@@ -213,15 +215,8 @@ public class DBNet {
 	 * @brief Returns the maximum if used within this network
 	 * @return The maximum id used in this road network
 	 */
-	public long getMaxID() {
-		long maxID = 0;
-		for (Long id : nodes.keySet()) {
-			maxID = Math.max(maxID, id);
-		}
-		for (DBEdge e : edges) {
-			maxID = Math.max(maxID, e.numID);
-		}
-		return maxID;
+	public long getNextID() {
+		return idGiver.getNextRunningID();
 	}
 
 

@@ -109,7 +109,6 @@ public class GTFSDBReader {
 		Statement s = connection.createStatement();
 		ResultSet rs = s.executeQuery(query);
 		WKBReader wkbRead = new WKBReader();
-		long nextID = net.getMaxID() + 1;
 		HashMap<Long, GTFSStop> stops = new HashMap<>();
 		HashMap<String, GTFSStop> id2stop = new HashMap<>();
 		Vector<EdgeMappable> stopsV = new Vector<>();
@@ -117,7 +116,7 @@ public class GTFSDBReader {
 			ResultSetMetaData rsmd = rs.getMetaData();
 			Geometry geom = wkbRead.read(rs.getBytes(rsmd.getColumnCount()));
 			Coordinate[] cs = geom.getCoordinates();
-			GTFSStop stop = new GTFSStop(nextID++, rs.getString("stop_id"), rs.getString("stop_desc"), cs[0], gf.createPoint(cs[0])); // !!! new id - the nodes should have a new id as well
+			GTFSStop stop = new GTFSStop(net.getNextID(), rs.getString("stop_id"), rs.getString("stop_desc"), cs[0], gf.createPoint(cs[0])); // !!! new id - the nodes should have a new id as well
 			net.addNode(stop);
 			stops.put(stop.id, stop);
 			id2stop.put(stop.mid, stop);
@@ -139,24 +138,24 @@ public class GTFSDBReader {
 			} else {
 				LineString geom;
 				Coordinate pos = GeomHelper.getPointAtDistance((LineString) mr.edge.getGeometry(), mr.pos);
-				DBNode intermediateNode = net.getNode(nextID++, pos);
+				DBNode intermediateNode = net.getNode(net.getNextID(), pos);
 				
 				net.removeEdge(mr.edge);
 				geom = GeomHelper.getGeomUntilDistance((LineString) mr.edge.getGeometry(), mr.pos);
-				DBEdge e11 = new DBEdge(nextID++, mr.edge.id+"-"+stop.mid, mr.edge.from, intermediateNode, mr.edge.modes, mr.edge.vmax, geom, geom.getLength()/*mr.pos*/);
+				DBEdge e11 = new DBEdge(net.getNextID(), mr.edge.id+"-"+stop.mid, mr.edge.from, intermediateNode, mr.edge.modes, mr.edge.vmax, geom, geom.getLength()/*mr.pos*/);
 				net.addEdge(e11);
 				geom = GeomHelper.getGeomBehindDistance((LineString) mr.edge.getGeometry(), mr.pos);
-				DBEdge e12 = new DBEdge(nextID++, stop.mid+"-"+mr.edge.id, intermediateNode, mr.edge.to, mr.edge.modes, mr.edge.vmax, geom, geom.getLength()/*mr.edge.length-mr.pos*/);
+				DBEdge e12 = new DBEdge(net.getNextID(), stop.mid+"-"+mr.edge.id, intermediateNode, mr.edge.to, mr.edge.modes, mr.edge.vmax, geom, geom.getLength()/*mr.edge.length-mr.pos*/);
 				net.addEdge(e12);
 				
 				DBEdge opp = mr.edge.opposite;
 				if(opp!=null) {
 					net.removeEdge(opp);
 					geom = GeomHelper.getGeomUntilDistance((LineString) opp.getGeometry(), opp.length-mr.pos);
-					DBEdge e21 = new DBEdge(nextID++, opp.id+"-"+stop.mid, opp.from, intermediateNode, opp.modes, opp.vmax, geom, geom.getLength()/*opp.length-mr.pos*/);
+					DBEdge e21 = new DBEdge(net.getNextID(), opp.id+"-"+stop.mid, opp.from, intermediateNode, opp.modes, opp.vmax, geom, geom.getLength()/*opp.length-mr.pos*/);
 					net.addEdge(e21);
 					geom = GeomHelper.getGeomBehindDistance((LineString) opp.getGeometry(), opp.length-mr.pos);
-					DBEdge e22 = new DBEdge(nextID++, stop.mid+"-"+opp.id, intermediateNode, opp.to, opp.modes, opp.vmax, geom, geom.getLength()/*mr.pos*/);
+					DBEdge e22 = new DBEdge(net.getNextID(), stop.mid+"-"+opp.id, intermediateNode, opp.to, opp.modes, opp.vmax, geom, geom.getLength()/*mr.pos*/);
 					net.addEdge(e22);
 				}
 				
@@ -164,11 +163,11 @@ public class GTFSDBReader {
 				edgeCoords[0] = new Coordinate(intermediateNode.pos);
 				edgeCoords[1] = new Coordinate(stop.pos);
 				geom = new LineString(edgeCoords, mr.edge.geom.getPrecisionModel(), mr.edge.geom.getSRID());
-				new DBEdge(nextID++, "on-"+stop.mid, intermediateNode, stop, accessModes, 50, geom, mr.dist);
+				new DBEdge(net.getNextID(), "on-"+stop.mid, intermediateNode, stop, accessModes, 50, geom, mr.dist);
 				edgeCoords[0] = new Coordinate(stop.pos);
 				edgeCoords[1] = new Coordinate(intermediateNode.pos);
 				geom = new LineString(edgeCoords, mr.edge.geom.getPrecisionModel(), mr.edge.geom.getSRID());
-				new DBEdge(nextID++, "off-"+stop.mid, stop, intermediateNode, accessModes, 50, geom, mr.dist);
+				new DBEdge(net.getNextID(), "off-"+stop.mid, stop, intermediateNode, accessModes, 50, geom, mr.dist);
 			}
 		}
 		System.out.println(" " + failed + " stations could not be allocated");

@@ -79,7 +79,7 @@ public class DBIOHelper {
 			if (!"".equals(varName)) {
 				var = rs.getDouble(numColumns-1);
 			}
-			LayerObject o = new LayerObject(idGiver.getNextRunningID(), rs.getInt(idS), var, geom);
+			LayerObject o = new LayerObject(idGiver.getNextRunningID(), rs.getLong(idS), var, geom);
 			layer.addObject(o);
 		}
 		return layer;
