@@ -132,10 +132,6 @@ public class DBIOHelper {
 	}
 	
 	
-	}
-	
-	
-	
 	
 	/**
 	 * @brief Writes the given map of edge values into the database (the
