@@ -11,6 +11,7 @@
 package de.dlr.ivf.urmo.router.io;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -311,38 +312,51 @@ public class GTFSDBReader {
 		ret.sortConnections();
 		System.out.println("  " + abs + " connections found of which " + err + " were erroneous");
 
-		// read transfers times
-		System.out.println(" ... reading transfer times ...");
-		query = "SELECT from_stop_id,to_stop_id,transfer_type,from_trip_id,to_trip_id,min_transfer_time FROM " + tablePrefix + "_transfers;";
-		s = connection.createStatement();
-		rs = s.executeQuery(query);
-		while (rs.next()) {
-			String fromStop = rs.getString("from_stop_id");
-			GTFSStop stop = id2stop.get(fromStop);
-			if(stop==null) {
-				// may be out of the pt-boundary
-				continue;
-			}
-			String toStop = rs.getString("to_stop_id");
-			if(!fromStop.equals(toStop)) {
-				continue;
-			}
-			if(rs.getInt("transfer_type")!=2) {
-				continue;
-			}
-			try {
-				String s1 = rs.getString("from_trip_id");
-				String s2 = rs.getString("to_trip_id");
-				GTFSTrip t1 = trips.get(Integer.parseInt(s1));
-				GTFSTrip t2 = trips.get(Integer.parseInt(s2)); // !!! todo: times are given on per-trip, not per-route base
-				if(t1!=null&&t2!=null) {
-					stop.setInterchangeTime(t1.routeID, t2.routeID, (double) rs.getInt("min_transfer_time"));
-				}
-			} catch(NumberFormatException e) {
-			}
+		// read transfers times (optionally)
+		int idx = tablePrefix.indexOf('.');
+		String table = tablePrefix + "_transfers";
+		String schema = "";
+		if(idx>0) {
+			String[] defs = tablePrefix.split(".");
+			table = defs[0] + "_transfers";
+			schema = defs[1];
 		}
-		rs.close();
-		s.close();
+		DatabaseMetaData dbm = connection.getMetaData();
+		// check if "employee" table is there
+		ResultSet tables = dbm.getTables(null, schema, table, null);
+		if (tables.next()) {
+			System.out.println(" ... reading transfer times ...");
+			query = "SELECT from_stop_id,to_stop_id,transfer_type,from_trip_id,to_trip_id,min_transfer_time FROM " + tablePrefix + "_transfers;";
+			s = connection.createStatement();
+			rs = s.executeQuery(query);
+			while (rs.next()) {
+				String fromStop = rs.getString("from_stop_id");
+				GTFSStop stop = id2stop.get(fromStop);
+				if(stop==null) {
+					// may be out of the pt-boundary
+					continue;
+				}
+				String toStop = rs.getString("to_stop_id");
+				if(!fromStop.equals(toStop)) {
+					continue;
+				}
+				if(rs.getInt("transfer_type")!=2) {
+					continue;
+				}
+				try {
+					String s1 = rs.getString("from_trip_id");
+					String s2 = rs.getString("to_trip_id");
+					GTFSTrip t1 = trips.get(Integer.parseInt(s1));
+					GTFSTrip t2 = trips.get(Integer.parseInt(s2)); // !!! todo: times are given on per-trip, not per-route base
+					if(t1!=null&&t2!=null) {
+						stop.setInterchangeTime(t1.routeID, t2.routeID, (double) rs.getInt("min_transfer_time"));
+					}
+				} catch(NumberFormatException e) {
+				}
+			}
+			rs.close();
+			s.close();
+		}
 		
 		return ret;
 		// !!! dismiss stops which do not have a route assigned?
