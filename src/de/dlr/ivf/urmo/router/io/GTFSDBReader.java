@@ -68,6 +68,8 @@ public class GTFSDBReader {
 	 * @param user The user name for connecting to the database
 	 * @param pw The user's password
 	 * @param net The network, used for mapping stations onto it
+	 * @param epsg The EPSG of the coordinates projection to use
+	 * @param verbose Whether information about the process shall be printed
 	 * @return The loaded GTFS data
 	 * @throws SQLException
 	 * @throws ParseException
@@ -75,7 +77,7 @@ public class GTFSDBReader {
 	 * @todo which modes to use to access the stations
 	 */
 	public static GTFSData load(String url, String tablePrefix, String user, String pw, String carrierDef, String date, 
-			Geometry bounds, DBNet net, EntrainmentMap entrainmentMap, int epsg)
+			Geometry bounds, DBNet net, EntrainmentMap entrainmentMap, int epsg, boolean verbose)
 			throws SQLException, ParseException {
 		// parse modes vector
 		Vector<Integer> allowedCarrier = null;
@@ -103,7 +105,7 @@ public class GTFSDBReader {
 		}
 		
 		// read stops, extend network accordingly
-		System.out.println(" ... reading stops ...");
+		if(verbose) System.out.println(" ... reading stops ...");
 		String query = "SELECT stop_id,ST_AsBinary(ST_TRANSFORM(pos," + epsg + ")) FROM " + tablePrefix + "_stops" + boundsFilter + ";";
 		Statement s = connection.createStatement();
 		ResultSet rs = s.executeQuery(query);
@@ -130,7 +132,7 @@ public class GTFSDBReader {
 		HashMap<DBEdge, Vector<MapResult>> edge2stops = nef.getNearestEdges(false);
 		int failed = 0;
 		// connect stops to network
-		System.out.println(" ... connecting stops ...");
+		if(verbose) System.out.println(" ... connecting stops ...");
 		HashMap<EdgeMappable, MapResult> stop2edge = NearestEdgeFinder.results2edgeSet(edge2stops);
 		for (EdgeMappable stopM : stop2edge.keySet()) {
 			GTFSStop stop = (GTFSStop) stopM;
@@ -172,10 +174,10 @@ public class GTFSDBReader {
 				new DBEdge(net.getNextID(), "off-"+stop.mid, stop, intermediateNode, accessModes, 50, geom, mr.dist);
 			}
 		}
-		System.out.println(" " + failed + " stations could not be allocated");
+		if(verbose) System.out.println(" " + failed + " stations could not be allocated");
 
 		// read routes
-		System.out.println(" ... reading routes ...");
+		if(verbose) System.out.println(" ... reading routes ...");
 		query = "SELECT route_id,route_short_name,route_type FROM " + tablePrefix + "_routes;";
 		s = connection.createStatement();
 		rs = s.executeQuery(query);
@@ -190,12 +192,12 @@ public class GTFSDBReader {
 		s.close();
 
 		// read services
-		System.out.println(" ... reading services ...");
+		if(verbose) System.out.println(" ... reading services ...");
 		int dateI = 0;
 		Date dateD = null;
 		int dayOfWeek = 0;
 		if(!"".equals(date)) {
-			dateI = Integer.parseInt(date);
+			dateI = parseDate(date);
 			SimpleDateFormat parser = new SimpleDateFormat("yyyyMMdd");
 	        try {
 				dateD = parser.parse(date);
@@ -214,8 +216,8 @@ public class GTFSDBReader {
 			s = connection.createStatement();
 			rs = s.executeQuery(query);
 			while (rs.next()) {
-				int dateBI = rs.getInt("start_date");
-				int dateEI = rs.getInt("end_date");
+				int dateBI = parseDate(rs.getString("start_date"));
+				int dateEI = parseDate(rs.getString("end_date"));
 				if(dateBI>dateI||dateEI<dateI) {
 					continue;
 				}
@@ -230,7 +232,7 @@ public class GTFSDBReader {
 			s = connection.createStatement();
 			rs = s.executeQuery(query);
 			while (rs.next()) {
-				int dateCI = rs.getInt("date");
+				int dateCI = parseDate(rs.getString("date"));
 				if(dateCI!=dateI) {
 					continue;
 				}
@@ -249,7 +251,7 @@ public class GTFSDBReader {
 		}
 		
 		// read trips and stop times
-		System.out.println(" ... reading trips ...");
+		if(verbose) System.out.println(" ... reading trips ...");
 		query = "SELECT service_id,route_id,trip_id FROM " + tablePrefix + "_trips;";
 		s = connection.createStatement();
 		rs = s.executeQuery(query);
@@ -272,7 +274,7 @@ public class GTFSDBReader {
 		GTFSData ret = new GTFSData(net, entrainmentMap, stops, routes, trips);
 		
 		// read stop times, add to the read GTFS data
-		System.out.println(" ... reading stop times ...");
+		if(verbose) System.out.println(" ... reading stop times ...");
 		query = "SELECT trip_id,arrival_time,departure_time,stop_id FROM " + tablePrefix + "_stop_times ORDER BY trip_id,stop_sequence;";
 		s = connection.createStatement();
 		rs = s.executeQuery(query);
@@ -310,14 +312,14 @@ public class GTFSDBReader {
 		abs += stopTimes.size() - 1;
 		stopTimes.clear();
 		ret.sortConnections();
-		System.out.println("  " + abs + " connections found of which " + err + " were erroneous");
+		if(verbose) System.out.println("  " + abs + " connections found of which " + err + " were erroneous");
 
 		// read transfers times (optionally)
 		int idx = tablePrefix.indexOf('.');
 		String table = tablePrefix + "_transfers";
 		String schema = "";
 		if(idx>0) {
-			String[] defs = tablePrefix.split(".");
+			String[] defs = tablePrefix.split("\\.");
 			table = defs[0] + "_transfers";
 			schema = defs[1];
 		}
@@ -325,7 +327,7 @@ public class GTFSDBReader {
 		// check if "employee" table is there
 		ResultSet tables = dbm.getTables(null, schema, table, null);
 		if (tables.next()) {
-			System.out.println(" ... reading transfer times ...");
+			if(verbose) System.out.println(" ... reading transfer times ...");
 			query = "SELECT from_stop_id,to_stop_id,transfer_type,from_trip_id,to_trip_id,min_transfer_time FROM " + tablePrefix + "_transfers;";
 			s = connection.createStatement();
 			rs = s.executeQuery(query);
@@ -372,6 +374,22 @@ public class GTFSDBReader {
 	private static int parseTime(String timeS) {
 		String[] r = timeS.split(":");
 		return Integer.parseInt(r[0])*3600 + Integer.parseInt(r[1])*60 + Integer.parseInt(r[2]);
+	}
+
+
+
+	/** 
+	 * @brief Parses the date string to an int
+	 * 
+	 * Replaces '-' if given in string (often found albeit not being the standard)
+	 * @param dateS The date string
+	 * @return The date as an integer
+	 */
+	private static int parseDate(String dateS) {
+		if(dateS.indexOf('-')>=0) {
+			dateS = dateS.replace("-", "");
+		}
+		return Integer.parseInt(dateS);
 	}
 
 }
