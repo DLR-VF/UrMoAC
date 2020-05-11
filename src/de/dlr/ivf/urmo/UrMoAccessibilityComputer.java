@@ -551,7 +551,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 					bounds = DBIOHelper.loadGeometry(gd[0], gd[1], gd[2], gd[3], "the_geom", epsg);
 				}
 				String pd[] = DBIOHelper.parseOption(options.getOptionValue("pt", ""));
-				worker.gtfs = GTFSDBReader.load(pd[0], pd[1], pd[2], pd[3], options.getOptionValue("pt-restriction", ""), options.getOptionValue("date", ""), bounds, net, entrainmentMap, epsg);
+				worker.gtfs = GTFSDBReader.load(pd[0], pd[1], pd[2], pd[3], options.getOptionValue("pt-restriction", ""), options.getOptionValue("date", ""), bounds, net, entrainmentMap, epsg, worker.verbose);
 				if (worker.verbose)
 					System.out.println(" loaded");
 			}
