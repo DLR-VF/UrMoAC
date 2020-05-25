@@ -464,7 +464,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				String ep[] = DBIOHelper.parseOption(options.getOptionValue("from", ""));
 				epsg = DBIOHelper.findUTMZone(ep[0], ep[1], ep[2], ep[3],options.getOptionValue("from.geom", "the_geom"));
 				if(epsg==-1) {
-					System.out.println("Could not find a valid UTM-Zone. Quitting");
+					System.out.println("Could not find a valid UTM-zone. Quitting");
 					return;
 				}
 				else {
@@ -475,7 +475,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 					else { // southern hemisphere
 						utmZone = Integer.toString(epsg%100)+"S";
 					}
-					System.out.println("Using UTM-Zone "+utmZone+", EPSG-code: "+epsg);
+					System.out.println("Using UTM-zone "+utmZone+", EPSG-code: "+epsg);
 				}
 			}
 			

@@ -40,10 +40,11 @@ public class DBIOHelper {
 	
 	
 	/**
-	 * @brief Finds the correct utm-zone for the given net. Reference is the most south most west point in the net. 
-	 * The calculation is based on utm-zones for longitudes from  -180 to 180.
-	 * The latitude is only valid from -84 to 84 degree.
-	 * @return The utm epsg-code or -1 of no code could be found (e.g. north-pole )
+	 * @brief Finds the correct UTM-zone for the given net. Reference is the most south most west point in the from-locations.
+	 * The calculation is based on utm-zones for longitudes from -180 to 180 degrees.
+	 * The latitude is only valid from -84 to 84 degrees.
+	 * The returned UTM-zones start with 32500 for the southern hemisphere and with 32600 for the northern hemisphere. 
+	 * @return The epsg-code of the UTM-zone or -1 of no UTM-zone could be found (e.g. north-pole )
 	 * @throws SQLException
 	 * @throws ParseException
 	 */
@@ -62,6 +63,9 @@ public class DBIOHelper {
 			lat = rs.getDouble("lat");
 			if(lat>84.0 || lat <-84.0) //around north or south-pole!
 				break;
+			if(lon>180.0 || lon <-180.0) //invalid longitude!
+				break;
+			
 			if(lat>=0) { //northern hemisphere
 				epsg=32600;
 			}
