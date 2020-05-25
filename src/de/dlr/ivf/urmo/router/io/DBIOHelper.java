@@ -37,6 +37,50 @@ import de.dlr.ivf.urmo.router.shapes.LayerObject;
  *         Transport Research
  */
 public class DBIOHelper {
+	
+	
+	/**
+	 * @brief Finds the correct utm-zone for the given net. Reference is the most south most west point in the net. 
+	 * The calculation is based on utm-zones for longitudes from  -180 to 180.
+	 * The latitude is only valid from -84 to 84 degree.
+	 * @return The utm epsg-code or -1 of no code could be found (e.g. north-pole )
+	 * @throws SQLException
+	 * @throws ParseException
+	 */
+	public static int findUTMZone(String url, String table, String user, String pw, String geom) throws SQLException, ParseException {
+		Connection connection = DriverManager.getConnection(url, user, pw);
+		connection.setAutoCommit(true);
+		connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
+		((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
+		String query = "SELECT min(ST_X(ST_TRANSFORM("+geom+",4326)))as lon, min(ST_Y(ST_TRANSFORM("+geom+",4326)))as lat FROM " + table+";";
+		Statement s = connection.createStatement();
+		ResultSet rs = s.executeQuery(query);
+		int epsg=-1;
+		double lon, lat;
+		while (rs.next()) {
+			lon = rs.getDouble("lon");
+			lat = rs.getDouble("lat");
+			if(lat>84.0 || lat <-84.0) //around north or south-pole!
+				break;
+			if(lat>=0) { //northern hemisphere
+				epsg=32600;
+			}
+			else { //southern hemisphere
+				epsg=32500;
+			}
+
+			if (lon < 0.0) { //western hemisphere
+				epsg += ((180.0 + lon) / 6) + 1;
+			} else { //eastern hemisphere
+				epsg += (lon / 6) + 31;
+			}
+		}
+		rs.close();
+		s.close();
+
+		return epsg;
+	}
+	
 	/**
 	 * @brief Loads a set of objects from the db
 	 * 

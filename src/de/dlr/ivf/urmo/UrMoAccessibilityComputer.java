@@ -381,7 +381,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			check &= OptionsHelper.isSet(lvCmd, "net");
 			check &= OptionsHelper.isSet(lvCmd, "mode");
 			check &= OptionsHelper.isSet(lvCmd, "time");
-			check &= OptionsHelper.isSet(lvCmd, "epsg");
+			//check &= OptionsHelper.isSet(lvCmd, "epsg"); --can be unset
 			// !!! add information about double set options
 			check &= OptionsHelper.isIntegerOrUnset(lvCmd, "epsg");
 			check &= OptionsHelper.isIntegerOrUnset(lvCmd, "time");
@@ -456,7 +456,29 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			long initMode = modesV.get(0).id;
 
 			// -------- loading
-			int epsg = ((Long) options.getParsedOptionValue("epsg")).intValue();
+			int epsg;
+			if(options.hasOption("epsg")) {
+				epsg= ((Long) options.getParsedOptionValue("epsg")).intValue();
+			}
+			else {//automatic epsg-value
+				String ep[] = DBIOHelper.parseOption(options.getOptionValue("from", ""));
+				epsg = DBIOHelper.findUTMZone(ep[0], ep[1], ep[2], ep[3],options.getOptionValue("from.geom", "the_geom"));
+				if(epsg==-1) {
+					System.out.println("Could not find a valid UTM-Zone. Quitting");
+					return;
+				}
+				else {
+					String utmZone;
+					if(epsg>32600) { //northern hemisphere
+						utmZone = Integer.toString(epsg%100)+"N";
+					}
+					else { // southern hemisphere
+						utmZone = Integer.toString(epsg%100)+"S";
+					}
+					System.out.println("Using UTM-Zone "+utmZone+", EPSG-code: "+epsg);
+				}
+			}
+			
 			// from
 			if (worker.verbose)
 				System.out.println("Reading origin places");
