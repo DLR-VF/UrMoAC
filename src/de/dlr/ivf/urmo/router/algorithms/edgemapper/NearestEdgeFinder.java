@@ -11,6 +11,8 @@
 package de.dlr.ivf.urmo.router.algorithms.edgemapper;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Vector;
 
 import com.infomatiq.jsi.Point;
@@ -34,22 +36,12 @@ public class NearestEdgeFinder {
 	/// @brief The network to use
 	private DBNet net;
 	/// @brief The list of objects to allocate in the network
-	private Vector<EdgeMappable> source;
+	private Queue<EdgeMappable> source = new LinkedList<>();
+	HashMap<DBEdge, Vector<MapResult>> nearestEdges = new HashMap<>();
 	/// @brief The transport modes to use
 	private long modes;
-	/// @brief A spatial index
-	private SpatialIndex rtree = null;
 	/// @brief The (resulting after being built) map of object ids to edges
 	private HashMap<Integer, DBEdge> id2edge = new HashMap<>();
-
-	/// @brief Temporary found edge
-	private DBEdge found;
-	/// @brief Temporary minimum distance
-	private double minDist;
-	/// @brief Temporary minimum direction
-	private int minDir;
-	/// @brief The centroid of the current object
-	private com.vividsolutions.jts.geom.Point opivot;
 	
 	// @brief Enum for points being on the right side of the road
 	private static final int DIRECTION_RIGHT = 1;
@@ -58,7 +50,6 @@ public class NearestEdgeFinder {
 	private static final int DIRECTION_LEFT = -1;
 	
 
-
 	/**
 	 * @Constructor
 	 * @param _source The list of objects to allocate in the network
@@ -66,12 +57,12 @@ public class NearestEdgeFinder {
 	 * @param _modes Bitset of usable transport modes
 	 */
 	public NearestEdgeFinder(Vector<EdgeMappable> _source, DBNet _net, long _modes) {
-		source = _source;
+		//convert vector to Queue
+		for(EdgeMappable e: _source) {
+			source.add(e);
+		}
 		net = _net;
 		modes = _modes;
-		found = null;
-		minDist = -1;
-		rtree = _net.getModedSpatialIndex(modes);
 		id2edge = _net.getID2EdgeForMode(modes);
 	}
 
@@ -82,67 +73,195 @@ public class NearestEdgeFinder {
 	 * @return The map of objects to edges
 	 */
 	public HashMap<DBEdge, Vector<MapResult>> getNearestEdges(boolean addToEdge) {
-		HashMap<DBEdge, Vector<MapResult>> ret = new HashMap<>();
-		for (EdgeMappable c : source) {
-			opivot = c.getPoint();
-			Point pivot = new Point((float) opivot.getX(), (float) opivot.getY());
-			minDist = -1;
-			minDir = 0;
-			found = null;
-			float viewDist = 10;
-			while ((found == null && viewDist < Math.max(net.size.x, net.size.y)) || viewDist / 2. < minDist) {
-				rtree.nearestN(pivot, new TIntProcedure() {
-					@Override
-					public boolean execute(int i) {
-						DBEdge e = id2edge.get(i);
-						if (!e.allowsAny(modes)) {
+		return this.getNearestEdges(addToEdge, 1);
+	}
+	
+
+	/**
+	 * @brief Builds and returns the mapping of objects to edges
+	 * @param addToEdge if set, the objects will be added to the respectively found edges
+	 * @param numOfThreads number of threads to be used
+	 * @return The map of objects to edges
+	 */
+	public HashMap<DBEdge, Vector<MapResult>> getNearestEdges(boolean addToEdge, int numOfThreads) {
+		SpatialIndex[] rtrees = new SpatialIndex[numOfThreads];
+		
+		for(int i=0; i< numOfThreads; i++) {
+			rtrees[i]=  net.getModedSpatialIndex(modes); //every thread needs its own rtree, because rtree is not thread-save :( 
+		}
+		return this.getNearestEdges(addToEdge, numOfThreads, rtrees);
+	}
+	
+	/**
+	 * @brief Builds and returns the mapping of objects to edges
+	 * @param addToEdge if set, the objects will be added to the respectively found edges
+	 * @param numOfThreads number of threads to be used
+	 * @param rtrees the rtrees to be used. They might be recycled from the last run to save computing time!
+	 * @return The map of objects to edges
+	 */
+	public HashMap<DBEdge, Vector<MapResult>> getNearestEdges(boolean addToEdge, int numOfThreads, SpatialIndex[] rtrees) {		
+
+		Vector<Thread> threads = new Vector<>();
+		
+		//start edge finder
+		for (int t=0; t<numOfThreads ; t++) {
+			Thread thread = new Thread(new ComputingThread(addToEdge,rtrees[t]));
+			threads.add(thread);
+			thread.start();
+		}
+		//wait for completion
+		for(Thread t : threads) {
+			try {
+				t.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}		
+		return this.nearestEdges;
+	}
+
+	private class ComputingThread implements Runnable {
+		
+		//must be a function member due to function "rtree.nearestN"
+		DBEdge foundEdgeThread = null;
+		double minDistThread = -1;
+		int minDirThread = 0;
+		boolean addToEdge =false;
+		SpatialIndex rtree;
+
+		
+		public ComputingThread(boolean addToEdge,SpatialIndex rtree) {
+			this.addToEdge=addToEdge;
+			this.rtree=rtree;
+		}
+		
+		public void run() {
+			if(nearestEdges ==null) {
+				System.err.println("Wrong initialized thread!");
+			}
+			EdgeMappable c =null;
+			do {
+				//get a new point
+				synchronized(source) {
+					c=source.poll();
+				}
+				if (c != null) {
+					
+					foundEdgeThread = null;
+					minDistThread = -1;
+					minDirThread = 0;
+					com.vividsolutions.jts.geom.Point opivot = c.getPoint();
+					Point pivot = new Point((float) opivot.getX(), (float) opivot.getY());
+
+					float viewDist = 10;
+					
+					//find the closest rectangle with an edge within the given viewDist
+					while ((foundEdgeThread == null && viewDist < Math.max(net.size.x, net.size.y))) {
+						rtree.nearest(pivot, new TIntProcedure() {
+							@Override
+							public boolean execute(int i) {
+								DBEdge e = id2edge.get(i);
+								if (!e.allowsAny(modes)) {
+									return true;
+								}
+								double dist = opivot.distance(e.geom);
+								if (minDistThread < 0
+										|| (minDistThread > dist && Math.abs(minDistThread - dist) >= .1)) {
+									minDistThread = dist;
+									minDirThread = getDirectionToPoint(e, opivot);
+									foundEdgeThread = e;
+								} else if (Math.abs(minDistThread - dist) < .1) {
+									// get the current edge's direction (at minimum distance)
+									int dir = getDirectionToPoint(e, opivot);
+									if (dir == DIRECTION_RIGHT) {
+										// ok, the point is on the right side of this one
+										if (minDirThread != DIRECTION_RIGHT || e.id.compareTo(foundEdgeThread.id) > 0) {
+											// use this one either if the point was on the false side of the initially
+											// found one
+											// or sort by id
+											minDistThread = dist;
+											minDirThread = dir;
+											foundEdgeThread = e;
+										}
+									} else if (minDirThread == DIRECTION_LEFT
+											&& e.id.compareTo(foundEdgeThread.id) > 0) {
+										// the point is on the left; sort by id if the initially found was on the left
+										// side, too
+										minDistThread = dist;
+										minDirThread = dir;
+										foundEdgeThread = e;
+									}
+								}
+								return true;
+							}
+						}, viewDist);
+						viewDist = viewDist * 10;
+					}
+					
+					//OK, the found edge lies in a rectangle around opivot with a side-length of minDistThread. 
+					//Due to some diagonal problem a edge in a neighbouring rectangle might be closer. 
+					//Therefore search one time again with minDistThread.
+					rtree.nearest(pivot, new TIntProcedure() {
+						@Override
+						public boolean execute(int i) {
+							DBEdge e = id2edge.get(i);
+							if (!e.allowsAny(modes)) {
+								return true;
+							}
+							double dist = opivot.distance(e.geom);
+							if (minDistThread < 0
+									|| (minDistThread > dist && Math.abs(minDistThread - dist) >= .1)) {
+								minDistThread = dist;
+								minDirThread = getDirectionToPoint(e, opivot);
+								foundEdgeThread = e;
+							} else if (Math.abs(minDistThread - dist) < .1) {
+								// get the current edge's direction (at minimum distance)
+								int dir = getDirectionToPoint(e, opivot);
+								if (dir == DIRECTION_RIGHT) {
+									// ok, the point is on the right side of this one
+									if (minDirThread != DIRECTION_RIGHT || e.id.compareTo(foundEdgeThread.id) > 0) {
+										// use this one either if the point was on the false side of the initially
+										// found one
+										// or sort by id
+										minDistThread = dist;
+										minDirThread = dir;
+										foundEdgeThread = e;
+									}
+								} else if (minDirThread == DIRECTION_LEFT
+										&& e.id.compareTo(foundEdgeThread.id) > 0) {
+									// the point is on the left; sort by id if the initially found was on the left
+									// side, too
+									minDistThread = dist;
+									minDirThread = dir;
+									foundEdgeThread = e;
+								}
+							}
 							return true;
 						}
-						double dist = opivot.distance(e.geom);
-						if (minDist < 0 || (minDist > dist && Math.abs(minDist-dist)>=.1)) {
-							minDist = dist;
-							minDir = getDirectionToPoint(e);
-							found = e;
-						} else if (Math.abs(minDist-dist)<.1) {
-							// get the current edge's direction (at minimum distance)
-							int dir = getDirectionToPoint(e);
-							if(dir==DIRECTION_RIGHT) {
-								// ok, the point is on the right side of this one
-								if(minDir!=DIRECTION_RIGHT || e.id.compareTo(found.id) > 0) {
-									// use this one either if the point was on the false side of the initially found one
-									// or sort by id
-									minDist = dist;
-									minDir = dir;
-									found = e;
-								}
-							} else if(minDir==DIRECTION_LEFT && e.id.compareTo(found.id) > 0) {
-								// the point is on the left; sort by id if the initially found was on the left side, too
-								minDist = dist;
-								minDir = dir;
-								found = e;
-							}
+					}, (float)minDistThread);
+					
+					Coordinate coord = new Coordinate(pivot.x, pivot.y, 0);
+					double posAtEdge = GeomHelper.getDistanceOnLineString(foundEdgeThread, coord, opivot);
+					// alter the edge synchronized
+					if (addToEdge) {
+						synchronized (foundEdgeThread) {
+							foundEdgeThread.addMappedObject(c);
 						}
-						return true;
 					}
-				}, 100, viewDist);
-				viewDist = viewDist * 2;
-			}
-			//
-			if(found!=null) {
-				Coordinate coord = new Coordinate(pivot.x, pivot.y, 0);
-				double posAtEdge = GeomHelper.getDistanceOnLineString(found, coord, opivot);
-				if (addToEdge) {
-					found.addMappedObject(c);
+					MapResult result = new MapResult(c, foundEdgeThread, minDistThread, posAtEdge);
+					// store values synchronized
+					synchronized (nearestEdges) {
+						Vector<MapResult> ress = nearestEdges.get(foundEdgeThread);
+						// properly computed, yet
+						if (ress ==null ) {
+							ress = new Vector<>();
+							nearestEdges.put(foundEdgeThread, ress);
+						}
+						ress.add(result);
+					}
 				}
-				// properly computed, yet
-				if (!ret.containsKey(found)) {
-					ret.put(found, new Vector<>());
-				}
-				Vector<MapResult> ress = ret.get(found);
-				ress.add(new MapResult(c, found, minDist, posAtEdge));
-			}
+			} while (c != null);
 		}
-		return ret;
 	}
 
 
@@ -167,11 +286,12 @@ public class NearestEdgeFinder {
 
 
 	/** 
-	 * @brief Returns the direction (left/right) into which the opivot oint lies in respect to the edge
+	 * @brief Returns the direction (left/right) into which the opivot point lies in respect to the edge
 	 * @param e The edge
+	 * @param opivot The reference opivot point
 	 * @return The direction of the opivot point
 	 */
-	private int getDirectionToPoint(DBEdge e) {
+	private int getDirectionToPoint(DBEdge e, com.vividsolutions.jts.geom.Point opivot) {
 		double minDist = -1;
 		double minDir = 0;
 		int numPoints = e.geom.getNumPoints();
