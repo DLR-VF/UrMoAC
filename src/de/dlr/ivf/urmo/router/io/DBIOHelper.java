@@ -72,12 +72,7 @@ public class DBIOHelper {
 			else { //southern hemisphere
 				epsg=32500;
 			}
-
-			if (lon < 0.0) { //western hemisphere
-				epsg += ((180.0 + lon) / 6) + 1;
-			} else { //eastern hemisphere
-				epsg += (lon / 6) + 31;
-			}
+			epsg += ((180.0 + lon) / 6) + 1;
 		}
 		rs.close();
 		s.close();
