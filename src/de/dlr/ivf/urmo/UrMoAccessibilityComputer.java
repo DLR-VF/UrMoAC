@@ -459,23 +459,21 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			int epsg;
 			if(options.hasOption("epsg")) {
 				epsg= ((Long) options.getParsedOptionValue("epsg")).intValue();
-			}
-			else {//automatic epsg-value
+			} else {
+				// automatic epsg-value
 				String ep[] = DBIOHelper.parseOption(options.getOptionValue("from", ""));
 				epsg = DBIOHelper.findUTMZone(ep[0], ep[1], ep[2], ep[3],options.getOptionValue("from.geom", "the_geom"));
 				if(epsg==-1) {
 					System.out.println("Could not find a valid UTM-zone. Quitting");
 					return;
-				}
-				else {
+				} else {
 					String utmZone;
 					if(epsg>32600) { //northern hemisphere
 						utmZone = Integer.toString(epsg%100)+"N";
-					}
-					else { // southern hemisphere
+					} else { // southern hemisphere
 						utmZone = Integer.toString(epsg%100)+"S";
 					}
-					System.out.println("Using UTM-zone "+utmZone+", EPSG-code: "+epsg);
+					System.out.println("Using UTM-zone "+utmZone+", EPSG-code: " + epsg);
 				}
 			}
 			
