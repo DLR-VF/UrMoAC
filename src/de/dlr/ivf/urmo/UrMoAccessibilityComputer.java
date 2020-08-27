@@ -30,6 +30,7 @@ import org.apache.commons.cli.ParseException;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.operation.TransformException;
 
+import com.infomatiq.jsi.SpatialIndex;
 import com.vividsolutions.jts.geom.Geometry;
 
 import de.dlr.ivf.helper.options.OptionsHelper;
@@ -381,7 +382,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			check &= OptionsHelper.isSet(lvCmd, "net");
 			check &= OptionsHelper.isSet(lvCmd, "mode");
 			check &= OptionsHelper.isSet(lvCmd, "time");
-			check &= OptionsHelper.isSet(lvCmd, "epsg");
+			//check &= OptionsHelper.isSet(lvCmd, "epsg"); --can be unset
 			// !!! add information about double set options
 			check &= OptionsHelper.isIntegerOrUnset(lvCmd, "epsg");
 			check &= OptionsHelper.isIntegerOrUnset(lvCmd, "time");
@@ -447,6 +448,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			worker.verbose = options.hasOption("verbose");
 			boolean dropExistingTables = options.hasOption("dropprevious");
 
+			int numThreads = options.hasOption("threads") ? ((Long) options.getParsedOptionValue("threads")).intValue() : 1;
+
 			// -------- mode
 			Vector<Mode> modesV = getModes(options.getOptionValue("mode", "<unknown>"));
 			if (modesV == null) {
@@ -456,61 +459,29 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			long initMode = modesV.get(0).id;
 
 			// -------- loading
-			int epsg = ((Long) options.getParsedOptionValue("epsg")).intValue();
-			// from
-			if (worker.verbose)
-				System.out.println("Reading origin places");
-			String fd[] = DBIOHelper.parseOption(options.getOptionValue("from", ""));
-			String fromFilter = options.getOptionValue("from-filter", "");
-			String weight = options.getOptionValue("weight", "");
-			Layer fromLayer = DBIOHelper.load(fd[0], fd[1], fd[2], fd[3], fromFilter, weight, 
-					options.getOptionValue("from.id", "gid"), options.getOptionValue("from.geom", "the_geom"), 
-					"from", worker, epsg);
-			if (worker.verbose)
-				System.out.println(" " + fromLayer.getObjects().size() + " origin places loaded");
-			if (fromLayer.getObjects().size()==0) {
-				System.out.println("Quitting.");
-				return;
+			int epsg;
+			if(options.hasOption("epsg")) {
+				epsg= ((Long) options.getParsedOptionValue("epsg")).intValue();
 			}
-			// from aggregation
-			Layer fromAggLayer = null;
-			if (options.hasOption("from-agg") && !options.getOptionValue("from-agg", "").equals("all")) {
-				if (worker.verbose)
-					System.out.println("Reading origin aggregation zones");
-				String ad[] = DBIOHelper.parseOption(options.getOptionValue("from-agg", ""));
-				fromAggLayer = DBIOHelper.load(ad[0], ad[1], ad[2], ad[3], "", "", 
-						options.getOptionValue("from-agg.id", "gid"), options.getOptionValue("from-agg.geom", "the_geom"), 
-						"from-agg", worker, epsg);
-				if (worker.verbose)
-					System.out.println(" " + fromAggLayer.getObjects().size() + " origin aggregation geometries loaded");
+			else {//automatic epsg-value
+				String ep[] = DBIOHelper.parseOption(options.getOptionValue("from", ""));
+				epsg = DBIOHelper.findUTMZone(ep[0], ep[1], ep[2], ep[3],options.getOptionValue("from.geom", "the_geom"));
+				if(epsg==-1) {
+					System.out.println("Could not find a valid UTM-zone. Quitting");
+					return;
+				}
+				else {
+					String utmZone;
+					if(epsg>32600) { //northern hemisphere
+						utmZone = Integer.toString(epsg%100)+"N";
+					}
+					else { // southern hemisphere
+						utmZone = Integer.toString(epsg%100)+"S";
+					}
+					System.out.println("Using UTM-zone "+utmZone+", EPSG-code: "+epsg);
+				}
 			}
-			// to
-			if (worker.verbose)
-				System.out.println("Reading destination places");
-			String td[] = DBIOHelper.parseOption(options.getOptionValue("to", ""));
-			String toFilter = options.getOptionValue("to-filter", "");
-			String var = options.getOptionValue("variable", "");
-			Layer toLayer = DBIOHelper.load(td[0], td[1], td[2], td[3], toFilter, var,  
-					options.getOptionValue("to.id", "gid"), options.getOptionValue("to.geom", "the_geom"), 
-					"to", worker, epsg);
-			if (worker.verbose)
-				System.out.println(" " + toLayer.getObjects().size() + " destination places loaded");
-			if (toLayer.getObjects().size()==0) {
-				System.out.println("Quitting.");
-				return;
-			}
-			// to aggregation
-			Layer toAggLayer = null;
-			if (options.hasOption("to-agg") && !options.getOptionValue("to-agg", "").equals("all")) {
-				if (worker.verbose)
-					System.out.println("Reading sink aggregation zones");
-				String ad[] = DBIOHelper.parseOption(options.getOptionValue("to-agg", ""));
-				toAggLayer = DBIOHelper.load(ad[0], ad[1], ad[2], ad[3], "", "", 
-						options.getOptionValue("to-agg.id", "gid"), options.getOptionValue("to-agg.geom", "the_geom"), 
-						"to-agg", worker, epsg);
-				if (worker.verbose)
-					System.out.println(" " + toAggLayer.getObjects().size() + " sink aggregation geometries loaded");
-			}
+			
 			// net
 			if (worker.verbose)
 				System.out.println("Reading the road network");
@@ -555,160 +526,231 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				if (worker.verbose)
 					System.out.println(" loaded");
 			}
-
-			// -------- compute (and optionally write) nearest edges
-			// compute nearest edges
+			//RTrees
 			if (worker.verbose)
-				System.out.println("Computing access from the origins to the network");
-			NearestEdgeFinder nef1 = new NearestEdgeFinder(fromLayer.getObjects(), net, initMode);
-			worker.nearestFromEdges = nef1.getNearestEdges(false);
-			if (options.hasOption("origins-to-road-output")) {
-				writeEdgeAllocation(options.getOptionValue("origins-to-road-output", ""), worker.nearestFromEdges, epsg, dropExistingTables);
+				System.out.println("Building "+numThreads+" RTrees for nearest edge search.");
+			SpatialIndex[] rtrees = new SpatialIndex[numThreads];
+			for(int i=0; i< numThreads; i++) {
+				rtrees[i]=  net.getModedSpatialIndex(modes); //every thread needs its own rtree, because rtree is not thread-save :( 
 			}
 			if (worker.verbose)
-				System.out.println("Computing egress from the network to the destinations");
-			NearestEdgeFinder nef2 = new NearestEdgeFinder(toLayer.getObjects(), net, initMode);
-			worker.nearestToEdges = nef2.getNearestEdges(true);
-			if (options.hasOption("destinations-to-road-output")) {
-				writeEdgeAllocation(options.getOptionValue("destinations-to-road-output", ""), worker.nearestToEdges, epsg, dropExistingTables);
-			}
+				System.out.println("Done.");
+			
+			for (int i=1; i<1224; i++) {
+				// from
+				if (worker.verbose)
+					System.out.println("Reading origin places for "+i);
+				String fd[] = DBIOHelper.parseOption(options.getOptionValue("from", ""));
+				String fromFilter = options.getOptionValue("from-filter", "");
+				fromFilter = "taz="+i;
+				String weight = options.getOptionValue("weight", "");
+				Layer fromLayer = DBIOHelper.load(fd[0], fd[1], fd[2], fd[3], fromFilter, weight, 
+						options.getOptionValue("from.id", "gid"), options.getOptionValue("from.geom", "the_geom"), 
+						"from", worker, epsg);
+				if (worker.verbose)
+					System.out.println(" " + fromLayer.getObjects().size() + " origin places loaded");
+				if (fromLayer.getObjects().size()==0) {
+					System.out.println("Quitting.");
+					return;
+				}
+				// from aggregation
+				Layer fromAggLayer = null;
+				if (options.hasOption("from-agg") && !options.getOptionValue("from-agg", "").equals("all")) {
+					if (worker.verbose)
+						System.out.println("Reading origin aggregation zones");
+					String ad[] = DBIOHelper.parseOption(options.getOptionValue("from-agg", ""));
+					fromAggLayer = DBIOHelper.load(ad[0], ad[1], ad[2], ad[3], "", "", 
+							options.getOptionValue("from-agg.id", "gid"), options.getOptionValue("from-agg.geom", "the_geom"), 
+							"from-agg", worker, epsg);
+					if (worker.verbose)
+						System.out.println(" " + fromAggLayer.getObjects().size() + " origin aggregation geometries loaded");
+				}
+				// to
+				if (worker.verbose)
+					System.out.println("Reading destination places");
+				String td[] = DBIOHelper.parseOption(options.getOptionValue("to", ""));
+				String toFilter = options.getOptionValue("to-filter", "");
+				toFilter = "taz="+i;
 
-			// -------- instantiate outputs
-/*
-			worker.aggregators = new HashMap<>();
-			if (!"".equals(options.getOptionValue("nm-output", ""))) {
-				String comment = buildComment(options);
-				if ("".equals(options.getOptionValue("output-steps", ""))) {
-					BasicWriter writer = buildNMOutput(options.getOptionValue("nm-output", ""));
-					writer.addComment(comment);
-					agg.addOutput(writer);
-					worker.aggregators.put(-1d, agg);
-				} else {
-					// steps is hard coded
-					int steps = (int) ((Double) options.getParsedOptionValue("output-steps")).doubleValue();
-					steps = 12;
-					for(int i=1; i<steps+1; ++i) {
-						Aggregator nagg = agg.duplicate();
-						BasicWriter writer = buildNMOutput2(options.getOptionValue("nm-output", ""), "_"+300*i);
+				String var = options.getOptionValue("variable", "");
+				Layer toLayer = DBIOHelper.load(td[0], td[1], td[2], td[3], toFilter, var,  
+						options.getOptionValue("to.id", "gid"), options.getOptionValue("to.geom", "the_geom"), 
+						"to", worker, epsg);
+				if (worker.verbose)
+					System.out.println(" " + toLayer.getObjects().size() + " destination places loaded");
+				if (toLayer.getObjects().size()==0) {
+					System.out.println("Quitting.");
+					return;
+				}
+				// to aggregation
+				Layer toAggLayer = null;
+				if (options.hasOption("to-agg") && !options.getOptionValue("to-agg", "").equals("all")) {
+					if (worker.verbose)
+						System.out.println("Reading sink aggregation zones");
+					String ad[] = DBIOHelper.parseOption(options.getOptionValue("to-agg", ""));
+					toAggLayer = DBIOHelper.load(ad[0], ad[1], ad[2], ad[3], "", "", 
+							options.getOptionValue("to-agg.id", "gid"), options.getOptionValue("to-agg.geom", "the_geom"), 
+							"to-agg", worker, epsg);
+					if (worker.verbose)
+						System.out.println(" " + toAggLayer.getObjects().size() + " sink aggregation geometries loaded");
+				}
+	
+	
+				// -------- compute (and optionally write) nearest edges
+				// compute nearest edges
+				if (worker.verbose)
+					System.out.println("Computing access from the origins to the network");
+				NearestEdgeFinder nef1 = new NearestEdgeFinder(fromLayer.getObjects(), net, initMode);
+				worker.nearestFromEdges = nef1.getNearestEdges(false, numThreads,rtrees);
+				if (options.hasOption("origins-to-road-output")) {
+					writeEdgeAllocation(options.getOptionValue("origins-to-road-output", ""), worker.nearestFromEdges, epsg, dropExistingTables);
+				}
+				if (worker.verbose)
+					System.out.println("Computing egress from the network to the destinations");
+				NearestEdgeFinder nef2 = new NearestEdgeFinder(toLayer.getObjects(), net, initMode);
+				worker.nearestToEdges = nef2.getNearestEdges(true, numThreads,rtrees);
+				if (options.hasOption("destinations-to-road-output")) {
+					writeEdgeAllocation(options.getOptionValue("destinations-to-road-output", ""), worker.nearestToEdges, epsg, dropExistingTables);
+				}
+	
+				// -------- instantiate outputs
+	/*
+				worker.aggregators = new HashMap<>();
+				if (!"".equals(options.getOptionValue("nm-output", ""))) {
+					String comment = buildComment(options);
+					if ("".equals(options.getOptionValue("output-steps", ""))) {
+						BasicWriter writer = buildNMOutput(options.getOptionValue("nm-output", ""));
 						writer.addComment(comment);
-						nagg.addOutput(writer);
-						worker.aggregators.put((double) (300*i), nagg);
+						agg.addOutput(writer);
+						worker.aggregators.put(-1d, agg);
+					} else {
+						// steps is hard coded
+						int steps = (int) ((Double) options.getParsedOptionValue("output-steps")).doubleValue();
+						steps = 12;
+						for(int i=1; i<steps+1; ++i) {
+							Aggregator nagg = agg.duplicate();
+							BasicWriter writer = buildNMOutput2(options.getOptionValue("nm-output", ""), "_"+300*i);
+							writer.addComment(comment);
+							nagg.addOutput(writer);
+							worker.aggregators.put((double) (300*i), nagg);
+						}
 					}
 				}
-			}
-			*/
-			// -------- !!!
-			Vector<Aggregator> aggregators = new Vector<>();
-			String comment = buildComment(options);
-			if (!"".equals(options.getOptionValue("nm-output", ""))) {
-				ODMeasuresGenerator mgNM = new ODMeasuresGenerator();
-				AbstractResultsWriter<ODSingleResult> writer = buildNMOutput(options.getOptionValue("nm-output", ""), dropExistingTables);
-				Aggregator<ODSingleResult> agg = buildAggregator(mgNM, options.hasOption("shortest"), 
-						options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
-						fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
-				aggregators.add(agg);
-			}
-			if (!"".equals(options.getOptionValue("ext-nm-output", ""))) {
-				ODExtendedMeasuresGenerator mg = new ODExtendedMeasuresGenerator();
-				AbstractResultsWriter<ODSingleExtendedResult> writer = buildExtNMOutput(options.getOptionValue("ext-nm-output", ""), dropExistingTables);
-				Aggregator<ODSingleExtendedResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
-						options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
-						fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
-				aggregators.add(agg);
-			}
-			if (!"".equals(options.getOptionValue("stat-nm-output", ""))) {
-				ODStatsMeasuresGenerator mg = new ODStatsMeasuresGenerator();
-				AbstractResultsWriter<ODSingleStatsResult> writer = buildStatNMOutput(options.getOptionValue("stat-nm-output", ""), dropExistingTables);
-				Aggregator<ODSingleStatsResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
-						options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
-						fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
-				aggregators.add(agg);
-			}
-			if (!"".equals(options.getOptionValue("interchanges-output", ""))) {
-				InterchangeMeasuresGenerator mg = new InterchangeMeasuresGenerator();
-				AbstractResultsWriter<InterchangeSingleResult> writer = buildInterchangeOutput(options.getOptionValue("interchanges-output", ""), dropExistingTables);
-				Aggregator<InterchangeSingleResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
-						options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
-						fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
-				aggregators.add(agg);
-			}
-			if (!"".equals(options.getOptionValue("edges-output", ""))) {
-				EUMeasuresGenerator mg = new EUMeasuresGenerator();
-				AbstractResultsWriter<EUSingleResult> writer = buildEUOutput(options.getOptionValue("edges-output", ""), dropExistingTables);
-				Aggregator<EUSingleResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
-						options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
-						fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
-				aggregators.add(agg);
-			}
-			if (!"".equals(options.getOptionValue("pt-output", ""))) {
-				PTODMeasuresGenerator mg = new PTODMeasuresGenerator();
-				AbstractResultsWriter<PTODSingleResult> writer = buildPTODOutput(options.getOptionValue("pt-output", ""), dropExistingTables);
-				Aggregator<PTODSingleResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
-						options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
-						fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
-				aggregators.add(agg);
-			}
-			DirectWriter dw = null;
-			if (!"".equals(options.getOptionValue("direct-output", ""))) {
-				dw = buildDirectOutput(options.getOptionValue("direct-output", ""), epsg, worker.nearestToEdges, dropExistingTables);
-				dw.addComment(comment);
-			}
-			int time = ((Long) options.getParsedOptionValue("time")).intValue();
-			DijkstraResultsProcessor resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, worker.nearestFromEdges, worker.nearestToEdges); 
-
-			// -------- measure
-			AbstractRoutingMeasure measure = new RoutingMeasure_TT_Modes();
-			if(options.hasOption("measure")) {
-				String t = options.getOptionValue("measure", "");
-				if("price_tt".equals(t)) {
-					measure = new RoutingMeasure_Price_TT();
-				} else if("interchanges_tt".equals(t)) {
-					measure = new RoutingMeasure_ExpInterchange_TT(
-							((Double) options.getParsedOptionValue("measure-param1")).doubleValue(), 
-							((Double) options.getParsedOptionValue("measure-param2")).doubleValue());
-				} else if("maxinterchanges_tt".equals(t)) {
-					measure = new RoutingMeasure_MaxInterchange_TT(
-							(int) ((Long) options.getParsedOptionValue("measure-param1")).longValue());
+				*/
+				// -------- !!!
+				Vector<Aggregator> aggregators = new Vector<>();
+				String comment = buildComment(options);
+				if (!"".equals(options.getOptionValue("nm-output", ""))) {
+					ODMeasuresGenerator mgNM = new ODMeasuresGenerator();
+					String outputTable= options.getOptionValue("nm-output", "");
+					outputTable = outputTable.replace("_1", "_"+i);
+					AbstractResultsWriter<ODSingleResult> writer = buildNMOutput(outputTable, dropExistingTables);
+					Aggregator<ODSingleResult> agg = buildAggregator(mgNM, options.hasOption("shortest"), 
+							options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
+							fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+					aggregators.add(agg);
 				}
-			}
-			
-			// -------- compute 
-			// TODO optional report on nearest edges
-			// compute distances / travel times, save them
-			if (worker.verbose)
-				System.out.println("Computing shortest paths");
-			worker.fromEdges = worker.nearestFromEdges.keySet();
-			worker.toEdges = worker.nearestToEdges.keySet();
-			int maxNumber = options.hasOption("max-number") ? ((Long) options.getParsedOptionValue("max-number")).intValue() : -1;
-			double maxTT = options.hasOption("max-tt") ? ((Double) options.getParsedOptionValue("max-tt")).doubleValue() : -1;
-			double maxDistance = options.hasOption("max-distance") ? ((Double) options.getParsedOptionValue("max-distance")).doubleValue() : -1;
-			double maxVar = options.hasOption("max-variable-sum") ? ((Double) options.getParsedOptionValue("max-variable-sum")).doubleValue() : -1;
-			boolean shortestOnly = options.hasOption("shortest");
-			boolean needsPT = options.hasOption("requirespt");
-			if (worker.verbose) {
-				System.out.println(" between " + worker.fromEdges.size() + " origin and " + worker.toEdges.size() + " destination edges");
-			}
-			
-			// initialise threads
-			int numThreads = options.hasOption("threads") ? ((Long) options.getParsedOptionValue("threads")).intValue() : 1;
-			worker.nextEdgePointer = worker.fromEdges.iterator();
-			worker.seenEdges = 0;
-			Vector<Thread> threads = new Vector<>();
-			//System.out.println(""); // starting (progress follows)
-			for (int i=0; i<numThreads; ++i) {
-				Thread t = new Thread(new ComputingThread(worker, needsPT, measure, resultsProcessor, time, initMode, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly));
-				threads.add(t);
-		        t.start();
-			}
-			for(Thread t : threads) {
-				try {
-					t.join();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+				if (!"".equals(options.getOptionValue("ext-nm-output", ""))) {
+					ODExtendedMeasuresGenerator mg = new ODExtendedMeasuresGenerator();
+					AbstractResultsWriter<ODSingleExtendedResult> writer = buildExtNMOutput(options.getOptionValue("ext-nm-output", ""), dropExistingTables);
+					Aggregator<ODSingleExtendedResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
+							options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
+							fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+					aggregators.add(agg);
 				}
+				if (!"".equals(options.getOptionValue("stat-nm-output", ""))) {
+					ODStatsMeasuresGenerator mg = new ODStatsMeasuresGenerator();
+					AbstractResultsWriter<ODSingleStatsResult> writer = buildStatNMOutput(options.getOptionValue("stat-nm-output", ""), dropExistingTables);
+					Aggregator<ODSingleStatsResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
+							options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
+							fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+					aggregators.add(agg);
+				}
+				if (!"".equals(options.getOptionValue("interchanges-output", ""))) {
+					InterchangeMeasuresGenerator mg = new InterchangeMeasuresGenerator();
+					AbstractResultsWriter<InterchangeSingleResult> writer = buildInterchangeOutput(options.getOptionValue("interchanges-output", ""), dropExistingTables);
+					Aggregator<InterchangeSingleResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
+							options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
+							fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+					aggregators.add(agg);
+				}
+				if (!"".equals(options.getOptionValue("edges-output", ""))) {
+					EUMeasuresGenerator mg = new EUMeasuresGenerator();
+					AbstractResultsWriter<EUSingleResult> writer = buildEUOutput(options.getOptionValue("edges-output", ""), dropExistingTables);
+					Aggregator<EUSingleResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
+							options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
+							fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+					aggregators.add(agg);
+				}
+				if (!"".equals(options.getOptionValue("pt-output", ""))) {
+					PTODMeasuresGenerator mg = new PTODMeasuresGenerator();
+					AbstractResultsWriter<PTODSingleResult> writer = buildPTODOutput(options.getOptionValue("pt-output", ""), dropExistingTables);
+					Aggregator<PTODSingleResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
+							options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
+							fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+					aggregators.add(agg);
+				}
+				DirectWriter dw = null;
+				if (!"".equals(options.getOptionValue("direct-output", ""))) {
+					dw = buildDirectOutput(options.getOptionValue("direct-output", ""), epsg, worker.nearestToEdges, dropExistingTables);
+					dw.addComment(comment);
+				}
+				int time = ((Long) options.getParsedOptionValue("time")).intValue();
+				DijkstraResultsProcessor resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, worker.nearestFromEdges, worker.nearestToEdges); 
+	
+				// -------- measure
+				AbstractRoutingMeasure measure = new RoutingMeasure_TT_Modes();
+				if(options.hasOption("measure")) {
+					String t = options.getOptionValue("measure", "");
+					if("price_tt".equals(t)) {
+						measure = new RoutingMeasure_Price_TT();
+					} else if("interchanges_tt".equals(t)) {
+						measure = new RoutingMeasure_ExpInterchange_TT(
+								((Double) options.getParsedOptionValue("measure-param1")).doubleValue(), 
+								((Double) options.getParsedOptionValue("measure-param2")).doubleValue());
+					} else if("maxinterchanges_tt".equals(t)) {
+						measure = new RoutingMeasure_MaxInterchange_TT(
+								(int) ((Long) options.getParsedOptionValue("measure-param1")).longValue());
+					}
+				}
+				
+				// -------- compute 
+				// TODO optional report on nearest edges
+				// compute distances / travel times, save them
+				if (worker.verbose)
+					System.out.println("Computing shortest paths");
+				worker.fromEdges = worker.nearestFromEdges.keySet();
+				worker.toEdges = worker.nearestToEdges.keySet();
+				int maxNumber = options.hasOption("max-number") ? ((Long) options.getParsedOptionValue("max-number")).intValue() : -1;
+				double maxTT = options.hasOption("max-tt") ? ((Double) options.getParsedOptionValue("max-tt")).doubleValue() : -1;
+				double maxDistance = options.hasOption("max-distance") ? ((Double) options.getParsedOptionValue("max-distance")).doubleValue() : -1;
+				double maxVar = options.hasOption("max-variable-sum") ? ((Double) options.getParsedOptionValue("max-variable-sum")).doubleValue() : -1;
+				boolean shortestOnly = options.hasOption("shortest");
+				boolean needsPT = options.hasOption("requirespt");
+				if (worker.verbose) {
+					System.out.println(" between " + worker.fromEdges.size() + " origin and " + worker.toEdges.size() + " destination edges");
+				}
+				
+				// initialise threads
+				worker.nextEdgePointer = worker.fromEdges.iterator();
+				worker.seenEdges = 0;
+				Vector<Thread> threads = new Vector<>();
+				//System.out.println(""); // starting (progress follows)
+				for (int t=0; t<numThreads; ++t) {
+					Thread thread = new Thread(new ComputingThread(worker, needsPT, measure, resultsProcessor, time, initMode, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly));
+					threads.add(thread);
+					thread.start();
+				}
+				for(Thread t : threads) {
+					try {
+						t.join();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				System.out.println(""); // progress ends
+				resultsProcessor.finish();
 			}
-			System.out.println(""); // progress ends
-			resultsProcessor.finish();
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (SQLException e) {
