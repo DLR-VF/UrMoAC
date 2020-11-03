@@ -35,10 +35,10 @@ public class GTFSConnection {
 	 * @param _departureTime The departure time of the pt vehicle from the starting station
 	 * @param _arrivalTime The arrival time of the pt vehicle at the ending station
 	 */
-	public GTFSConnection(GTFSEdge e, String _line, String tripID2, int _departureTime, int _arrivalTime) {
+	public GTFSConnection(GTFSEdge e, String _line, String _tripID, int _departureTime, int _arrivalTime) {
 		edge = e;
 		line = _line;
-		tripID = tripID2;
+		tripID = _tripID;
 		departureTime = _departureTime;
 		arrivalTime = _arrivalTime;
 	}

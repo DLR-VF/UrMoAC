@@ -56,12 +56,12 @@ public class GTFSData {
 	 * @param trips2 A list of trips
 	 * @param _connections A set of edges (!!! unused?)
 	 */
-	public GTFSData(DBNet _net, EntrainmentMap _entrainmentMap, HashMap<Long, GTFSStop> _stops, HashMap<String, GTFSRoute> _routes, HashMap<String, GTFSTrip> trips2) {
+	public GTFSData(DBNet _net, EntrainmentMap _entrainmentMap, HashMap<Long, GTFSStop> _stops, HashMap<String, GTFSRoute> _routes, HashMap<String, GTFSTrip> _trips) {
 		net = _net;
 		entrainmentMap = _entrainmentMap;
 		stops = _stops;
 		routes = _routes;
-		trips = trips2;
+		trips = _trips;
 
 		namemap.put("100", "RE");
 		namemap.put("109", "S-Bahn");

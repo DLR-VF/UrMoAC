@@ -29,13 +29,13 @@ public class GTFSStopTime {
 
 	/**
 	 * @brief Constructor
-	 * @param tripID This halt's id
+	 * @param _id This halt's id
 	 * @param _arrivalTime The arrival time at the station
 	 * @param _departureTime The departure time from the station
 	 * @param _stopID The id of the station
 	 */
-	public GTFSStopTime(String tripID, int _arrivalTime, int _departureTime, String _stopID) {
-		id = tripID;
+	public GTFSStopTime(String _id, int _arrivalTime, int _departureTime, String _stopID) {
+		id = _id;
 		arrivalTime = _arrivalTime;
 		departureTime = _departureTime;
 		stopID = _stopID;
