@@ -33,7 +33,7 @@ public class GTFSData {
 	/// @brief A map of ids to the respective route
 	public HashMap<String, GTFSRoute> routes;
 	/// @brief A map of ids to the respective trip
-	public HashMap<Integer, GTFSTrip> trips;
+	public HashMap<String, GTFSTrip> trips;
 	/// @brief A set of edges (!!! unused?)
 	public Set<GTFSEdge> ptedges = new HashSet<>();
 	/// @brief The network to refer to
@@ -53,15 +53,15 @@ public class GTFSData {
 	 * @brief Constructor
 	 * @param _stops A map of ids to the respective stop
 	 * @param _routes A map of ids to the respective route
-	 * @param _trips A list of trips
+	 * @param trips2 A list of trips
 	 * @param _connections A set of edges (!!! unused?)
 	 */
-	public GTFSData(DBNet _net, EntrainmentMap _entrainmentMap, HashMap<Long, GTFSStop> _stops, HashMap<String, GTFSRoute> _routes, HashMap<Integer, GTFSTrip> _trips) {
+	public GTFSData(DBNet _net, EntrainmentMap _entrainmentMap, HashMap<Long, GTFSStop> _stops, HashMap<String, GTFSRoute> _routes, HashMap<String, GTFSTrip> trips2) {
 		net = _net;
 		entrainmentMap = _entrainmentMap;
 		stops = _stops;
 		routes = _routes;
-		trips = _trips;
+		trips = trips2;
 
 		namemap.put("100", "RE");
 		namemap.put("109", "S-Bahn");
@@ -121,7 +121,7 @@ public class GTFSData {
 	 * 
 	 * @param lastConnections The connections to recheck
 	 */
-	public int recheckTimesAndInsert(int tripID, Vector<GTFSStopTime> stopTimes, HashMap<String, GTFSStop> id2stop) {
+	public int recheckTimesAndInsert(String tripID, Vector<GTFSStopTime> stopTimes, HashMap<String, GTFSStop> id2stop) {
 		Collections.sort(stopTimes, new Comparator<GTFSStopTime>() {
             public int compare(GTFSStopTime obj1, GTFSStopTime obj2) {
                 return obj1.arrivalTime - obj2.arrivalTime;
