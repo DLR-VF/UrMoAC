@@ -53,7 +53,7 @@ public class GTFSData {
 	 * @brief Constructor
 	 * @param _stops A map of ids to the respective stop
 	 * @param _routes A map of ids to the respective route
-	 * @param trips2 A list of trips
+	 * @param _trips A list of trips
 	 * @param _connections A set of edges (!!! unused?)
 	 */
 	public GTFSData(DBNet _net, EntrainmentMap _entrainmentMap, HashMap<Long, GTFSStop> _stops, HashMap<String, GTFSRoute> _routes, HashMap<String, GTFSTrip> _trips) {
