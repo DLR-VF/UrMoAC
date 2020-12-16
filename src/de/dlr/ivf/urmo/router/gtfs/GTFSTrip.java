@@ -22,7 +22,7 @@ public class GTFSTrip {
 	/// @brief The id of the service
 	public String serviceID;
 	/// @brief The id of the trip
-	public int tripID;
+	public String tripID;
 
 
 	/**
@@ -31,7 +31,7 @@ public class GTFSTrip {
 	 * @param _serviceID The id of the service
 	 * @param _tripID The id of the trip
 	 */
-	public GTFSTrip(String _routeID, String _serviceID, int _tripID) {
+	public GTFSTrip(String _routeID, String _serviceID, String _tripID) {
 		routeID = _routeID;
 		serviceID = _serviceID;
 		tripID = _tripID;

@@ -18,7 +18,7 @@ package de.dlr.ivf.urmo.router.gtfs;
  */
 public class GTFSStopTime {
 	/// @brief This halt's id
-	public int id;
+	public String id;
 	/// @brief The arrival time at the station
 	public int arrivalTime;
 	/// @brief The departure time from the station
@@ -34,11 +34,12 @@ public class GTFSStopTime {
 	 * @param _departureTime The departure time from the station
 	 * @param _stopID The id of the station
 	 */
-	public GTFSStopTime(int _id, int _arrivalTime, int _departureTime, String _stopID) {
+	public GTFSStopTime(String _id, int _arrivalTime, int _departureTime, String _stopID) {
 		id = _id;
 		arrivalTime = _arrivalTime;
 		departureTime = _departureTime;
 		stopID = _stopID;
 	}
+
 
 }
