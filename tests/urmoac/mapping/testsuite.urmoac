@@ -1,0 +1,12 @@
+# simple allocation along a unidirectional single road
+one_unidir_road_no_offset
+
+# simple allocation along a bidirectional single road
+one_bidir_road_no_offset
+
+# simple allocation along a unidirectional single road with different offsets
+one_unidir_road_offsets
+
+# simple allocation along a bidirectional single road with different offsets
+one_bidir_road_offsets
+

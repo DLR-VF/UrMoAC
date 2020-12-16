@@ -1,0 +1,10 @@
+The 'from' parameter is missing
+The 'to' parameter is missing
+The 'net' parameter is missing
+The 'mode' parameter is missing
+The 'time' parameter is missing
+The 'epsg' parameter is missing
+Exception in thread "main" java.lang.ClassCastException: java.lang.Long cannot be cast to java.lang.Double
+	at de.dlr.ivf.helper.options.OptionsHelper.isDoubleOrUnset(OptionsHelper.java:69)
+	at de.dlr.ivf.urmo.UrMoAccessibilityComputer.getCMDOptions(UrMoAccessibilityComputer.java:376)
+	at de.dlr.ivf.urmo.UrMoAccessibilityComputer.main(UrMoAccessibilityComputer.java:424)
