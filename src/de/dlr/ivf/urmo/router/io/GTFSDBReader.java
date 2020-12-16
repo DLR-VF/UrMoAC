@@ -255,7 +255,7 @@ public class GTFSDBReader {
 		query = "SELECT service_id,route_id,trip_id FROM " + tablePrefix + "_trips;";
 		s = connection.createStatement();
 		rs = s.executeQuery(query);
-		HashMap<Integer, GTFSTrip> trips = new HashMap<>();
+		HashMap<String, GTFSTrip> trips = new HashMap<>();
 		while (rs.next()) {
 			String service_id = rs.getString("service_id");
 			if(dateI!=0&&!services.contains(service_id)) {
@@ -264,8 +264,8 @@ public class GTFSDBReader {
 			if(!routes.containsKey(rs.getString("route_id"))) {
 				continue;
 			}
-			GTFSTrip trip = new GTFSTrip(rs.getString("route_id"), service_id, rs.getInt("trip_id"));
-			trips.put(rs.getInt("trip_id"), trip);
+			GTFSTrip trip = new GTFSTrip(rs.getString("route_id"), service_id, rs.getString("trip_id"));
+			trips.put(rs.getString("trip_id"), trip);
 		}
 		rs.close();
 		s.close();
@@ -278,16 +278,17 @@ public class GTFSDBReader {
 		query = "SELECT trip_id,arrival_time,departure_time,stop_id FROM " + tablePrefix + "_stop_times ORDER BY trip_id,stop_sequence;";
 		s = connection.createStatement();
 		rs = s.executeQuery(query);
-		int lastTripID = -1;
+		String lastTripID = "-1";
 		Vector<GTFSStopTime> stopTimes = new Vector<>();
 		int abs = 0;
 		int err = 0;
 		while (rs.next()) {
-			int tripID = rs.getInt("trip_id");
+			String tripID = rs.getString("trip_id");
 			if(!trips.containsKey(tripID)) {
 				continue;
 			}
-			if(tripID!=lastTripID&&lastTripID!=-1) {
+
+			if(!tripID.equals(lastTripID)&&lastTripID!="-1") {
 				err += ret.recheckTimesAndInsert(lastTripID, stopTimes, id2stop);
 				abs += stopTimes.size() - 1;
 				stopTimes.clear();

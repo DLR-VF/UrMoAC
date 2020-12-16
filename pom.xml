@@ -48,21 +48,24 @@
   <name>UrMoAccessibilityComputer</name>
   <url>https://github.com/DLR-VF/UrMoAC</url>
   <description>A tool for computing accessibility measures, supporting aggregation, variable limits, and intermodality.</description>
-	<repositories>
+   <repositories>
+   <repository>
+      <id>osgeo-alt</id>
+      <url>https://repo.osgeo.org/repository/release/</url>
+    </repository>
     <repository>
-        <id>geotools</id>
-        <name>OSGeo Repository</name>
-        <url>http://download.osgeo.org/webdav/geotools/</url>
+       <id>geomajas</id>
+       <name>Geomajas Maven Repository</name>
+       <url>http://maven.geomajas.org/(http://maven.geomajas.org/)</url>
+    </repository>
+       <repository>
+      <id>geotoolkit</id>
+      <url>https://maven.geotoolkit.org</url>
     </repository>
     <repository>
         <id>Atlassian 3rdParty Repository</id>
         <name>Atlassian 3rdParty Repository</name>
         <url>https://packages.atlassian.com/maven-3rdparty/</url>
-    </repository>
-    <repository>
-   		<id>OrbisGIS</id>
-     	 <name>OrbisGIS Repository</name>
-       	 <url>http://repo.orbisgis.org/</url>
     </repository>
     <repository>
    		<id>Clojars</id>
@@ -148,10 +151,11 @@
   		<groupId>org.geotools</groupId>
   		<artifactId>gt-shapefile</artifactId>
   	</dependency>
-  	<dependency>
-  		<groupId>javax.media</groupId>
-  		<artifactId>jai-core</artifactId>
-  	</dependency>
+	<dependency>
+    	<groupId>javax.media</groupId>
+    	<artifactId>jai_core</artifactId>
+    	<version>1.1.3</version>
+	</dependency>
   	<dependency>
   		<groupId>org.slf4j</groupId>
   		<artifactId>slf4j-simple</artifactId>
