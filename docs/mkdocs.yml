@@ -1,0 +1,5 @@
+site_name: UrMoAC
+nav:
+    - Home: index.md
+    - About: about.md
+    
