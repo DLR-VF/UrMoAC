@@ -1,12 +1,18 @@
 /**
+ * Copyright (c) 2016-2021 DLR Institute of Transport Research
+ * All rights reserved.
+ * 
+ * This file is part of the "UrMoAC" accessibility tool
+ * http://github.com/DLR-VF/UrMoAC
+ * @author: Daniel.Krajzewicz@dlr.de
+ * Licensed under the GNU General Public License v3.0
+ * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
  * Rutherfordstraﬂe 2
  * 12489 Berlin
  * Germany
- * 
- * Copyright © 2016-2019 German Aerospace Center 
- * All rights reserved
+ * http://www.dlr.de/vf
  */
 package de.dlr.ivf.urmo.router.output;
 
@@ -73,10 +79,6 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 	 */
 	public void writeResults(HashMap<DBEdge, Vector<MapResult>> nearestEdges)
 			throws SQLException, IOException, NoSuchAuthorityCodeException, FactoryException, TransformException {
-		// CoordinateReferenceSystem sourceCRS = CRS.decode("EPSG:25833");
-		// CoordinateReferenceSystem targetCRS = CRS.decode("EPSG:4326");
-		// MathTransform transform = CRS.findMathTransform(sourceCRS,
-		// targetCRS);
 		for (DBEdge e : nearestEdges.keySet()) {
 			if (e == null) {
 				continue;
@@ -90,16 +92,6 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 					ps.setString(2, e.id);
 					ps.setFloat(3, (float) o.pos);
 					ps.setFloat(4, (float) o.dist);
-
-					/*
-					 * Coordinate dest1 = new Coordinate(); Coordinate dest2 =
-					 * new Coordinate(); JTS.transform( ppd.getCoordinate(0),
-					 * dest1, transform); JTS.transform( ppd.getCoordinate(1),
-					 * dest2, transform);
-					 * 
-					 * String p1 = dest1.x + " " + dest1.y; String p2 = dest2.x
-					 * + " " + dest2.y;
-					 */
 					String p1 = ppd.getCoordinate(0).x + " " + ppd.getCoordinate(0).y;
 					String p2 = ppd.getCoordinate(1).x + " " + ppd.getCoordinate(1).y;
 					ps.setString(5, "LINESTRING(" + p1 + "," + p2 + ")");
@@ -110,7 +102,6 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 							+ ppd.getCoordinate(1).x + ";" + ppd.getCoordinate(1).y + "\n");
 				}
 			}
-
 		}
 	}
 	
@@ -127,8 +118,5 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 			s.executeUpdate(sql);
 		}
 	}
-
-
-
 
 }

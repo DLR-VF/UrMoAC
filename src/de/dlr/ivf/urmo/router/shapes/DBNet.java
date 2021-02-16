@@ -1,12 +1,18 @@
 /**
+ * Copyright (c) 2016-2021 DLR Institute of Transport Research
+ * All rights reserved.
+ * 
+ * This file is part of the "UrMoAC" accessibility tool
+ * http://github.com/DLR-VF/UrMoAC
+ * @author: Daniel.Krajzewicz@dlr.de
+ * Licensed under the GNU General Public License v3.0
+ * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
  * Rutherfordstraﬂe 2
  * 12489 Berlin
  * Germany
- * 
- * Copyright © 2016-2019 German Aerospace Center 
- * All rights reserved
+ * http://www.dlr.de/vf
  */
 package de.dlr.ivf.urmo.router.shapes;
 
