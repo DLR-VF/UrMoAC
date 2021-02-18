@@ -46,12 +46,8 @@ public class RoutingMeasure_ExpInterchange_TT extends AbstractRoutingMeasure {
 	 */
 	@Override
 	public int compare(DijkstraEntry c1, DijkstraEntry c2) {
-		int pc1 = (Integer) c1.measures.get("interchanges");
-		int pc2 = (Integer) c2.measures.get("interchanges");
-		double pc1E = (Math.exp((double) pc1*scale1)-1.) * scale2;
-		double pc2E = (Math.exp((double) pc2*scale1)-1.) * scale2;
-		double tt1 = c1.tt + pc1E;
-		double tt2 = c2.tt + pc2E;
+		double tt1 = computeWeight(c1);
+		double tt2 = computeWeight(c2);
 		if(tt1<tt2) {
 			return -1;
 		} else if(tt1>tt2) {
@@ -73,7 +69,16 @@ public class RoutingMeasure_ExpInterchange_TT extends AbstractRoutingMeasure {
 		return ret;
 	}
 
-
+	
+	/** Computes the costs of the route
+	 * @param c The route so far
+	 * @return The route's costs
+	 */
+	public double computeWeight(DijkstraEntry c) {
+		int pc = (Integer) c.measures.get("interchanges");
+		double pcE = (Math.exp((double) pc*scale1)-1.) * scale2;
+		return c.tt + pcE;
+	}
 	
 };
 
