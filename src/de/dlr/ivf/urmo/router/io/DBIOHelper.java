@@ -82,7 +82,7 @@ public class DBIOHelper {
 		}
 		rs.close();
 		s.close();
-
+		connection.close();
 		return epsg;
 	}
 	
@@ -138,6 +138,7 @@ public class DBIOHelper {
 		}
 		rs.close();
 		s.close();
+		connection.close();
 		return layer;
 	}
 	
@@ -158,6 +159,7 @@ public class DBIOHelper {
 		}
 		rs.close();
 		s.close();
+		connection.close();
 		return em;
 	}
 
@@ -177,6 +179,7 @@ public class DBIOHelper {
 		}
 		rs.close();
 		s.close();
+		connection.close();
 		return geom;
 	}
 	

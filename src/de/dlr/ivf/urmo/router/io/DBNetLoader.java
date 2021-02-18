@@ -84,6 +84,7 @@ public class DBNetLoader {
 		}
 		rs.close();
 		s.close();
+		connection.close();
 		// add other directions to mode foot
 		net.extendDirections();
 		return net;
@@ -112,6 +113,9 @@ public class DBNetLoader {
 			float speed = rs.getFloat("speed");
 			edge.addSpeedReduction(ibegin, iending, speed);
 		}
+		rs.close();
+		s.close();
+		connection.close();
 		net.sortSpeedReductions();
 		if(verbose) {
 			System.out.println(" " + numFalse + " of " + (numOk+numFalse) + " informations could not been loaded.");

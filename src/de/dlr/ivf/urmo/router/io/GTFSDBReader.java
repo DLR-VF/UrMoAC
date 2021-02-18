@@ -293,7 +293,6 @@ public class GTFSDBReader {
 			if(!trips.containsKey(tripID)) {
 				continue;
 			}
-
 			if(!tripID.equals(lastTripID)&&lastTripID!="-1") {
 				err += ret.recheckTimesAndInsert(lastTripID, stopTimes, id2stop);
 				abs += stopTimes.size() - 1;
@@ -363,10 +362,10 @@ public class GTFSDBReader {
 				} catch(NumberFormatException e) {
 				}
 			}
-			rs.close();
-			s.close();
 		}
-		
+		rs.close();
+		s.close();
+		connection.close();
 		return ret;
 		// !!! dismiss stops which do not have a route assigned?
 	}
