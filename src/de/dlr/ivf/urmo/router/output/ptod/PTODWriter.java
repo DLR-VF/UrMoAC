@@ -47,7 +47,7 @@ public class PTODWriter extends AbstractResultsWriter<PTODSingleResult> {
 				"(fid bigint, sid bigint, "
 				+ "avg_access_distance real, avg_access_tt real, avg_egress_distance real, avg_egress_tt real, "
 				+ "avg_interchange_distance real, avg_interchange_tt real, avg_pt_distance real, avg_pt_tt real, "
-				+ "avg_num_interchanges real, avg_weighting_time real, avg_init_weighting_time real, avg_num real, avg_value real)",
+				+ "avg_num_interchanges real, avg_waiting_time real, avg_init_waiting_time real, avg_num real, avg_value real)",
 				"VALUES (?, ?,  ?, ?, ?, ?,  ?, ?, ?, ?,  ?, ?, ?, ?, ?)", dropPrevious);
 	}
 

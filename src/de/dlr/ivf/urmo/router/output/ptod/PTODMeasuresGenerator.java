@@ -85,7 +85,7 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 				dist += current.e.length;
 				tt += current.ttt;
 				DijkstraEntry prev = current.prev;
-				double lastWeightingTime = 0;
+				double lastWaitingTime = 0;
 				if(prev==null) {
 					current = prev;
 					continue;
@@ -101,8 +101,8 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 					// foot->pt; 
 					step = 2; // either interchange or access 
 					GTFSEdge edge = (GTFSEdge) current.e;
-					lastWeightingTime = edge.getWaitingTime(beginTime + prev.tt);
-					e.weightedWaitingTime += lastWeightingTime;
+					lastWaitingTime = edge.getWaitingTime(beginTime + prev.tt);
+					e.weightedWaitingTime += lastWaitingTime;
 				} else {
 					// pt->foot|pt
 					if(current.line.length()==0) {
@@ -112,8 +112,8 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 						// change from pt to pt
 						e.weightedInterchangesNum += 1.;
 						GTFSEdge edge = (GTFSEdge) current.e;
-						lastWeightingTime = edge.getWaitingTime(beginTime + prev.tt);
-						e.weightedWaitingTime += lastWeightingTime;
+						lastWaitingTime = edge.getWaitingTime(beginTime + prev.tt);
+						e.weightedWaitingTime += lastWaitingTime;
 					}
 					step = 1;
 				}
