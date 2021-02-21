@@ -1,5 +1,45 @@
 site_name: UrMoAC
+site_url: https://github.com/DLR-VF/UrMoAC/wiki
+site_description: Urban Mobility Accessibility Calculator
+site_author: DLR/VF
+docs_dir: ./UrMoAC.wiki
+
+repo_url: https://github.com/DLR-VF/UrMoAC.git
+edit_uri: ""
+
+theme:
+    name: material
+    highlightjs: true
+    hljs_languages:
+        - yaml
+
 nav:
     - Home: index.md
-    - About: about.md
-    
+    - Installation: Installation.md
+    - Usage: 
+        - Basics: Usage.md
+        - Options: Options.md
+        - Input Data Formats: InputDataFormats.md
+        - Import Scripts: ImportScripts.md
+        - Output Formats: OutputFormats.md
+#    - Tutorials: 
+#        - Tutorial List: Tutorials.md
+#        - Computing the accessibility to the next public transport halt: TutorialNextPTHalt.md
+#        - Using QGIS to visualise UrMoAC results: TutorialQGISVisualisation.md
+    - Legal: 
+        - Main: Legal.md
+        - License (GPL v3.0): https://github.com/DLR-VF/UrMoAC/blob/master/LICENSE
+        - Disclaimer: Disclaimer.md
+#    - Developer Docs: 
+#        - Overview: DeveloperDocs.md
+#        - Todo: Todo.md
+    - Publications: Bibliography.md
+
+markdown_extensions:
+    - admonition
+    - sane_lists
+  
+copyright: "&copy; Copyright 2018-2021 German Aerospace Center, Institute of Transport Research, all rights reserved."
+
+plugins:
+    - search
