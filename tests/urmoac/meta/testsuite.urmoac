@@ -1,0 +1,10 @@
+# just start
+plain
+
+# print help - short -? version
+help_short
+
+# print help - long --help version
+help_long
+
+
