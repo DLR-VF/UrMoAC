@@ -11,7 +11,7 @@ try:
     shutil.rmtree("site")
 except OSError as e:
     print("Error: %s : %s" % ("site", e.strerror))
-exit()
 os.system("git clone https://github.com/DLR-VF/UrMoAC.wiki.git")
 os.system("python "+USER_PATH+"mkdocs build")
 os.system("python "+USER_PATH+"mkdocs serve")
+
