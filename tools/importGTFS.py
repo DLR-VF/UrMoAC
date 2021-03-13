@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # =========================================================
 # importGTFS.py
 # @author Daniel Krajzewicz

@@ -1,5 +1,15 @@
+#!/usr/bin/env python
+# =========================================================
+# build_docs.py
+# @author Daniel Krajzewicz
+# @date 2021
+# @copyright Institut fuer Verkehrsforschung, 
+#            Deutsches Zentrum fuer Luft- und Raumfahrt
+# @brief Builds the static documentation from github wiki
+# =========================================================
 import os, shutil
 
+# path to mkdocs
 USER_PATH = "c:\\users\\dkrajzew\\appdata\\roaming\\python\\python38\\site-packages\\"
 
 os.chdir("docs")

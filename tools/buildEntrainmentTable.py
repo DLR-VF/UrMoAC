@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+# =========================================================
+# buildEntrainmentTable.py
+# @author Daniel Krajzewicz
+# @date 2018
+# @copyright Institut fuer Verkehrsforschung, 
+#            Deutsches Zentrum fuer Luft- und Raumfahrt
+# @brief Builds an example table that defines entrainment
+# =========================================================
 import sys, psycopg2
 
 
