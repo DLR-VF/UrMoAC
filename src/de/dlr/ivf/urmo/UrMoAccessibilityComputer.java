@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2021 DLR Institute of Transport Research
+ * Copyright (c) 2016-2020 DLR Institute of Transport Research
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -48,37 +48,18 @@ import de.dlr.ivf.urmo.router.algorithms.routing.RoutingMeasure_MaxInterchange_T
 import de.dlr.ivf.urmo.router.algorithms.routing.RoutingMeasure_Price_TT;
 import de.dlr.ivf.urmo.router.algorithms.routing.RoutingMeasure_TT_Modes;
 import de.dlr.ivf.urmo.router.gtfs.GTFSData;
-import de.dlr.ivf.urmo.router.io.DBIOHelper;
-import de.dlr.ivf.urmo.router.io.DBNetLoader;
-import de.dlr.ivf.urmo.router.io.GTFSDBReader;
+import de.dlr.ivf.urmo.router.io.GTFSReader;
+import de.dlr.ivf.urmo.router.io.InputReader;
+import de.dlr.ivf.urmo.router.io.NetLoader;
+import de.dlr.ivf.urmo.router.io.OutputBuilder;
+import de.dlr.ivf.urmo.router.io.Utils;
 import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
 import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;
-import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
-import de.dlr.ivf.urmo.router.output.AbstractSingleResult;
 import de.dlr.ivf.urmo.router.output.Aggregator;
 import de.dlr.ivf.urmo.router.output.DijkstraResultsProcessor;
 import de.dlr.ivf.urmo.router.output.DirectWriter;
 import de.dlr.ivf.urmo.router.output.EdgeMappingWriter;
-import de.dlr.ivf.urmo.router.output.MeasurementGenerator;
-import de.dlr.ivf.urmo.router.output.edge_use.EUMeasuresGenerator;
-import de.dlr.ivf.urmo.router.output.edge_use.EUSingleResult;
-import de.dlr.ivf.urmo.router.output.edge_use.EUWriter;
-import de.dlr.ivf.urmo.router.output.interchanges.InterchangeMeasuresGenerator;
-import de.dlr.ivf.urmo.router.output.interchanges.InterchangeSingleResult;
-import de.dlr.ivf.urmo.router.output.interchanges.InterchangeWriter;
-import de.dlr.ivf.urmo.router.output.od.ODMeasuresGenerator;
-import de.dlr.ivf.urmo.router.output.od.ODSingleResult;
-import de.dlr.ivf.urmo.router.output.od.ODWriter;
-import de.dlr.ivf.urmo.router.output.odext.ODExtendedMeasuresGenerator;
-import de.dlr.ivf.urmo.router.output.odext.ODExtendedWriter;
-import de.dlr.ivf.urmo.router.output.odext.ODSingleExtendedResult;
-import de.dlr.ivf.urmo.router.output.odstats.ODSingleStatsResult;
-import de.dlr.ivf.urmo.router.output.odstats.ODStatsMeasuresGenerator;
-import de.dlr.ivf.urmo.router.output.odstats.ODStatsWriter;
-import de.dlr.ivf.urmo.router.output.ptod.PTODMeasuresGenerator;
-import de.dlr.ivf.urmo.router.output.ptod.PTODSingleResult;
-import de.dlr.ivf.urmo.router.output.ptod.PTODWriter;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.IDGiver;
@@ -298,7 +279,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				.withDescription("The mode to use ['passenger', 'foot', 'bicycle'].").hasArg().create("m"));
 		lvOptions.addOption(new Option("requirespt", false, "When set, only information that contains a PT part are stored."));
 		lvOptions.addOption(OptionBuilder.withLongOpt("pt-restriction")
-				.withDescription("Restrictions to usable GTFS modes.").hasArg().create("P"));
+				.withDescription("Restrictions to usable GTFS carriers.").hasArg().create("P"));
 		lvOptions.addOption(OptionBuilder.withLongOpt("entrainment")
 				.withDescription("Data source for entrainment description.").hasArg().create("E"));
 		lvOptions.addOption(OptionBuilder.withLongOpt("time").withDescription("The time the trips start at in seconds.")
@@ -326,10 +307,10 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				.withType(Number.class).hasArg().create());
 		
 		lvOptions.addOption(OptionBuilder.withLongOpt("origins-to-road-output")
-				.withDescription("The name of the file to write the mapping between from-objects to the road to.")
+				.withDescription("Defines output of the mapping between from-objects to the road.")
 				.hasArg().create());
 		lvOptions.addOption(OptionBuilder.withLongOpt("destinations-to-road-output")
-				.withDescription("The name of the file to write the mapping between to-objects to the road to.")
+				.withDescription("Defines output of the mapping between to-objects to the road.")
 				.hasArg().create());
 		lvOptions.addOption(
 				OptionBuilder.withLongOpt("nm-output").withDescription("Defines the n:m output.").hasArg().create("o"));
@@ -346,8 +327,10 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		lvOptions.addOption(
 				OptionBuilder.withLongOpt("direct-output").withDescription("Defines the direct output.").hasArg().create("d"));
 		lvOptions.addOption(new Option("dropprevious", false, "When set, previous output with the same name is replaced."));
+		/*
 		lvOptions.addOption(
 				OptionBuilder.withLongOpt("output-steps").withDescription("!!!Pseudo-steps.").withType(Number.class).hasArg().create());
+				*/
 
 		lvOptions.addOption(OptionBuilder.withLongOpt("from.id")
 				.withDescription("Defines the column name of the origins' ids.").hasArg().create());
@@ -386,7 +369,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			check &= OptionsHelper.isSet(lvCmd, "net");
 			check &= OptionsHelper.isSet(lvCmd, "mode");
 			check &= OptionsHelper.isSet(lvCmd, "time");
-			//check &= OptionsHelper.isSet(lvCmd, "epsg"); --can be unset
+			// !!! check &= OptionsHelper.isSet(lvCmd, "epsg"); --can be unset
 			// !!! add information about double set options
 			check &= OptionsHelper.isIntegerOrUnset(lvCmd, "epsg");
 			check &= OptionsHelper.isIntegerOrUnset(lvCmd, "time");
@@ -447,12 +430,10 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		try {
 			// set up the db connection
 			UrMoAccessibilityComputer worker = new UrMoAccessibilityComputer();
-			Modes.init();
-			//
 			worker.verbose = options.hasOption("verbose");
-			boolean dropExistingTables = options.hasOption("dropprevious");
 
 			// -------- mode
+			Modes.init();
 			Vector<Mode> modesV = getModes(options.getOptionValue("mode", "<unknown>"));
 			if (modesV == null) {
 				throw new IOException("The mode(s) '" + options.getOptionValue("mode", "") + "' is/are not known.");
@@ -466,8 +447,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				epsg= ((Long) options.getParsedOptionValue("epsg")).intValue();
 			} else {
 				// automatic epsg-value
-				String ep[] = DBIOHelper.parseOption(options.getOptionValue("from", ""));
-				epsg = DBIOHelper.findUTMZone(ep[0], ep[1], ep[2], ep[3],options.getOptionValue("from.geom", "the_geom"));
+				epsg = InputReader.findUTMZone(options);
 				if(epsg==-1) {
 					System.out.println("Could not find a valid UTM-zone. Quitting");
 					return;
@@ -485,12 +465,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			// from
 			if (worker.verbose)
 				System.out.println("Reading origin places");
-			String fd[] = DBIOHelper.parseOption(options.getOptionValue("from", ""));
-			String fromFilter = options.getOptionValue("from-filter", "");
-			String weight = options.getOptionValue("weight", "");
-			Layer fromLayer = DBIOHelper.load(fd[0], fd[1], fd[2], fd[3], fromFilter, weight, 
-					options.getOptionValue("from.id", "gid"), options.getOptionValue("from.geom", "the_geom"), 
-					"from", worker, epsg);
+			Layer fromLayer = InputReader.loadLayer(options, "from", "weight", worker, epsg); 
 			if (worker.verbose)
 				System.out.println(" " + fromLayer.getObjects().size() + " origin places loaded");
 			if (fromLayer.getObjects().size()==0) {
@@ -502,22 +477,14 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			if (options.hasOption("from-agg") && !options.getOptionValue("from-agg", "").equals("all")) {
 				if (worker.verbose)
 					System.out.println("Reading origin aggregation zones");
-				String ad[] = DBIOHelper.parseOption(options.getOptionValue("from-agg", ""));
-				fromAggLayer = DBIOHelper.load(ad[0], ad[1], ad[2], ad[3], "", "", 
-						options.getOptionValue("from-agg.id", "gid"), options.getOptionValue("from-agg.geom", "the_geom"), 
-						"from-agg", worker, epsg);
+				fromAggLayer = InputReader.loadLayer(options, "from-agg", null, worker, epsg); 
 				if (worker.verbose)
 					System.out.println(" " + fromAggLayer.getObjects().size() + " origin aggregation geometries loaded");
 			}
 			// to
 			if (worker.verbose)
 				System.out.println("Reading destination places");
-			String td[] = DBIOHelper.parseOption(options.getOptionValue("to", ""));
-			String toFilter = options.getOptionValue("to-filter", "");
-			String var = options.getOptionValue("variable", "");
-			Layer toLayer = DBIOHelper.load(td[0], td[1], td[2], td[3], toFilter, var,  
-					options.getOptionValue("to.id", "gid"), options.getOptionValue("to.geom", "the_geom"), 
-					"to", worker, epsg);
+			Layer toLayer = InputReader.loadLayer(options, "to", "variable", worker, epsg); 
 			if (worker.verbose)
 				System.out.println(" " + toLayer.getObjects().size() + " destination places loaded");
 			if (toLayer.getObjects().size()==0) {
@@ -529,18 +496,15 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			if (options.hasOption("to-agg") && !options.getOptionValue("to-agg", "").equals("all")) {
 				if (worker.verbose)
 					System.out.println("Reading sink aggregation zones");
-				String ad[] = DBIOHelper.parseOption(options.getOptionValue("to-agg", ""));
-				toAggLayer = DBIOHelper.load(ad[0], ad[1], ad[2], ad[3], "", "", 
-						options.getOptionValue("to-agg.id", "gid"), options.getOptionValue("to-agg.geom", "the_geom"), 
-						"to-agg", worker, epsg);
+				fromAggLayer = InputReader.loadLayer(options, "to-agg", null, worker, epsg); 
 				if (worker.verbose)
 					System.out.println(" " + toAggLayer.getObjects().size() + " sink aggregation geometries loaded");
 			}
+			
 			// net
 			if (worker.verbose)
 				System.out.println("Reading the road network");
-			String nd[] = DBIOHelper.parseOption(options.getOptionValue("net", ""));
-			DBNet net = DBNetLoader.loadNet(worker, nd[0], nd[1], nd[2], nd[3], epsg, modes);
+			DBNet net = NetLoader.loadNet(worker, options.getOptionValue("net", ""), epsg, modes);
 			if (worker.verbose)
 				System.out.println(" " + net.getEdges().size() + " edges loaded (" + net.getNodes().size() + " nodes)");
 			net.pruneForModes(modes); // TODO (implement, add message)
@@ -553,30 +517,28 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			if (options.hasOption("traveltimes")) {
 				if (worker.verbose)
 					System.out.println("Reading the roads' travel times");
-				String ttd[] = DBIOHelper.parseOption(options.getOptionValue("traveltimes", ""));
-				DBNetLoader.loadTravelTimes(net, ttd[0], ttd[1], ttd[2], ttd[3], worker.verbose);
+				NetLoader.loadTravelTimes(net, options.getOptionValue("traveltimes", ""), worker.verbose);
 			}
+			
 			// entrainment
 			EntrainmentMap entrainmentMap = new EntrainmentMap();
 			if (options.hasOption("entrainment")) {
 				if (worker.verbose)
 					System.out.println("Reading entrainment table");
-				String ed[] = DBIOHelper.parseOption(options.getOptionValue("entrainment", ""));
-				entrainmentMap = DBIOHelper.loadEntrainment(ed[0], ed[1], ed[2], ed[3], "");
+				entrainmentMap = InputReader.loadEntrainment(options);
 				if (worker.verbose)
 					System.out.println(" " + entrainmentMap.carrier2carried.size() + " entrainment fields loaded");
 			}
+			
 			// public transport network
 			if (options.hasOption("pt")) {
 				if (worker.verbose)
 					System.out.println("Reading the public transport network");
 				Geometry bounds = null;
 				if (options.hasOption("pt-boundary")) {
-					String gd[] = DBIOHelper.parseOption(options.getOptionValue("pt-boundary", ""));
-					bounds = DBIOHelper.loadGeometry(gd[0], gd[1], gd[2], gd[3], "the_geom", epsg);
+					bounds = InputReader.loadGeometry(options.getOptionValue("pt-boundary", ""), "pt-boundary", epsg);
 				}
-				String pd[] = DBIOHelper.parseOption(options.getOptionValue("pt", ""));
-				worker.gtfs = GTFSDBReader.load(pd[0], pd[1], pd[2], pd[3], options.getOptionValue("pt-restriction", ""), options.getOptionValue("date", ""), bounds, net, entrainmentMap, epsg, worker.verbose);
+				worker.gtfs = GTFSReader.load(options, bounds, net, entrainmentMap, epsg, worker.verbose);
 				if (worker.verbose)
 					System.out.println(" loaded");
 			}
@@ -588,14 +550,14 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			NearestEdgeFinder nef1 = new NearestEdgeFinder(fromLayer.getObjects(), net, initMode);
 			worker.nearestFromEdges = nef1.getNearestEdges(false);
 			if (options.hasOption("origins-to-road-output")) {
-				writeEdgeAllocation(options.getOptionValue("origins-to-road-output", ""), worker.nearestFromEdges, epsg, dropExistingTables);
+				writeEdgeAllocation(options.getOptionValue("origins-to-road-output", ""), worker.nearestFromEdges, epsg, options.hasOption("dropprevious"));
 			}
 			if (worker.verbose)
 				System.out.println("Computing egress from the network to the destinations");
 			NearestEdgeFinder nef2 = new NearestEdgeFinder(toLayer.getObjects(), net, initMode);
 			worker.nearestToEdges = nef2.getNearestEdges(true);
 			if (options.hasOption("destinations-to-road-output")) {
-				writeEdgeAllocation(options.getOptionValue("destinations-to-road-output", ""), worker.nearestToEdges, epsg, dropExistingTables);
+				writeEdgeAllocation(options.getOptionValue("destinations-to-road-output", ""), worker.nearestToEdges, epsg, options.hasOption("dropprevious"));
 			}
 
 			// -------- instantiate outputs
@@ -622,62 +584,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				}
 			}
 			*/
-			// -------- !!!
-			Vector<Aggregator> aggregators = new Vector<>();
-			String comment = buildComment(options);
-			if (!"".equals(options.getOptionValue("nm-output", ""))) {
-				ODMeasuresGenerator mgNM = new ODMeasuresGenerator();
-				AbstractResultsWriter<ODSingleResult> writer = buildNMOutput(options.getOptionValue("nm-output", ""), dropExistingTables);
-				Aggregator<ODSingleResult> agg = buildAggregator(mgNM, options.hasOption("shortest"), 
-						options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
-						fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
-				aggregators.add(agg);
-			}
-			if (!"".equals(options.getOptionValue("ext-nm-output", ""))) {
-				ODExtendedMeasuresGenerator mg = new ODExtendedMeasuresGenerator();
-				AbstractResultsWriter<ODSingleExtendedResult> writer = buildExtNMOutput(options.getOptionValue("ext-nm-output", ""), dropExistingTables);
-				Aggregator<ODSingleExtendedResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
-						options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
-						fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
-				aggregators.add(agg);
-			}
-			if (!"".equals(options.getOptionValue("stat-nm-output", ""))) {
-				ODStatsMeasuresGenerator mg = new ODStatsMeasuresGenerator();
-				AbstractResultsWriter<ODSingleStatsResult> writer = buildStatNMOutput(options.getOptionValue("stat-nm-output", ""), dropExistingTables);
-				Aggregator<ODSingleStatsResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
-						options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
-						fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
-				aggregators.add(agg);
-			}
-			if (!"".equals(options.getOptionValue("interchanges-output", ""))) {
-				InterchangeMeasuresGenerator mg = new InterchangeMeasuresGenerator();
-				AbstractResultsWriter<InterchangeSingleResult> writer = buildInterchangeOutput(options.getOptionValue("interchanges-output", ""), dropExistingTables);
-				Aggregator<InterchangeSingleResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
-						options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
-						fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
-				aggregators.add(agg);
-			}
-			if (!"".equals(options.getOptionValue("edges-output", ""))) {
-				EUMeasuresGenerator mg = new EUMeasuresGenerator();
-				AbstractResultsWriter<EUSingleResult> writer = buildEUOutput(options.getOptionValue("edges-output", ""), dropExistingTables);
-				Aggregator<EUSingleResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
-						options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
-						fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
-				aggregators.add(agg);
-			}
-			if (!"".equals(options.getOptionValue("pt-output", ""))) {
-				PTODMeasuresGenerator mg = new PTODMeasuresGenerator();
-				AbstractResultsWriter<PTODSingleResult> writer = buildPTODOutput(options.getOptionValue("pt-output", ""), dropExistingTables);
-				Aggregator<PTODSingleResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
-						options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
-						fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
-				aggregators.add(agg);
-			}
-			DirectWriter dw = null;
-			if (!"".equals(options.getOptionValue("direct-output", ""))) {
-				dw = buildDirectOutput(options.getOptionValue("direct-output", ""), epsg, worker.nearestToEdges, dropExistingTables);
-				dw.addComment(comment);
-			}
+			// -------- build outputs
+			Vector<Aggregator> aggregators = OutputBuilder.buildOutputs(options, fromLayer, fromAggLayer, toLayer, toAggLayer);
+			DirectWriter dw = OutputBuilder.buildDirectOutput(options, epsg, worker.nearestToEdges);
 			int time = ((Long) options.getParsedOptionValue("time")).intValue();
 			DijkstraResultsProcessor resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, worker.nearestFromEdges, worker.nearestToEdges); 
 
@@ -754,28 +663,6 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	}
 
 
-	/**
-	 * @brief Builds a comment string that shows the set options
-	 * @param options The options to encode
-	 * @return A comment string with set options
-	 */
-	private static String buildComment(CommandLine options) {
-		StringBuffer sb = new StringBuffer();
-		sb.append("Generated using UrMoAC with the following options:\n");
-		Option[] args = options.getOptions();
-		for(Option argO : args) {
-			if(!"".equals(argO.getValue(""))) {
-				String value = argO.getValue();
-				value = value.replace("'", "''");
-				if(value.indexOf("jdbc")>=0) {
-					value = value.substring(0, value.lastIndexOf(";")+1) + "---";
-				}
-				sb.append("--").append(argO.getLongOpt()).append(' ').append(value).append('\n');
-			}
-		}
-		return sb.toString();
-	}
-
 	
 	/**
 	 * @brief Parses the text representation to obtain the encoded modes of transport
@@ -798,128 +685,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		}
 		return ret;
 	}
-
 	
-	/**
-	 * @brief Builds a ODSingleResult-output
-	 * @param d The output storage definition
-	 * @param dropPrevious Whether a prior database shall be dropped
-	 * @return The built output
-	 * @throws SQLException When something fails
-	 * @throws IOException When something fails
-	 */
-	private static AbstractResultsWriter<ODSingleResult> buildNMOutput(String d, boolean dropPrevious) throws SQLException, IOException {
-		String[] r = checkOutput(d, "nm-output");
-		if (r[0].equals("db")) {
-			return new ODWriter(r[1], r[2], r[3], r[4], dropPrevious);
-		} else {
-			return new ODWriter(r[1]);
-		}
-	}
-
-	/**
-	 * @brief Builds a ODSingleExtendedResult-output
-	 * @param d The output storage definition
-	 * @param dropPrevious Whether a prior database shall be dropped
-	 * @return The built output
-	 * @throws SQLException When something fails
-	 * @throws IOException When something fails
-	 */
-	private static AbstractResultsWriter<ODSingleExtendedResult> buildExtNMOutput(String d, boolean dropPrevious) throws SQLException, IOException {
-		String[] r = checkOutput(d, "ext-nm-output");
-		if (r[0].equals("db")) {
-			return new ODExtendedWriter(r[1], r[2], r[3], r[4], dropPrevious);
-		} else {
-			return new ODExtendedWriter(r[1]);
-		}
-	}
-
-	/**
-	 * @brief Builds a ODSingleStatsResult-output
-	 * @param d The output storage definition
-	 * @param dropPrevious Whether a prior database shall be dropped
-	 * @return The built output
-	 * @throws SQLException When something fails
-	 * @throws IOException When something fails
-	 */
-	private static AbstractResultsWriter<ODSingleStatsResult> buildStatNMOutput(String d, boolean dropPrevious) throws SQLException, IOException {
-		String[] r = checkOutput(d, "stat-nm-output");
-		if (r[0].equals("db")) {
-			return new ODStatsWriter(r[1], r[2], r[3], r[4], dropPrevious);
-		} else {
-			return new ODStatsWriter(r[1]);
-		}
-	}
-
-	/**
-	 * @brief Builds a InterchangeSingleResult-output
-	 * @param d The output storage definition
-	 * @param dropPrevious Whether a prior database shall be dropped
-	 * @return The built output
-	 * @throws SQLException When something fails
-	 * @throws IOException When something fails
-	 */
-	private static AbstractResultsWriter<InterchangeSingleResult> buildInterchangeOutput(String d, boolean dropPrevious) throws SQLException, IOException {
-		String[] r = checkOutput(d, "interchanges-output");
-		if (r[0].equals("db")) {
-			return new InterchangeWriter(r[1], r[2], r[3], r[4], dropPrevious);
-		} else {
-			return new InterchangeWriter(r[1]);
-		}
-	}
-
-	/**
-	 * @brief Builds a EUSingleResult-output
-	 * @param d The output storage definition
-	 * @param dropPrevious Whether a prior database shall be dropped
-	 * @return The built output
-	 * @throws SQLException When something fails
-	 * @throws IOException When something fails
-	 */
-	private static AbstractResultsWriter<EUSingleResult> buildEUOutput(String d, boolean dropPrevious) throws SQLException, IOException {
-		String[] r = checkOutput(d, "edges-output");
-		if (r[0].equals("db")) {
-			return new EUWriter(r[1], r[2], r[3], r[4], dropPrevious);
-		} else {
-			return new EUWriter(r[1]);
-		}
-	}
 	
-	/**
-	 * @brief Builds a PTODSingleResult-output
-	 * @param d The output storage definition
-	 * @param dropPrevious Whether a prior database shall be dropped
-	 * @return The built output
-	 * @throws SQLException When something fails
-	 * @throws IOException When something fails
-	 */
-	private static AbstractResultsWriter<PTODSingleResult> buildPTODOutput(String d, boolean dropPrevious) throws SQLException, IOException {
-		String[] r = checkOutput(d, "pt-output");
-		if (r[0].equals("db")) {
-			return new PTODWriter(r[1], r[2], r[3], r[4], dropPrevious);
-		} else {
-			return new PTODWriter(r[1]);
-		}
-	}
-	
-	/**
-	 * @brief Builds a "direct"-output
-	 * @param d The output storage definition
-	 * @param dropPrevious Whether a prior database shall be dropped
-	 * @return The built output
-	 * @throws SQLException When something fails
-	 * @throws IOException When something fails
-	 */
-	private static DirectWriter buildDirectOutput(String d, int rsid, HashMap<DBEdge, Vector<MapResult>> nearestToEdges, boolean dropPrevious) throws SQLException, IOException {
-		String[] r = checkOutput(d, "direct-output");
-		if (r[0].equals("db")) {
-			return new DirectWriter(r[1], r[2], r[3], r[4], rsid, nearestToEdges, dropPrevious);
-		} else {
-			return new DirectWriter(r[1], rsid, nearestToEdges);
-		}
-	}
-	
-
 	// --------------------------------------------------------
 	// static helper methods
 	// --------------------------------------------------------
@@ -938,7 +705,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 */
 	private static void writeEdgeAllocation(String d, HashMap<DBEdge, Vector<MapResult>> nearestEdges, int epsg, boolean dropPrevious)
 			throws IOException, SQLException {
-		String[] r = checkOutput(d, "X-to-road-output");
+		String[] r = Utils.checkDefinition(d, "X-to-road-output");
 		EdgeMappingWriter emw = null;
 		if (r[0].equals("db")) {
 			if(r.length!=5) {
@@ -974,65 +741,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			System.out.print("\r " + seenEdges + " of " + fromEdges.size() + " edges");
 		return nextEdge;
 	}
-	
-	
-	/**
-	 * @brief Parses the definition of the output storage and verfies it
-	 * @param input The definition of an output storage (database / file)
-	 * @param outputName The name of the definition
-	 * @return The split (and verified) definition
-	 * @throws IOException When something fails
-	 */
-	private static String[] checkOutput(String input, String outputName) throws IOException {
-		String[] r = input.split(";");
-		if (r[0].equals("db")) {
-			if(r.length!=5) {
-				throw new IOException("False database definition for '" + outputName + "'\nshould be 'db;<connector_host>;<table>;<user>;<password>'.");
-			}
-		} else {
-			if(r.length!=2) {
-				throw new IOException("False file definition for '" + outputName + "'\nshould be 'file;<filename>'.");
-			}
-		}
-		return r;
-	}
-	
-	
-	/**
-	 * @brief Brief builds the results processing aggregator
-	 * @param measuresGenerator The measures generator to use
-	 * @param shortest Whether only the shortest connection shall be computed
-	 * @param fromAgg The origins aggregation layer name
-	 * @param toAgg The destinations aggregation layer name
-	 * @param fromLayer The origins layer
-	 * @param fromAggLayer The origins aggregation layer
-	 * @param toLayer The destinations layer
-	 * @param toAggLayer The destinations aggregation layer
-	 * @param writer The writer to use
-	 * @param comment The comment to add
-	 * @return The built aggregator
-	 * @throws SQLException When something fails
-	 */
-	private static <T extends AbstractSingleResult> Aggregator<T> buildAggregator(MeasurementGenerator measuresGenerator,
-			boolean shortest, String fromAgg, String toAgg, 
-			Layer fromLayer, Layer fromAggLayer, Layer toLayer, Layer toAggLayer,
-			AbstractResultsWriter<T> writer, String comment) throws SQLException {
-		Aggregator<T> agg = new Aggregator<T>(measuresGenerator, fromLayer, shortest);
-		if (fromAggLayer != null) {
-			agg.setOriginAggregation(fromLayer, fromAggLayer);
-		} else if (fromAgg.equals("all")) {
-			agg.sumOrigins();
-		}
-		if (toAggLayer != null) {
-			agg.setDestinationAggregation(toLayer, toAggLayer);
-		} else if (toAgg.equals("all")) {
-			agg.sumDestinations();
-		}
-		agg.buildMeasurementsMap(fromLayer, toLayer);
-		agg.addOutput(writer);
-		writer.addComment(comment);
-		return agg;
-	}
+
+
 
 	
 }
