@@ -32,7 +32,7 @@ public class OptionsHelper {
 	 */
 	public static boolean isSet(CommandLine lvCmd, String optionName) {
 		if (!lvCmd.hasOption(optionName)) {
-			System.err.println("The '" + optionName + "' parameter is missing");
+			System.err.println("Error: The '" + optionName + "' parameter is missing");
 			return false;
 		}
 		return true;
@@ -51,7 +51,10 @@ public class OptionsHelper {
 			((Long) lvCmd.getParsedOptionValue(optionName)).intValue();
 			return true;
 		} catch (ParseException e) {
-			System.err.println("The value of the '" + optionName + "'-parameter must be an integer.");
+			System.err.println("Error: The value of the '" + optionName + "'-parameter must be an integer.");
+			return false;
+		} catch (ClassCastException e) {
+			System.err.println("Error: The value of the '" + optionName + "'-parameter must be a double.");
 			return false;
 		}
 	}
@@ -69,7 +72,10 @@ public class OptionsHelper {
 			((Double) lvCmd.getParsedOptionValue(optionName)).doubleValue();
 			return true;
 		} catch (ParseException e) {
-			System.err.println("The value of the '" + optionName + "'-parameter must be a double.");
+			System.err.println("Error: The value of the '" + optionName + "'-parameter must be a double.");
+			return false;
+		} catch (ClassCastException e) {
+			System.err.println("Error: The value of the '" + optionName + "'-parameter must be a double.");
 			return false;
 		}
 	}

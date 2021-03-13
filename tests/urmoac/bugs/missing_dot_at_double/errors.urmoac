@@ -1,9 +1,6 @@
-The 'from' parameter is missing
-The 'to' parameter is missing
-The 'net' parameter is missing
-The 'mode' parameter is missing
-The 'time' parameter is missing
-Exception in thread "main" java.lang.ClassCastException: class java.lang.Long cannot be cast to class java.lang.Double (java.lang.Long and java.lang.Double are in module java.base of loader 'bootstrap')
-	at de.dlr.ivf.helper.options.OptionsHelper.isDoubleOrUnset(OptionsHelper.java:69)
-	at de.dlr.ivf.urmo.UrMoAccessibilityComputer.getCMDOptions(UrMoAccessibilityComputer.java:378)
-	at de.dlr.ivf.urmo.UrMoAccessibilityComputer.main(UrMoAccessibilityComputer.java:426)
+Error: The 'from' parameter is missing
+Error: The 'to' parameter is missing
+Error: The 'net' parameter is missing
+Error: The 'mode' parameter is missing
+Error: The 'time' parameter is missing
+Error: The value of the 'max-tt'-parameter must be a double.
