@@ -197,7 +197,7 @@ conn.commit()
 
 t1 = datetime.datetime.now()
 
-print "Parsing '%s'..." % sys.argv[2]
+print ("Parsing '%s'..." % sys.argv[2])
 parser = make_parser()
 r = SUMOReader(schema, table, conn, cursor)
 parser.setContentHandler(r)
@@ -207,8 +207,4 @@ commitRoads(conn, cursor, schema, table)
 
 t2 = datetime.datetime.now()
 dt = t2-t1
-print "In %s" % dt
-
-
-
-   
+print ("In %s" % dt)

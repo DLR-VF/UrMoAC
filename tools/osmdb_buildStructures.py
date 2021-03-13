@@ -34,7 +34,7 @@ def loadDefinitions(fileName):
       subtype = l[1:l.find(']')].strip()
       continue
     defs[subtype].append(l.strip())
-  print defs
+  print (defs)
   return defs
 
 def getObjects(conn, cursor, schema, prefix, subtype, k, v):
@@ -67,10 +67,10 @@ def getAndConvertGeometry(conn, cursor, schema, prefix, objects, subtype, destGe
         geom.append(r2[1])
       ret.append([o, "way", geom])
   elif subtype=="rel":
-    print "relations are not supported!"
+    print ("relations are not supported!")
     sys.exit()
   else:
-    print "unknown type!"
+    print ("unknown type!")
     sys.exit()
   return ret      
 
@@ -96,13 +96,13 @@ for subtype in ["node", "way", "rel"]:
       oss = getObjects(conn, cursor, schema, prefix, subtype, k, v)
       if not objects: objects = oss
       else:
-        print "1a: %s" % objects 
+        print ("1a: %s" % objects)
         objects = objects.intersection(oss) 
-        print "1b: %s" % objects 
+        print ("1b: %s" % objects)
     objects = getAndConvertGeometry(conn, cursor, schema, prefix, objects, subtype, "point")
-    print "2a %s" % objs 
+    print ("2a %s" % objs)
     objs.extend(objects)
-    print "2b %s" % objs 
+    print ("2b %s" % objs)
 
 (host, db, tableFull, user, password) = sys.argv[3].split(";")
 (schema, name) = tableFull.split(".")

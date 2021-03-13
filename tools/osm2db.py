@@ -128,7 +128,7 @@ class OSMReader(handler.ContentHandler):
       for idx,m in enumerate(rel.members):
         self.cursor.execute("INSERT INTO "+self.fname+"_member(rid, elemID, type, role, idx) VALUES (%s, %s, %s, %s, %s);", (rel.id, m[0], m[1], m[2], idx))
         relMembers = relMembers + 1
-    print " %s nodes (%s keys), %s ways (%s keys), and %s relations (%s keys, %s members)" % (len(self.nodes), ntagsNum, len(self.ways), wtagsNum, len(self.relations), rtagsNum, relMembers)
+    print (" %s nodes (%s keys), %s ways (%s keys), and %s relations (%s keys, %s members)" % (len(self.nodes), ntagsNum, len(self.ways), wtagsNum, len(self.relations), rtagsNum, relMembers))
     self.stats["nodes"] = self.stats["nodes"] + len(self.nodes)
     self.stats["ways"] = self.stats["ways"] + len(self.ways)
     self.stats["node_attrs"] = self.stats["node_attrs"] + ntagsNum
@@ -146,10 +146,10 @@ class OSMReader(handler.ContentHandler):
 (host, db, tableFull, user, password) = sys.argv[1].split(";")
 (schema, prefix) = tableFull.split(".")
 t1 = datetime.datetime.now()
-print "Connecting to the db..."
+print ("Connecting to the db...")
 conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
 cursor = conn.cursor()
-print "Building tables for %s..." % prefix
+print ("Building tables for %s..." % prefix)
 # http://stackoverflow.com/questions/20582500/how-to-check-if-a-table-exists-in-a-given-schema
 cursor.execute("""SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='%s' AND table_name='%s_node');""" % (schema, prefix))
 conn.commit()   
@@ -211,7 +211,7 @@ cursor.execute("""CREATE INDEX ON %s.%s_member (elemID);""" % (schema, prefix))
 conn.commit()
 
 # parsing the document and adding contents to the db
-print "Parsing '%s'..." % sys.argv[2]
+print ("Parsing '%s'..." % sys.argv[2])
 parser = make_parser()
 r = OSMReader(schema, prefix, conn, cursor)
 parser.setContentHandler(r)
@@ -222,13 +222,11 @@ conn.close()
 
 # report
 t2 = datetime.datetime.now()
-print "Finished."
-print "Summary:"
-print " %s nodes with %s attributes" % (r.stats["nodes"], r.stats["node_attrs"])
-print " %s ways with %s attributes" % (r.stats["ways"], r.stats["way_attrs"])
-print " %s relations with %s members and %s attributes" % (r.stats["rels"], r.stats["relMembers"], r.stats["rel_attrs"])
+print ("Finished.")
+print ("Summary:")
+print (" %s nodes with %s attributes" % (r.stats["nodes"], r.stats["node_attrs"]))
+print (" %s ways with %s attributes" % (r.stats["ways"], r.stats["way_attrs"]))
+print (" %s relations with %s members and %s attributes" % (r.stats["rels"], r.stats["relMembers"], r.stats["rel_attrs"]))
 dt = t2-t1
-print "In %s" % dt
-
-
+print ("In %s" % dt)
 

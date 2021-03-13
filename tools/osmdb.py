@@ -74,7 +74,7 @@ class OSMDB:
     ret = []
     for n in nIDs:
       if n not in n2pos:
-        print "Warning: node %s is not known" % n
+        print ("Warning: node %s is not known" % n)
         continue
       ret.append([n, n2pos[n]])
     return ret  

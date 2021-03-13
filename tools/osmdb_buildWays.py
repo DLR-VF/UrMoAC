@@ -412,7 +412,7 @@ for upperType in ["highway", "railway"]:
     #if htype=="highway_construction": htype="highway_residential"
 
     if htype not in highways:
-      print "unrecognized highway type %s" % htype
+      print ("unrecognized highway type %s" % htype)
     else:
       hDef = db.getWay(hID)
       for n in hDef[0][1]:
@@ -482,7 +482,7 @@ for upperType in ["highway", "railway"]:
         nodeIDs.append(n[0])
         hGeom.append("%s %s" % (p[0], p[1]))
         if n[0] not in nodes:
-          print "Critical error: way %s has a node %s not seen before; all nodes: %s" % (hID, n[0], n)
+          print ("Critical error: way %s has a node %s not seen before; all nodes: %s" % (hID, n[0], n))
         if nodes[n[0]]>1 and ni>0:
           # store the road
           if modesF!=0:
@@ -515,7 +515,7 @@ fdo1.close()
 fdo2.close()
 t2 = datetime.datetime.now()
 dt = t2-t1
-print "In %s" % dt
+print ("In %s" % dt)
 
 
 

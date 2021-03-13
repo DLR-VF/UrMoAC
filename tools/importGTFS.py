@@ -19,9 +19,9 @@ def myValSplit(line):
     v2 = v
     if hadQuotes:
       if len(v2)==0:
-        print "------------------"
-        print line
-        print vals
+        print ("------------------")
+        print (line)
+        print (vals)
         raise "haha"
       nVals[-1] = nVals[-1] + "," + v2
       if v2[-1]=='"':
@@ -39,7 +39,7 @@ def myValSplit(line):
   
 
 def readImportTable(conn, cursor, tableName, fileName, posNames, realNames, intNames):
-  print "Processing " + fileName
+  print ("Processing " + fileName)
   fd = open(fileName)
   first = True
   num = 0
