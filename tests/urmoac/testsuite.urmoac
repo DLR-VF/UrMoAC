@@ -1,10 +1,13 @@
 # meta options processing
 meta
 
-# known bugs and issues - should be empty :-)
-bugs
+# error handling
+errors
 
 # mapping sources / destinations to roads
 mapping
+
+# known bugs and issues - should be empty :-)
+bugs
 
 

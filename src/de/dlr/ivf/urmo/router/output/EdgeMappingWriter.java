@@ -19,6 +19,8 @@ package de.dlr.ivf.urmo.router.output;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -79,11 +81,22 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 	 */
 	public void writeResults(HashMap<DBEdge, Vector<MapResult>> nearestEdges)
 			throws SQLException, IOException, NoSuchAuthorityCodeException, FactoryException, TransformException {
-		for (DBEdge e : nearestEdges.keySet()) {
+		Vector<DBEdge> edges = new Vector<>(nearestEdges.keySet());
+		Collections.sort(edges, new Comparator<DBEdge>() {
+            public int compare(DBEdge e1, DBEdge e2) {
+                return e1.getID().compareTo(e2.getID());
+            }});
+		for (DBEdge e : edges) {
 			if (e == null) {
 				continue;
 			}
 			Vector<MapResult> ress = nearestEdges.get(e);
+			Collections.sort(ress, new Comparator<MapResult>() {
+	            public int compare(MapResult m1, MapResult m2) {
+	            	long i1 = m1.em.getOuterID();
+	            	long i2 = m2.em.getOuterID();
+	                return i1 > i2 ? 1 : i1 < i2 ? -1 : 0;
+	            }});
 			for (MapResult o : ress) {
 				PointPairDistance ppd = new PointPairDistance();
 				DistanceToPointFinder.computeDistance(e.geom, o.em.getPoint().getCoordinate(), ppd);

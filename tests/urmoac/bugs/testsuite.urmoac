@@ -1,4 +1,13 @@
 # missing double dot
 missing_dot_at_double
 
+# single dash on long option
+help_long_singledash
+
+# double dash on short option
+help_short_doubledash
+
+# parameter for an option (help) that does not need it
+help_parameter
+
 
