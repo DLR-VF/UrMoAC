@@ -14,3 +14,4 @@ except OSError as e:
 os.system("git clone https://github.com/DLR-VF/UrMoAC.wiki.git")
 os.system("python "+USER_PATH+"mkdocs build")
 os.system("python "+USER_PATH+"mkdocs serve")
+
