@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2021 DLR Institute of Transport Research
+ * Copyright (c) 2016-2020 DLR Institute of Transport Research
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -16,6 +16,8 @@
  */
 package de.dlr.ivf.urmo.router.io;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -23,10 +25,16 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Vector;
 
+import org.apache.commons.cli.CommandLine;
 import org.postgresql.PGConnection;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
 
@@ -42,7 +50,7 @@ import de.dlr.ivf.urmo.router.shapes.LayerObject;
  * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of
  *         Transport Research
  */
-public class DBIOHelper {
+public class InputReader {
 	
 	
 	/**
@@ -53,13 +61,19 @@ public class DBIOHelper {
 	 * @return The epsg-code of the UTM-zone or -1 of no UTM-zone could be found (e.g. north-pole )
 	 * @throws SQLException
 	 * @throws ParseException
+	 * @throws IOException 
 	 */
-	public static int findUTMZone(String url, String table, String user, String pw, String geom) throws SQLException, ParseException {
-		Connection connection = DriverManager.getConnection(url, user, pw);
+	public static int findUTMZone(CommandLine options) throws SQLException, ParseException, IOException {
+		String[] r = Utils.checkDefinition(options.getOptionValue("from", ""), "from");
+		if (!r[0].equals("db")) {
+			return 0;
+		}
+		Connection connection = DriverManager.getConnection(r[1], r[3], r[4]);
 		connection.setAutoCommit(true);
 		connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 		((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-		String query = "SELECT min(ST_X(ST_TRANSFORM("+geom+",4326)))as lon, min(ST_Y(ST_TRANSFORM("+geom+",4326)))as lat FROM " + table+";";
+		String geomString = options.getOptionValue("from.geom", "the_geom");
+		String query = "SELECT min(ST_X(ST_TRANSFORM("+geomString+",4326)))as lon, min(ST_Y(ST_TRANSFORM("+geomString+",4326)))as lat FROM " + r[2] + ";";
 		Statement s = connection.createStatement();
 		ResultSet rs = s.executeQuery(query);
 		int epsg=-1;
@@ -67,24 +81,41 @@ public class DBIOHelper {
 		while (rs.next()) {
 			lon = rs.getDouble("lon");
 			lat = rs.getDouble("lat");
-			if(lat>84.0 || lat <-84.0) //around north or south-pole!
+			if(lat>84.0 || lat<-84.0) {
+				//around north or south-pole!
 				break;
-			if(lon>180.0 || lon <-180.0) //invalid longitude!
+			}
+			if(lon>180.0 || lon<-180.0) {
+				//invalid longitude!
 				break;
-			
+			}
 			if(lat>=0) { //northern hemisphere
-				epsg=32600;
+				epsg = 32600;
+			} else { //southern hemisphere
+				epsg = 32500;
 			}
-			else { //southern hemisphere
-				epsg=32500;
-			}
-			epsg += ((180.0 + lon) / 6) + 1;
+			epsg += ((180.0 + lon) / 6.) + 1;
 		}
 		rs.close();
 		s.close();
-		connection.close();
 		return epsg;
 	}
+	
+	
+	public static Layer loadLayer(CommandLine options, String base, String varName, IDGiver idGiver, int epsg) throws SQLException, ParseException, IOException {
+		String filter = varName==null ? "" : options.getOptionValue(base + "-filter", ""); // !!! use something different
+		varName = varName==null ? null : options.getOptionValue(varName, "");
+		String[] r = Utils.checkDefinition(options.getOptionValue(base, ""), base);
+		if (r[0].equals("db")) {
+			return loadLayerFromDB(base, r[1], r[2], r[3], r[4], filter, varName, 
+					options.getOptionValue(base + ".id", "gid"), options.getOptionValue(base + ".geom", "the_geom"), 
+					idGiver, epsg);
+		} else {
+			return loadLayerFromFile(base, r[1], idGiver);
+		}
+	}
+	
+	
 	
 	/**
 	 * @brief Loads a set of objects from the db
@@ -101,8 +132,8 @@ public class DBIOHelper {
 	 * @throws SQLException
 	 * @throws ParseException
 	 */
-	public static Layer load(String url, String table, String user, String pw, String filter, String varName,
-			String idS, String geomS, String layerName, IDGiver idGiver, int epsg) throws SQLException, ParseException {
+	private static Layer loadLayerFromDB(String layerName, String url, String table, String user, String pw, String filter, String varName,
+			String idS, String geomS, IDGiver idGiver, int epsg) throws SQLException, ParseException {
 		if (!"".equals(filter)) {
 			filter = " WHERE " + filter;
 		}
@@ -138,19 +169,62 @@ public class DBIOHelper {
 		}
 		rs.close();
 		s.close();
-		connection.close();
 		return layer;
 	}
 	
 	
-	public static EntrainmentMap loadEntrainment(String url, String table, String user, String pw, String filter)  throws SQLException, ParseException {
-		if (!"".equals(filter)) {
-			filter = " WHERE " + filter;
+	/**
+	 * @brief Loads a set of objects from file
+	 * 
+	 * @param url The url of the database
+	 * @param table The table to read from
+	 * @param user The user name for connecting to the database
+	 * @param pw The user's password
+	 * @param filter A WHERE-clause statement (optional, empty string if not used)
+	 * @param varName The name of the attached variable
+	 * @param layerName The name of the layer to generate
+	 * @param idGiver A reference to something that supports a running ID
+	 * @return The generated layer with the read objects
+	 * @throws SQLException
+	 * @throws ParseException
+	 */
+	private static Layer loadLayerFromFile(String layerName, String fileName, IDGiver idGiver) throws ParseException, IOException { 
+		Layer layer = new Layer(layerName);
+		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
+		BufferedReader br = new BufferedReader(new FileReader(fileName));
+		String line = null;
+		do {
+			line = br.readLine();
+			if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
+				String[] vals = line.split(";");
+				double var = vals.length==4 ? Double.parseDouble(vals[3]) : 1;
+				Point p = gf.createPoint(new Coordinate(Double.parseDouble(vals[1]), Double.parseDouble(vals[2])));
+				LayerObject o = new LayerObject(idGiver.getNextRunningID(), Long.parseLong(vals[0]), var, p);
+				layer.addObject(o);
+			}
+	    } while(line!=null);
+		br.close();
+		return layer;
+	}
+	
+	
+	
+	public static EntrainmentMap loadEntrainment(CommandLine options)  throws SQLException, ParseException, IOException {
+		String[] r = Utils.checkDefinition(options.getOptionValue("entrainment", ""), "entrainment");
+		if (r[0].equals("db")) {
+			return loadEntrainmentFromDB(r[1], r[2], r[3], r[4]);
+		} else {
+			return loadEntrainmentFromFile(r[1]);
 		}
+	}
+	
+	
+	
+	private static EntrainmentMap loadEntrainmentFromDB(String url, String table, String user, String pw)  throws SQLException, ParseException {
 		Connection connection = DriverManager.getConnection(url, user, pw);
 		connection.setAutoCommit(true);
 		connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
-		String query = "SELECT carrier,carrier_subtype,carried FROM " + table + filter + ";";
+		String query = "SELECT carrier,carrier_subtype,carried FROM " + table + ";";
 		Statement s = connection.createStatement();
 		ResultSet rs = s.executeQuery(query);
 		EntrainmentMap em = new EntrainmentMap();
@@ -159,17 +233,44 @@ public class DBIOHelper {
 		}
 		rs.close();
 		s.close();
-		connection.close();
 		return em;
 	}
 
 
-	public static Geometry loadGeometry(String url, String table, String user, String pw, String geomS, int epsg) throws SQLException, ParseException {
+	
+	private static EntrainmentMap loadEntrainmentFromFile(String fileName) throws IOException {
+		EntrainmentMap em = new EntrainmentMap();
+		BufferedReader br = new BufferedReader(new FileReader(fileName));
+		String line = null;
+		do {
+			line = br.readLine();
+			if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
+				String[] vals = line.split(";");
+				em.add(vals[0]+vals[1], Modes.getMode(vals[2]).id);
+				line = br.readLine();
+			}
+	    } while(line!=null);
+		br.close();
+		return em;
+	}
+
+
+	public static Geometry loadGeometry(String def, String what, int epsg)  throws SQLException, ParseException, IOException {
+		String[] r = Utils.checkDefinition(def, what);
+		if (r[0].equals("db")) {
+			return loadGeometryFromDB(r[1], r[2], r[3], r[4], epsg);
+		} else {
+			return loadGeometryFromFile(r[1]);
+		}
+	}
+	
+	
+	private static Geometry loadGeometryFromDB(String url, String table, String user, String pw, int epsg) throws SQLException, ParseException {
 		Connection connection = DriverManager.getConnection(url, user, pw);
 		connection.setAutoCommit(true);
 		connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 		((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-		String query = "SELECT ST_AsBinary(ST_TRANSFORM(" + geomS + "," + epsg + ")) FROM " + table + ";";
+		String query = "SELECT ST_AsBinary(ST_TRANSFORM(the_geom," + epsg + ")) FROM " + table + ";";
 		Statement s = connection.createStatement();
 		ResultSet rs = s.executeQuery(query);
 		Geometry geom = null;
@@ -179,8 +280,28 @@ public class DBIOHelper {
 		}
 		rs.close();
 		s.close();
-		connection.close();
 		return geom;
+	}
+	
+	
+	private static Geometry loadGeometryFromFile(String fileName) throws ParseException, IOException {
+		BufferedReader br = new BufferedReader(new FileReader(fileName));
+		String line = br.readLine();
+		while(line!=null && (line.length()==0 || line.charAt(0)=='#')) {
+			line = br.readLine();
+		}
+		br.close();
+		String[] vals = line.split(";");
+		if((vals.length % 2)!=0) {
+			throw new IOException("odd number for coordinates");
+		}
+		Coordinate[] coords = new Coordinate[(int) (vals.length/2)];
+		int j = 0;
+		for(int i=0; i<vals.length; i+=2, ++j) {
+			coords[j] = new Coordinate(Double.parseDouble(vals[i]), Double.parseDouble(vals[i+1]));
+	    }
+		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
+		return gf.createPolygon(coords);
 	}
 	
 	
@@ -233,22 +354,5 @@ public class DBIOHelper {
 	}
 */
 
-	/**
-	 * @brief Parses the given definition string, throwing an exception if the
-	 *        size mismatches
-	 * 
-	 *        Basically, the string is just split
-	 * 
-	 * @param d The connection definition string
-	 * @return The split string
-	 * @throws IOException if the string's length does not match the number of required of attributes
-	 */
-	public static String[] parseOption(String d) throws IOException {
-		String[] r = d.split(";");
-		if (r.length != 4) {
-			throw new IOException("The database must be of the form <URL>;<TABLE>;<USER>;<PW>");
-		}
-		return r;
-	}
 
 }

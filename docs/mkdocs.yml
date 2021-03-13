@@ -12,7 +12,9 @@ theme:
     highlightjs: true
     hljs_languages:
         - yaml
-
+    palette:
+        primary: light green
+        
 nav:
     - Home: index.md
     - Installation: Installation.md
@@ -30,9 +32,11 @@ nav:
         - Main: Legal.md
         - License (GPL v3.0): https://github.com/DLR-VF/UrMoAC/blob/master/LICENSE
         - Disclaimer: Disclaimer.md
-#    - Developer Docs: 
-#        - Overview: DeveloperDocs.md
-#        - Todo: Todo.md
+    - Developer Docs: 
+        - Overview: DeveloperDocs.md
+        - Creating a static documentation: DeveloperStaticDocumentation.md
+        - How To Release: DeveloperHowToRelease.md
+        - Todo: Todo.md
     - Publications: Bibliography.md
 
 markdown_extensions:

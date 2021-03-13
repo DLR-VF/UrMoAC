@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2021 DLR Institute of Transport Research
+ * Copyright (c) 2016-2020 DLR Institute of Transport Research
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -16,6 +16,7 @@
  */
 package de.dlr.ivf.urmo.router.io;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -31,6 +32,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Vector;
 
+import org.apache.commons.cli.CommandLine;
 import org.postgresql.PGConnection;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -62,7 +64,7 @@ import de.dlr.ivf.urmo.router.shapes.GeomHelper;
  * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of
  *         Transport Research
  */
-public class GTFSDBReader {
+public class GTFSReader {
 	/// @brief A list of week day names
 	public static String[] weekdays = { "", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday" };
 	
@@ -82,22 +84,23 @@ public class GTFSDBReader {
 	 * @todo which modes to use to access the road network
 	 * @todo which modes to use to access the stations
 	 */
-	public static GTFSData load(String url, String tablePrefix, String user, String pw, String carrierDef, String date, 
+	public static GTFSData load(CommandLine options, Geometry bounds, DBNet net, EntrainmentMap entrainmentMap, int epsg, boolean verbose) throws IOException, SQLException, ParseException {
+		String[] r = Utils.checkDefinition(options.getOptionValue("pt", ""), "pt");
+		// parse modes vector
+		Vector<Integer> allowedCarrier = parseCarrierDef(options.getOptionValue("pt-restriction", ""));
+		if (r[0].equals("db")) {
+			return loadGTFSFromDB(r[1], r[2], r[3], r[4], allowedCarrier, options.getOptionValue("date", ""),
+					bounds, net, entrainmentMap, epsg, verbose);
+		} else {
+			return loadGTFSFromFile(r[1], allowedCarrier, options.getOptionValue("date", ""),
+					bounds, net, entrainmentMap, epsg, verbose);
+		}
+	}
+	
+		
+	private static GTFSData loadGTFSFromDB(String url, String tablePrefix, String user, String pw, Vector<Integer> allowedCarrier, String date, 
 			Geometry bounds, DBNet net, EntrainmentMap entrainmentMap, int epsg, boolean verbose)
 			throws SQLException, ParseException {
-		// parse modes vector
-		Vector<Integer> allowedCarrier = null;
-		if(!"".equals(carrierDef)) {
-			String[] r = carrierDef.split(";");
-			allowedCarrier = new Vector<>();
-			for(String r1 : r) {
-				allowedCarrier.add(Integer.parseInt(r1));
-			}
-			if(allowedCarrier.size()==0) {
-				allowedCarrier = null;
-			}
-		}
-		//
 		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
 		Connection connection = DriverManager.getConnection(url, user, pw);
 		connection.setAutoCommit(true);
@@ -284,7 +287,7 @@ public class GTFSDBReader {
 		query = "SELECT trip_id,arrival_time,departure_time,stop_id FROM " + tablePrefix + "_stop_times ORDER BY trip_id,stop_sequence;";
 		s = connection.createStatement();
 		rs = s.executeQuery(query);
-		String lastTripID = "-1";
+		String lastTripID = null;
 		Vector<GTFSStopTime> stopTimes = new Vector<>();
 		int abs = 0;
 		int err = 0;
@@ -293,7 +296,7 @@ public class GTFSDBReader {
 			if(!trips.containsKey(tripID)) {
 				continue;
 			}
-			if(!tripID.equals(lastTripID)&&lastTripID!="-1") {
+			if(lastTripID!=null&&!tripID.equals(lastTripID)) {
 				err += ret.recheckTimesAndInsert(lastTripID, stopTimes, id2stop);
 				abs += stopTimes.size() - 1;
 				stopTimes.clear();
@@ -362,16 +365,36 @@ public class GTFSDBReader {
 				} catch(NumberFormatException e) {
 				}
 			}
+			rs.close();
+			s.close();
 		}
-		rs.close();
-		s.close();
-		connection.close();
+		
 		return ret;
 		// !!! dismiss stops which do not have a route assigned?
 	}
 
 
+	private static GTFSData loadGTFSFromFile(String fileNamePrefix, Vector<Integer> allowedCarrier, String date, 
+			Geometry bounds, DBNet net, EntrainmentMap entrainmentMap, int epsg, boolean verbose) throws IOException {
+		throw new IOException("GTFS loading from files is not yet supported!");
+	}	
 
+	
+	private static Vector<Integer> parseCarrierDef(String carrierDef) {
+		Vector<Integer> allowedCarrier = null;
+		if(!"".equals(carrierDef)) {
+			String[] r = carrierDef.split(";");
+			allowedCarrier = new Vector<>();
+			for(String r1 : r) {
+				allowedCarrier.add(Integer.parseInt(r1));
+			}
+			if(allowedCarrier.size()==0) {
+				allowedCarrier = null;
+			}
+		}
+		return allowedCarrier;
+	}
+	
 	/** 
 	 * @brief Parses the time string to seconds
 	 * @param timeS The time string

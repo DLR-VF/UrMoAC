@@ -4,9 +4,8 @@ usage: UrMoAccessibilityComputer
     --date <arg>                          The date for which the
                                           accessibilities shall be
                                           computed.
-    --destinations-to-road-output <arg>   The name of the file to write
-                                          the mapping between to-objects
-                                          to the road to.
+    --destinations-to-road-output <arg>   Defines output of the mapping
+                                          between to-objects to the road.
  -dropprevious                            When set, previous output with
                                           the same name is replaced.
  -E,--entrainment <arg>                   Data source for entrainment
@@ -48,12 +47,11 @@ usage: UrMoAccessibilityComputer
  -n,--net <arg>                           Defines the road network to
                                           load.
  -o,--nm-output <arg>                     Defines the n:m output.
-    --origins-to-road-output <arg>        The name of the file to write
-                                          the mapping between from-objects
-                                          to the road to.
-    --output-steps <arg>                  !!!Pseudo-steps.
+    --origins-to-road-output <arg>        Defines output of the mapping
+                                          between from-objects to the
+                                          road.
  -P,--pt-restriction <arg>                Restrictions to usable GTFS
-                                          modes.
+                                          carriers.
  -p,--pt <arg>                            Defines the GTFS-based public
                                           transport representation.
     --pt-boundary <arg>                   Defines the data source of the
