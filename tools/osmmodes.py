@@ -9,7 +9,6 @@
 # Call with
 #  osmdb_buildWays <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD>
 # =========================================================
-                                 
   
 FOOT = 1
 BICYCLE = 2
