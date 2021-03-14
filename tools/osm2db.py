@@ -68,25 +68,25 @@ class OSMReader(handler.ContentHandler):
     if name=="osm" or name=="bounds":
       pass
     elif name=="node":
-      id = long(attrs["id"])
+      id = int(attrs["id"])
       n = OSMNode(id, float(attrs["lat"]), float(attrs["lon"]))
       self.nodes[id] = n
       self.last = n
     elif name=="way":
-      id = long(attrs["id"])
+      id = int(attrs["id"])
       e = OSMWay(id)
       self.ways[id] = e
       self.last = e
     elif name=="nd":
-      n = long(attrs["ref"])
+      n = int(attrs["ref"])
       self.last.addNodeID(n)
     elif name=="relation":
-      id = long(attrs["id"])
+      id = int(attrs["id"])
       r = OSMRel(id)
       self.relations[id] = r
       self.last = r
     elif name=="member":
-      n = long(attrs["ref"])
+      n = int(attrs["ref"])
       self.last.addMember(n, attrs["type"], attrs["role"])
     elif name=='tag' and self.last!=None:
       k = attrs['k']
@@ -156,27 +156,20 @@ conn.commit()
 ret = cursor.fetchall()
 if ret[0][0]:
   # TODO: ask user whether really to delete
-  cursor.execute("""DROP TABLE %s.%s_member;""" % (schema, prefix))
-  cursor.execute("""DROP TABLE %s.%s_rtag;""" % (schema, prefix))
-  cursor.execute("""DROP TABLE %s.%s_wtag;""" % (schema, prefix))
-  cursor.execute("""DROP TABLE %s.%s_ntag;""" % (schema, prefix))
-  cursor.execute("""DROP TABLE %s.%s_rel""" % (schema, prefix))
-  cursor.execute("""DROP TABLE %s.%s_way""" % (schema, prefix))
-  cursor.execute("""DROP TABLE %s.%s_node;""" % (schema, prefix))
+  cursor.execute("DROP TABLE %s.%s_member;" % (schema, prefix))
+  cursor.execute("DROP TABLE %s.%s_rtag;" % (schema, prefix))
+  cursor.execute("DROP TABLE %s.%s_wtag;" % (schema, prefix))
+  cursor.execute("DROP TABLE %s.%s_ntag;" % (schema, prefix))
+  cursor.execute("DROP TABLE %s.%s_rel" % (schema, prefix))
+  cursor.execute("DROP TABLE %s.%s_way" % (schema, prefix))
+  cursor.execute("DROP TABLE %s.%s_node;" % (schema, prefix))
   conn.commit()
     
     
-cursor.execute("""CREATE TABLE %s.%s_node (
-    id bigint PRIMARY KEY
-);""" % (schema, prefix))
-cursor.execute("""SELECT AddGeometryColumn('%s', '%s_node', 'pos', 4326, 'POINT', 2);""" % (schema, prefix))
-cursor.execute("""CREATE TABLE %s.%s_way (
-    id bigint PRIMARY KEY, 
-    refs bigint[] 
-);""" % (schema, prefix))
-cursor.execute("""CREATE TABLE %s.%s_rel (
-    id bigint PRIMARY KEY
-);""" % (schema, prefix))
+cursor.execute("CREATE TABLE %s.%s_node (id bigint PRIMARY KEY);" % (schema, prefix))
+cursor.execute("CREATE TABLE %s.%s_way (id bigint PRIMARY KEY, refs bigint[]);" % (schema, prefix))
+cursor.execute("CREATE TABLE %s.%s_rel (id bigint PRIMARY KEY);" % (schema, prefix))
+cursor.execute("SELECT AddGeometryColumn('%s', '%s_node', 'pos', 4326, 'POINT', 2, true);" % (schema, prefix))
 
 # tags
 cursor.execute("""CREATE TABLE %s.%s_ntag (
