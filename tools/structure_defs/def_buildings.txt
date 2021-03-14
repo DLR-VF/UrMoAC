@@ -4,5 +4,5 @@ building=*
 [way]
 building=*
 
-[relation]
+[rel]
 building=*

@@ -29,12 +29,15 @@ def loadDefinitions(fileName):
   defs = { "node": [], "way": [], "rel": [] }
   subtype = ""
   for l in fd:
-    if l[0]=='#': continue
+    if len(l.strip())==0:
+      continue
+    if l[0]=='#':
+      continue
     if l[0]=='[':
       subtype = l[1:l.find(']')].strip()
       continue
     defs[subtype].append(l.strip())
-  print (defs)
+  #print (defs)
   return defs
 
 def getObjects(conn, cursor, schema, prefix, subtype, k, v):
@@ -52,7 +55,7 @@ def getAndConvertGeometry(conn, cursor, schema, prefix, objects, subtype, destGe
       cursor.execute("SELECT id,ST_AsText(pos) FROM %s.%s_node WHERE id=%s" % (schema, prefix, o))
       conn.commit()
       r = cursor.fetchone()
-      ret.append([long(r[0]), "node", r[1]])
+      ret.append([int(r[0]), "node", r[1]])
   elif subtype=="way":
     for o in objects:
       cursor.execute("SELECT id,refs FROM %s.%s_way WHERE id=%s" % (schema, prefix, o))
@@ -75,16 +78,12 @@ def getAndConvertGeometry(conn, cursor, schema, prefix, objects, subtype, destGe
   return ret      
 
 
-
+t1 = datetime.datetime.now()
 defs = loadDefinitions(sys.argv[2])
 (host, db, tableFull, user, password) = sys.argv[1].split(";")
 (schema, prefix) = tableFull.split(".")
-t1 = datetime.datetime.now()
 conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
 cursor = conn.cursor()
-
-
-
 
 objs = []
 for subtype in ["node", "way", "rel"]:
@@ -96,17 +95,16 @@ for subtype in ["node", "way", "rel"]:
       oss = getObjects(conn, cursor, schema, prefix, subtype, k, v)
       if not objects: objects = oss
       else:
-        print ("1a: %s" % objects)
+        #print ("1a: %s" % objects)
         objects = objects.intersection(oss) 
-        print ("1b: %s" % objects)
+        #print ("1b: %s" % objects)
     objects = getAndConvertGeometry(conn, cursor, schema, prefix, objects, subtype, "point")
-    print ("2a %s" % objs)
+    #print ("2a %s" % objs)
     objs.extend(objects)
-    print ("2b %s" % objs)
+    #print ("2b %s" % objs)
 
 (host, db, tableFull, user, password) = sys.argv[3].split(";")
 (schema, name) = tableFull.split(".")
-t1 = datetime.datetime.now()
 conn2 = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
 cursor2 = conn2.cursor()
 cursor2.execute("DROP TABLE IF EXISTS %s.%s" % (schema, name))
@@ -121,5 +119,9 @@ for o in objs:
     cnt = 0
     conn2.commit()
 conn2.commit()
+t2 = datetime.datetime.now()
+dt = t2-t1
+print ("Built %s objects" % len(objs))
+print (" in %s" % dt)
               
       

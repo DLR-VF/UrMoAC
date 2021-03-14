@@ -368,7 +368,7 @@ public class GTFSReader {
 			rs.close();
 			s.close();
 		}
-		
+		connection.close();
 		return ret;
 		// !!! dismiss stops which do not have a route assigned?
 	}

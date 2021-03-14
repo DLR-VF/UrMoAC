@@ -59,11 +59,15 @@ public class NetLoader {
 	 */
 	public static DBNet loadNet(IDGiver idGiver, String def, int epsg, long uModes) throws SQLException, ParseException, IOException {
 		String[] r = Utils.checkDefinition(def, "net");
+		DBNet net = null;
 		if (r[0].equals("db")) {
-			return loadNetFromDB(idGiver, r[1], r[2], r[3], r[4], epsg, uModes);
+			net = loadNetFromDB(idGiver, r[1], r[2], r[3], r[4], epsg, uModes);
 		} else {
-			return loadNetFromFile(idGiver, r[1], uModes);
+			net = loadNetFromFile(idGiver, r[1], uModes);
 		}
+		// add other directions to mode foot
+		net.extendDirections();
+		return net;
 	}
 
 	private static DBNet loadNetFromDB(IDGiver idGiver, String url, String table, String user, String pw, int epsg, long uModes) throws SQLException, ParseException {
@@ -101,8 +105,7 @@ public class NetLoader {
 		}
 		rs.close();
 		s.close();
-		// add other directions to mode foot
-		net.extendDirections();
+		connection.close();
 		return net;
 	}
 
@@ -183,6 +186,9 @@ public class NetLoader {
 			float speed = rs.getFloat("speed");
 			edge.addSpeedReduction(ibegin, iending, speed);
 		}
+		rs.close();
+		s.close();
+		connection.close();
 		if(verbose) {
 			System.out.println(" " + numFalse + " of " + (numOk+numFalse) + " informations could not been loaded.");
 		}

@@ -169,6 +169,7 @@ public class InputReader {
 		}
 		rs.close();
 		s.close();
+		connection.close();
 		return layer;
 	}
 	
@@ -233,6 +234,7 @@ public class InputReader {
 		}
 		rs.close();
 		s.close();
+		connection.close();
 		return em;
 	}
 
@@ -280,6 +282,7 @@ public class InputReader {
 		}
 		rs.close();
 		s.close();
+		connection.close();
 		return geom;
 	}
 	
