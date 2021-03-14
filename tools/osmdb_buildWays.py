@@ -15,9 +15,8 @@
 # - circle roads
 # all additional stuff (number of lanes, ...)
 
-import os, string, sys
+import os, string, sys, io
 import datetime
-from optparse import OptionParser
 from xml.sax import saxutils, make_parser, handler
 import psycopg2, osmdb
 from osmmodes import *
@@ -360,8 +359,8 @@ conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, u
 cursor = conn.cursor()
 
 db = osmdb.OSMDB(schema, prefix, conn, cursor)
-fdo1 = open("%s_unconsumed.txt" % prefix, "w")
-fdo2 = open("%s_errorneous.txt" % prefix, "w")
+fdo1 = io.open("%s_unconsumed.txt" % prefix,'w',encoding='utf8')
+fdo2 = io.open("%s_errorneous.txt" % prefix,'w',encoding='utf8')
 
 # (re) create tables
 if db.tableExists(schema, prefix+"_network"):
@@ -398,6 +397,8 @@ conn.commit()
 # get roads and railroads with some typical classes
 seen = set()
 nodes = {}
+unrecognized = {}
+print ("Determining used nodes")
 for upperType in ["highway", "railway"]:
   IDs = db.getWayKV_withMatchingKey(upperType)
   # get nodes usage
@@ -412,7 +413,9 @@ for upperType in ["highway", "railway"]:
     #if htype=="highway_construction": htype="highway_residential"
 
     if htype not in highways:
-      print ("unrecognized highway type %s" % htype)
+      if htype not in unrecognized:
+        unrecognized[htype] = 0
+      unrecognized[htype] = unrecognized[htype] + 1
     else:
       hDef = db.getWay(hID)
       for n in hDef[0][1]:
@@ -421,7 +424,14 @@ for upperType in ["highway", "railway"]:
         else:
           nodes[n] = 1 
 
+if len(unrecognized)>0:
+  print ("The following types were not recognised and will be thereby dismissed:")
+  for u in unrecognized:
+    print (" %s (%s instances)" % (u, unrecognized[u]))
+
 seen = set()
+num = 0
+print ("Building roads")
 for upperType in ["highway", "railway"]:
   # build roads by splitting geometry
   IDs = db.getWayKV_withMatchingKey(upperType)
@@ -498,24 +508,29 @@ for upperType in ["highway", "railway"]:
       if len(hGeom)>1: 
         if modesF!=0:     
           addRoad(upperType, "f%s#%s" % (hID, index), nodeIDs[0], nodeIDs[-1], htype, modesF, numLanes, vmax, nodeIDs, sidewalk, cycleway, surface, lit, name, ",".join(hGeom))
+          num += 1
         if modesB!=0:     
           addRoad(upperType, "b%s#%s" % (hID, index), nodeIDs[-1], nodeIDs[0], htype, modesB, numLanes, vmax, reversed(nodeIDs), sidewalk, cycleway, surface, lit, name, ",".join(reversed(hGeom)))
+          num += 1
 
       unconsumed = params.getUnconsumed(["source:lit", "note:name", "postal_code", "name:ru", "created_by", "old_name", "trail_visibility",
         "source:maxspeed", "source"])
-      if len(unconsumed)>0: fdo1.write("%s:%s\n" % (hID, str(unconsumed)))
-      if len(params.errorneous)>0: fdo2.write("%s:%s\n" % (hID, str(params.errorneous)))
+      if len(unconsumed)>0: 
+        fdo1.write("%s:%s\n" % (hID, str(unconsumed)))
+      if len(params.errorneous)>0:
+        fdo2.write("%s:%s\n" % (hID, str(params.errorneous)))
 
     if len(storedRoads)>10000:
       commitRoads(db.conn, db.cursor, schema, prefix)
 commitRoads(db.conn, db.cursor, schema, prefix)
-cursor.execute("""UPDATE %s.%s_network SET length=ST_Length(the_geom::geography);""" % (schema, prefix))
+cursor.execute("UPDATE %s.%s_network SET length=ST_Length(the_geom::geography);" % (schema, prefix))
 conn.commit()
 fdo1.close()
 fdo2.close()
 t2 = datetime.datetime.now()
 dt = t2-t1
-print ("In %s" % dt)
+print ("Built %s roads" % num)
+print (" in %s" % dt)
 
 
 
