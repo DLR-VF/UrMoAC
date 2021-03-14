@@ -506,13 +506,20 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				System.out.println("Reading the road network");
 			DBNet net = NetLoader.loadNet(worker, options.getOptionValue("net", ""), epsg, modes);
 			if (worker.verbose)
-				System.out.println(" " + net.getEdges().size() + " edges loaded (" + net.getNodes().size() + " nodes)");
+				System.out.println(" " + net.getNumEdges() + " edges loaded (" + net.getNodes().size() + " nodes)");
 			net.pruneForModes(modes); // TODO (implement, add message)
 			if(!options.hasOption("subnets")) {
-				net.dismissUnconnectedEdges();
+				if (worker.verbose)
+					System.out.println("Checking for connectivity...");
+				net.dismissUnconnectedEdges(false);
+				if (worker.verbose)
+					System.out.println(" " + net.getNumEdges() + " remaining after removing unconnected ones.");
 			}
+			/*
 			if (worker.verbose)
-				System.out.println(" " + net.getEdges().size() + " remaining after prunning");
+				System.out.println(" " + net.getNumEdges() + " remaining after prunning");
+			*/
+
 			// travel times
 			if (options.hasOption("traveltimes")) {
 				if (worker.verbose)

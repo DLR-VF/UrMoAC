@@ -16,6 +16,9 @@
  */
 package de.dlr.ivf.urmo.router.shapes;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -38,8 +41,6 @@ import de.dlr.ivf.urmo.router.modes.Modes;
 public class DBNet {
 	/// @brief Map from node ids to nodes
 	public HashMap<Long, DBNode> nodes = new HashMap<>();
-	/// @brief A list of edges
-	private Vector<DBEdge> edges = new Vector<DBEdge>();
 	/// @brief Map of edge names to edges
 	private HashMap<String, DBEdge> name2edge = new HashMap<String, DBEdge>();
 	/// @brief The network's minimum coordinates (left top)
@@ -71,7 +72,6 @@ public class DBNet {
 	 * @param e The edge to add
 	 */
 	public void addEdge(DBEdge e) {
-		edges.add(e);
 		name2edge.put(e.id, e);
 		Rectangle r = new Rectangle();
 		Coordinate[] cs = e.getGeometry().getCoordinates();
@@ -92,17 +92,6 @@ public class DBNet {
 		rtree.add(r, (int) e.numID);
 		precisionModel = e.geom.getPrecisionModel();
 		srid = e.geom.getSRID();
-	}
-
-
-	// TODO: This is dumb; we first hide edges to properly compute the
-	// boundaries, now we return them
-	/**
-	 * @brief Returns the list of edges this network is compound of
-	 * @return The list of this network's edges
-	 */
-	public Vector<DBEdge> getEdges() {
-		return edges;
 	}
 
 
@@ -147,7 +136,7 @@ public class DBNet {
 	 * @return The edge (if known, otherwise null)
 	 */
 	public DBEdge getEdgeByID(int id) {
-		for (DBEdge e : edges) {
+		for (DBEdge e : name2edge.values()) {
 			if (e.numID == id) {
 				return e;
 			}
@@ -162,7 +151,6 @@ public class DBNet {
 	 * The references to this edge are removed from the start/end node.
 	 */
 	public void removeEdge(DBEdge edge) {
-		edges.remove(edge);
 		name2edge.remove(edge.id);
 		edge.getFromNode().removeOutgoing(edge);
 		edge.getToNode().removeIncoming(edge);
@@ -178,7 +166,7 @@ public class DBNet {
 	public SpatialIndex getModedSpatialIndex(long modes) {
 		SpatialIndex rtree = new RTree();
 		rtree.init(null);
-		for (DBEdge e : edges) {
+		for (DBEdge e : name2edge.values()) {
 			if (!e.allowsAny(modes)) {
 				continue;
 			}
@@ -201,7 +189,7 @@ public class DBNet {
 	 */
 	public HashMap<Integer, DBEdge> getID2EdgeForMode(long modes) {
 		HashMap<Integer, DBEdge> ret = new HashMap<>();
-		for (DBEdge e : edges) {
+		for (DBEdge e : name2edge.values()) {
 			if (!e.allowsAny(modes)) {
 				continue;
 			}
@@ -235,7 +223,7 @@ public class DBNet {
 	 */
 	public void pruneForModes(long modes) {
 		Vector<DBEdge> toRemove = new Vector<>();
-		for(DBEdge e : edges) {
+		for(DBEdge e : name2edge.values()) {
 			if(!e.allows(modes)) {
 				toRemove.add(e);
 			}
@@ -249,10 +237,10 @@ public class DBNet {
 	/**
 	 * @brief Checks which edges are not connected to the major part of the network and removes them
 	 */
-	public void dismissUnconnectedEdges() {
+	public void dismissUnconnectedEdges(boolean report) {
 		Set<DBEdge> seen = new HashSet<>();
 		Set<Set<DBEdge>> clusters = new HashSet<>();
-		for (DBEdge e : edges) {
+		for (DBEdge e : name2edge.values()) {
 			if (seen.contains(e)) {
 				continue;
 			}
@@ -283,15 +271,29 @@ public class DBNet {
 			}
 		}
 		//
+		FileWriter fileWriter = null;
 		Set<DBEdge> major = null;
-		for (Set<DBEdge> c : clusters) {
-			if (major == null || major.size() < c.size()) {
-				major = c;
+		try {
+			if(report) {
+				fileWriter = new FileWriter("subnets.txt");
+				fileWriter.append("" + clusters.size() + " subnets found:" + "\n");
+				System.out.println("" + clusters.size() + " subnets found:");
 			}
+			for (Set<DBEdge> c : clusters) {
+				if (major == null || major.size() < c.size()) {
+					major = c;
+				}
+				if(report) {
+					fileWriter.append(" subnet with " + c.size() + " edges\n");
+					System.out.println(" subnet with " + c.size() + " edges");
+				}
+			}
+			if(fileWriter!=null) {
+				fileWriter.close();
+			}
+		} catch(IOException e) {
 		}
 
-		edges = new Vector<>();
-		edges.addAll(major);
 		for (Set<DBEdge> c : clusters) {
 			if (c == major) {
 				continue;
@@ -302,6 +304,7 @@ public class DBNet {
 		}
 
 	}
+
 
 
 	/**
@@ -339,7 +342,8 @@ public class DBNet {
 	public void extendDirections() {
 		Vector<DBEdge> newEdges = new Vector<>();
 		long modeFoot = Modes.getMode("foot").id;
-		for(DBEdge e : name2edge.values()) {
+		Collection<DBEdge> edges = name2edge.values(); 
+		for(DBEdge e : edges) {
 			DBNode to = e.getToNode();
 			Vector<DBEdge> edges2 = to.getOutgoing();
 			DBEdge opposite = null;
@@ -379,4 +383,13 @@ public class DBNet {
 		}
 	}
 	
+
+	/**
+	 * @brief Returns the number of loaded edges
+	 * @return The number of loaded edges
+	 */
+	public long getNumEdges() {
+		return name2edge.size();
+	}
+
 }
