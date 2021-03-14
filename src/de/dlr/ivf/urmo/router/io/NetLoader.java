@@ -81,7 +81,7 @@ public class NetLoader {
 			if(rs.getBoolean("mode_walk")) modes = modes | Modes.getMode("foot").id;
 			if(rs.getBoolean("mode_bike")) modes = modes | Modes.getMode("bicycle").id;
 			if(rs.getBoolean("mode_mit")) modes = modes | Modes.getMode("passenger").id;
-			if(rs.getBoolean("mode_walk") || rs.getBoolean("mode_bike")) modes = modes | Modes.getMode("e-scooter").id;
+			//if(rs.getBoolean("mode_walk") || rs.getBoolean("mode_bike")) modes = modes | Modes.getMode("e-scooter").id;
 			if(modes==0 && ((modes&uModes)==0)) {
 				continue;
 			}
