@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2020 DLR Institute of Transport Research
+ * Copyright (c) 2016-2021 DLR Institute of Transport Research
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -76,7 +76,7 @@ import de.dlr.ivf.urmo.router.shapes.Layer;
  *        Dijkstra. The results (including the mapping of the objects onto the
  *        road network) are written into files.
  * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
- * @copyright (c) DLR 2016-2019
+ * @copyright (c) DLR 2016-2021
  */
 public class UrMoAccessibilityComputer implements IDGiver {
 	// --------------------------------------------------------
@@ -108,7 +108,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	// --------------------------------------------------------
 	/** @class ComputingThread
 	 * 
-	 * A thread which polls for new items, computes the accessibility and
+	 * A thread which polls for new sources, computes the accessibility and
 	 * writes the results before asking for the next one
 	 */
 	private static class ComputingThread implements Runnable {
@@ -176,7 +176,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		/**
 		 * @brief Performs the computation
 		 * 
-		 * Builds tha paths, first, then uses them to generate the results.
+		 * Builds the paths, first, then uses them to generate the results.
 		 */
 		public void run() {
 			try {
@@ -206,27 +206,6 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	}
 	
 
-	// --------------------------------------------------------
-	// main class methods
-	// --------------------------------------------------------
-	/**
-	 * @brief Constructor
-	 */
-	public UrMoAccessibilityComputer() {
-		super();
-	}
-
-	
-	/**
-	 * @brief Returns a running (auto-incremented) number
-	 * @return A running number
-	 */
-	@Override
-	public synchronized long getNextRunningID() {
-		return ++runningID;
-	}
-	
-	
 
 	// --------------------------------------------------------
 	// static main methods
@@ -416,7 +395,51 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		return lvCmd;
 	}
 
+	
+	/**
+	 * @brief Parses the text representation to obtain the encoded modes of transport
+	 * @param optionValue The text representation
+	 * @return Encoded modes of transport
+	 */
+	private static Vector<Mode> getModes(String optionValue) {
+		Vector<Mode> ret = new Vector<>();
+		String[] r = optionValue.split(";");
+		for(String r1 : r) {
+			Mode m = Modes.getMode(r1);
+			if(m==null) {
+				// !!! add error message
+				return null;
+			}
+			ret.add(m);
+		}
+		if(ret.size()==0) {
+			return null;
+		}
+		return ret;
+	}
+	
+	
+	// --------------------------------------------------------
+	// main class methods
+	// --------------------------------------------------------
+	/**
+	 * @brief Constructor
+	 */
+	public UrMoAccessibilityComputer() {
+		super();
+	}
 
+	
+	/**
+	 * @brief Returns a running (auto-incremented) number
+	 * @return A running number
+	 */
+	@Override
+	public synchronized long getNextRunningID() {
+		return ++runningID;
+	}
+	
+	
 	/**
 	 * @brief The main method
 	 * @param args Given command line arguments
@@ -557,14 +580,14 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			NearestEdgeFinder nef1 = new NearestEdgeFinder(fromLayer.getObjects(), net, initMode);
 			worker.nearestFromEdges = nef1.getNearestEdges(false);
 			if (options.hasOption("origins-to-road-output")) {
-				writeEdgeAllocation(options.getOptionValue("origins-to-road-output", ""), worker.nearestFromEdges, epsg, options.hasOption("dropprevious"));
+				OutputBuilder.writeEdgeAllocation(options.getOptionValue("origins-to-road-output", ""), worker.nearestFromEdges, epsg, options.hasOption("dropprevious"));
 			}
 			if (worker.verbose)
 				System.out.println("Computing egress from the network to the destinations");
 			NearestEdgeFinder nef2 = new NearestEdgeFinder(toLayer.getObjects(), net, initMode);
 			worker.nearestToEdges = nef2.getNearestEdges(true);
 			if (options.hasOption("destinations-to-road-output")) {
-				writeEdgeAllocation(options.getOptionValue("destinations-to-road-output", ""), worker.nearestToEdges, epsg, options.hasOption("dropprevious"));
+				OutputBuilder.writeEdgeAllocation(options.getOptionValue("destinations-to-road-output", ""), worker.nearestToEdges, epsg, options.hasOption("dropprevious"));
 			}
 
 			// -------- instantiate outputs
@@ -668,69 +691,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		// -------- finish
 		System.out.println("done.");
 	}
-
-
-	
-	/**
-	 * @brief Parses the text representation to obtain the encoded modes of transport
-	 * @param optionValue The text representation
-	 * @return Encoded modes of transport
-	 */
-	private static Vector<Mode> getModes(String optionValue) {
-		Vector<Mode> ret = new Vector<>();
-		String[] r = optionValue.split(";");
-		for(String r1 : r) {
-			Mode m = Modes.getMode(r1);
-			if(m==null) {
-				// !!! add error message
-				return null;
-			}
-			ret.add(m);
-		}
-		if(ret.size()==0) {
-			return null;
-		}
-		return ret;
-	}
 	
 	
-	// --------------------------------------------------------
-	// static helper methods
-	// --------------------------------------------------------
-	/**
-	 * @brief Writes the connections from objects to the road network
-	 * 
-	 *        Runs through the given objects. If the object is connected to the
-	 *        road network, the written line contains the object's ID, the edge
-	 *        ID, and coordinates of the object and the road position.
-	 *        Otherwise, only the object ID is written the rest is filled with
-	 *        -1.
-	 * @param d Definition about where to write to
-	 * @param nearestEdges The map of objects to road positions
-	 * @throws IOException If the file cannot be written
-	 * @throws SQLException
-	 */
-	private static void writeEdgeAllocation(String d, HashMap<DBEdge, Vector<MapResult>> nearestEdges, int epsg, boolean dropPrevious)
-			throws IOException, SQLException {
-		String[] r = Utils.checkDefinition(d, "X-to-road-output");
-		EdgeMappingWriter emw = null;
-		if (r[0].equals("db")) {
-			if(r.length!=5) {
-				throw new IOException("False database definition; should be 'db;<connector_host>;<table>;<user>;<password>'.");
-			}
-			emw = new EdgeMappingWriter(r[1], r[2], r[3], r[4], epsg, dropPrevious);
-		} else {
-			emw = new EdgeMappingWriter(r[1]);
-		}
-		try {
-			emw.writeResults(nearestEdges);
-			emw.close();
-		} catch (FactoryException | TransformException e) {
-			e.printStackTrace();
-		}
-	}
-
-
 	/**
 	 * @brief Returns the next edge to process
 	 * @return The next edge to start routing from

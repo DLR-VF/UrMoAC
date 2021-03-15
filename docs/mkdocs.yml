@@ -24,10 +24,14 @@ nav:
         - Input Data Formats: InputDataFormats.md
         - Import Scripts: ImportScripts.md
         - Output Formats: OutputFormats.md
-#    - Tutorials: 
-#        - Tutorial List: Tutorials.md
-#        - Computing the accessibility to the next public transport halt: TutorialNextPTHalt.md
-#        - Using QGIS to visualise UrMoAC results: TutorialQGISVisualisation.md
+    - Tutorials: 
+        - Tutorial List: Tutorials.md
+        - Computing the accessibility to the next public transport halt: TutorialNextPTHalt.md
+        - Using QGIS to visualise UrMoAC results: TutorialQGISVisualisation.md
+    - Methods: 
+        - Outline: Methods.md
+        - Mapping to network: MappingToNet.md
+    - ChangeLog: ChangeLog.md
     - Legal: 
         - Main: Legal.md
         - License (GPL v3.0): https://github.com/DLR-VF/UrMoAC/blob/master/LICENSE
@@ -38,6 +42,7 @@ nav:
         - How To Release: DeveloperHowToRelease.md
         - Todo: Todo.md
     - Publications: Bibliography.md
+    - Projects: Projects.md
 
 markdown_extensions:
     - admonition

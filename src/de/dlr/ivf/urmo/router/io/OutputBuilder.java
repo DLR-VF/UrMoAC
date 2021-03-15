@@ -23,12 +23,15 @@ import java.util.Vector;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.operation.TransformException;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
 import de.dlr.ivf.urmo.router.output.AbstractSingleResult;
 import de.dlr.ivf.urmo.router.output.Aggregator;
 import de.dlr.ivf.urmo.router.output.DirectWriter;
+import de.dlr.ivf.urmo.router.output.EdgeMappingWriter;
 import de.dlr.ivf.urmo.router.output.MeasurementGenerator;
 import de.dlr.ivf.urmo.router.output.edge_use.EUMeasuresGenerator;
 import de.dlr.ivf.urmo.router.output.edge_use.EUSingleResult;
@@ -158,6 +161,39 @@ public class OutputBuilder {
 	}
 
 	
+	/**
+	 * @brief Writes the connections from objects to the road network
+	 * 
+	 *        Runs through the given objects. If the object is connected to the
+	 *        road network, the written line contains the object's ID, the edge
+	 *        ID, and coordinates of the object and the road position.
+	 *        Otherwise, only the object ID is written the rest is filled with
+	 *        -1.
+	 * @param d Definition about where to write to
+	 * @param nearestEdges The map of objects to road positions
+	 * @throws IOException If the file cannot be written
+	 * @throws SQLException
+	 */
+	public static void writeEdgeAllocation(String d, HashMap<DBEdge, Vector<MapResult>> nearestEdges, int epsg, boolean dropPrevious)
+			throws IOException, SQLException {
+		String[] r = Utils.checkDefinition(d, "X-to-road-output");
+		EdgeMappingWriter emw = null;
+		if (r[0].equals("db")) {
+			if(r.length!=5) {
+				throw new IOException("False database definition; should be 'db;<connector_host>;<table>;<user>;<password>'.");
+			}
+			emw = new EdgeMappingWriter(r[1], r[2], r[3], r[4], epsg, dropPrevious);
+		} else {
+			emw = new EdgeMappingWriter(r[1]);
+		}
+		try {
+			emw.writeResults(nearestEdges);
+			emw.close();
+		} catch (FactoryException | TransformException e) {
+			e.printStackTrace();
+		}
+	}
+
 	
 	/**
 	 * @brief Brief builds the results processing aggregator
