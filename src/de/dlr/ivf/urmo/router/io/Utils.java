@@ -17,9 +17,6 @@
 package de.dlr.ivf.urmo.router.io;
 
 import java.io.IOException;
-import java.util.Vector;
-
-import com.vividsolutions.jts.geom.Coordinate;
 
 public class Utils {
 	/**
