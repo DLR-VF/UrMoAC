@@ -32,8 +32,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.operation.TransformException;
 
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -52,14 +50,12 @@ import de.dlr.ivf.urmo.router.io.GTFSReader;
 import de.dlr.ivf.urmo.router.io.InputReader;
 import de.dlr.ivf.urmo.router.io.NetLoader;
 import de.dlr.ivf.urmo.router.io.OutputBuilder;
-import de.dlr.ivf.urmo.router.io.Utils;
 import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
 import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.output.Aggregator;
 import de.dlr.ivf.urmo.router.output.DijkstraResultsProcessor;
 import de.dlr.ivf.urmo.router.output.DirectWriter;
-import de.dlr.ivf.urmo.router.output.EdgeMappingWriter;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.IDGiver;
@@ -100,6 +96,11 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	Set<DBEdge> fromEdges;
 	/// @brief The list of stop edges
 	Set<DBEdge> toEdges;
+	AbstractRoutingMeasure measure;
+	DijkstraResultsProcessor resultsProcessor;
+	int time;
+	long modes;
+	long initMode;
 
 	
 	
@@ -137,6 +138,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		/// @brief Whether only the shortest connection shall be found 
 		boolean shortestOnly;
 		
+		
 		/**
 		 * @brief Constructor
 		 * @param _parent The parent to get information from
@@ -171,6 +173,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			boundVar = _boundVar;
 			shortestOnly = _shortestOnly;
 		}
+		
 		
 		
 		/**
@@ -396,6 +399,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	}
 
 	
+	
 	/**
 	 * @brief Parses the text representation to obtain the encoded modes of transport
 	 * @param optionValue The text representation
@@ -419,6 +423,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	}
 	
 	
+	
 	// --------------------------------------------------------
 	// main class methods
 	// --------------------------------------------------------
@@ -430,13 +435,209 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	}
 
 	
-	/**
-	 * @brief Returns a running (auto-incremented) number
-	 * @return A running number
-	 */
-	@Override
-	public synchronized long getNextRunningID() {
-		return ++runningID;
+	
+	protected boolean init(CommandLine options) throws SQLException, IOException, ParseException, com.vividsolutions.jts.io.ParseException {
+		verbose = options.hasOption("verbose");
+		// -------- mode
+		Modes.init();
+		Vector<Mode> modesV = getModes(options.getOptionValue("mode", "<unknown>"));
+		if (modesV == null) {
+			throw new IOException("The mode(s) '" + options.getOptionValue("mode", "") + "' is/are not known.");
+		}
+		modes = Modes.getCombinedModeIDs(modesV);
+		initMode = modesV.get(0).id;
+		// -------- projection
+		int epsg;
+		if(options.hasOption("epsg")) {
+			epsg = ((Long) options.getParsedOptionValue("epsg")).intValue();
+		} else {
+			// automatic epsg-value
+			epsg = InputReader.findUTMZone(options);
+			if(epsg==-1) {
+				System.out.println("Could not find a valid UTM-zone. Quitting");
+				return false;
+			} else {
+				String utmZone;
+				if(epsg>32600) { //northern hemisphere
+					utmZone = Integer.toString(epsg%100)+"N";
+				} else { // southern hemisphere
+					utmZone = Integer.toString(epsg%100)+"S";
+				}
+				System.out.println("Using UTM-zone "+utmZone+", EPSG-code: " + epsg);
+			}
+		}
+		// -------- loading
+		// from
+		if (verbose) System.out.println("Reading origin places");
+		Layer fromLayer = InputReader.loadLayer(options, "from", "weight", this, epsg); 
+		if (verbose) System.out.println(" " + fromLayer.getObjects().size() + " origin places loaded");
+		if (fromLayer.getObjects().size()==0) {
+			System.out.println("Quitting.");
+			return false;
+		}
+		// from aggregation
+		Layer fromAggLayer = null;
+		if (options.hasOption("from-agg") && !options.getOptionValue("from-agg", "").equals("all")) {
+			if (verbose) System.out.println("Reading origin aggregation zones");
+			fromAggLayer = InputReader.loadLayer(options, "from-agg", null, this, epsg); 
+			if (verbose) System.out.println(" " + fromAggLayer.getObjects().size() + " origin aggregation geometries loaded");
+		}
+		// to
+		if (verbose) System.out.println("Reading destination places");
+		Layer toLayer = InputReader.loadLayer(options, "to", "variable", this, epsg); 
+		if (verbose) System.out.println(" " + toLayer.getObjects().size() + " destination places loaded");
+		if (toLayer.getObjects().size()==0) {
+			System.out.println("Quitting.");
+			return false;
+		}
+		// to aggregation
+		Layer toAggLayer = null;
+		if (options.hasOption("to-agg") && !options.getOptionValue("to-agg", "").equals("all")) {
+			if (verbose) System.out.println("Reading sink aggregation zones");
+			fromAggLayer = InputReader.loadLayer(options, "to-agg", null, this, epsg); 
+			if (verbose) System.out.println(" " + toAggLayer.getObjects().size() + " sink aggregation geometries loaded");
+		}
+		
+		// net
+		if (verbose) System.out.println("Reading the road network");
+		DBNet net = NetLoader.loadNet(this, options.getOptionValue("net", ""), epsg, modes);
+		if (verbose) System.out.println(" " + net.getNumEdges() + " edges loaded (" + net.getNodes().size() + " nodes)");
+		net.pruneForModes(modes); // TODO (implement, add message)
+		if(!options.hasOption("subnets")) {
+			if (verbose) System.out.println("Checking for connectivity...");
+			net.dismissUnconnectedEdges(false);
+			if (verbose) System.out.println(" " + net.getNumEdges() + " remaining after removing unconnected ones.");
+		}
+		/*
+		if (worker.verbose)
+			System.out.println(" " + net.getNumEdges() + " remaining after prunning");
+		*/
+
+		// travel times
+		if (options.hasOption("traveltimes")) {
+			if (verbose) System.out.println("Reading the roads' travel times");
+			NetLoader.loadTravelTimes(net, options.getOptionValue("traveltimes", ""), verbose);
+		}
+		
+		// entrainment
+		EntrainmentMap entrainmentMap = new EntrainmentMap();
+		if (options.hasOption("entrainment")) {
+			if (verbose) System.out.println("Reading entrainment table");
+			entrainmentMap = InputReader.loadEntrainment(options);
+			if (verbose) System.out.println(" " + entrainmentMap.carrier2carried.size() + " entrainment fields loaded");
+		}
+		
+		// public transport network
+		if (options.hasOption("pt")) {
+			if (verbose) System.out.println("Reading the public transport network");
+			Geometry bounds = null;
+			if (options.hasOption("pt-boundary")) {
+				bounds = InputReader.loadGeometry(options.getOptionValue("pt-boundary", ""), "pt-boundary", epsg);
+			}
+			gtfs = GTFSReader.load(options, bounds, net, entrainmentMap, epsg, verbose);
+			if (verbose) System.out.println(" loaded");
+		}
+
+		// -------- compute (and optionally write) nearest edges
+		// compute nearest edges
+		if (verbose) System.out.println("Computing access from the origins to the network");
+		NearestEdgeFinder nef1 = new NearestEdgeFinder(fromLayer.getObjects(), net, initMode);
+		nearestFromEdges = nef1.getNearestEdges(false);
+		if (options.hasOption("origins-to-road-output")) {
+			OutputBuilder.writeEdgeAllocation(options.getOptionValue("origins-to-road-output", ""), nearestFromEdges, epsg, options.hasOption("dropprevious"));
+		}
+		if (verbose) System.out.println("Computing egress from the network to the destinations");
+		NearestEdgeFinder nef2 = new NearestEdgeFinder(toLayer.getObjects(), net, initMode);
+		nearestToEdges = nef2.getNearestEdges(true);
+		if (options.hasOption("destinations-to-road-output")) {
+			OutputBuilder.writeEdgeAllocation(options.getOptionValue("destinations-to-road-output", ""), nearestToEdges, epsg, options.hasOption("dropprevious"));
+		}
+
+		// -------- instantiate outputs
+/*
+		worker.aggregators = new HashMap<>();
+		if (!"".equals(options.getOptionValue("nm-output", ""))) {
+			String comment = buildComment(options);
+			if ("".equals(options.getOptionValue("output-steps", ""))) {
+				BasicWriter writer = buildNMOutput(options.getOptionValue("nm-output", ""));
+				writer.addComment(comment);
+				agg.addOutput(writer);
+				worker.aggregators.put(-1d, agg);
+			} else {
+				// steps is hard coded
+				int steps = (int) ((Double) options.getParsedOptionValue("output-steps")).doubleValue();
+				steps = 12;
+				for(int i=1; i<steps+1; ++i) {
+					Aggregator nagg = agg.duplicate();
+					BasicWriter writer = buildNMOutput2(options.getOptionValue("nm-output", ""), "_"+300*i);
+					writer.addComment(comment);
+					nagg.addOutput(writer);
+					worker.aggregators.put((double) (300*i), nagg);
+				}
+			}
+		}
+		*/
+		// -------- build outputs
+		Vector<Aggregator> aggregators = OutputBuilder.buildOutputs(options, fromLayer, fromAggLayer, toLayer, toAggLayer);
+		DirectWriter dw = OutputBuilder.buildDirectOutput(options, epsg, nearestToEdges);
+		time = ((Long) options.getParsedOptionValue("time")).intValue();
+		resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, nearestFromEdges, nearestToEdges); 
+
+		// -------- measure
+		measure = new RoutingMeasure_TT_Modes();
+		if(options.hasOption("measure")) {
+			String t = options.getOptionValue("measure", "");
+			if("price_tt".equals(t)) {
+				measure = new RoutingMeasure_Price_TT();
+			} else if("interchanges_tt".equals(t)) {
+				measure = new RoutingMeasure_ExpInterchange_TT(
+						((Double) options.getParsedOptionValue("measure-param1")).doubleValue(), 
+						((Double) options.getParsedOptionValue("measure-param2")).doubleValue());
+			} else if("maxinterchanges_tt".equals(t)) {
+				measure = new RoutingMeasure_MaxInterchange_TT(
+						(int) ((Long) options.getParsedOptionValue("measure-param1")).longValue());
+			}
+		}
+		// done everything
+		return true;
+	}
+	
+	
+	
+	protected boolean run(CommandLine options) throws ParseException, SQLException, IOException {
+		if (verbose) System.out.println("Computing shortest paths");
+		fromEdges = nearestFromEdges.keySet();
+		toEdges = nearestToEdges.keySet();
+		int maxNumber = options.hasOption("max-number") ? ((Long) options.getParsedOptionValue("max-number")).intValue() : -1;
+		double maxTT = options.hasOption("max-tt") ? ((Double) options.getParsedOptionValue("max-tt")).doubleValue() : -1;
+		double maxDistance = options.hasOption("max-distance") ? ((Double) options.getParsedOptionValue("max-distance")).doubleValue() : -1;
+		double maxVar = options.hasOption("max-variable-sum") ? ((Double) options.getParsedOptionValue("max-variable-sum")).doubleValue() : -1;
+		boolean shortestOnly = options.hasOption("shortest");
+		boolean needsPT = options.hasOption("requirespt");
+		if (verbose) {
+			System.out.println(" between " + fromEdges.size() + " origin and " + toEdges.size() + " destination edges");
+		}
+		
+		// initialise threads
+		int numThreads = options.hasOption("threads") ? ((Long) options.getParsedOptionValue("threads")).intValue() : 1;
+		nextEdgePointer = fromEdges.iterator();
+		seenEdges = 0;
+		Vector<Thread> threads = new Vector<>();
+		for (int i=0; i<numThreads; ++i) {
+			Thread t = new Thread(new ComputingThread(this, needsPT, measure, resultsProcessor, time, initMode, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly));
+			threads.add(t);
+	        t.start();
+		}
+		for(Thread t : threads) {
+			try {
+				t.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		System.out.println(""); // progress ends
+		resultsProcessor.finish();
+		return true;
 	}
 	
 	
@@ -453,226 +654,12 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		try {
 			// set up the db connection
 			UrMoAccessibilityComputer worker = new UrMoAccessibilityComputer();
-			worker.verbose = options.hasOption("verbose");
-
-			// -------- mode
-			Modes.init();
-			Vector<Mode> modesV = getModes(options.getOptionValue("mode", "<unknown>"));
-			if (modesV == null) {
-				throw new IOException("The mode(s) '" + options.getOptionValue("mode", "") + "' is/are not known.");
-			}
-			long modes = Modes.getCombinedModeIDs(modesV);
-			long initMode = modesV.get(0).id;
-
-			// -------- loading
-			int epsg;
-			if(options.hasOption("epsg")) {
-				epsg= ((Long) options.getParsedOptionValue("epsg")).intValue();
-			} else {
-				// automatic epsg-value
-				epsg = InputReader.findUTMZone(options);
-				if(epsg==-1) {
-					System.out.println("Could not find a valid UTM-zone. Quitting");
-					return;
-				} else {
-					String utmZone;
-					if(epsg>32600) { //northern hemisphere
-						utmZone = Integer.toString(epsg%100)+"N";
-					} else { // southern hemisphere
-						utmZone = Integer.toString(epsg%100)+"S";
-					}
-					System.out.println("Using UTM-zone "+utmZone+", EPSG-code: " + epsg);
-				}
-			}
-			
-			// from
-			if (worker.verbose)
-				System.out.println("Reading origin places");
-			Layer fromLayer = InputReader.loadLayer(options, "from", "weight", worker, epsg); 
-			if (worker.verbose)
-				System.out.println(" " + fromLayer.getObjects().size() + " origin places loaded");
-			if (fromLayer.getObjects().size()==0) {
-				System.out.println("Quitting.");
+			// initialise (load data and stuff)
+			if(!worker.init(options)) {
 				return;
 			}
-			// from aggregation
-			Layer fromAggLayer = null;
-			if (options.hasOption("from-agg") && !options.getOptionValue("from-agg", "").equals("all")) {
-				if (worker.verbose)
-					System.out.println("Reading origin aggregation zones");
-				fromAggLayer = InputReader.loadLayer(options, "from-agg", null, worker, epsg); 
-				if (worker.verbose)
-					System.out.println(" " + fromAggLayer.getObjects().size() + " origin aggregation geometries loaded");
-			}
-			// to
-			if (worker.verbose)
-				System.out.println("Reading destination places");
-			Layer toLayer = InputReader.loadLayer(options, "to", "variable", worker, epsg); 
-			if (worker.verbose)
-				System.out.println(" " + toLayer.getObjects().size() + " destination places loaded");
-			if (toLayer.getObjects().size()==0) {
-				System.out.println("Quitting.");
-				return;
-			}
-			// to aggregation
-			Layer toAggLayer = null;
-			if (options.hasOption("to-agg") && !options.getOptionValue("to-agg", "").equals("all")) {
-				if (worker.verbose)
-					System.out.println("Reading sink aggregation zones");
-				fromAggLayer = InputReader.loadLayer(options, "to-agg", null, worker, epsg); 
-				if (worker.verbose)
-					System.out.println(" " + toAggLayer.getObjects().size() + " sink aggregation geometries loaded");
-			}
-			
-			// net
-			if (worker.verbose)
-				System.out.println("Reading the road network");
-			DBNet net = NetLoader.loadNet(worker, options.getOptionValue("net", ""), epsg, modes);
-			if (worker.verbose)
-				System.out.println(" " + net.getNumEdges() + " edges loaded (" + net.getNodes().size() + " nodes)");
-			net.pruneForModes(modes); // TODO (implement, add message)
-			if(!options.hasOption("subnets")) {
-				if (worker.verbose)
-					System.out.println("Checking for connectivity...");
-				net.dismissUnconnectedEdges(false);
-				if (worker.verbose)
-					System.out.println(" " + net.getNumEdges() + " remaining after removing unconnected ones.");
-			}
-			/*
-			if (worker.verbose)
-				System.out.println(" " + net.getNumEdges() + " remaining after prunning");
-			*/
-
-			// travel times
-			if (options.hasOption("traveltimes")) {
-				if (worker.verbose)
-					System.out.println("Reading the roads' travel times");
-				NetLoader.loadTravelTimes(net, options.getOptionValue("traveltimes", ""), worker.verbose);
-			}
-			
-			// entrainment
-			EntrainmentMap entrainmentMap = new EntrainmentMap();
-			if (options.hasOption("entrainment")) {
-				if (worker.verbose)
-					System.out.println("Reading entrainment table");
-				entrainmentMap = InputReader.loadEntrainment(options);
-				if (worker.verbose)
-					System.out.println(" " + entrainmentMap.carrier2carried.size() + " entrainment fields loaded");
-			}
-			
-			// public transport network
-			if (options.hasOption("pt")) {
-				if (worker.verbose)
-					System.out.println("Reading the public transport network");
-				Geometry bounds = null;
-				if (options.hasOption("pt-boundary")) {
-					bounds = InputReader.loadGeometry(options.getOptionValue("pt-boundary", ""), "pt-boundary", epsg);
-				}
-				worker.gtfs = GTFSReader.load(options, bounds, net, entrainmentMap, epsg, worker.verbose);
-				if (worker.verbose)
-					System.out.println(" loaded");
-			}
-
-			// -------- compute (and optionally write) nearest edges
-			// compute nearest edges
-			if (worker.verbose)
-				System.out.println("Computing access from the origins to the network");
-			NearestEdgeFinder nef1 = new NearestEdgeFinder(fromLayer.getObjects(), net, initMode);
-			worker.nearestFromEdges = nef1.getNearestEdges(false);
-			if (options.hasOption("origins-to-road-output")) {
-				OutputBuilder.writeEdgeAllocation(options.getOptionValue("origins-to-road-output", ""), worker.nearestFromEdges, epsg, options.hasOption("dropprevious"));
-			}
-			if (worker.verbose)
-				System.out.println("Computing egress from the network to the destinations");
-			NearestEdgeFinder nef2 = new NearestEdgeFinder(toLayer.getObjects(), net, initMode);
-			worker.nearestToEdges = nef2.getNearestEdges(true);
-			if (options.hasOption("destinations-to-road-output")) {
-				OutputBuilder.writeEdgeAllocation(options.getOptionValue("destinations-to-road-output", ""), worker.nearestToEdges, epsg, options.hasOption("dropprevious"));
-			}
-
-			// -------- instantiate outputs
-/*
-			worker.aggregators = new HashMap<>();
-			if (!"".equals(options.getOptionValue("nm-output", ""))) {
-				String comment = buildComment(options);
-				if ("".equals(options.getOptionValue("output-steps", ""))) {
-					BasicWriter writer = buildNMOutput(options.getOptionValue("nm-output", ""));
-					writer.addComment(comment);
-					agg.addOutput(writer);
-					worker.aggregators.put(-1d, agg);
-				} else {
-					// steps is hard coded
-					int steps = (int) ((Double) options.getParsedOptionValue("output-steps")).doubleValue();
-					steps = 12;
-					for(int i=1; i<steps+1; ++i) {
-						Aggregator nagg = agg.duplicate();
-						BasicWriter writer = buildNMOutput2(options.getOptionValue("nm-output", ""), "_"+300*i);
-						writer.addComment(comment);
-						nagg.addOutput(writer);
-						worker.aggregators.put((double) (300*i), nagg);
-					}
-				}
-			}
-			*/
-			// -------- build outputs
-			Vector<Aggregator> aggregators = OutputBuilder.buildOutputs(options, fromLayer, fromAggLayer, toLayer, toAggLayer);
-			DirectWriter dw = OutputBuilder.buildDirectOutput(options, epsg, worker.nearestToEdges);
-			int time = ((Long) options.getParsedOptionValue("time")).intValue();
-			DijkstraResultsProcessor resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, worker.nearestFromEdges, worker.nearestToEdges); 
-
-			// -------- measure
-			AbstractRoutingMeasure measure = new RoutingMeasure_TT_Modes();
-			if(options.hasOption("measure")) {
-				String t = options.getOptionValue("measure", "");
-				if("price_tt".equals(t)) {
-					measure = new RoutingMeasure_Price_TT();
-				} else if("interchanges_tt".equals(t)) {
-					measure = new RoutingMeasure_ExpInterchange_TT(
-							((Double) options.getParsedOptionValue("measure-param1")).doubleValue(), 
-							((Double) options.getParsedOptionValue("measure-param2")).doubleValue());
-				} else if("maxinterchanges_tt".equals(t)) {
-					measure = new RoutingMeasure_MaxInterchange_TT(
-							(int) ((Long) options.getParsedOptionValue("measure-param1")).longValue());
-				}
-			}
-			
-			// -------- compute 
-			// TODO optional report on nearest edges
-			// compute distances / travel times, save them
-			if (worker.verbose)
-				System.out.println("Computing shortest paths");
-			worker.fromEdges = worker.nearestFromEdges.keySet();
-			worker.toEdges = worker.nearestToEdges.keySet();
-			int maxNumber = options.hasOption("max-number") ? ((Long) options.getParsedOptionValue("max-number")).intValue() : -1;
-			double maxTT = options.hasOption("max-tt") ? ((Double) options.getParsedOptionValue("max-tt")).doubleValue() : -1;
-			double maxDistance = options.hasOption("max-distance") ? ((Double) options.getParsedOptionValue("max-distance")).doubleValue() : -1;
-			double maxVar = options.hasOption("max-variable-sum") ? ((Double) options.getParsedOptionValue("max-variable-sum")).doubleValue() : -1;
-			boolean shortestOnly = options.hasOption("shortest");
-			boolean needsPT = options.hasOption("requirespt");
-			if (worker.verbose) {
-				System.out.println(" between " + worker.fromEdges.size() + " origin and " + worker.toEdges.size() + " destination edges");
-			}
-			
-			// initialise threads
-			int numThreads = options.hasOption("threads") ? ((Long) options.getParsedOptionValue("threads")).intValue() : 1;
-			worker.nextEdgePointer = worker.fromEdges.iterator();
-			worker.seenEdges = 0;
-			Vector<Thread> threads = new Vector<>();
-			//System.out.println(""); // starting (progress follows)
-			for (int i=0; i<numThreads; ++i) {
-				Thread t = new Thread(new ComputingThread(worker, needsPT, measure, resultsProcessor, time, initMode, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly));
-				threads.add(t);
-		        t.start();
-			}
-			for(Thread t : threads) {
-				try {
-					t.join();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-			System.out.println(""); // progress ends
-			resultsProcessor.finish();
+			// compute
+			worker.run(options);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (SQLException e) {
@@ -687,10 +674,10 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		} catch (ParseException e1) {
 			e1.printStackTrace();
 		}
-
 		// -------- finish
 		System.out.println("done.");
 	}
+
 	
 	
 	/**
@@ -711,7 +698,16 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		return nextEdge;
 	}
 
-
+	
+	
+	/**
+	 * @brief Returns a running (auto-incremented) number
+	 * @return A running number
+	 */
+	@Override
+	public synchronized long getNextRunningID() {
+		return ++runningID;
+	}
 
 	
 }
