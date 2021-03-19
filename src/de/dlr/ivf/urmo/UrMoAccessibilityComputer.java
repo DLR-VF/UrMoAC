@@ -614,9 +614,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		double maxVar = options.hasOption("max-variable-sum") ? ((Double) options.getParsedOptionValue("max-variable-sum")).doubleValue() : -1;
 		boolean shortestOnly = options.hasOption("shortest");
 		boolean needsPT = options.hasOption("requirespt");
-		if (verbose) {
-			System.out.println(" between " + fromEdges.size() + " origin and " + toEdges.size() + " destination edges");
-		}
+		if (verbose) System.out.println(" between " + fromEdges.size() + " origin and " + toEdges.size() + " destination edges");
 		
 		// initialise threads
 		int numThreads = options.hasOption("threads") ? ((Long) options.getParsedOptionValue("threads")).intValue() : 1;
