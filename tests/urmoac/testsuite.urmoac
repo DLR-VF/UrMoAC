@@ -7,6 +7,9 @@ errors
 # mapping sources / destinations to roads
 mapping
 
+# checking outputs
+output
+
 # known bugs and issues - should be empty :-)
 bugs
 

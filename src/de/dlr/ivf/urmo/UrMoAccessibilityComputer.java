@@ -93,13 +93,18 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	/// @brief Whether this runs in verbose mode
 	boolean verbose;
 	/// @brief The starting edges
-	Set<DBEdge> fromEdges;
+	Set<DBEdge> fromEdges; // TODO: check whether one can use nearestFromEdges
 	/// @brief The list of stop edges
-	Set<DBEdge> toEdges;
-	AbstractRoutingMeasure measure;
+	Set<DBEdge> toEdges; // TODO: check whether one can use nearestToEdges
+	/// @brief The route weight computation function
+	AbstractRoutingMeasure measure; // TODO: rename to "AbstractWeightFunction" // TODO: add documentation on github
+	/// @brief The results processor
 	DijkstraResultsProcessor resultsProcessor;
+	/// @brief Starting time of computation
 	int time;
+	/// @brief Allowed modes
 	long modes;
+	/// @brief Initial mode
 	long initMode;
 
 	
@@ -281,8 +286,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				.withDescription("The measure to use during the routing ['tt_mode', 'price_tt', 'interchanges_tt', 'maxinterchanges_tt'].").hasArg()
 				.create());
 
-		lvOptions.addOption(OptionBuilder.withLongOpt("measure-param1").withDescription("!!!!.").withType(Number.class).hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("measure-param2").withDescription("!!!!.").withType(Number.class).hasArg().create());
+		lvOptions.addOption(OptionBuilder.withLongOpt("measure-param1").withDescription("First parameter of the chosen weight function.").withType(Number.class).hasArg().create());
+		lvOptions.addOption(OptionBuilder.withLongOpt("measure-param2").withDescription("Second parameter of the chosen weight function.").withType(Number.class).hasArg().create());
 		
 		
 		lvOptions.addOption(OptionBuilder.withLongOpt("threads").withDescription("The number of threads.")
@@ -311,7 +316,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		lvOptions.addOption(new Option("dropprevious", false, "When set, previous output with the same name is replaced."));
 		/*
 		lvOptions.addOption(
-				OptionBuilder.withLongOpt("output-steps").withDescription("!!!Pseudo-steps.").withType(Number.class).hasArg().create());
+				OptionBuilder.withLongOpt("output-steps").withDescription("Pseudo-steps.").withType(Number.class).hasArg().create());
 				*/
 
 		lvOptions.addOption(OptionBuilder.withLongOpt("from.id")
@@ -331,10 +336,6 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		lvOptions.addOption(OptionBuilder.withLongOpt("to-agg.geom")
 				.withDescription("Defines the column name of the destination aggregations' geometries.").hasArg().create());
 		
-		/*
-		lvOptions.addOption(
-				OptionBuilder.withLongOpt("n-output").withDescription("Define the n:-output.").hasArg().create());
-		*/
 		// parse options
 		CommandLine lvCmd = null;
 		try {
@@ -345,14 +346,14 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				return null;
 			}
 			boolean check = true;
-			// !!! add information about unset options
+			// TODO: add information about unset options
 			check &= OptionsHelper.isSet(lvCmd, "from");
 			check &= OptionsHelper.isSet(lvCmd, "to");
 			check &= OptionsHelper.isSet(lvCmd, "net");
 			check &= OptionsHelper.isSet(lvCmd, "mode");
 			check &= OptionsHelper.isSet(lvCmd, "time");
-			// !!! check &= OptionsHelper.isSet(lvCmd, "epsg"); --can be unset
-			// !!! add information about double set options
+			// TODO: clarify epsg usage check &= OptionsHelper.isSet(lvCmd, "epsg"); --can be unset
+			// TODO: add information about double set options
 			check &= OptionsHelper.isIntegerOrUnset(lvCmd, "epsg");
 			check &= OptionsHelper.isIntegerOrUnset(lvCmd, "time");
 			check &= OptionsHelper.isIntegerOrUnset(lvCmd, "max-number");
@@ -411,7 +412,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		for(String r1 : r) {
 			Mode m = Modes.getMode(r1);
 			if(m==null) {
-				// !!! add error message
+				// TODO: add error message
 				return null;
 			}
 			ret.add(m);
@@ -436,6 +437,18 @@ public class UrMoAccessibilityComputer implements IDGiver {
 
 	
 	
+	/**
+	 * @brief Initialises the tool, mainly by reading options
+	 * 
+	 * Reads options as defined in the command lines
+	 * 
+	 * @param options The options to use
+	 * @return Whether everything went good
+	 * @throws SQLException When accessing the database failed
+	 * @throws IOException When accessing a file failed
+	 * @throws ParseException When an option could not been parsed
+	 * @throws com.vividsolutions.jts.io.ParseException When a geometry could not been parsed
+	 */
 	protected boolean init(CommandLine options) throws SQLException, IOException, ParseException, com.vividsolutions.jts.io.ParseException {
 		verbose = options.hasOption("verbose");
 		// -------- mode
@@ -604,6 +617,18 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	
 	
 	
+	/**
+	 * @brief Performs the computation
+	 * 
+	 * The limits and the number of threads to use are read from options.
+	 * The computation threads are initialised and started.
+	 * 
+	 * @param options The options to use
+	 * @return Whether everything went good
+	 * @throws SQLException When accessing the database failed
+	 * @throws IOException When accessing a file failed
+	 * @throws ParseException When an option could not been parsed
+	 */
 	protected boolean run(CommandLine options) throws ParseException, SQLException, IOException {
 		if (verbose) System.out.println("Computing shortest paths");
 		fromEdges = nearestFromEdges.keySet();
@@ -679,7 +704,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	
 	
 	/**
-	 * @brief Returns the next edge to process
+	 * @brief Returns the next starting edge to process
 	 * @return The next edge to start routing from
 	 */
 	public synchronized DBEdge getNextStartingEdge() {

@@ -4,4 +4,7 @@ net_missing parameter
 # string for a double option (max-tt)
 maxtt_string_parameter
 
+# using an unkown option (foo)
+unknown_option
+
 
