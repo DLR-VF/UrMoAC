@@ -220,10 +220,26 @@ public class InputReader {
 			line = br.readLine();
 			if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
 				String[] vals = line.split(";");
-				double var = vals.length==4 ? Double.parseDouble(vals[3]) : 1;
-				Point p = gf.createPoint(new Coordinate(Double.parseDouble(vals[1]), Double.parseDouble(vals[2])));
-				LayerObject o = new LayerObject(idGiver.getNextRunningID(), Long.parseLong(vals[0]), var, p);
-				layer.addObject(o);
+				Vector<Coordinate> geom = new Vector<>();
+				int i = 1;
+				for(; i<vals.length-1; i+=2) {
+					geom.add(new Coordinate(Double.parseDouble(vals[i]), Double.parseDouble(vals[i+1])));
+				}
+				Geometry geom2 = null;
+				if(geom.size()==1) {
+					geom2 = gf.createPoint(geom.get(0));
+				} else {
+					if(!geom.get(0).equals(geom.get(geom.size()-1))) {
+						geom.add(geom.get(0));
+					}
+					Coordinate[] arr = new Coordinate[geom.size()];
+					geom2 = gf.createPolygon(geom.toArray(arr));
+				}
+				double var = 1;
+				if(i<vals.length) {
+					var = Double.parseDouble(vals[i]);
+				}
+				layer.addObject(new LayerObject(idGiver.getNextRunningID(), Long.parseLong(vals[0]), var, geom2));
 			}
 	    } while(line!=null);
 		br.close();
