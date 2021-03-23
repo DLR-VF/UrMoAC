@@ -33,9 +33,7 @@ import de.dlr.ivf.urmo.router.shapes.DBNode;
  *         Transport Research
  */
 public class BoundDijkstra {
-	
 	/**
-	 * @param measure 
 	 * @brief Computes a bound 1-to-many shortest paths using the Dijkstra
 	 *        algorithm
 	 * 

@@ -73,8 +73,6 @@ import de.dlr.ivf.urmo.router.shapes.Layer;
  *        member of set1 and each member of set2 are then computed using plain
  *        Dijkstra. The results (including the mapping of the objects onto the
  *        road network) are written into files.
- * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
- * @copyright (c) DLR 2016-2021
  */
 public class UrMoAccessibilityComputer implements IDGiver {
 	// --------------------------------------------------------

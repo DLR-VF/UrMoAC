@@ -52,8 +52,9 @@ import de.dlr.ivf.urmo.router.shapes.LayerObject;
  *         Transport Research
  */
 public class InputReader {
-	
-	
+	// --------------------------------------------------------
+	// epsg determination
+	// --------------------------------------------------------
 	/**
 	 * @brief Finds the correct UTM-zone for the given net. Reference is the most south most west point in the from-locations.
 	 * 
@@ -106,6 +107,9 @@ public class InputReader {
 	
 	
 
+	// --------------------------------------------------------
+	// loading layers
+	// --------------------------------------------------------
 	/**
 	 * @brief Loads a set of objects (a layer)
 	 * 
@@ -191,6 +195,7 @@ public class InputReader {
 	}
 	
 	
+	
 	/**
 	 * @brief Loads a set of objects from file
 	 * 
@@ -227,6 +232,9 @@ public class InputReader {
 	
 	
 	
+	// --------------------------------------------------------
+	// entrainment loading
+	// --------------------------------------------------------
 	public static EntrainmentMap loadEntrainment(CommandLine options)  throws SQLException, ParseException, IOException {
 		String[] r = Utils.checkDefinition(options.getOptionValue("entrainment", ""), "entrainment");
 		if (r[0].equals("db")) {
@@ -274,6 +282,10 @@ public class InputReader {
 	}
 
 
+	
+	// --------------------------------------------------------
+	// geometry loading
+	// --------------------------------------------------------
 	public static Geometry loadGeometry(String def, String what, int epsg)  throws SQLException, ParseException, IOException {
 		String[] r = Utils.checkDefinition(def, what);
 		if (r[0].equals("db")) {
@@ -326,8 +338,9 @@ public class InputReader {
 	
 	
 	
-
-
+	// --------------------------------------------------------
+	// od-connections loading
+	// --------------------------------------------------------
 	public static Vector<DBODRelation> loadODConnections(String def) throws SQLException, ParseException, IOException {
 		String[] r = Utils.checkDefinition(def, "od-connections");
 		if (r[0].equals("db")) {
