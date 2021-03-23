@@ -42,11 +42,14 @@ usage: UrMoAccessibilityComputer
                                           routing ['tt_mode', 'price_tt',
                                           'interchanges_tt',
                                           'maxinterchanges_tt'].
-    --measure-param1 <arg>                !!!!.
-    --measure-param2 <arg>                !!!!.
+    --measure-param1 <arg>                First parameter of the chosen
+                                          weight function.
+    --measure-param2 <arg>                Second parameter of the chosen
+                                          weight function.
  -n,--net <arg>                           Defines the road network to
                                           load.
  -o,--nm-output <arg>                     Defines the n:m output.
+    --od-connections <arg>                The OD connections to compute.
     --origins-to-road-output <arg>        Defines output of the mapping
                                           between from-objects to the
                                           road.
