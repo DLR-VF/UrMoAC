@@ -25,6 +25,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Vector;
 
 import org.apache.commons.cli.CommandLine;
 import org.postgresql.PGConnection;
@@ -39,6 +40,7 @@ import com.vividsolutions.jts.io.WKBReader;
 
 import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
 import de.dlr.ivf.urmo.router.modes.Modes;
+import de.dlr.ivf.urmo.router.shapes.DBODRelation;
 import de.dlr.ivf.urmo.router.shapes.IDGiver;
 import de.dlr.ivf.urmo.router.shapes.Layer;
 import de.dlr.ivf.urmo.router.shapes.LayerObject;
@@ -54,9 +56,11 @@ public class InputReader {
 	
 	/**
 	 * @brief Finds the correct UTM-zone for the given net. Reference is the most south most west point in the from-locations.
+	 * 
 	 * The calculation is based on utm-zones for longitudes from -180 to 180 degrees.
 	 * The latitude is only valid from -84 to 84 degrees.
-	 * The returned UTM-zones start with 32500 for the southern hemisphere and with 32600 for the northern hemisphere. 
+	 * The returned UTM-zones start with 32500 for the southern hemisphere and with 32600 for the northern hemisphere.
+	 * @param[in] options The command line options 
 	 * @return The epsg-code of the UTM-zone or -1 of no UTM-zone could be found (e.g. north-pole )
 	 * @throws SQLException
 	 * @throws ParseException
@@ -101,6 +105,19 @@ public class InputReader {
 	}
 	
 	
+
+	/**
+	 * @brief Loads a set of objects (a layer)
+	 * 
+	 * @param options The command line options 
+	 * @param base The layer/type ("from", "to") of the objects to load
+	 * @param varName Name of the variable field
+	 * @param idGiver An instance to retrieve new ids from
+	 * @param epsg The used projection
+	 * @return The generated layer with the read objects
+	 * @throws SQLException
+	 * @throws ParseException
+	 */
 	public static Layer loadLayer(CommandLine options, String base, String varName, IDGiver idGiver, int epsg) throws SQLException, ParseException, IOException {
 		String filter = varName==null ? "" : options.getOptionValue(base + "-filter", ""); // !!! use something different
 		varName = varName==null ? null : options.getOptionValue(varName, "");
@@ -119,6 +136,7 @@ public class InputReader {
 	/**
 	 * @brief Loads a set of objects from the db
 	 * 
+	 * @param layerName The layer/type ("from", "to") of the objects to load
 	 * @param url The url of the database
 	 * @param table The table to read from
 	 * @param user The user name for connecting to the database
@@ -308,6 +326,54 @@ public class InputReader {
 	
 	
 	
+
+
+	public static Vector<DBODRelation> loadODConnections(String def) throws SQLException, ParseException, IOException {
+		String[] r = Utils.checkDefinition(def, "od-connections");
+		if (r[0].equals("db")) {
+			return loadODConnectionsDB(r[1], r[2], r[3], r[4]);
+		} else {
+			return loadODConnectionsFromFile(r[1]);
+		}
+	}
+
+
+	private static Vector<DBODRelation> loadODConnectionsDB(String url, String table, String user, String pw) throws SQLException, ParseException {
+		Connection connection = DriverManager.getConnection(url, user, pw);
+		connection.setAutoCommit(true);
+		connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
+		String query = "SELECT origin,destination FROM " + table + ";";
+		Statement s = connection.createStatement();
+		ResultSet rs = s.executeQuery(query);
+		Vector<DBODRelation> ret =  new Vector<>();
+		while (rs.next()) {
+			ret.add(new DBODRelation(rs.getLong("origin"), rs.getLong("destination"), 1.));
+		}
+		rs.close();
+		s.close();
+		connection.close();
+		return ret;
+	}
+
+
+
+	private static Vector<DBODRelation> loadODConnectionsFromFile(String fileName) throws IOException {
+		Vector<DBODRelation> ret =  new Vector<>();
+		BufferedReader br = new BufferedReader(new FileReader(fileName));
+		String line = null;
+		do {
+			line = br.readLine();
+			if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
+				String[] vals = line.split(";");
+				ret.add(new DBODRelation(Long.parseLong(vals[0]), Long.parseLong(vals[1]), 1.));
+			}
+	    } while(line!=null);
+		br.close();
+		return ret;
+	}
+
+
+
 	/**
 	 * @brief Writes the given map of edge values into the database (the
 	 *        database must not exist)

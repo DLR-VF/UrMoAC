@@ -72,7 +72,7 @@ public class DijkstraResultsProcessor {
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	public void process(MapResult mr, DijkstraResult dr, boolean needsPT) throws IOException, SQLException {
+	public void process(MapResult mr, DijkstraResult dr, boolean needsPT, long singleDestination) throws IOException, SQLException {
 		if(directWriter!=null) {
 			directWriter.writeResult(dr, mr, needsPT);
 		}
@@ -87,8 +87,10 @@ public class DijkstraResultsProcessor {
 				Vector<MapResult> toObjects = nearestToEdges.get(destEdge);
 				if(toObjects!=null) {
 					for(MapResult toObject : toObjects) {
-						AbstractSingleResult result = agg.parent.buildResult(beginTime, mr, toObject, dr);
-						results.add(result);
+						if(singleDestination<0||toObject.em.getOuterID()==singleDestination) {
+							AbstractSingleResult result = agg.parent.buildResult(beginTime, mr, toObject, dr);
+							results.add(result);
+						}
 					}
 				}
 			}

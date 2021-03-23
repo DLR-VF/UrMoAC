@@ -21,7 +21,6 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.Vector;
 
-import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.gtfs.GTFSEdge;
 import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;
@@ -55,10 +54,9 @@ public class BoundDijkstra {
 	 * @return A results container
 	 * @see DijkstraResult
 	 */
-	public static DijkstraResult run(AbstractRoutingMeasure measure, int time, MapResult source, long _usedMode, long modes, Set<DBEdge> ends, 
+	public static DijkstraResult run(AbstractRoutingMeasure measure, int time, DBEdge startEdge, long _usedMode, long modes, Set<DBEdge> ends, 
 			int boundNumber, double boundTT, double boundDist, double boundVar, boolean shortestOnly) {
 		
-		DBEdge startEdge = source.edge;
 		boolean hadExtension = false;
 		long availableModes = modes;
 		Mode usedMode = Modes.getMode(_usedMode);

@@ -58,6 +58,8 @@ import de.dlr.ivf.urmo.router.output.DijkstraResultsProcessor;
 import de.dlr.ivf.urmo.router.output.DirectWriter;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
+import de.dlr.ivf.urmo.router.shapes.DBODRelation;
+import de.dlr.ivf.urmo.router.shapes.DBODRelationExt;
 import de.dlr.ivf.urmo.router.shapes.IDGiver;
 import de.dlr.ivf.urmo.router.shapes.Layer;
 
@@ -87,25 +89,29 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	/// @brief The public transport system info
 	GTFSData gtfs = null;
 	/// @brief A point to the currently processed source edge
-	Iterator<DBEdge> nextEdgePointer;
+	Iterator<DBEdge> nextEdgePointer = null;
 	/// @brief A counter for seen edges for reporting purposes
 	long seenEdges = 0;
 	/// @brief Whether this runs in verbose mode
-	boolean verbose;
-	/// @brief The starting edges
-	Set<DBEdge> fromEdges; // TODO: check whether one can use nearestFromEdges
-	/// @brief The list of stop edges
-	Set<DBEdge> toEdges; // TODO: check whether one can use nearestToEdges
+	boolean verbose = false;
 	/// @brief The route weight computation function
-	AbstractRoutingMeasure measure; // TODO: rename to "AbstractWeightFunction" // TODO: add documentation on github
+	AbstractRoutingMeasure measure = null; // TODO: rename to "AbstractWeightFunction" // TODO: add documentation on github
 	/// @brief The results processor
-	DijkstraResultsProcessor resultsProcessor;
+	DijkstraResultsProcessor resultsProcessor = null;
 	/// @brief Starting time of computation
-	int time;
+	int time = -1;
 	/// @brief Allowed modes
-	long modes;
+	long modes = -1;
 	/// @brief Initial mode
-	long initMode;
+	long initMode = -1;
+	/// @brief list of connections to process
+	Vector<DBODRelation> connections = null;
+	/// @brief A point to the currently processed connection
+	Iterator<DBODRelation> nextConnectionPointer = null;
+	/// @brief A counter for seen connections for reporting purposes
+	long seenODs = 0;
+	/// @brief Whether an error occurred
+	boolean hadError = false;
 
 	
 	
@@ -184,22 +190,37 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		/**
 		 * @brief Performs the computation
 		 * 
+		 * Iterates over edges or od-connections.
 		 * Builds the paths, first, then uses them to generate the results.
 		 */
 		public void run() {
 			try {
-				DBEdge e = null;
-				do {
-					e = parent.getNextStartingEdge();
-					if(e==null) {
-						continue;
-					}
-					Vector<MapResult> fromObjects = parent.nearestFromEdges.get(e);
-					for(MapResult mr : fromObjects) {
-						DijkstraResult ret = BoundDijkstra.run(measure, time, mr, initMode, modes, parent.toEdges, boundNumber, boundTT, boundDist, boundVar, shortestOnly);
-						resultsProcessor.process(mr, ret, needsPT);
-					}
-				} while(e!=null);
+				if(parent.connections==null) {
+					DBEdge e = null;
+					do {
+						e = parent.getNextStartingEdge();
+						if(e==null) {
+							continue;
+						}
+						/// TODO: recheck whether routing is needed per source
+						DijkstraResult ret = BoundDijkstra.run(measure, time, e, initMode, modes, parent.nearestToEdges.keySet(), boundNumber, boundTT, boundDist, boundVar, shortestOnly);
+						Vector<MapResult> fromObjects = parent.nearestFromEdges.get(e);
+						for(MapResult mr : fromObjects) {
+							resultsProcessor.process(mr, ret, needsPT, -1);
+						}
+					} while(e!=null);
+				} else {
+					DBODRelationExt od = null;
+					do {
+						od = parent.getNextOD();
+						if(od==null) {
+							continue;
+						}
+						/// TODO: recheck whether routing is needed per source
+						DijkstraResult ret = BoundDijkstra.run(measure, time, od.fromEdge, initMode, modes, parent.nearestToEdges.keySet(), boundNumber, boundTT, boundDist, boundVar, shortestOnly);
+						resultsProcessor.process(od.fromMR, ret, needsPT, od.destination);
+					} while(od!=null&&!parent.hadError);
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (SQLException e) {
@@ -216,7 +237,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 
 
 	// --------------------------------------------------------
-	// static main methods
+	// static methods
 	// --------------------------------------------------------
 	/**
 	 * @brief Returns the parsed command line options
@@ -285,6 +306,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		lvOptions.addOption(OptionBuilder.withLongOpt("measure")
 				.withDescription("The measure to use during the routing ['tt_mode', 'price_tt', 'interchanges_tt', 'maxinterchanges_tt'].").hasArg()
 				.create());
+		lvOptions.addOption(OptionBuilder.withLongOpt("od-connections").withDescription("The OD connections to compute.").hasArg().create());
 
 		lvOptions.addOption(OptionBuilder.withLongOpt("measure-param1").withDescription("First parameter of the chosen weight function.").withType(Number.class).hasArg().create());
 		lvOptions.addOption(OptionBuilder.withLongOpt("measure-param2").withDescription("Second parameter of the chosen weight function.").withType(Number.class).hasArg().create());
@@ -442,7 +464,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 * 
 	 * Reads options as defined in the command lines
 	 * 
-	 * @param options The options to use
+	 * @param[in] options The options to use
 	 * @return Whether everything went good
 	 * @throws SQLException When accessing the database failed
 	 * @throws IOException When accessing a file failed
@@ -485,7 +507,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		Layer fromLayer = InputReader.loadLayer(options, "from", "weight", this, epsg); 
 		if (verbose) System.out.println(" " + fromLayer.getObjects().size() + " origin places loaded");
 		if (fromLayer.getObjects().size()==0) {
-			System.out.println("Quitting.");
+			hadError = true;
 			return false;
 		}
 		// from aggregation
@@ -500,7 +522,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		Layer toLayer = InputReader.loadLayer(options, "to", "variable", this, epsg); 
 		if (verbose) System.out.println(" " + toLayer.getObjects().size() + " destination places loaded");
 		if (toLayer.getObjects().size()==0) {
-			System.out.println("Quitting.");
+			hadError = true;
 			return false;
 		}
 		// to aggregation
@@ -548,6 +570,14 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				bounds = InputReader.loadGeometry(options.getOptionValue("pt-boundary", ""), "pt-boundary", epsg);
 			}
 			gtfs = GTFSReader.load(options, bounds, net, entrainmentMap, epsg, verbose);
+			if (verbose) System.out.println(" loaded");
+		}
+
+		// explicit O/D-connections
+		if (options.hasOption("od-connections")) {
+			if (verbose) System.out.println("Reading the explicite O/D connections");
+			connections = InputReader.loadODConnections(options.getOptionValue("od-connections"));
+			nextConnectionPointer = connections.iterator();
 			if (verbose) System.out.println(" loaded");
 		}
 
@@ -621,9 +651,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 * @brief Performs the computation
 	 * 
 	 * The limits and the number of threads to use are read from options.
-	 * The computation threads are initialised and started.
+	 * The computation threads are initialized and started.
 	 * 
-	 * @param options The options to use
+	 * @param[in] options The options to use
 	 * @return Whether everything went good
 	 * @throws SQLException When accessing the database failed
 	 * @throws IOException When accessing a file failed
@@ -631,19 +661,17 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 */
 	protected boolean run(CommandLine options) throws ParseException, SQLException, IOException {
 		if (verbose) System.out.println("Computing shortest paths");
-		fromEdges = nearestFromEdges.keySet();
-		toEdges = nearestToEdges.keySet();
 		int maxNumber = options.hasOption("max-number") ? ((Long) options.getParsedOptionValue("max-number")).intValue() : -1;
 		double maxTT = options.hasOption("max-tt") ? ((Double) options.getParsedOptionValue("max-tt")).doubleValue() : -1;
 		double maxDistance = options.hasOption("max-distance") ? ((Double) options.getParsedOptionValue("max-distance")).doubleValue() : -1;
 		double maxVar = options.hasOption("max-variable-sum") ? ((Double) options.getParsedOptionValue("max-variable-sum")).doubleValue() : -1;
 		boolean shortestOnly = options.hasOption("shortest");
 		boolean needsPT = options.hasOption("requirespt");
-		if (verbose) System.out.println(" between " + fromEdges.size() + " origin and " + toEdges.size() + " destination edges");
+		if (verbose) System.out.println(" between " + nearestFromEdges.size() + " origin and " + nearestToEdges.size() + " destination edges");
 		
 		// initialise threads
 		int numThreads = options.hasOption("threads") ? ((Long) options.getParsedOptionValue("threads")).intValue() : 1;
-		nextEdgePointer = fromEdges.iterator();
+		nextEdgePointer = nearestFromEdges.keySet().iterator();
 		seenEdges = 0;
 		Vector<Thread> threads = new Vector<>();
 		for (int i=0; i<numThreads; ++i) {
@@ -655,6 +683,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			try {
 				t.join();
 			} catch (InterruptedException e) {
+				hadError = true;
 				e.printStackTrace();
 			}
 		}
@@ -663,44 +692,6 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		return true;
 	}
 	
-	
-	/**
-	 * @brief The main method
-	 * @param args Given command line arguments
-	 */
-	public static void main(String[] args) {
-		// parse and check options
-		CommandLine options = getCMDOptions(args);
-		if (options == null) {
-			return;
-		}
-		try {
-			// set up the db connection
-			UrMoAccessibilityComputer worker = new UrMoAccessibilityComputer();
-			// initialise (load data and stuff)
-			if(!worker.init(options)) {
-				return;
-			}
-			// compute
-			worker.run(options);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (SQLException e) {
-			e.printStackTrace();
-			SQLException e2 = e.getNextException();
-			while (e2 != null) {
-				e2.printStackTrace();
-				e2 = e2.getNextException();
-			}
-		} catch (com.vividsolutions.jts.io.ParseException e) {
-			e.printStackTrace();
-		} catch (ParseException e1) {
-			e1.printStackTrace();
-		}
-		// -------- finish
-		System.out.println("done.");
-	}
-
 	
 	
 	/**
@@ -716,13 +707,73 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			nextEdge = nextEdgePointer.next();
 		}
 		++seenEdges;
-		if (verbose)
-			System.out.print("\r " + seenEdges + " of " + fromEdges.size() + " edges");
+		if (verbose) System.out.print("\r " + seenEdges + " of " + nearestFromEdges.size() + " edges");
 		return nextEdge;
 	}
 
 	
+
+	/**
+	 * @brief Returns the next connection to process
+	 * @return The next connection to process
+	 */
+	public synchronized DBODRelationExt getNextOD() {
+		if(hadError) {
+			return null;
+		}
+		DBODRelation nextOD = null;
+		while(nextOD==null) {
+			if(!nextConnectionPointer.hasNext()) {
+				return null;
+			}
+			nextOD = nextConnectionPointer.next();
+		}
+		DBODRelationExt ret = new DBODRelationExt(nextOD.origin, nextOD.destination, nextOD.weight);
+		ret.fromEdge = getEdgeForObject(ret.origin, nearestFromEdges);
+		ret.toEdge = getEdgeForObject(ret.destination, nearestToEdges);
+		if(ret.fromEdge==null||ret.toEdge==null) {
+			if(ret.fromEdge==null) {
+				System.err.println("\nCould not find the edge for origin " + ret.origin);
+			}
+			if(ret.toEdge==null) {
+				System.err.println("\nCould not find the edge for destination " + ret.destination);
+			}
+			hadError = true;
+			return null;
+		}
+		for(MapResult m : nearestFromEdges.get(ret.fromEdge)) {
+			if(m.em.getOuterID()==ret.origin) {
+				ret.fromMR = m;
+			}
+		}
+		for(MapResult m : nearestToEdges.get(ret.toEdge)) {
+			if(m.em.getOuterID()==ret.destination) {
+				ret.toMR = m;
+			}
+		}
+		++seenODs;
+		if (verbose) {
+			System.out.print("\r " + seenODs + " of " + connections.size() + " connections");
+		}
+		return ret;
+	}
 	
+	
+	
+	private DBEdge getEdgeForObject(long objID, HashMap<DBEdge, Vector<MapResult>> mapping) {
+		for(DBEdge e : mapping.keySet()) {
+			Vector<MapResult> t = mapping.get(e);
+			for(MapResult m : t) {
+				if(m.em.getOuterID()==objID) {
+					return e;
+				}
+			}
+		}
+		return null;
+	}
+
+	
+
 	/**
 	 * @brief Returns a running (auto-incremented) number
 	 * @return A running number
@@ -732,5 +783,63 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		return ++runningID;
 	}
 
+	
+
+	/** @brief Returns whether an error occurred
+	 * @return Whether an error occurred
+	 */
+	public boolean hadError() {
+		return hadError;
+	}
+	
+
+	
+	
+	// --------------------------------------------------------
+	// main
+	// --------------------------------------------------------
+	/**
+	 * @brief The main method
+	 * @param args Given command line arguments
+	 */
+	public static void main(String[] args) {
+		// parse and check options
+		CommandLine options = getCMDOptions(args);
+		if (options == null) {
+			return;
+		}
+		boolean hadError = true;
+		try {
+			// set up the db connection
+			UrMoAccessibilityComputer worker = new UrMoAccessibilityComputer();
+			// initialise (load data and stuff)
+			if(!worker.init(options)) {
+				return;
+			}
+			// compute
+			worker.run(options);
+			hadError = worker.hadError();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			SQLException e2 = e.getNextException();
+			while (e2 != null) {
+				e2.printStackTrace();
+				e2 = e2.getNextException();
+			}
+		} catch (com.vividsolutions.jts.io.ParseException e) {
+			e.printStackTrace();
+		} catch (ParseException e1) {
+			e1.printStackTrace();
+		}
+		// -------- finish
+		if(hadError) {
+			System.err.println("Quitting...");
+		} else {
+			System.out.println("done.");
+		}
+	}
+	
 	
 }
