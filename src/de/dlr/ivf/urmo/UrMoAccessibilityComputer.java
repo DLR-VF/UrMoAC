@@ -806,17 +806,20 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		if (options == null) {
 			return;
 		}
-		boolean hadError = true;
 		try {
 			// set up the db connection
 			UrMoAccessibilityComputer worker = new UrMoAccessibilityComputer();
 			// initialise (load data and stuff)
-			hadError = !worker.init(options);
+			boolean hadError = !worker.init(options);
 			// compute
 			if(!hadError) {
 				hadError = !worker.run(options);
 			}
-			hadError = worker.hadError();
+			hadError &= worker.hadError();
+			if(hadError) {
+				System.err.println("Quitting on error...");
+				return;
+			} 
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (SQLException e) {
@@ -832,11 +835,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			e1.printStackTrace();
 		}
 		// -------- finish
-		if(hadError) {
-			System.err.println("Quitting on error...");
-		} else {
-			System.out.println("done.");
-		}
+		System.out.println("done.");
 	}
 	
 	
