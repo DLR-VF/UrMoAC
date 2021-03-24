@@ -119,9 +119,9 @@ public class NetLoader {
 			if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
 				String[] vals = line.split(";");
 				long modes = 0;
-				if("true".equals(vals[3])||"1".equals(vals[3])) modes = modes | Modes.getMode("foot").id;
-				if("true".equals(vals[4])||"1".equals(vals[4])) modes = modes | Modes.getMode("bicycle").id;
-				if("true".equals(vals[5])||"1".equals(vals[5])) modes = modes | Modes.getMode("passenger").id;
+				if("True".equals(vals[3])||"1".equals(vals[3])) modes = modes | Modes.getMode("foot").id;
+				if("True".equals(vals[4])||"1".equals(vals[4])) modes = modes | Modes.getMode("bicycle").id;
+				if("True".equals(vals[5])||"1".equals(vals[5])) modes = modes | Modes.getMode("passenger").id;
 				if(modes==0 && ((modes&uModes)==0)) {
 					continue;
 				}
