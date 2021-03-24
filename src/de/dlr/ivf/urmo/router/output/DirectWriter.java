@@ -79,10 +79,11 @@ public class DirectWriter extends BasicCombinedWriter {
 	 * @param result The result to write
 	 * @param from The origin
 	 * @param needsPT Whether only results that contain a public transport trip shall be written
+	 * @param singleDestination If >0 only this destination shall be regarded
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	public synchronized void writeResult(DijkstraResult result, MapResult from, boolean needsPT) throws SQLException, IOException {
+	public synchronized void writeResult(DijkstraResult result, MapResult from, boolean needsPT, long singleDestination) throws SQLException, IOException {
 		for(DBEdge e : result.edgeMap.keySet()) {
 			DijkstraEntry toEdgeEntry = result.getEdgeInfo(e);
 			if(!toEdgeEntry.matchesRequirements(needsPT)) {
@@ -90,6 +91,9 @@ public class DirectWriter extends BasicCombinedWriter {
 			}
 			Vector<MapResult> toObjects = nearestToEdges.get(e);
 			for(MapResult toObject : toObjects) {
+				if(singleDestination>=0 && toObject.em.getOuterID()!=singleDestination) {
+					continue;
+				}
 				int index = 0;
 				DijkstraEntry current = toEdgeEntry;
 				do {

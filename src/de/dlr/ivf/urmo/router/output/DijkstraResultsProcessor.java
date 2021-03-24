@@ -69,12 +69,13 @@ public class DijkstraResultsProcessor {
 	 * @param mr The origin result
 	 * @param dr The path to process
 	 * @param needsPT Whether only entries that contain a public transport path shall be processed
+	 * @param singleDestination If >0 only this destination shall be regarded
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
 	public void process(MapResult mr, DijkstraResult dr, boolean needsPT, long singleDestination) throws IOException, SQLException {
 		if(directWriter!=null) {
-			directWriter.writeResult(dr, mr, needsPT);
+			directWriter.writeResult(dr, mr, needsPT, singleDestination);
 		}
 		// multiple sources and multiple destinations
 		for(Aggregator agg : aggs) {
