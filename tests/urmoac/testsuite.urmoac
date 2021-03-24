@@ -10,6 +10,9 @@ input
 # mapping sources / destinations to roads
 mapping
 
+# routing options
+routing
+
 # checking outputs
 output
 

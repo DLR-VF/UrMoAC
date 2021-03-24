@@ -38,6 +38,14 @@ public class RouteWeightFunction_ExpInterchange_TT extends AbstractRouteWeightFu
 	}
 	
 	
+	/** @brief Returns the number of required parameters
+	 * @return The number of required parameters
+	 */
+	public int getParameterNumber() {
+		return 2;
+	}
+
+	
 	/**
 	 * @brief Comparing function
 	 * @param c1 First entry 

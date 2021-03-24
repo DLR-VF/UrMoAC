@@ -36,6 +36,14 @@ public class RouteWeightFunction_MaxInterchange_TT extends AbstractRouteWeightFu
 	}
 	
 	
+	/** @brief Returns the number of required parameters
+	 * @return The number of required parameters
+	 */
+	public int getParameterNumber() {
+		return 1;
+	}
+	
+	
 	/**
 	 * @brief Comparing function
 	 * @param c1 First entry 

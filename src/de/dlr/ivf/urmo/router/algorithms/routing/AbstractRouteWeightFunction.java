@@ -26,6 +26,13 @@ import java.util.HashMap;
  *         Transport Research
  */
 public abstract class AbstractRouteWeightFunction implements Comparator<DijkstraEntry> {
+	/** @brief Returns the number of required parameters
+	 * @return The number of required parameters
+	 */
+	public abstract int getParameterNumber();
+
+
+	
 	/**
 	 * @brief Builds the measures used for weighting the path given a new path element
 	 * @param prev The prior path element

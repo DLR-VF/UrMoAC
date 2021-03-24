@@ -419,14 +419,13 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		return lvCmd;
 	}
 
-	
-	
+		
 	/**
 	 * @brief Parses the text representation to obtain the encoded modes of transport
 	 * @param optionValue The text representation
 	 * @return Encoded modes of transport
 	 */
-	private static Vector<Mode> getModes(String optionValue) {
+	protected static Vector<Mode> getModes(String optionValue) {
 		Vector<Mode> ret = new Vector<>();
 		String[] r = optionValue.split(";");
 		for(String r1 : r) {
@@ -441,6 +440,21 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			return null;
 		}
 		return ret;
+	}
+	
+	
+	/**
+	 * @brief Checks whether the needed route weight function parameter are set
+	 * 
+	 */
+	protected boolean checkParameterOptions(CommandLine options, int num) {
+		for(int i=0; i<num; ++i) {
+			if(!options.hasOption("measure-param"+(i+1))) {
+				System.err.println("Error: value for route weighting function #"+(i+1)+" is missing; use --measure-param"+(i+1)+" <DOUBLE>.");
+				hadError = true;
+			}
+		}
+		return !hadError;
 	}
 	
 	
@@ -631,16 +645,27 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			if("price_tt".equals(t)) {
 				measure = new RouteWeightFunction_Price_TT();
 			} else if("interchanges_tt".equals(t)) {
+				if(!checkParameterOptions(options, 2)) {
+					hadError = true;
+					return false;
+				} 
 				measure = new RouteWeightFunction_ExpInterchange_TT(
 						((Double) options.getParsedOptionValue("measure-param1")).doubleValue(), 
 						((Double) options.getParsedOptionValue("measure-param2")).doubleValue());
 			} else if("maxinterchanges_tt".equals(t)) {
+				if(!checkParameterOptions(options, 1)) {
+					hadError = true;
+					return false;
+				}
 				measure = new RouteWeightFunction_MaxInterchange_TT(
 						(int) ((Long) options.getParsedOptionValue("measure-param1")).longValue());
+			} else if(!"tt_mode".equals(t)) {
+				System.err.println("Error: the route weight function '" + t + "' is not known.");
+				hadError = true;
 			}
 		}
 		// done everything
-		return true;
+		return !hadError;
 	}
 	
 	
@@ -815,7 +840,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			if(!hadError) {
 				hadError = !worker.run(options);
 			}
-			hadError &= worker.hadError();
+			hadError |= worker.hadError();
 			if(hadError) {
 				System.err.println("Quitting on error...");
 				return;

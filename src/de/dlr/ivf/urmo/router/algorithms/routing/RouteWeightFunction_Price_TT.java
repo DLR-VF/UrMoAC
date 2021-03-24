@@ -24,6 +24,14 @@ import java.util.HashSet;
  * @brief Compares paths by price, then by the travel time
  */
 public class RouteWeightFunction_Price_TT extends AbstractRouteWeightFunction {
+	/** @brief Returns the number of required parameters
+	 * @return The number of required parameters
+	 */
+	public int getParameterNumber() {
+		return 0;
+	}
+
+	
 	/**
 	 * @brief Comparing function
 	 * @param c1 First entry 

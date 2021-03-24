@@ -23,6 +23,14 @@ import java.util.HashMap;
  * @brief Compares paths by the travel time, then by the number of remaining modes that can be used
  */
 public class RouteWeightFunction_TT_Modes extends AbstractRouteWeightFunction {
+	/** @brief Returns the number of required parameters
+	 * @return The number of required parameters
+	 */
+	public int getParameterNumber() {
+		return 0;
+	}
+	
+	
 	/**
 	 * @brief Comparing function
 	 * @param c1 First entry 
