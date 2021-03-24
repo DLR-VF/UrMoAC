@@ -20,10 +20,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 /**
- * @class RoutingMeasure_Price_TT
+ * @class RouteWeightFunction_Price_TT
  * @brief Compares paths by price, then by the travel time
  */
-public class RoutingMeasure_Price_TT extends AbstractRoutingMeasure {
+public class RouteWeightFunction_Price_TT extends AbstractRouteWeightFunction {
 	/**
 	 * @brief Comparing function
 	 * @param c1 First entry 

@@ -38,13 +38,13 @@ import com.vividsolutions.jts.geom.Geometry;
 import de.dlr.ivf.helper.options.OptionsHelper;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.NearestEdgeFinder;
-import de.dlr.ivf.urmo.router.algorithms.routing.AbstractRoutingMeasure;
+import de.dlr.ivf.urmo.router.algorithms.routing.AbstractRouteWeightFunction;
 import de.dlr.ivf.urmo.router.algorithms.routing.BoundDijkstra;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
-import de.dlr.ivf.urmo.router.algorithms.routing.RoutingMeasure_ExpInterchange_TT;
-import de.dlr.ivf.urmo.router.algorithms.routing.RoutingMeasure_MaxInterchange_TT;
-import de.dlr.ivf.urmo.router.algorithms.routing.RoutingMeasure_Price_TT;
-import de.dlr.ivf.urmo.router.algorithms.routing.RoutingMeasure_TT_Modes;
+import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_ExpInterchange_TT;
+import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_MaxInterchange_TT;
+import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_Price_TT;
+import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_TT_Modes;
 import de.dlr.ivf.urmo.router.gtfs.GTFSData;
 import de.dlr.ivf.urmo.router.io.GTFSReader;
 import de.dlr.ivf.urmo.router.io.InputReader;
@@ -93,7 +93,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	/// @brief Whether this runs in verbose mode
 	boolean verbose = false;
 	/// @brief The route weight computation function
-	AbstractRoutingMeasure measure = null; // TODO: rename to "AbstractWeightFunction" // TODO: add documentation on github
+	AbstractRouteWeightFunction measure = null; // TODO: add documentation on github
 	/// @brief The results processor
 	DijkstraResultsProcessor resultsProcessor = null;
 	/// @brief Starting time of computation
@@ -127,7 +127,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		/// @brief The results processor to use
 		DijkstraResultsProcessor resultsProcessor;
 		/// @brief The routing measure to use
-		AbstractRoutingMeasure measure;
+		AbstractRouteWeightFunction measure;
 		/// @brief Whether only entries which contain a public transport part shall be processed 
 		boolean needsPT;
 		/// @brief The start time of routing
@@ -164,7 +164,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		 * @param _shortestOnly Whether only the shortest connection shall be found 
 		 */
 		public ComputingThread(UrMoAccessibilityComputer _parent, boolean _needsPT,
-				AbstractRoutingMeasure _measure, DijkstraResultsProcessor _resultsProcessor,
+				AbstractRouteWeightFunction _measure, DijkstraResultsProcessor _resultsProcessor,
 				int _time, long _initMode, 
 				long _modes, int _boundNumber, double _boundTT, 
 				double _boundDist, double _boundVar, boolean _shortestOnly) {
@@ -625,17 +625,17 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, nearestFromEdges, nearestToEdges); 
 
 		// -------- measure
-		measure = new RoutingMeasure_TT_Modes();
+		measure = new RouteWeightFunction_TT_Modes();
 		if(options.hasOption("measure")) {
 			String t = options.getOptionValue("measure", "");
 			if("price_tt".equals(t)) {
-				measure = new RoutingMeasure_Price_TT();
+				measure = new RouteWeightFunction_Price_TT();
 			} else if("interchanges_tt".equals(t)) {
-				measure = new RoutingMeasure_ExpInterchange_TT(
+				measure = new RouteWeightFunction_ExpInterchange_TT(
 						((Double) options.getParsedOptionValue("measure-param1")).doubleValue(), 
 						((Double) options.getParsedOptionValue("measure-param2")).doubleValue());
 			} else if("maxinterchanges_tt".equals(t)) {
-				measure = new RoutingMeasure_MaxInterchange_TT(
+				measure = new RouteWeightFunction_MaxInterchange_TT(
 						(int) ((Long) options.getParsedOptionValue("measure-param1")).longValue());
 			}
 		}

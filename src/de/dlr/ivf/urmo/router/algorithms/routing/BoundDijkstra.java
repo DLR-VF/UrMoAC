@@ -52,7 +52,7 @@ public class BoundDijkstra {
 	 * @return A results container
 	 * @see DijkstraResult
 	 */
-	public static DijkstraResult run(AbstractRoutingMeasure measure, int time, DBEdge startEdge, long _usedMode, long modes, Set<DBEdge> ends, 
+	public static DijkstraResult run(AbstractRouteWeightFunction measure, int time, DBEdge startEdge, long _usedMode, long modes, Set<DBEdge> ends, 
 			int boundNumber, double boundTT, double boundDist, double boundVar, boolean shortestOnly) {
 		
 		boolean hadExtension = false;

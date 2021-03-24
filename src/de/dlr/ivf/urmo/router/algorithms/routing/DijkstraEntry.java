@@ -62,7 +62,7 @@ public class DijkstraEntry {
 	 * @brief Constructor
 	 * @param !!!
 	 */
-	public DijkstraEntry(AbstractRoutingMeasure measure, DijkstraEntry _prev, DBNode _n, DBEdge _e, long _availableModes, Mode _usedMode, 
+	public DijkstraEntry(AbstractRouteWeightFunction measure, DijkstraEntry _prev, DBNode _n, DBEdge _e, long _availableModes, Mode _usedMode, 
 			double _distance, double _tt, String _line, double _ttt, double _interchangeTT, boolean _wasOpposite) {
 		prev = _prev;
 		n = _n;

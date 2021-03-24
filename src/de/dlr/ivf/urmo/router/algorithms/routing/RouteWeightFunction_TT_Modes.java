@@ -19,10 +19,10 @@ package de.dlr.ivf.urmo.router.algorithms.routing;
 import java.util.HashMap;
 
 /**
- * @class RoutingMeasure_TT_Modes
+ * @class RouteWeightFunction_TT_Modes
  * @brief Compares paths by the travel time, then by the number of remaining modes that can be used
  */
-public class RoutingMeasure_TT_Modes extends AbstractRoutingMeasure {
+public class RouteWeightFunction_TT_Modes extends AbstractRouteWeightFunction {
 	/**
 	 * @brief Comparing function
 	 * @param c1 First entry 

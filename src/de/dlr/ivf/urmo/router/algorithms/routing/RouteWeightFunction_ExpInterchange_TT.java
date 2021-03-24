@@ -19,10 +19,10 @@ package de.dlr.ivf.urmo.router.algorithms.routing;
 import java.util.HashMap;
 
 /**
- * @class RoutingMeasure_ExpInterchange_TT
+ * @class RouteWeightFunction_ExpInterchange_TT
  * @brief Weights routes by counting interchanges exponential and addin the travel time
  */
-public class RoutingMeasure_ExpInterchange_TT extends AbstractRoutingMeasure {
+public class RouteWeightFunction_ExpInterchange_TT extends AbstractRouteWeightFunction {
 	/// @brief Weights for interchanges
 	double scale1, scale2;
 	
@@ -32,7 +32,7 @@ public class RoutingMeasure_ExpInterchange_TT extends AbstractRoutingMeasure {
 	 * @param _scale1 Exponential weight
 	 * @param _scale2 Factor
 	 */
-	public RoutingMeasure_ExpInterchange_TT(double _scale1, double _scale2) {
+	public RouteWeightFunction_ExpInterchange_TT(double _scale1, double _scale2) {
 		scale1 = _scale1;
 		scale2 = _scale2;
 	}

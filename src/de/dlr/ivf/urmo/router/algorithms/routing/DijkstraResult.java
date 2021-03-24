@@ -76,7 +76,7 @@ public class DijkstraResult {
 	}
 
 
-	public boolean addEdgeInfo(AbstractRoutingMeasure measure, DBEdge oe, DijkstraEntry newValue) {
+	public boolean addEdgeInfo(AbstractRouteWeightFunction measure, DBEdge oe, DijkstraEntry newValue) {
 		// check only edges that have attached destinations
 		if(oe.getAttachedObjectsNumber()==0) {
 			return false;

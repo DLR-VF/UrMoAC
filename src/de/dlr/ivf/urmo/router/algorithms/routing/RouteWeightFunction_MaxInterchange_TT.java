@@ -19,10 +19,10 @@ package de.dlr.ivf.urmo.router.algorithms.routing;
 import java.util.HashMap;
 
 /**
- * @class RoutingMeasure_MaxInterchange_TT
+ * @class RouteWeightFunction_MaxInterchange_TT
  * @brief Limits the number of interchanges - a path with more than a given number of interchanges is always the slower one
  */
-public class RoutingMeasure_MaxInterchange_TT extends AbstractRoutingMeasure {
+public class RouteWeightFunction_MaxInterchange_TT extends AbstractRouteWeightFunction {
 	/// @brief The maximum number of interchanges
 	int scale1;
 	
@@ -31,7 +31,7 @@ public class RoutingMeasure_MaxInterchange_TT extends AbstractRoutingMeasure {
 	 * @brief Constructor
 	 * @param _scale1 The maximum number of interchanges
 	 */
-	public RoutingMeasure_MaxInterchange_TT(int _scale1) {
+	public RouteWeightFunction_MaxInterchange_TT(int _scale1) {
 		scale1 = _scale1;
 	}
 	

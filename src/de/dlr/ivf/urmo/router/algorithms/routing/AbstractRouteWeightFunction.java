@@ -20,12 +20,12 @@ import java.util.Comparator;
 import java.util.HashMap;
 
 /**
- * @class AbstractRoutingMeasure
+ * @class AbstractRouteWeightFunction
  * @brief Base class for methods that weight paths.
  * @author Daniel Krajzewicz (c) 2018 German Aerospace Center, Institute of
  *         Transport Research
  */
-public abstract class AbstractRoutingMeasure implements Comparator<DijkstraEntry> {
+public abstract class AbstractRouteWeightFunction implements Comparator<DijkstraEntry> {
 	/**
 	 * @brief Builds the measures used for weighting the path given a new path element
 	 * @param prev The prior path element
