@@ -163,7 +163,7 @@ public class InputReader {
 		connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 		((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
 		String query = "SELECT " + idS + ",";
-		if(varName != null) {
+		if(varName!=null && !"".equals(varName)) {
 			query += varName + ",";
 		}
 		query += "ST_AsBinary(ST_TRANSFORM(" + geomS + "," + epsg + ")) FROM " + table + filter + ";";
@@ -182,7 +182,7 @@ public class InputReader {
 			}
 			Geometry geom = wkbRead.read(bytes);
 			double var = 1;
-			if (varName != null) {
+			if(varName!=null && !"".equals(varName)) {
 				var = rs.getDouble(numColumns-1);
 			}
 			LayerObject o = new LayerObject(idGiver.getNextRunningID(), rs.getLong(idS), var, geom);
