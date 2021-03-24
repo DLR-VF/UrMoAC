@@ -811,11 +811,11 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			// set up the db connection
 			UrMoAccessibilityComputer worker = new UrMoAccessibilityComputer();
 			// initialise (load data and stuff)
-			if(!worker.init(options)) {
-				return;
-			}
+			hadError = !worker.init(options);
 			// compute
-			worker.run(options);
+			if(!hadError) {
+				hadError = !worker.run(options);
+			}
 			hadError = worker.hadError();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -833,7 +833,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		}
 		// -------- finish
 		if(hadError) {
-			System.err.println("Quitting...");
+			System.err.println("Quitting on error...");
 		} else {
 			System.out.println("done.");
 		}
