@@ -16,6 +16,9 @@ routing
 # checking outputs
 output
 
+# special options
+special
+
 # known bugs and issues - should be empty :-)
 bugs
 
