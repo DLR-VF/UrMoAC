@@ -72,23 +72,23 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 		if (intoDB()) {
 			for(String id : result.stats.keySet()) {
 				EdgeParam ep = result.stats.get(id);
-				ps.setLong(1, result.srcID);
-				ps.setLong(2, result.destID);
-				ps.setString(3, id);
-				ps.setFloat(4, (float) ep.num);
-				ps.setFloat(5, (float) ep.sourcesWeight);
-				ps.setFloat(6, (float) (ep.num / ep.sourcesWeight));
-				ps.addBatch();
+				_ps.setLong(1, result.srcID);
+				_ps.setLong(2, result.destID);
+				_ps.setString(3, id);
+				_ps.setFloat(4, (float) ep.num);
+				_ps.setFloat(5, (float) ep.sourcesWeight);
+				_ps.setFloat(6, (float) (ep.num / ep.sourcesWeight));
+				_ps.addBatch();
 				++batchCount;
 				if(batchCount>10000) {
-					ps.executeBatch();
+					_ps.executeBatch();
 					batchCount = 0;
 				}
 			}
 		} else {
 			for(String id : result.stats.keySet()) {
 				EdgeParam ep = result.stats.get(id);
-				fileWriter.append(result.srcID + ";" + result.destID + ";" + id + ";" + ep.num 
+				_fileWriter.append(result.srcID + ";" + result.destID + ";" + id + ";" + ep.num 
 						+ ";" + ep.sourcesWeight + ";" + (ep.num / ep.sourcesWeight) + "\n");
 			}
 		}

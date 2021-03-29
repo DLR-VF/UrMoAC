@@ -70,20 +70,20 @@ public class ODWriter extends AbstractResultsWriter<ODSingleResult> {
 	@Override
 	public void writeResult(ODSingleResult result) throws SQLException, IOException {
 		if (intoDB()) {
-			ps.setLong(1, result.srcID);
-			ps.setLong(2, result.destID);
-			ps.setFloat(3, (float) result.weightedDistance);
-			ps.setFloat(4, (float) result.weightedTravelTime);
-			ps.setFloat(5, (float) result.connectionsWeightSum);
-			ps.setFloat(6, (float) result.weightedValue);
-			ps.addBatch();
+			_ps.setLong(1, result.srcID);
+			_ps.setLong(2, result.destID);
+			_ps.setFloat(3, (float) result.weightedDistance);
+			_ps.setFloat(4, (float) result.weightedTravelTime);
+			_ps.setFloat(5, (float) result.connectionsWeightSum);
+			_ps.setFloat(6, (float) result.weightedValue);
+			_ps.addBatch();
 			++batchCount;
 			if(batchCount>10000) {
-				ps.executeBatch();
+				_ps.executeBatch();
 				batchCount = 0;
 			}
 		} else {
-			fileWriter.append(result.srcID + ";" + result.destID + ";" 
+			_fileWriter.append(result.srcID + ";" + result.destID + ";" 
 					+ result.weightedDistance + ";" + result.weightedTravelTime + ";"
 					+ result.connectionsWeightSum + ";" + result.weightedValue + "\n");
 		}

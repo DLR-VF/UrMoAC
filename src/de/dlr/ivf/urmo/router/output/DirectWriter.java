@@ -102,24 +102,26 @@ public class DirectWriter extends BasicCombinedWriter {
 						id = ((GTFSStop) current.n).mid;
 					}
 					if (intoDB()) {
-						ps.setLong(1, from.em.getOuterID());
-						ps.setLong(2, toObject.em.getOuterID());
-						ps.setString(3, current.line);
-						ps.setString(4, current.usedMode.mml);
-						ps.setDouble(5, current.ttt);
-						ps.setString(6, id);
-						ps.setInt(7, index);
-						ps.setString(8, current.e.geom.toText());
-						ps.addBatch();
+						_ps.setLong(1, from.em.getOuterID());
+						_ps.setLong(2, toObject.em.getOuterID());
+						_ps.setString(3, current.line);
+						_ps.setString(4, current.usedMode.mml);
+						_ps.setDouble(5, current.ttt);
+						_ps.setString(6, id);
+						_ps.setInt(7, index);
+						_ps.setString(8, current.e.geom.toText());
+						_ps.addBatch();
 						++batchCount;
 						if(batchCount>100) {
-							ps.executeBatch();
-							connection.commit();
+							_ps.executeBatch();
+							_connection.commit();
 							batchCount = 0;
 						}
 					} else {
-						fileWriter.append(from.em.getOuterID() + ";" + toObject.em.getOuterID() + ";" + current.line + ";" +
-								current.usedMode.mml + ";" + current.ttt + ";" + id + ";" + index + "\n");
+						_fileWriter.append(from.em.getOuterID() + ";" + toObject.em.getOuterID() + ";" + current.line + ";"
+								+ current.usedMode.mml + ";" + current.ttt + ";" + id + ";" + index + ";"
+								+ current.e.geom.toText() 
+								+ "\n");
 					}
 					++index;
 					current = current.prev;
@@ -127,8 +129,8 @@ public class DirectWriter extends BasicCombinedWriter {
 			}
 		}
 		if (intoDB()) {
-			ps.executeBatch();
-			connection.commit();
+			_ps.executeBatch();
+			_connection.commit();
 		}
 	}
 

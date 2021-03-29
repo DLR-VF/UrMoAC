@@ -35,16 +35,16 @@ import org.postgresql.PGConnection;
 public class BasicCombinedWriter {
 	/// @{ db connection settings
 	/// @brief The connection to the database
-	protected Connection connection = null;
+	protected Connection _connection = null;
 	/// @brief The insert statement to use
-	protected PreparedStatement ps = null;
+	protected PreparedStatement _ps = null;
 	/// @brief The name of the table to write to
-	protected String tableName = null;
+	protected String _tableName = null;
 	/// @}
 
 	/// @{ file settings
 	/// @brief The writer to use to write to the file
-	protected FileWriter fileWriter = null;
+	protected FileWriter _fileWriter = null;
 	/// @}
 	
 	
@@ -63,20 +63,20 @@ public class BasicCombinedWriter {
 	 */
 	public BasicCombinedWriter(String url, String user, String pw, String _tableName, String tableDef, 
 			String insertStmt, boolean dropPrevious) throws SQLException {
-		tableName = _tableName;
-		connection = DriverManager.getConnection(url, user, pw);
-		connection.setAutoCommit(true);
-		connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
-		((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
+		_tableName = _tableName;
+		_connection = DriverManager.getConnection(url, user, pw);
+		_connection.setAutoCommit(true);
+		_connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
+		((PGConnection) _connection).addDataType("geometry", org.postgis.PGgeometry.class);
 		if(dropPrevious) {
-			String sql = "DROP TABLE IF EXISTS " + tableName + ";";
-			connection.createStatement().executeUpdate(sql);
+			String sql = "DROP TABLE IF EXISTS " + _tableName + ";";
+			_connection.createStatement().executeUpdate(sql);
 		}
-		String sql = "CREATE TABLE " + tableName + " " + tableDef + ";";
-		Statement s = connection.createStatement();
+		String sql = "CREATE TABLE " + _tableName + " " + tableDef + ";";
+		Statement s = _connection.createStatement();
 		s.executeUpdate(sql);
-		connection.setAutoCommit(false);
-		ps = connection.prepareStatement("INSERT INTO " + tableName + " " + insertStmt + ";");
+		_connection.setAutoCommit(false);
+		_ps = _connection.prepareStatement("INSERT INTO " + _tableName + " " + insertStmt + ";");
 	}
 
 
@@ -88,7 +88,7 @@ public class BasicCombinedWriter {
 	 * @throws IOException When something fails
 	 */
 	public BasicCombinedWriter(String fileName) throws IOException {
-		fileWriter = new FileWriter(fileName);
+		_fileWriter = new FileWriter(fileName);
 	}
 
 
@@ -97,7 +97,7 @@ public class BasicCombinedWriter {
 	 * @return Whether a database is used as output destination
 	 */
 	protected boolean intoDB() {
-		return connection != null;
+		return _connection != null;
 	}
 
 
@@ -108,11 +108,11 @@ public class BasicCombinedWriter {
 	 */
 	public synchronized void close() throws SQLException, IOException {
 		if (intoDB()) {
-			ps.executeBatch();
-			connection.commit();
-			connection.close();
+			_ps.executeBatch();
+			_connection.commit();
+			_connection.close();
 		} else {
-			fileWriter.close();
+			_fileWriter.close();
 		}
 	}
 
@@ -124,8 +124,8 @@ public class BasicCombinedWriter {
 	 */
 	public void addComment(String comment) throws SQLException {
 		if (intoDB()) {
-			String sql = "COMMENT ON TABLE " + tableName + " IS '" + comment + "';";
-			Statement s = connection.createStatement();
+			String sql = "COMMENT ON TABLE " + _tableName + " IS '" + comment + "';";
+			Statement s = _connection.createStatement();
 			s.executeUpdate(sql);
 		}
 	}
@@ -140,10 +140,10 @@ public class BasicCombinedWriter {
 	 * @throws SQLException When something fails
 	 */
 	protected void addGeometryColumn(String name, int rsid, String geomType, int numDim) throws SQLException {
-		String[] d = tableName.split("\\.");
-		connection.createStatement().executeQuery("SELECT AddGeometryColumn('" + d[0] + "', '" + d[1] + "', '" + name
+		String[] d = _tableName.split("\\.");
+		_connection.createStatement().executeQuery("SELECT AddGeometryColumn('" + d[0] + "', '" + d[1] + "', '" + name
 				+ "', " + rsid + ", '" + geomType + "', " + numDim + ");");
-		connection.commit();
+		_connection.commit();
 	}
 
 
@@ -154,10 +154,10 @@ public class BasicCombinedWriter {
 	 */
 	protected synchronized void flush() throws SQLException, IOException {
 		if (intoDB()) {
-			ps.executeBatch();
-			connection.commit();
+			_ps.executeBatch();
+			_connection.commit();
 		} else {
-			fileWriter.flush();
+			_fileWriter.flush();
 		}
 	}
 

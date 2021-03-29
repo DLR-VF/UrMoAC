@@ -76,19 +76,19 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 				Map<String, InterchangeParam> ssstats = result.stats.get(id);
 				for(String id2 : ssstats.keySet()) {
 					String[] lineIDs = InterchangeSingleResult.splitLinesKey(id2);
-					ps.setLong(1, result.srcID);
-					ps.setLong(2, result.destID);
-					ps.setString(3, id);
-					ps.setString(4, lineIDs[0]);
-					ps.setString(5, lineIDs[1]);
-					ps.setLong(6, ssstats.get(id2).number);
-					ps.setFloat(7, (float) ssstats.get(id2).weightedTT);
-					ps.addBatch();
+					_ps.setLong(1, result.srcID);
+					_ps.setLong(2, result.destID);
+					_ps.setString(3, id);
+					_ps.setString(4, lineIDs[0]);
+					_ps.setString(5, lineIDs[1]);
+					_ps.setLong(6, ssstats.get(id2).number);
+					_ps.setFloat(7, (float) ssstats.get(id2).weightedTT);
+					_ps.addBatch();
 					++batchCount;
 				}
 			}
 			if(batchCount>10000) {
-				ps.executeBatch();
+				_ps.executeBatch();
 				batchCount = 0;
 			}
 		} else {
@@ -96,7 +96,7 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 				Map<String, InterchangeParam> ssstats = result.stats.get(id);
 				for(String id2 : ssstats.keySet()) {
 					String[] lineIDs = InterchangeSingleResult.splitLinesKey(id2);
-					fileWriter.append(result.srcID + ";" + result.destID + ";" + id + ";" + 
+					_fileWriter.append(result.srcID + ";" + result.destID + ";" + id + ";" + 
 							lineIDs[0] + ";" + lineIDs[1] + ";" + ssstats.get(id2).number + ";" + ssstats.get(id2).weightedTT + "\n");
 				}
 			}

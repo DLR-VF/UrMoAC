@@ -101,16 +101,16 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 				PointPairDistance ppd = new PointPairDistance();
 				DistanceToPointFinder.computeDistance(e.geom, o.em.getPoint().getCoordinate(), ppd);
 				if (intoDB()) {
-					ps.setLong(1, o.em.getOuterID());
-					ps.setString(2, e.id);
-					ps.setFloat(3, (float) o.pos);
-					ps.setFloat(4, (float) o.dist);
+					_ps.setLong(1, o.em.getOuterID());
+					_ps.setString(2, e.id);
+					_ps.setFloat(3, (float) o.pos);
+					_ps.setFloat(4, (float) o.dist);
 					String p1 = ppd.getCoordinate(0).x + " " + ppd.getCoordinate(0).y;
 					String p2 = ppd.getCoordinate(1).x + " " + ppd.getCoordinate(1).y;
-					ps.setString(5, "LINESTRING(" + p1 + "," + p2 + ")");
-					ps.addBatch();
+					_ps.setString(5, "LINESTRING(" + p1 + "," + p2 + ")");
+					_ps.addBatch();
 				} else {
-					fileWriter.append(o.em.getOuterID() + ";" + e.id + ";" + o.pos + ";" + o.dist + ";" 
+					_fileWriter.append(o.em.getOuterID() + ";" + e.id + ";" + o.pos + ";" + o.dist + ";" 
 							+ ppd.getCoordinate(0).x + ";" + ppd.getCoordinate(0).y + ";" 
 							+ ppd.getCoordinate(1).x + ";" + ppd.getCoordinate(1).y + "\n");
 				}
@@ -126,8 +126,8 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 	 */
 	public void addComment(String comment) throws SQLException {
 		if (intoDB()) {
-			String sql = "COMMENT ON TABLE " + tableName + " IS '" + comment + "';";
-			Statement s = connection.createStatement();
+			String sql = "COMMENT ON TABLE " + _tableName + " IS '" + comment + "';";
+			Statement s = _connection.createStatement();
 			s.executeUpdate(sql);
 		}
 	}

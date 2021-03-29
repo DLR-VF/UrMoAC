@@ -130,23 +130,23 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 		Stats pricesD = new Stats(result.allPrices);
 		Stats CO2D = new Stats(result.allCO2s);
 		if (intoDB()) {
-			ps.setLong(1, result.srcID);
-			ps.setLong(2, result.destID);
-			ps.setLong(3, result.allCO2s.size());
-			insertIntoPS(ps, distD, 4);
-			insertIntoPS(ps, ttD, 5);
-			insertIntoPS(ps, valuesD, 6);
-			insertIntoPS(ps, kcalsD, 7);
-			insertIntoPS(ps, pricesD, 8);
-			insertIntoPS(ps, CO2D, 9);
-			ps.addBatch();
+			_ps.setLong(1, result.srcID);
+			_ps.setLong(2, result.destID);
+			_ps.setLong(3, result.allCO2s.size());
+			insertIntoPS(_ps, distD, 4);
+			insertIntoPS(_ps, ttD, 5);
+			insertIntoPS(_ps, valuesD, 6);
+			insertIntoPS(_ps, kcalsD, 7);
+			insertIntoPS(_ps, pricesD, 8);
+			insertIntoPS(_ps, CO2D, 9);
+			_ps.addBatch();
 			++batchCount;
 			if(batchCount>10000) {
-				ps.executeBatch();
+				_ps.executeBatch();
 				batchCount = 0;
 			}
 		} else {
-			fileWriter.append(result.srcID + ";" + result.destID + ";" + result.allCO2s.size()
+			_fileWriter.append(result.srcID + ";" + result.destID + ";" + result.allCO2s.size()
 					+ ";" + distD.avg + ";" + ttD.avg + ";" + valuesD.avg + ";" + kcalsD.avg + ";" + pricesD.avg + ";" + CO2D.avg
 					+ ";" + distD.med + ";" + ttD.med + ";" + valuesD.med + ";" + kcalsD.med + ";" + pricesD.med + ";" + CO2D.med
 					+ ";" + distD.min + ";" + ttD.min + ";" + valuesD.min + ";" + kcalsD.min + ";" + pricesD.min + ";" + CO2D.min

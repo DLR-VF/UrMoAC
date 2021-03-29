@@ -72,32 +72,32 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 	@Override
 	public void writeResult(ODSingleExtendedResult result) throws SQLException, IOException {
 		if (intoDB()) {
-			ps.setLong(1, result.srcID);
-			ps.setLong(2, result.destID);
-			ps.setFloat(3, (float) result.weightedDistance);
-			ps.setFloat(4, (float) result.weightedTravelTime);
-			ps.setFloat(5, (float) result.weightedSpeed);
-			ps.setFloat(6, (float) result.connectionsWeightSum);
-			ps.setFloat(7, (float) result.weightedValue);
-			ps.setFloat(8, (float) result.weightedKCal);
-			ps.setFloat(9, (float) result.weightedPrice);
-			ps.setFloat(10, (float) result.weightedCO2);
-			ps.setFloat(11, (float) result.weightedInterchanges);
-			ps.setFloat(12, (float) result.weightedAccess);
-			ps.setFloat(13, (float) result.weightedEgress);
-			ps.setFloat(14, (float) result.weightedWaitingTime);
-			ps.setFloat(15, (float) result.weightedInitialWaitingTime);
-			ps.setFloat(16, (float) result.weightedPTTravelTime);
-			ps.setFloat(17, (float) result.weightedInterchangeTime);
-			ps.setString(18, result.lines.toString()); // modes
-			ps.addBatch();
+			_ps.setLong(1, result.srcID);
+			_ps.setLong(2, result.destID);
+			_ps.setFloat(3, (float) result.weightedDistance);
+			_ps.setFloat(4, (float) result.weightedTravelTime);
+			_ps.setFloat(5, (float) result.weightedSpeed);
+			_ps.setFloat(6, (float) result.connectionsWeightSum);
+			_ps.setFloat(7, (float) result.weightedValue);
+			_ps.setFloat(8, (float) result.weightedKCal);
+			_ps.setFloat(9, (float) result.weightedPrice);
+			_ps.setFloat(10, (float) result.weightedCO2);
+			_ps.setFloat(11, (float) result.weightedInterchanges);
+			_ps.setFloat(12, (float) result.weightedAccess);
+			_ps.setFloat(13, (float) result.weightedEgress);
+			_ps.setFloat(14, (float) result.weightedWaitingTime);
+			_ps.setFloat(15, (float) result.weightedInitialWaitingTime);
+			_ps.setFloat(16, (float) result.weightedPTTravelTime);
+			_ps.setFloat(17, (float) result.weightedInterchangeTime);
+			_ps.setString(18, result.lines.toString()); // modes
+			_ps.addBatch();
 			++batchCount;
 			if(batchCount>10000) {
-				ps.executeBatch();
+				_ps.executeBatch();
 				batchCount = 0;
 			}
 		} else {
-			fileWriter.append(result.srcID + ";" + result.destID + ";" 
+			_fileWriter.append(result.srcID + ";" + result.destID + ";" 
 					+ result.weightedDistance + ";" + result.weightedTravelTime + ";" + result.weightedSpeed + ";"
 					+ result.connectionsWeightSum + ";" + result.weightedValue + ";" 
 					+ result.weightedKCal + ";" + result.weightedPrice + ";" + result.weightedCO2 + ";"

@@ -73,29 +73,29 @@ public class PTODWriter extends AbstractResultsWriter<PTODSingleResult> {
 	@Override
 	public void writeResult(PTODSingleResult result) throws SQLException, IOException {
 		if (intoDB()) {
-			ps.setLong(1, result.srcID);
-			ps.setLong(2, result.destID);
-			ps.setFloat(3, (float) result.weightedAccessDistance);
-			ps.setFloat(4, (float) result.weightedAccessTravelTime);
-			ps.setFloat(5, (float) result.weightedEgressDistance);
-			ps.setFloat(6, (float) result.weightedEgressTravelTime);
-			ps.setFloat(7, (float) result.weightedInterchangeDistance);
-			ps.setFloat(8, (float) result.weightedInterchangeTravelTime);
-			ps.setFloat(9, (float) result.weightedPTDistance);
-			ps.setFloat(10, (float) result.weightedPTTravelTime);
-			ps.setFloat(11, (float) result.weightedInterchangesNum);
-			ps.setFloat(12, (float) result.weightedWaitingTime);
-			ps.setFloat(13, (float) result.weightedInitialWaitingTime);
-			ps.setFloat(14, (float) result.connectionsWeightSum);
-			ps.setFloat(15, (float) result.weightedValue);
-			ps.addBatch();
+			_ps.setLong(1, result.srcID);
+			_ps.setLong(2, result.destID);
+			_ps.setFloat(3, (float) result.weightedAccessDistance);
+			_ps.setFloat(4, (float) result.weightedAccessTravelTime);
+			_ps.setFloat(5, (float) result.weightedEgressDistance);
+			_ps.setFloat(6, (float) result.weightedEgressTravelTime);
+			_ps.setFloat(7, (float) result.weightedInterchangeDistance);
+			_ps.setFloat(8, (float) result.weightedInterchangeTravelTime);
+			_ps.setFloat(9, (float) result.weightedPTDistance);
+			_ps.setFloat(10, (float) result.weightedPTTravelTime);
+			_ps.setFloat(11, (float) result.weightedInterchangesNum);
+			_ps.setFloat(12, (float) result.weightedWaitingTime);
+			_ps.setFloat(13, (float) result.weightedInitialWaitingTime);
+			_ps.setFloat(14, (float) result.connectionsWeightSum);
+			_ps.setFloat(15, (float) result.weightedValue);
+			_ps.addBatch();
 			++batchCount;
 			if(batchCount>10000) {
-				ps.executeBatch();
+				_ps.executeBatch();
 				batchCount = 0;
 			}
 		} else {
-			fileWriter.append(result.srcID + ";" + result.destID + ";" 
+			_fileWriter.append(result.srcID + ";" + result.destID + ";" 
 					+ result.weightedAccessDistance + ";" + result.weightedAccessTravelTime + ";"
 					+ result.weightedEgressDistance + ";" + result.weightedEgressTravelTime + ";"
 					+ result.weightedInterchangeDistance + ";" + result.weightedInterchangeTravelTime + ";"
