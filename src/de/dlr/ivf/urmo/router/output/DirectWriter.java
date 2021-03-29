@@ -71,6 +71,7 @@ public class DirectWriter extends BasicCombinedWriter {
 	 */
 	public DirectWriter(String fileName, int rsid, HashMap<DBEdge, Vector<MapResult>> _nearestToEdges) throws IOException {
 		super(fileName);
+		nearestToEdges = _nearestToEdges;
 	}
 	
 

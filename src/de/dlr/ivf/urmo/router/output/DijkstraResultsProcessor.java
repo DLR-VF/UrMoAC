@@ -126,6 +126,9 @@ public class DijkstraResultsProcessor {
 	 * @brief Finishes the processing
 	 */
 	public void finish() throws SQLException, IOException {
+		if(directWriter!=null) {
+			directWriter.close();
+		}
 		for(Aggregator agg : aggs) {
 			agg.finish();
 		}
