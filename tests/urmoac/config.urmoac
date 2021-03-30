@@ -9,6 +9,7 @@ copy_test_path:od_connections.csv
 o2r_output:o2r_output.csv
 d2r_output:d2r_output.csv
 od_output:od_output.csv
+ext_od_output:ext_od_output.csv
 direct_output:direct_output.csv
 
 [floating_point_tolerance]

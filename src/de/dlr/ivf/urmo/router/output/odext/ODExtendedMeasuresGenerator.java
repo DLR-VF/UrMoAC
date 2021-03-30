@@ -48,7 +48,7 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 		ODSingleExtendedResult e = new ODSingleExtendedResult(from.em.getOuterID(), to.em.getOuterID(), from, to, dr);
 		e.weightedDistance = e.dist * e.val;
 		e.weightedTravelTime = e.tt * e.val;
-		e.weightedSpeed = (e.dist/e.tt) * e.val;
+		e.weightedSpeed = e.tt!=0 ? (e.dist/e.tt) * e.val : -1; /// TODO: document
 		e.weightedValue = ((LayerObject) to.em).getAttachedValue() * e.val;
 		e.weightedAccess = 0;
 		e.weightedEgress = 0;
@@ -145,6 +145,11 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 			}
 			current = current.prev;
 		} while(current!=null);
+		// TODO: recheck
+		if(e.lines.size()<2) {
+			e.weightedAccess = 0;
+			e.weightedEgress = 0;
+		}
 		
 		e.weightedKCal *= e.val;
 		e.weightedPrice *= e.val; 
