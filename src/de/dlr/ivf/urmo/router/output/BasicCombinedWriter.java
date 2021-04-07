@@ -63,7 +63,7 @@ public class BasicCombinedWriter {
 	 */
 	public BasicCombinedWriter(String url, String user, String pw, String tableName, String tableDef, 
 			String insertStmt, boolean dropPrevious) throws SQLException {
-		_tableName = _tableName;
+		_tableName = tableName;
 		_connection = DriverManager.getConnection(url, user, pw);
 		_connection.setAutoCommit(true);
 		_connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
