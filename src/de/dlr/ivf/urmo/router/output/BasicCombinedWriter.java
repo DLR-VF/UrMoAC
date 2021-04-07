@@ -61,7 +61,7 @@ public class BasicCombinedWriter {
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
 	 * @throws SQLException When something fails
 	 */
-	public BasicCombinedWriter(String url, String user, String pw, String _tableName, String tableDef, 
+	public BasicCombinedWriter(String url, String user, String pw, String tableName, String tableDef, 
 			String insertStmt, boolean dropPrevious) throws SQLException {
 		_tableName = _tableName;
 		_connection = DriverManager.getConnection(url, user, pw);
