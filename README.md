@@ -1,5 +1,5 @@
 # UrMoAC
-A tool for computing accessibility measures, supporting aggregation, variable limits, and intermodality.
+A tool for computing accessibility measures, supporting aggregation, variable limits, and intermodality developed at the Institute of Transport Research at the German Aerospace Center (DLR).
 
 When using it, you are obligated to cite it as:
 
