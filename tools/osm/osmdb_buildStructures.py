@@ -13,7 +13,6 @@
 # and <OUTPUT_TABLE> is defined as:
 #  <HOST>;<DB>;<SCHEMA>.<NAME>;<USER>;<PASSWD>  
 # =========================================================
-
 import sys
 import psycopg2
 import datetime
@@ -77,40 +76,45 @@ def getAndConvertGeometry(conn, cursor, schema, prefix, objects, subtype, destGe
     sys.exit()
   return ret      
 
-
+# - main
 t1 = datetime.datetime.now()
-defs = loadDefinitions(sys.argv[2])
+# -- open connection
 (host, db, tableFull, user, password) = sys.argv[1].split(";")
 (schema, prefix) = tableFull.split(".")
 conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
 cursor = conn.cursor()
-
+# -- load definitions of things to extract
+defs = loadDefinitions(sys.argv[2])
+# -- parse definitions
 objs = []
 for subtype in ["node", "way", "rel"]:
   for d in defs[subtype]:
+    # get objects
     objects = None
     ds = d.split("&")
     for d in ds:
       k,v = d.split("=")
       oss = getObjects(conn, cursor, schema, prefix, subtype, k, v)
-      if not objects: objects = oss
+      if not objects:
+        objects = oss
       else:
-        #print ("1a: %s" % objects)
         objects = objects.intersection(oss) 
-        #print ("1b: %s" % objects)
+    # get object geometries
     objects = getAndConvertGeometry(conn, cursor, schema, prefix, objects, subtype, "point")
-    #print ("2a %s" % objs)
     objs.extend(objects)
-    #print ("2b %s" % objs)
 
+# -- write extracted objects
+# --- open connection
 (host, db, tableFull, user, password) = sys.argv[3].split(";")
 (schema, name) = tableFull.split(".")
 conn2 = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
 cursor2 = conn2.cursor()
+# --- build tables
 cursor2.execute("DROP TABLE IF EXISTS %s.%s" % (schema, name))
 cursor2.execute("CREATE TABLE %s.%s ( gid bigint, type varchar(4) );" % (schema, name))
 cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'the_geom', 4326, 'POINT', 2);" % (schema, name))
 conn2.commit()
+# --- insert objects
 cnt = 0
 for o in objs:
   cursor2.execute("INSERT INTO %s.%s(gid, type, the_geom) VALUES (%s, '%s', ST_GeomFromText('%s', 4326));" % (schema, name, o[0], o[1], o[2]))
@@ -119,9 +123,10 @@ for o in objs:
     cnt = 0
     conn2.commit()
 conn2.commit()
+# --- finish
 t2 = datetime.datetime.now()
 dt = t2-t1
 print ("Built %s objects" % len(objs))
 print (" in %s" % dt)
-              
-      
+
+
