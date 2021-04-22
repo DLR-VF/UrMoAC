@@ -24,6 +24,7 @@ nav:
         - Input Data Formats: InputDataFormats.md
         - Import Scripts: ImportScripts.md
         - Output Formats: OutputFormats.md
+        - Visualisation Tools: VisualisationTools.md
     - Tutorials: 
         - Tutorial List: Tutorials.md
         - Computing the accessibility to the next public transport halt: TutorialNextPTHalt.md
@@ -38,6 +39,7 @@ nav:
         - Disclaimer: Disclaimer.md
     - Developer Docs: 
         - Overview: DeveloperDocs.md
+        - Testing UrMoAC: DeveloperTests.md
         - Creating a static documentation: DeveloperStaticDocumentation.md
         - How To Release: DeveloperHowToRelease.md
         - Todo: Todo.md
