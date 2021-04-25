@@ -7,12 +7,22 @@
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Builds the static documentation from github wiki
 # =========================================================
-import os, shutil
+import os, shutil, stat
 
 # path to mkdocs
 USER_PATH = "c:\\users\\dkrajzew\\appdata\\roaming\\python\\python38\\site-packages\\"
 
+def remove_readonly(func, path, _):
+    "Clear the readonly bit and reattempt the removal"
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
+
+
 os.chdir("docs")
+try:
+    shutil.rmtree("UrMoAC.wiki", onerror=remove_readonly)
+except OSError as e:
+    print("Error: %s : %s" % ("UrMoAC.wiki", e.strerror))
 try:
     shutil.rmtree("UrMoAC.wiki")
 except OSError as e:
