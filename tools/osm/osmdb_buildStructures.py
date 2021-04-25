@@ -13,9 +13,14 @@
 # and <OUTPUT_TABLE> is defined as:
 #  <HOST>;<DB>;<SCHEMA>.<NAME>;<USER>;<PASSWD>  
 # =========================================================
-import sys
+import sys, os
 import psycopg2
 import datetime
+
+script_dir = os.path.dirname( __file__ )
+mymodule_dir = os.path.join( script_dir, '..', 'helper' )
+sys.path.append( mymodule_dir )
+from postgishelper import *
 
 subtype2tag = {
   "node": "ntag",
@@ -41,36 +46,91 @@ def loadDefinitions(fileName):
 
 def getObjects(conn, cursor, schema, prefix, subtype, k, v):
   ret = set()
-  cursor.execute("SELECT id FROM %s.%s_%s WHERE k='%s' AND v='%s'" % (schema, prefix, subtype2tag[subtype], k, v))
+  if v=='*':
+    cursor.execute("SELECT id FROM %s.%s_%s WHERE k='%s'" % (schema, prefix, subtype2tag[subtype], k))
+  else:
+    cursor.execute("SELECT id FROM %s.%s_%s WHERE k='%s' AND v='%s'" % (schema, prefix, subtype2tag[subtype], k, v))
   conn.commit()
   for r in cursor.fetchall():
     ret.add(r[0])
   return ret
 
+def getCenter(geom):
+  if geom==None or len(geom)==0:
+    return None
+  bounds = None
+  for g in geom:
+    #print ("%s %s" % (g, bounds))
+    if bounds==None:
+      bounds = [g[0], g[1], g[0], g[1]]
+    else:
+      bounds[0] = min(g[0], bounds[0])
+      bounds[1] = min(g[1], bounds[1])
+      bounds[2] = max(g[0], bounds[2])
+      bounds[3] = max(g[1], bounds[3])
+  return ((bounds[0]+bounds[2])/2., (bounds[1]+bounds[3])/2.)
+
+
+def fetchNodeGeom(conn, cursor, schema, prefix, o, geoms):
+  cursor.execute("SELECT id,ST_AsText(pos) FROM %s.%s_node WHERE id=%s" % (schema, prefix, o))
+  conn.commit()
+  r = cursor.fetchone()
+  geoms.append(parsePOINT2XY(r[1]))
+  
+def fetchWayGeom(conn, cursor, schema, prefix, o, geoms):
+  cursor.execute("SELECT id,refs FROM %s.%s_way WHERE id=%s" % (schema, prefix, o))
+  conn.commit()
+  r = cursor.fetchone()
+  ns = r[1]
+  for n in ns:
+    cursor.execute("SELECT id,ST_AsText(pos) FROM %s.%s_node WHERE id=%s" % (schema, prefix, n))
+    conn.commit()
+    r2 = cursor.fetchone()
+    geoms.append(parsePOINT2XY(r2[1]))
+  
+def fetchRelGeom(conn, cursor, schema, prefix, o, geoms, seen):
+  cursor.execute("SELECT elemid,type FROM %s.%s_member WHERE rid=%s" % (schema, prefix, o))
+  conn.commit()
+  items = []
+  for r in cursor.fetchall():
+    iid = int(r[0])
+    if r[1]=="rel" or r[1]=="relation":
+      if iid==int(o) or iid in seen:
+        print ("Self-referencing relation %s" % o)
+        continue
+      seen.add(iid)
+    items.append((iid, r[1]))
+  if len(items)==0:
+    print ("Empty relation %s" % o)
+  for i in items:
+    if i[1]=="node":
+      fetchNodeGeom(conn, cursor, schema, prefix, i[0], geoms)
+    elif i[1]=="way":
+      fetchWayGeom(conn, cursor, schema, prefix, i[0], geoms)
+    elif (i[1]=="rel" or  i[1]=="relation"):
+      fetchRelGeom(conn, cursor, schema, prefix, i[0], geoms, seen)
+    else:
+      print ("Unknown type '%s' for relation member (id=%s, rel=%s)" % (i[1], i[0], o))
+  
+
 def getAndConvertGeometry(conn, cursor, schema, prefix, objects, subtype, destGeom):
   ret = []
   if subtype=="node":
     for o in objects:
-      cursor.execute("SELECT id,ST_AsText(pos) FROM %s.%s_node WHERE id=%s" % (schema, prefix, o))
-      conn.commit()
-      r = cursor.fetchone()
-      ret.append([int(r[0]), "node", r[1]])
+      geoms = []
+      fetchNodeGeom(conn, cursor, schema, prefix, o, geoms)
+      if len(geoms)!=0: ret.append([o, "node", geoms])
   elif subtype=="way":
     for o in objects:
-      cursor.execute("SELECT id,refs FROM %s.%s_way WHERE id=%s" % (schema, prefix, o))
-      conn.commit()
-      geom = []
-      r = cursor.fetchone()
-      ns = r[1]
-      for n in ns:
-        cursor.execute("SELECT id,ST_AsText(pos) FROM %s.%s_node WHERE id=%s" % (schema, prefix, n))
-        conn.commit()
-        r2 = cursor.fetchone()
-        geom.append(r2[1])
-      ret.append([o, "way", geom])
-  elif subtype=="rel":
-    print ("relations are not supported!")
-    sys.exit()
+      geoms = []
+      fetchWayGeom(conn, cursor, schema, prefix, o, geoms)
+      if len(geoms)!=0: ret.append([o, "way", geoms])
+  elif subtype=="rel" or subtype=="relation":
+    for o in objects:
+      seen = set()
+      geoms = []
+      fetchRelGeom(conn, cursor, schema, prefix, o, geoms, seen)
+      if len(geoms)!=0: ret.append([o, "rel", geoms])
   else:
     print ("unknown type!")
     sys.exit()
@@ -88,9 +148,10 @@ defs = loadDefinitions(sys.argv[2])
 # -- parse definitions
 objs = []
 for subtype in ["node", "way", "rel"]:
+  objects = None
+  print ("Fetching '%s' objects" % subtype)
   for d in defs[subtype]:
     # get objects
-    objects = None
     ds = d.split("&")
     for d in ds:
       k,v = d.split("=")
@@ -100,8 +161,9 @@ for subtype in ["node", "way", "rel"]:
       else:
         objects = objects.intersection(oss) 
     # get object geometries
-    objects = getAndConvertGeometry(conn, cursor, schema, prefix, objects, subtype, "point")
-    objs.extend(objects)
+  print ("Fetching '%s' geometries" % subtype)
+  objects = getAndConvertGeometry(conn, cursor, schema, prefix, objects, subtype, "point")
+  objs.extend(objects)
 
 # -- write extracted objects
 # --- open connection
@@ -117,7 +179,10 @@ conn2.commit()
 # --- insert objects
 cnt = 0
 for o in objs:
-  cursor2.execute("INSERT INTO %s.%s(gid, type, the_geom) VALUES (%s, '%s', ST_GeomFromText('%s', 4326));" % (schema, name, o[0], o[1], o[2]))
+  points = ["%s %s" % (g[0], g[1]) for g in o[2]]
+  points = ",".join(points)
+  #print("INSERT INTO %s.%s(gid, type, the_geom) VALUES (%s, '%s', ST_Centroid(ST_ConvexHull(ST_GeomFromText('MULTIPOINT(%s)', 4326))));" % (schema, name, o[0], o[1], points))
+  cursor2.execute("INSERT INTO %s.%s(gid, type, the_geom) VALUES (%s, '%s', ST_Centroid(ST_ConvexHull(ST_GeomFromText('MULTIPOINT(%s)', 4326))));" % (schema, name, o[0], o[1], points))
   cnt = cnt + 1
   if cnt>10000:
     cnt = 0
