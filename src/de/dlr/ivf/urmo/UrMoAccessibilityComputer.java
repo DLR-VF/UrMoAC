@@ -731,22 +731,26 @@ public class UrMoAccessibilityComputer implements IDGiver {
 
 	public void run(Supplier<Integer> taz_filter_supplier){
 		Integer taz;
+
+		int calculated_taz_count = 0;
 		while((taz = taz_filter_supplier.get()) != null){
 
-			System.out.println("Reading origin places for taz: "+taz);
-
+			System.out.println("Reading origin places for taz: "+taz+ " | processed taz count: "+calculated_taz_count);
+			NearestEdgeFinder nef = new NearestEdgeFinder(net, initMode);
 			Layer fromLayer = null;
 			try {
-				fromLayer = InputReader.loadLayerWithFilter(options, "from", "weight", this, epsg, taz.toString());
+				fromLayer = InputReader.loadLayerWithFilter(options, "from", null, this, epsg, "wq_gid = "+taz.toString());
 
 				if(fromLayer != null){
+
+					nef.setSource(fromLayer.getObjects());
 
 					System.out.println(" " + fromLayer.getObjects().size() + " origin places loaded");
 
 					System.out.println("Computing access from the origins to the network for taz: "+taz);
 
-					NearestEdgeFinder nef1 = new NearestEdgeFinder(fromLayer.getObjects(), net, initMode);
-					nearestFromEdges = nef1.getNearestEdges(false);
+
+					nearestFromEdges = nef.getNearestEdges(false);
 
 					//fromLayer is equal to toLayer so we only load it once and nearest edges are the same
 					nearestToEdges = nearestFromEdges;

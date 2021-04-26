@@ -81,6 +81,15 @@ public class NearestEdgeFinder {
 		id2edge = _net.getID2EdgeForMode(modes);
 	}
 
+	public NearestEdgeFinder(DBNet _net, long _modes) {
+		net = _net;
+		modes = _modes;
+		found = null;
+		minDist = -1;
+		rtree = _net.getModedSpatialIndex(modes);
+		id2edge = _net.getID2EdgeForMode(modes);
+	}
+
 
 	/**
 	 * @brief Builds and returns the mapping of objects to edges
@@ -149,6 +158,10 @@ public class NearestEdgeFinder {
 			}
 		}
 		return ret;
+	}
+
+	public void setSource(Vector<EdgeMappable> _source){
+		this.source = _source;
 	}
 
 
