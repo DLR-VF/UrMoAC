@@ -751,6 +751,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 
 
 					nearestFromEdges = nef.getNearestEdges(false);
+					nextEdgePointer = nearestFromEdges.keySet().iterator();
 
 					//fromLayer is equal to toLayer so we only load it once and nearest edges are the same
 					nearestToEdges = nearestFromEdges;
