@@ -55,7 +55,7 @@ public class BasicCombinedWriter {
 	 * @param url The URL to the database
 	 * @param user The name of the database user
 	 * @param pw The password of the database user
-	 * @param _tableName The name of the table
+	 * @param tableName The name of the table
 	 * @param tableDef The definition of the table
 	 * @param insertStmt The insert statement to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
@@ -72,7 +72,7 @@ public class BasicCombinedWriter {
 			String sql = "DROP TABLE IF EXISTS " + _tableName + ";";
 			_connection.createStatement().executeUpdate(sql);
 		}
-		String sql = "CREATE TABLE " + _tableName + " " + tableDef + ";";
+		String sql = "CREATE TABLE IF NOT EXISTS " + _tableName + " " + tableDef + ";";
 		Statement s = _connection.createStatement();
 		s.executeUpdate(sql);
 		_connection.setAutoCommit(false);

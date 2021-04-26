@@ -10,10 +10,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -77,6 +74,22 @@ public class IntraTazComputer implements IDGiver {
 
     private void run(){
 
+
+
+        if(options.hasOption("dropprevious")) {
+            try {
+                String[] r = Utils.checkDefinition(options.getOptionValue("ext-nm-output", ""), "ext-nm-output");
+
+                Connection con = DriverManager.getConnection(r[1],r[3],r[4]);
+
+                con.createStatement().execute("DROP TABLE IF EXISTS " +r[2]);
+                con.close();
+            } catch (IOException | SQLException e) {
+                e.printStackTrace();
+            }
+
+
+        }
         List<UrMoAccessibilityComputer> workers = IntStream.range(0,this.thread_count)
                                                            .mapToObj(i -> new UrMoAccessibilityComputer(this.net, options, modes, initMode, epsg))
                                                            .collect(Collectors.toList());
@@ -144,6 +157,7 @@ public class IntraTazComputer implements IDGiver {
 
                 while (rs.next())
                     filters.add(rs.getInt("wq_gid"));
+
             } catch (SQLException e) {
                 e.printStackTrace();
             }

@@ -764,7 +764,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 
 
 					if (options.hasOption("origins-to-road-output")) {
-						OutputBuilder.writeEdgeAllocation(options.getOptionValue("origins-to-road-output", ""), nearestFromEdges, epsg, options.hasOption("dropprevious"));
+						OutputBuilder.writeEdgeAllocation(options.getOptionValue("origins-to-road-output", ""), nearestFromEdges, epsg, false);
 					}
 
 					System.out.println("Computing shortest paths for taz: "+taz);
