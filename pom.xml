@@ -31,7 +31,7 @@
                 		<transformers>
                     		<transformer implementation=
                       "org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                        	<mainClass>de.dlr.ivf.urmo.UrMoAccessibilityComputer</mainClass>
+                        	<mainClass>de.dlr.ivf.urmo.IntraTazComputer</mainClass>
                 			</transformer>
             			</transformers>
         			</configuration>
