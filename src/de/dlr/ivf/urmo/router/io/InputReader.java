@@ -134,6 +134,18 @@ public class InputReader {
 			return loadLayerFromFile(base, r[1], idGiver);
 		}
 	}
+
+	public static Layer loadLayerWithFilter(CommandLine options, String base, String varName, IDGiver idGiver, int epsg, String filter) throws SQLException, ParseException, IOException {
+
+		String[] r = Utils.checkDefinition(options.getOptionValue(base, ""), base);
+		if (r[0].equals("db")) {
+			return loadLayerFromDB(base, r[1], r[2], r[3], r[4], filter, varName,
+					options.getOptionValue(base + ".id", "gid"), options.getOptionValue(base + ".geom", "the_geom"),
+					idGiver, epsg);
+		} else {
+			return loadLayerFromFile(base, r[1], idGiver);
+		}
+	}
 	
 	
 	

@@ -19,10 +19,8 @@ package de.dlr.ivf.urmo;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.Vector;
+import java.util.*;
+import java.util.function.Supplier;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -75,6 +73,9 @@ import de.dlr.ivf.urmo.router.shapes.Layer;
  *        road network) are written into files.
  */
 public class UrMoAccessibilityComputer implements IDGiver {
+	private CommandLine options;
+	private Supplier<Integer> taz_filter;
+	private DBNet net;
 	// --------------------------------------------------------
 	// member variables
 	// --------------------------------------------------------
@@ -110,6 +111,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	long seenODs = 0;
 	/// @brief Whether an error occurred
 	boolean hadError = false;
+
+	int epsg;
 
 	
 	
@@ -246,7 +249,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 * @return The parsed command line
 	 */
 	@SuppressWarnings("static-access")
-	private static CommandLine getCMDOptions(String[] args) {
+	protected static CommandLine getCMDOptions(String[] args) {
 		HelpFormatter lvFormater = new HelpFormatter();
 		// add options
 		Options lvOptions = new Options();
@@ -467,6 +470,17 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 */
 	public UrMoAccessibilityComputer() {
 		super();
+	}
+
+	public UrMoAccessibilityComputer(DBNet net, CommandLine options, long modes, long initMode, int epsg){
+
+		this.net = net;
+		this.taz_filter = taz_filter;
+		this.options = options;
+		this.modes = modes;
+		this.initMode = initMode;
+		this.epsg = epsg;
+		this.measure = new RouteWeightFunction_TT_Modes();
 	}
 
 	
@@ -713,6 +727,54 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		System.out.println(""); // progress ends
 		resultsProcessor.finish();
 		return true;
+	}
+
+	public void run(Supplier<Integer> taz_filter_supplier){
+		Integer taz;
+		while((taz = taz_filter_supplier.get()) != null){
+
+			System.out.println("Reading origin places for taz: "+taz);
+
+			Layer fromLayer = null;
+			try {
+				fromLayer = InputReader.loadLayerWithFilter(options, "from", "weight", this, epsg, taz.toString());
+
+				if(fromLayer != null){
+
+					System.out.println(" " + fromLayer.getObjects().size() + " origin places loaded");
+
+					System.out.println("Computing access from the origins to the network for taz: "+taz);
+
+					NearestEdgeFinder nef1 = new NearestEdgeFinder(fromLayer.getObjects(), net, initMode);
+					nearestFromEdges = nef1.getNearestEdges(false);
+
+					//fromLayer is equal to toLayer so we only load it once and nearest edges are the same
+					nearestToEdges = nearestFromEdges;
+					if (options.hasOption("origins-to-road-output")) {
+						OutputBuilder.writeEdgeAllocation(options.getOptionValue("origins-to-road-output", ""), nearestFromEdges, epsg, options.hasOption("dropprevious"));
+					}
+
+					System.out.println("Computing shortest paths for taz: "+taz);
+
+					int maxNumber = options.hasOption("max-number") ? ((Long) options.getParsedOptionValue("max-number")).intValue() : -1;
+					double maxTT = options.hasOption("max-tt") ? ((Double) options.getParsedOptionValue("max-tt")).doubleValue() : -1;
+					double maxDistance = options.hasOption("max-distance") ? ((Double) options.getParsedOptionValue("max-distance")).doubleValue() : -1;
+					double maxVar = options.hasOption("max-variable-sum") ? ((Double) options.getParsedOptionValue("max-variable-sum")).doubleValue() : -1;
+					boolean shortestOnly = options.hasOption("shortest");
+					boolean needsPT = options.hasOption("requirespt");
+
+					System.out.println(" between " + nearestFromEdges.size() + " origin and " + nearestToEdges.size() + " destination edges");
+
+					Thread t = new Thread(new ComputingThread(this, needsPT, measure, resultsProcessor, time, initMode, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly));
+					t.start();
+					t.join();
+
+				}
+			} catch (SQLException | com.vividsolutions.jts.io.ParseException | IOException | ParseException | InterruptedException e) {
+				e.printStackTrace();
+			}
+
+		}
 	}
 	
 	
