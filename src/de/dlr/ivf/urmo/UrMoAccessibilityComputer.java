@@ -750,6 +750,14 @@ public class UrMoAccessibilityComputer implements IDGiver {
 
 					//fromLayer is equal to toLayer so we only load it once and nearest edges are the same
 					nearestToEdges = nearestFromEdges;
+
+					//init writer
+					Vector<Aggregator> aggregators = OutputBuilder.buildOutputs(options, fromLayer, null, fromLayer, null);
+					DirectWriter dw = OutputBuilder.buildDirectOutput(options, epsg, nearestToEdges);
+					time = ((Long) options.getParsedOptionValue("time")).intValue();
+					resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, nearestFromEdges, nearestToEdges);
+
+
 					if (options.hasOption("origins-to-road-output")) {
 						OutputBuilder.writeEdgeAllocation(options.getOptionValue("origins-to-road-output", ""), nearestFromEdges, epsg, options.hasOption("dropprevious"));
 					}
