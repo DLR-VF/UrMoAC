@@ -68,13 +68,7 @@ public class BasicCombinedWriter {
 		_connection.setAutoCommit(true);
 		_connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 		((PGConnection) _connection).addDataType("geometry", org.postgis.PGgeometry.class);
-		if(dropPrevious) {
-			String sql = "DROP TABLE IF EXISTS " + _tableName + ";";
-			_connection.createStatement().executeUpdate(sql);
-		}
-		String sql = "CREATE TABLE IF NOT EXISTS " + _tableName + " " + tableDef + ";";
-		Statement s = _connection.createStatement();
-		s.executeUpdate(sql);
+
 		_connection.setAutoCommit(false);
 		_ps = _connection.prepareStatement("INSERT INTO " + _tableName + " " + insertStmt + ";");
 	}

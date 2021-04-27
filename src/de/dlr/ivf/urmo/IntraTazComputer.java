@@ -83,6 +83,14 @@ public class IntraTazComputer implements IDGiver {
                 Connection con = DriverManager.getConnection(r[1],r[3],r[4]);
 
                 con.createStatement().execute("DROP TABLE IF EXISTS " +r[2]);
+
+                String tableDef = "(fid bigint, sid bigint, avg_distance real, avg_tt real, avg_v real, avg_num real, avg_value real, "
+                        + "avg_kcal real, avg_price real, avg_co2 real, avg_interchanges real, avg_access real, avg_egress real, "
+                        + "avg_waiting_time real, avg_init_waiting_time real, avg_pt_tt real, avg_pt_interchange_time real, modes text)";
+
+                String sql = "CREATE TABLE IF NOT EXISTS " + r[2] + " " + tableDef + ";";
+                con.createStatement().executeQuery(sql);
+
                 con.close();
             } catch (IOException | SQLException e) {
                 e.printStackTrace();
