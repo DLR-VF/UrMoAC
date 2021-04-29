@@ -139,4 +139,15 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 		srnm.lines.addAll(lines);
 		return srnm;
 	}
+
+	public static String asCSV(ODSingleExtendedResult result){
+
+		return result.srcID + ";" + result.destID + ";"
+				+ result.weightedDistance + ";" + result.weightedTravelTime + ";" + result.weightedSpeed + ";"
+				+ result.connectionsWeightSum + ";" + result.weightedValue + ";"
+				+ result.weightedKCal + ";" + result.weightedPrice + ";" + result.weightedCO2 + ";"
+				+ result.weightedInterchanges + ";" + result.weightedAccess + ";" + result.weightedEgress + ";"
+				+ result.weightedWaitingTime + ";" + result.weightedInitialWaitingTime + ";"
+				+ result.weightedPTTravelTime + ";" + result.weightedInterchangeTime + ";" + result.lines.toString() + "\n";
+	}
 }

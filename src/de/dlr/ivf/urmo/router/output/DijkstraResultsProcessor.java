@@ -18,12 +18,14 @@ package de.dlr.ivf.urmo.router.output;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Vector;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraEntry;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
+import de.dlr.ivf.urmo.router.output.odext.ODExtendedMeasuresGenerator;
+import de.dlr.ivf.urmo.router.output.odext.ODSingleExtendedResult;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 
 /**
@@ -32,10 +34,11 @@ import de.dlr.ivf.urmo.router.shapes.DBEdge;
  * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
  */
 public class DijkstraResultsProcessor {
+	private ODExtendedMeasuresGenerator measurements_generator;
 	/// @brief A mapping from an edge to allocated sources
-	HashMap<DBEdge, Vector<MapResult>> nearestFromEdges;
+	Map<DBEdge, Vector<MapResult>> nearestFromEdges;
 	/// @brief A mapping from an edge to allocated destinations
-	HashMap<DBEdge, Vector<MapResult>> nearestToEdges;
+	Map<DBEdge, Vector<MapResult>> nearestToEdges;
 	/// @brief The aggregators to use
 	public Vector<Aggregator> aggs;
 	/// @brief The results comparator to use
@@ -61,6 +64,13 @@ public class DijkstraResultsProcessor {
 		nearestToEdges = _nearestToEdges;
 		directWriter = dw;
 		beginTime = _beginTime;
+	}
+
+	public DijkstraResultsProcessor(int _beginTime, Map<DBEdge, Vector<MapResult>> _nearestFromEdges, Map<DBEdge, Vector<MapResult>> _nearestToEdges, ODExtendedMeasuresGenerator measurements_generator) {
+		nearestFromEdges = _nearestFromEdges;
+		nearestToEdges = _nearestToEdges;
+		beginTime = _beginTime;
+		this.measurements_generator = measurements_generator;
 	}
 	
 	
@@ -119,6 +129,35 @@ public class DijkstraResultsProcessor {
 				}
 			}
 		}
+	}
+
+	public List<ODSingleExtendedResult> processAndGetEXTODResults(MapResult mr, DijkstraResult dr) {
+		//System.out.println("asd");
+
+		return dr.edgeMap.keySet().stream()
+				.map(destEdge -> nearestToEdges.get(destEdge))
+				.filter(e -> e!=null)
+								  .flatMap(Collection::stream)
+								  .map(destination -> measurements_generator.buildResult(beginTime, mr, destination, dr))
+								  .collect(Collectors.toList());
+
+
+//		for(DBEdge destEdge : dr.edgeMap.keySet()) {
+//
+//			Vector<MapResult> toObjects = nearestToEdges.get(destEdge);
+//			if(toObjects!=null) {
+//
+//				toObjects.stream().map(destination -> measurements_generator.buildResult(beginTime, mr, destination, dr)).
+//
+//				for(MapResult toObject : toObjects) {
+//					if(singleDestination<0||toObject.em.getOuterID()==singleDestination) {
+//						AbstractSingleResult result = agg.parent.buildResult(beginTime, mr, toObject, dr);
+//						results.add(result);
+//					}
+//				}
+//			}
+//		}
+
 	}
 
 

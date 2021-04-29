@@ -86,8 +86,11 @@ public class NearestEdgeFinder {
 		modes = _modes;
 		found = null;
 		minDist = -1;
-		rtree = _net.getModedSpatialIndex(modes);
-		id2edge = _net.getID2EdgeForMode(modes);
+	}
+
+	public void init(){
+		rtree = net.getModedSpatialIndex(modes);
+		id2edge = net.getID2EdgeForMode(modes);
 	}
 
 
@@ -97,6 +100,10 @@ public class NearestEdgeFinder {
 	 * @return The map of objects to edges
 	 */
 	public HashMap<DBEdge, Vector<MapResult>> getNearestEdges(boolean addToEdge) {
+		return getNearestEdges(addToEdge, this.source);
+	}
+
+	public HashMap<DBEdge, Vector<MapResult>> getNearestEdges(boolean addToEdge, Vector<EdgeMappable> source) {
 		HashMap<DBEdge, Vector<MapResult>> ret = new HashMap<>();
 		for (EdgeMappable c : source) {
 			opivot = c.getPoint();

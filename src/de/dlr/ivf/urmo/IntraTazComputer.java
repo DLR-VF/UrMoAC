@@ -1,6 +1,8 @@
 package de.dlr.ivf.urmo;
 
+import de.dlr.ivf.urmo.router.algorithms.edgemapper.NearestEdgeFinder;
 import de.dlr.ivf.urmo.router.io.NetLoader;
+import de.dlr.ivf.urmo.router.io.PipedWriter;
 import de.dlr.ivf.urmo.router.io.Utils;
 import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;
@@ -17,12 +19,14 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class IntraTazComputer implements IDGiver {
 
-    private long id;
+    private AtomicLong id = new AtomicLong(0);
     private CommandLine options;
     private BlockingQueue<Integer> filter_queue;
     private int thread_count;
@@ -69,40 +73,37 @@ public class IntraTazComputer implements IDGiver {
 
     @Override
     public long getNextRunningID() {
-        return ++this.id;
+        return this.id.incrementAndGet();
     }
 
     private void run(){
 
+        //generate the R-Tree
+        //NearestEdgeFinder nef = new NearestEdgeFinder(net, initMode);
 
 
-        if(options.hasOption("dropprevious")) {
-            try {
-                String[] r = Utils.checkDefinition(options.getOptionValue("ext-nm-output", ""), "ext-nm-output");
+        Supplier<Integer> taz_supplier = () -> filter_queue.poll();
 
-                Connection con = DriverManager.getConnection(r[1],r[3],r[4]);
+        //init some variables from options
+        int time = getTime();
+        int maxNumber = getMaxNumber();
+        double maxTT = getMaxTT();
+        double maxDistance = getMaxDistance();
+        double maxVar = getMaxVar();
+        boolean shortestOnly = isShortest();
 
-                con.createStatement().execute("DROP TABLE IF EXISTS " +r[2]);
+        //set up and start the results writer
+        PipedWriter writer = initWriter(options);
+        Thread writer_thread = new Thread(writer);
+        writer_thread.start();
 
-                String tableDef = "(fid bigint, sid bigint, avg_distance real, avg_tt real, avg_v real, avg_num real, avg_value real, "
-                        + "avg_kcal real, avg_price real, avg_co2 real, avg_interchanges real, avg_access real, avg_egress real, "
-                        + "avg_waiting_time real, avg_init_waiting_time real, avg_pt_tt real, avg_pt_interchange_time real, modes text)";
+        //construct and start the worker threads
+        System.out.println("Initializing worker threads...");
+        List<UrmoWorker> workers = IntStream.range(0,this.thread_count)
+                                            .mapToObj(i -> new UrmoWorker("Rechenknecht #"+i,writer,taz_supplier,new NearestEdgeFinder(net, initMode),options,epsg,this,time,initMode,modes,maxNumber,maxTT,maxDistance,maxVar,shortestOnly))
+                                            .collect(Collectors.toList());
 
-                String sql = "CREATE TABLE IF NOT EXISTS " + r[2] + " " + tableDef + ";";
-                con.createStatement().executeQuery(sql);
-
-                con.close();
-            } catch (IOException | SQLException e) {
-                e.printStackTrace();
-            }
-
-
-        }
-        List<UrMoAccessibilityComputer> workers = IntStream.range(0,this.thread_count)
-                                                           .mapToObj(i -> new UrMoAccessibilityComputer(this.net, options, modes, initMode, epsg))
-                                                           .collect(Collectors.toList());
-
-        Collection<Thread> worker_threads = workers.stream().map(worker -> new Thread(() -> worker.run(() -> this.filter_queue.poll()))).collect(Collectors.toList());
+        Collection<Thread> worker_threads = workers.stream().map(Thread::new).collect(Collectors.toList());
         worker_threads.forEach(Thread::start);
 
         worker_threads.forEach(worker -> {
@@ -112,6 +113,84 @@ public class IntraTazComputer implements IDGiver {
                 e.printStackTrace();
             }
         });
+
+        System.out.println("all work done");
+        //all workers are done, signal last element to writer and wait for it to finish
+        writer.finish();
+        try {
+            writer_thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Call it a day");
+    }
+
+    private boolean isShortest() {
+        return options.hasOption("shortest");
+    }
+
+    private double getMaxVar() {
+        try {
+            return options.hasOption("max-variable-sum") ? ((Double) options.getParsedOptionValue("max-variable-sum")).doubleValue() : -1;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    private double getMaxDistance() {
+        try {
+            return options.hasOption("max-distance") ? ((Double) options.getParsedOptionValue("max-distance")).doubleValue() : -1;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    private double getMaxTT() {
+        try {
+            return options.hasOption("max-tt") ? ((Double) options.getParsedOptionValue("max-tt")).doubleValue() : -1;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    private int getMaxNumber() {
+        try {
+            return options.hasOption("max-number") ? ((Long) options.getParsedOptionValue("max-number")).intValue() : -1;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    private int getTime(){
+        try {
+            return ((Long) options.getParsedOptionValue("time")).intValue();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    private PipedWriter initWriter(CommandLine options) {
+
+        try {
+            String[] r = Utils.checkDefinition(options.getOptionValue("ext-nm-output", ""), "ext-nm-output");
+
+            if(!r[0].equals("db"))
+                throw new RuntimeException("This version only supports extended output to database...");
+
+            PipedWriter writer = new PipedWriter(r[1],r[3],r[4],r[2]);
+            writer.init(options.hasOption("dropprevious"), 1<<19);
+
+            return writer;
+
+        } catch (IOException e) {
+            throw new RuntimeException("Could not initialize the output writer... ",e.getCause());
+        }
 
     }
 
@@ -134,7 +213,7 @@ public class IntraTazComputer implements IDGiver {
             //load net
             proceed &= loadNet();
 
-            this.thread_count = getNumThreads();
+            this.thread_count = Math.max(getNumThreads() - 1,1);
 
 
         return proceed;
@@ -223,5 +302,9 @@ public class IntraTazComputer implements IDGiver {
         modes = Modes.getCombinedModeIDs(modesV);
         initMode = modesV.get(0).id;
         return true;
+    }
+
+    public long getInitMode(){
+        return initMode;
     }
 }

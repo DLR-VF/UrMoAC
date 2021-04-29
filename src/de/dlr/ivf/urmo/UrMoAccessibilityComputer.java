@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2016-2021 DLR Institute of Transport Research
  * All rights reserved.
- * 
+ *
  * This file is part of the "UrMoAC" accessibility tool
  * http://github.com/DLR-VF/UrMoAC
  * @author: Daniel.Krajzewicz@dlr.de
  * Licensed under the GNU General Public License v3.0
- * 
+ *
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
  * Rutherfordstraﬂe 2
@@ -19,8 +19,10 @@ package de.dlr.ivf.urmo;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.function.Supplier;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.Vector;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -65,7 +67,7 @@ import de.dlr.ivf.urmo.router.shapes.Layer;
  * @class UrMoAccessibilityComputer
  * @brief The main class for computing accessibility measures based on two sets
  *        of positions and a road network.
- * 
+ *
  *        The positions and the network are loaded first, The positions are then
  *        mapped onto the road network. Distances and travel times between each
  *        member of set1 and each member of set2 are then computed using plain
@@ -73,9 +75,6 @@ import de.dlr.ivf.urmo.router.shapes.Layer;
  *        road network) are written into files.
  */
 public class UrMoAccessibilityComputer implements IDGiver {
-	private CommandLine options;
-	private Supplier<Integer> taz_filter;
-	private DBNet net;
 	// --------------------------------------------------------
 	// member variables
 	// --------------------------------------------------------
@@ -112,15 +111,13 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	/// @brief Whether an error occurred
 	boolean hadError = false;
 
-	int epsg;
 
-	
-	
+
 	// --------------------------------------------------------
 	// inner classes
 	// --------------------------------------------------------
 	/** @class ComputingThread
-	 * 
+	 *
 	 * A thread which polls for new sources, computes the accessibility and
 	 * writes the results before asking for the next one
 	 */
@@ -131,10 +128,10 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		DijkstraResultsProcessor resultsProcessor;
 		/// @brief The routing measure to use
 		AbstractRouteWeightFunction measure;
-		/// @brief Whether only entries which contain a public transport part shall be processed 
+		/// @brief Whether only entries which contain a public transport part shall be processed
 		boolean needsPT;
 		/// @brief The start time of routing
-		int time; 
+		int time;
 		/// @brief The mode of transport to use at the begin
 		long initMode;
 		/// @brief The available transport modes
@@ -147,14 +144,14 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		double boundDist;
 		/// @brief The maximum value to collect
 		double boundVar;
-		/// @brief Whether only the shortest connection shall be found 
+		/// @brief Whether only the shortest connection shall be found
 		boolean shortestOnly;
-		
-		
+
+
 		/**
 		 * @brief Constructor
 		 * @param _parent The parent to get information from
-		 * @param _needsPT Whether only entries which contain a public transport part shall be processed 
+		 * @param _needsPT Whether only entries which contain a public transport part shall be processed
 		 * @param _measure The routing measure to use
 		 * @param _resultsProcessor The results processor to use
 		 * @param _time The start time of routing
@@ -164,19 +161,19 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		 * @param _boundTT The maximum travel time to use
 		 * @param _boundDist The maximum distance to pass
 		 * @param _boundVar The maximum value to collect
-		 * @param _shortestOnly Whether only the shortest connection shall be found 
+		 * @param _shortestOnly Whether only the shortest connection shall be found
 		 */
 		public ComputingThread(UrMoAccessibilityComputer _parent, boolean _needsPT,
-				AbstractRouteWeightFunction _measure, DijkstraResultsProcessor _resultsProcessor,
-				int _time, long _initMode, 
-				long _modes, int _boundNumber, double _boundTT, 
-				double _boundDist, double _boundVar, boolean _shortestOnly) {
+							   AbstractRouteWeightFunction _measure, DijkstraResultsProcessor _resultsProcessor,
+							   int _time, long _initMode,
+							   long _modes, int _boundNumber, double _boundTT,
+							   double _boundDist, double _boundVar, boolean _shortestOnly) {
 			super();
 			parent = _parent;
 			resultsProcessor = _resultsProcessor;
 			measure = _measure;
 			needsPT = _needsPT;
-			time = _time; 
+			time = _time;
 			initMode = _initMode;
 			modes = _modes;
 			boundNumber = _boundNumber;
@@ -185,12 +182,12 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			boundVar = _boundVar;
 			shortestOnly = _shortestOnly;
 		}
-		
-		
-		
+
+
+
 		/**
 		 * @brief Performs the computation
-		 * 
+		 *
 		 * Iterates over edges or od-connections.
 		 * Builds the paths, first, then uses them to generate the results.
 		 */
@@ -234,7 +231,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			}
 		}
 	}
-	
+
 
 
 	// --------------------------------------------------------
@@ -242,7 +239,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	// --------------------------------------------------------
 	/**
 	 * @brief Returns the parsed command line options
-	 * 
+	 *
 	 *        It also checks whether the needed (mandatory) options are given
 	 *        and whether the options have the proper type.
 	 * @param args The list of arguments given to the application
@@ -311,11 +308,11 @@ public class UrMoAccessibilityComputer implements IDGiver {
 
 		lvOptions.addOption(OptionBuilder.withLongOpt("measure-param1").withDescription("First parameter of the chosen weight function.").withType(Number.class).hasArg().create());
 		lvOptions.addOption(OptionBuilder.withLongOpt("measure-param2").withDescription("Second parameter of the chosen weight function.").withType(Number.class).hasArg().create());
-		
-		
+
+
 		lvOptions.addOption(OptionBuilder.withLongOpt("threads").withDescription("The number of threads.")
 				.withType(Number.class).hasArg().create());
-		
+
 		lvOptions.addOption(OptionBuilder.withLongOpt("origins-to-road-output")
 				.withDescription("Defines output of the mapping between from-objects to the road.")
 				.hasArg().create());
@@ -358,7 +355,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				.withDescription("Defines the column name of the origins aggregations' geometries.").hasArg().create());
 		lvOptions.addOption(OptionBuilder.withLongOpt("to-agg.geom")
 				.withDescription("Defines the column name of the destination aggregations' geometries.").hasArg().create());
-		
+
 		// parse options
 		CommandLine lvCmd = null;
 		try {
@@ -394,7 +391,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 						}
 						Integer.parseInt(date);
 						SimpleDateFormat parser = new SimpleDateFormat("yyyyMMdd");
-						parser.parse(date);							
+						parser.parse(date);
 					} catch (NumberFormatException e) {
 						System.err.println("The date must be given as yyyyMMdd.");
 						check = false;
@@ -411,7 +408,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 					System.err.println("Unknown measure '" + t + "'; allowed are: 'tt_mode', 'price_tt', 'interchanges_tt', and 'maxinterchanges_tt'.");
 					check = false;
 				}
-			}			
+			}
 			if (!check) {
 				return null;
 			}
@@ -422,7 +419,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		return lvCmd;
 	}
 
-		
+
 	/**
 	 * @brief Parses the text representation to obtain the encoded modes of transport
 	 * @param optionValue The text representation
@@ -444,11 +441,11 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		}
 		return ret;
 	}
-	
-	
+
+
 	/**
 	 * @brief Checks whether the needed route weight function parameter are set
-	 * 
+	 *
 	 */
 	protected boolean checkParameterOptions(CommandLine options, int num) {
 		for(int i=0; i<num; ++i) {
@@ -459,9 +456,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		}
 		return !hadError;
 	}
-	
-	
-	
+
+
+
 	// --------------------------------------------------------
 	// main class methods
 	// --------------------------------------------------------
@@ -472,24 +469,13 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		super();
 	}
 
-	public UrMoAccessibilityComputer(DBNet net, CommandLine options, long modes, long initMode, int epsg){
 
-		this.net = net;
-		this.taz_filter = taz_filter;
-		this.options = options;
-		this.modes = modes;
-		this.initMode = initMode;
-		this.epsg = epsg;
-		this.measure = new RouteWeightFunction_TT_Modes();
-	}
 
-	
-	
 	/**
 	 * @brief Initialises the tool, mainly by reading options
-	 * 
+	 *
 	 * Reads options as defined in the command lines
-	 * 
+	 *
 	 * @param[in] options The options to use
 	 * @return Whether everything went good
 	 * @throws SQLException When accessing the database failed
@@ -530,7 +516,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		// -------- loading
 		// from
 		if (verbose) System.out.println("Reading origin places");
-		Layer fromLayer = InputReader.loadLayer(options, "from", "weight", this, epsg); 
+		Layer fromLayer = InputReader.loadLayer(options, "from", "weight", this, epsg);
 		if (verbose) System.out.println(" " + fromLayer.getObjects().size() + " origin places loaded");
 		if (fromLayer.getObjects().size()==0) {
 			hadError = true;
@@ -540,12 +526,12 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		Layer fromAggLayer = null;
 		if (options.hasOption("from-agg") && !options.getOptionValue("from-agg", "").equals("all")) {
 			if (verbose) System.out.println("Reading origin aggregation zones");
-			fromAggLayer = InputReader.loadLayer(options, "from-agg", null, this, epsg); 
+			fromAggLayer = InputReader.loadLayer(options, "from-agg", null, this, epsg);
 			if (verbose) System.out.println(" " + fromAggLayer.getObjects().size() + " origin aggregation geometries loaded");
 		}
 		// to
 		if (verbose) System.out.println("Reading destination places");
-		Layer toLayer = InputReader.loadLayer(options, "to", "variable", this, epsg); 
+		Layer toLayer = InputReader.loadLayer(options, "to", "variable", this, epsg);
 		if (verbose) System.out.println(" " + toLayer.getObjects().size() + " destination places loaded");
 		if (toLayer.getObjects().size()==0) {
 			hadError = true;
@@ -555,10 +541,10 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		Layer toAggLayer = null;
 		if (options.hasOption("to-agg") && !options.getOptionValue("to-agg", "").equals("all")) {
 			if (verbose) System.out.println("Reading sink aggregation zones");
-			toAggLayer = InputReader.loadLayer(options, "to-agg", null, this, epsg); 
+			toAggLayer = InputReader.loadLayer(options, "to-agg", null, this, epsg);
 			if (verbose) System.out.println(" " + toAggLayer.getObjects().size() + " sink aggregation geometries loaded");
 		}
-		
+
 		// net
 		if (verbose) System.out.println("Reading the road network");
 		DBNet net = NetLoader.loadNet(this, options.getOptionValue("net", ""), epsg, modes);
@@ -579,7 +565,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			if (verbose) System.out.println("Reading the roads' travel times");
 			NetLoader.loadTravelTimes(net, options.getOptionValue("traveltimes", ""), verbose);
 		}
-		
+
 		// entrainment
 		EntrainmentMap entrainmentMap = new EntrainmentMap();
 		if (options.hasOption("entrainment")) {
@@ -587,7 +573,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			entrainmentMap = InputReader.loadEntrainment(options);
 			if (verbose) System.out.println(" " + entrainmentMap.carrier2carried.size() + " entrainment fields loaded");
 		}
-		
+
 		// public transport network
 		if (options.hasOption("pt")) {
 			if (verbose) System.out.println("Reading the public transport network");
@@ -650,7 +636,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		Vector<Aggregator> aggregators = OutputBuilder.buildOutputs(options, fromLayer, fromAggLayer, toLayer, toAggLayer);
 		DirectWriter dw = OutputBuilder.buildDirectOutput(options, epsg, nearestToEdges);
 		time = ((Long) options.getParsedOptionValue("time")).intValue();
-		resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, nearestFromEdges, nearestToEdges); 
+		resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, nearestFromEdges, nearestToEdges);
 
 		// -------- measure
 		measure = new RouteWeightFunction_TT_Modes();
@@ -662,9 +648,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				if(!checkParameterOptions(options, 2)) {
 					hadError = true;
 					return false;
-				} 
+				}
 				measure = new RouteWeightFunction_ExpInterchange_TT(
-						((Double) options.getParsedOptionValue("measure-param1")).doubleValue(), 
+						((Double) options.getParsedOptionValue("measure-param1")).doubleValue(),
 						((Double) options.getParsedOptionValue("measure-param2")).doubleValue());
 			} else if("maxinterchanges_tt".equals(t)) {
 				if(!checkParameterOptions(options, 1)) {
@@ -681,15 +667,15 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		// done everything
 		return !hadError;
 	}
-	
-	
-	
+
+
+
 	/**
 	 * @brief Performs the computation
-	 * 
+	 *
 	 * The limits and the number of threads to use are read from options.
 	 * The computation threads are initialized and started.
-	 * 
+	 *
 	 * @param[in] options The options to use
 	 * @return Whether everything went good
 	 * @throws SQLException When accessing the database failed
@@ -705,7 +691,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		boolean shortestOnly = options.hasOption("shortest");
 		boolean needsPT = options.hasOption("requirespt");
 		if (verbose) System.out.println(" between " + nearestFromEdges.size() + " origin and " + nearestToEdges.size() + " destination edges");
-		
+
 		// initialise threads
 		int numThreads = options.hasOption("threads") ? ((Long) options.getParsedOptionValue("threads")).intValue() : 1;
 		nextEdgePointer = nearestFromEdges.keySet().iterator();
@@ -714,7 +700,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		for (int i=0; i<numThreads; ++i) {
 			Thread t = new Thread(new ComputingThread(this, needsPT, measure, resultsProcessor, time, initMode, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly));
 			threads.add(t);
-	        t.start();
+			t.start();
 		}
 		for(Thread t : threads) {
 			try {
@@ -729,69 +715,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		return true;
 	}
 
-	public void run(Supplier<Integer> taz_filter_supplier){
-		Integer taz;
-
-		int calculated_taz_count = 0;
-		while((taz = taz_filter_supplier.get()) != null){
-
-			System.out.println("Reading origin places for taz: "+taz+ " | processed taz count: "+calculated_taz_count);
-			NearestEdgeFinder nef = new NearestEdgeFinder(net, initMode);
-			Layer fromLayer = null;
-			try {
-				fromLayer = InputReader.loadLayerWithFilter(options, "from", null, this, epsg, "wq_gid = "+taz.toString());
-
-				if(fromLayer != null){
-
-					nef.setSource(fromLayer.getObjects());
-
-					System.out.println(" " + fromLayer.getObjects().size() + " origin places loaded");
-
-					System.out.println("Computing access from the origins to the network for taz: "+taz);
 
 
-					nearestFromEdges = nef.getNearestEdges(false);
-					nextEdgePointer = nearestFromEdges.keySet().iterator();
-
-					//fromLayer is equal to toLayer so we only load it once and nearest edges are the same
-					nearestToEdges = nearestFromEdges;
-
-					//init writer
-					Vector<Aggregator> aggregators = OutputBuilder.buildOutputs(options, fromLayer, null, fromLayer, null);
-					DirectWriter dw = OutputBuilder.buildDirectOutput(options, epsg, nearestToEdges);
-					time = ((Long) options.getParsedOptionValue("time")).intValue();
-					resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, nearestFromEdges, nearestToEdges);
-
-
-					if (options.hasOption("origins-to-road-output")) {
-						OutputBuilder.writeEdgeAllocation(options.getOptionValue("origins-to-road-output", ""), nearestFromEdges, epsg, false);
-					}
-
-					System.out.println("Computing shortest paths for taz: "+taz);
-
-					int maxNumber = options.hasOption("max-number") ? ((Long) options.getParsedOptionValue("max-number")).intValue() : -1;
-					double maxTT = options.hasOption("max-tt") ? ((Double) options.getParsedOptionValue("max-tt")).doubleValue() : -1;
-					double maxDistance = options.hasOption("max-distance") ? ((Double) options.getParsedOptionValue("max-distance")).doubleValue() : -1;
-					double maxVar = options.hasOption("max-variable-sum") ? ((Double) options.getParsedOptionValue("max-variable-sum")).doubleValue() : -1;
-					boolean shortestOnly = options.hasOption("shortest");
-					boolean needsPT = options.hasOption("requirespt");
-
-					System.out.println(" between " + nearestFromEdges.size() + " origin and " + nearestToEdges.size() + " destination edges");
-
-					Thread t = new Thread(new ComputingThread(this, needsPT, measure, resultsProcessor, time, initMode, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly));
-					t.start();
-					t.join();
-
-				}
-			} catch (SQLException | com.vividsolutions.jts.io.ParseException | IOException | ParseException | InterruptedException e) {
-				e.printStackTrace();
-			}
-
-		}
-	}
-	
-	
-	
 	/**
 	 * @brief Returns the next starting edge to process
 	 * @return The next edge to start routing from
@@ -809,7 +734,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		return nextEdge;
 	}
 
-	
+
 
 	/**
 	 * @brief Returns the next connection to process
@@ -855,9 +780,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		}
 		return ret;
 	}
-	
-	
-	
+
+
+
 	private DBEdge getEdgeForObject(long objID, HashMap<DBEdge, Vector<MapResult>> mapping) {
 		for(DBEdge e : mapping.keySet()) {
 			Vector<MapResult> t = mapping.get(e);
@@ -870,7 +795,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		return null;
 	}
 
-	
+
 
 	/**
 	 * @brief Returns a running (auto-incremented) number
@@ -881,7 +806,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		return ++runningID;
 	}
 
-	
+
 
 	/** @brief Returns whether an error occurred
 	 * @return Whether an error occurred
@@ -889,10 +814,10 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	public boolean hadError() {
 		return hadError;
 	}
-	
 
-	
-	
+
+
+
 	// --------------------------------------------------------
 	// main
 	// --------------------------------------------------------
@@ -919,7 +844,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			if(hadError) {
 				System.err.println("Quitting on error...");
 				return;
-			} 
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (SQLException e) {
@@ -937,6 +862,6 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		// -------- finish
 		System.out.println("done.");
 	}
-	
-	
+
+
 }
