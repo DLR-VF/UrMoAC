@@ -3,15 +3,11 @@ package de.dlr.ivf.urmo.router.io;
 import com.lmax.disruptor.BusySpinWaitStrategy;
 import com.lmax.disruptor.EventFactory;
 import com.lmax.disruptor.RingBuffer;
-import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
 import de.dlr.ivf.urmo.router.output.odext.ODSingleExtendedResult;
 import org.postgresql.core.BaseConnection;
-
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -84,7 +80,7 @@ public class PipedWriter implements Runnable{
         event.setWritableResults(results);
 
         ring_buffer.publish(sequenceId);
-        registered_result.incrementAndGet();
+        written_results.incrementAndGet();
 
     }
 
@@ -100,6 +96,8 @@ public class PipedWriter implements Runnable{
     @Override
     public void run() {
         try {
+            if(written_results.get() % 100000 == 0)
+                System.out.println("-- Remaining capacity on the ring: "+ring_buffer.remainingCapacity()+ " | Total written results: "+written_results.get());
 
             System.out.println("Opening database persistence pipeline...");
             copy_manager.copyIn(copy_string,this.ring_buffer,written_results);

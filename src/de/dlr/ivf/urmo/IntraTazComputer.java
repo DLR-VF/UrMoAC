@@ -13,6 +13,8 @@ import org.apache.commons.cli.ParseException;
 
 import java.io.IOException;
 import java.sql.*;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -30,6 +32,7 @@ public class IntraTazComputer implements IDGiver {
     private CommandLine options;
     private BlockingQueue<Integer> filter_queue;
     private int thread_count;
+    private int total_taz_count;
 
     /// @brief Allowed modes
     long modes = -1;
@@ -103,7 +106,11 @@ public class IntraTazComputer implements IDGiver {
                                             .mapToObj(i -> new UrmoWorker("Rechenknecht #"+i,writer,taz_supplier,new NearestEdgeFinder(net, initMode),options,epsg,this,time,initMode,modes,maxNumber,maxTT,maxDistance,maxVar,shortestOnly))
                                             .collect(Collectors.toList());
 
-        Collection<Thread> worker_threads = workers.stream().map(Thread::new).collect(Collectors.toList());
+        Collection<Thread> worker_threads = workers.stream()
+                                                   .map(Thread::new)
+                                                   .collect(Collectors.toList());
+        LocalDateTime start = LocalDateTime.now();
+
         worker_threads.forEach(Thread::start);
 
         worker_threads.forEach(worker -> {
@@ -114,7 +121,8 @@ public class IntraTazComputer implements IDGiver {
             }
         });
 
-        System.out.println("all work done");
+        System.out.println("Computations done in: "+ Duration.between(start,LocalDateTime.now()).toHours());
+
         //all workers are done, signal last element to writer and wait for it to finish
         writer.finish();
         try {
@@ -304,7 +312,11 @@ public class IntraTazComputer implements IDGiver {
         return true;
     }
 
-    public long getInitMode(){
-        return initMode;
+    public int getRemainingCount(){
+        return filter_queue.size();
+    }
+
+    public int getTotalTazCount(){
+        return this.total_taz_count;
     }
 }

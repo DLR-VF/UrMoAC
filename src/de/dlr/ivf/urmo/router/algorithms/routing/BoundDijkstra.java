@@ -60,7 +60,7 @@ public class BoundDijkstra {
 		Mode usedMode = Modes.getMode(_usedMode);
 		double tt = startEdge.getTravelTime("", usedMode.vmax, time);
 		DijkstraResult ret = new DijkstraResult(new HashSet<>(ends), boundNumber, boundTT, boundDist, boundVar, shortestOnly, time);
-		PriorityQueue<DijkstraEntry> next = new PriorityQueue<DijkstraEntry>(1000, measure);
+		PriorityQueue<DijkstraEntry> next = new PriorityQueue<>(50, measure);
 		DijkstraEntry nm = new DijkstraEntry(measure, null, startEdge.getToNode(), startEdge, availableModes, usedMode,
 				startEdge.getLength(), tt, "", tt, 0, false);
 		// originally, "startPos" was used - currently the offset of the mappable object is not regarded in the 

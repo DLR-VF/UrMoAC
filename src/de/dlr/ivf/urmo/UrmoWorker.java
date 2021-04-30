@@ -12,16 +12,13 @@ import de.dlr.ivf.urmo.router.io.PipedWriter;
 import de.dlr.ivf.urmo.router.output.DijkstraResultsProcessor;
 import de.dlr.ivf.urmo.router.output.odext.ODExtendedMeasuresGenerator;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
-import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.IDGiver;
 import de.dlr.ivf.urmo.router.shapes.Layer;
 import org.apache.commons.cli.CommandLine;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 import java.util.function.Supplier;
@@ -34,7 +31,7 @@ public class UrmoWorker implements Runnable{
     private final NearestEdgeFinder edge_finder;
     private final CommandLine options;
     private final int epsg;
-    private final IDGiver idGiver;
+    private final IntraTazComputer idGiver;
     private final int boundNumber;
     private final double boundTT;
     private final long modes;
@@ -48,7 +45,7 @@ public class UrmoWorker implements Runnable{
     private final long initMode;
 
     public UrmoWorker(String name, PipedWriter writer, Supplier<Integer> taz_supplier, NearestEdgeFinder edge_finder,
-                      CommandLine options, int epsg, IDGiver idGiver,
+                      CommandLine options, int epsg, IntraTazComputer idGiver,
                       int _time, long _initMode, long _modes, int _boundNumber, double _boundTT,
                       double _boundDist, double _boundVar, boolean _shortestOnly){
         
@@ -94,7 +91,7 @@ public class UrmoWorker implements Runnable{
             try {
 
                 System.out.println(this.name+" loading next layer for TAZ: "+taz);
-                fromLayer = InputReader.loadLayerWithFilter(options, "from", null, this.idGiver, epsg, "wq_gid = "+taz.toString());
+                fromLayer = InputReader.loadLayerWithFilter(options, "from", null, this.idGiver, epsg, "wq_gid = "+taz.toString() +" AND geocode_key = 'GEOCODES_2017'");
 
                 System.out.println("Computing access from the origins to the network for taz: "+taz);
 
@@ -107,7 +104,7 @@ public class UrmoWorker implements Runnable{
 
                 DijkstraResultsProcessor resultsProcessor = new DijkstraResultsProcessor(time, nearestFromEdges, nearestToEdges, measurements_generator);
 
-                System.out.println(now+": "+name+" is computing shortest paths for taz: "+taz+" between "+nearestFromEdges.keySet().size()+ " starting and end edges...");
+                System.out.println(name+" computing taz: "+taz+" between "+nearestFromEdges.keySet().size()+ " starting and end edges... | "+calculated_taz_count+" taz computed, total remaining: "+idGiver.getRemainingCount());
 
                 for(DBEdge e : nearestFromEdges.keySet()){
                     DijkstraResult ret = BoundDijkstra.run(measure, time, e, initMode, modes, nearestToEdges.keySet(), boundNumber, boundTT, boundDist, boundVar, shortestOnly);
@@ -119,8 +116,9 @@ public class UrmoWorker implements Runnable{
                             writer.writeResults(results);
                     });
                 }
-
-                System.out.println(name+" took "+Duration.between(now,LocalDateTime.now()).toMinutes()+" minutes to compute taz: "+taz+" with "+nearestFromEdges.size()+" start and destination edges...");
+                calculated_taz_count++;
+                System.out.println(name+" needed "+Duration.between(now,LocalDateTime.now()).toMinutes()+
+                        " minutes to compute taz: "+taz+" with "+nearestFromEdges.size()+" start and destination edges...");
 
             } catch (SQLException throwables) {
                 throwables.printStackTrace();

@@ -132,32 +132,13 @@ public class DijkstraResultsProcessor {
 	}
 
 	public List<ODSingleExtendedResult> processAndGetEXTODResults(MapResult mr, DijkstraResult dr) {
-		//System.out.println("asd");
 
 		return dr.edgeMap.keySet().stream()
-				.map(destEdge -> nearestToEdges.get(destEdge))
-				.filter(e -> e!=null)
+								  .map(destEdge -> nearestToEdges.get(destEdge))
+								  .filter(e -> e!=null)
 								  .flatMap(Collection::stream)
 								  .map(destination -> measurements_generator.buildResult(beginTime, mr, destination, dr))
 								  .collect(Collectors.toList());
-
-
-//		for(DBEdge destEdge : dr.edgeMap.keySet()) {
-//
-//			Vector<MapResult> toObjects = nearestToEdges.get(destEdge);
-//			if(toObjects!=null) {
-//
-//				toObjects.stream().map(destination -> measurements_generator.buildResult(beginTime, mr, destination, dr)).
-//
-//				for(MapResult toObject : toObjects) {
-//					if(singleDestination<0||toObject.em.getOuterID()==singleDestination) {
-//						AbstractSingleResult result = agg.parent.buildResult(beginTime, mr, toObject, dr);
-//						results.add(result);
-//					}
-//				}
-//			}
-//		}
-
 	}
 
 
