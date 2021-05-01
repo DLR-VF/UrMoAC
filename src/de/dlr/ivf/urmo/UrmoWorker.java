@@ -109,12 +109,7 @@ public class UrmoWorker implements Runnable{
                 for(DBEdge e : nearestFromEdges.keySet()){
                     DijkstraResult ret = BoundDijkstra.run(measure, time, e, initMode, modes, nearestToEdges.keySet(), boundNumber, boundTT, boundDist, boundVar, shortestOnly);
                     Vector<MapResult> fromObjects = nearestFromEdges.get(e);
-                    fromObjects.stream().map(from_map_result -> resultsProcessor.processAndGetEXTODResults(from_map_result,ret)).forEach(results -> {
-                        if(results.size() == 0)
-                            System.out.println("no result for "+e);
-                        else
-                            writer.writeResults(results);
-                    });
+                    fromObjects.stream().map(from_map_result -> resultsProcessor.processAndGetEXTODResults(from_map_result,ret)).forEach(writer::writeResults);
                 }
                 calculated_taz_count++;
                 System.out.println(name+" needed "+Duration.between(now,LocalDateTime.now()).toMinutes()+
