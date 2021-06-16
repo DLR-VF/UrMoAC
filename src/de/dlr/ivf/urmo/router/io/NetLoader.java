@@ -65,7 +65,9 @@ public class NetLoader {
 			net = loadNetFromFile(idGiver, r[1], uModes);
 		}
 		// add other directions to mode foot
-		net.extendDirections();
+		if(net!=null) {
+			net.extendDirections();
+		}
 		return net;
 	}
 
@@ -79,6 +81,7 @@ public class NetLoader {
 		ResultSet rs = s.executeQuery(query);
 		WKBReader wkbRead = new WKBReader();
 		DBNet net = new DBNet(idGiver);
+		boolean ok = true;
 		while (rs.next()) {
 			long modes = 0;
 			if(rs.getBoolean("mode_walk")) modes = modes | Modes.getMode("foot").id;
@@ -99,8 +102,7 @@ public class NetLoader {
 			Coordinate[] cs = geom2.getCoordinates();
 			DBNode fromNode = net.getNode(rs.getLong("nodefrom"), cs[0]);
 			DBNode toNode = net.getNode(rs.getLong("nodeto"), cs[cs.length - 1]);
-			DBEdge e = new DBEdge(net.getNextID(), rs.getString("oid"), fromNode, toNode, modes, rs.getDouble("vmax") / 3.6, geom2, rs.getDouble("length"));
-			net.addEdge(e);
+			ok &= net.addEdge(net.getNextID(), rs.getString("oid"), fromNode, toNode, modes, rs.getDouble("vmax") / 3.6, geom2, rs.getDouble("length"));
 		}
 		rs.close();
 		s.close();
@@ -114,6 +116,7 @@ public class NetLoader {
 		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
 		BufferedReader br = new BufferedReader(new FileReader(fileName));
 		String line = null;
+		boolean ok = true;
 		do {
 			line = br.readLine();
 			if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
@@ -137,8 +140,7 @@ public class NetLoader {
 				DBNode fromNode = net.getNode(Long.parseLong(vals[1]), coords[0]);
 				DBNode toNode = net.getNode(Long.parseLong(vals[2]), coords[coords.length - 1]);
 				LineString ls = gf.createLineString(coords);
-				DBEdge e = new DBEdge(net.getNextID(), vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, ls, Double.parseDouble(vals[7]));
-				net.addEdge(e);
+				ok &= net.addEdge(net.getNextID(), vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, ls, Double.parseDouble(vals[7]));
 			}
 	    } while(line!=null);
 		br.close();

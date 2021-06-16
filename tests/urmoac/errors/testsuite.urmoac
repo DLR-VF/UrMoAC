@@ -7,4 +7,5 @@ maxtt_string_parameter
 # using an unkown option (foo)
 unknown_option
 
-
+# different network issues that may occure
+net_issues

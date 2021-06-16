@@ -55,21 +55,6 @@ def getObjects(conn, cursor, schema, prefix, subtype, k, v):
     ret.add(r[0])
   return ret
 
-def getCenter(geom):
-  if geom==None or len(geom)==0:
-    return None
-  bounds = None
-  for g in geom:
-    #print ("%s %s" % (g, bounds))
-    if bounds==None:
-      bounds = [g[0], g[1], g[0], g[1]]
-    else:
-      bounds[0] = min(g[0], bounds[0])
-      bounds[1] = min(g[1], bounds[1])
-      bounds[2] = max(g[0], bounds[2])
-      bounds[3] = max(g[1], bounds[3])
-  return ((bounds[0]+bounds[2])/2., (bounds[1]+bounds[3])/2.)
-
 
 def fetchNodeGeom(conn, cursor, schema, prefix, o, geoms):
   cursor.execute("SELECT id,ST_AsText(pos) FROM %s.%s_node WHERE id=%s" % (schema, prefix, o))

@@ -116,11 +116,6 @@ public class EUSingleResult extends AbstractSingleResult {
 	 * @param sourcesWeight The weight of the source
 	 */
 	public synchronized void addSingle(DBEdge e, double value, double sourcesWeight) {
-		/*
-		if(!e.id.equals("cycle#1") && !e.id.equals("-cycle#1")) {
-			return;
-		}
-		*/
 		if(!stats.containsKey(e.id)) {
 			stats.put(e.id, new EdgeParam());
 		}

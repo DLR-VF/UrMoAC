@@ -66,12 +66,31 @@ public class DBNet {
 		rtree.init(null);
 	}
 
+	
+	public boolean addEdge(long _numID, String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length) {
+		boolean hadError = false;
+		if(_length<=0) {
+			System.err.println("Edge '" + _id + "' has a length of 0.");
+			hadError = true;
+		}
+		if(_vmax<=0) {
+			System.err.println("Edge '" + _id + "' has a speed of 0.");
+			hadError = true;
+		}
+		if(name2edge.containsKey(_id)) {
+			System.err.println("Edge '" + _id + "' already exists.");
+			hadError = true;
+		}
+		DBEdge e = new DBEdge(_numID, _id, _from, _to, _modes, _vmax, _geom, _length);
+		addEdge(e);
+		return !hadError;
+	}
 
 	/**
 	 * @brief Adds an edge to the road network
 	 * @param e The edge to add
 	 */
-	public void addEdge(DBEdge e) {
+	private void addEdge(DBEdge e) {
 		name2edge.put(e.id, e);
 		Rectangle r = new Rectangle();
 		Coordinate[] cs = e.getGeometry().getCoordinates();

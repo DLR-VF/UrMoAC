@@ -155,21 +155,17 @@ public class GTFSReader {
 				
 				net.removeEdge(mr.edge);
 				geom = GeomHelper.getGeomUntilDistance((LineString) mr.edge.getGeometry(), mr.pos);
-				DBEdge e11 = new DBEdge(net.getNextID(), mr.edge.id+"-"+stop.mid, mr.edge.from, intermediateNode, mr.edge.modes, mr.edge.vmax, geom, geom.getLength()/*mr.pos*/);
-				net.addEdge(e11);
+				net.addEdge(net.getNextID(), mr.edge.id+"-"+stop.mid, mr.edge.from, intermediateNode, mr.edge.modes, mr.edge.vmax, geom, geom.getLength()/*mr.pos*/);
 				geom = GeomHelper.getGeomBehindDistance((LineString) mr.edge.getGeometry(), mr.pos);
-				DBEdge e12 = new DBEdge(net.getNextID(), stop.mid+"-"+mr.edge.id, intermediateNode, mr.edge.to, mr.edge.modes, mr.edge.vmax, geom, geom.getLength()/*mr.edge.length-mr.pos*/);
-				net.addEdge(e12);
+				net.addEdge(net.getNextID(), stop.mid+"-"+mr.edge.id, intermediateNode, mr.edge.to, mr.edge.modes, mr.edge.vmax, geom, geom.getLength()/*mr.edge.length-mr.pos*/);
 				
 				DBEdge opp = mr.edge.opposite;
 				if(opp!=null) {
 					net.removeEdge(opp);
 					geom = GeomHelper.getGeomUntilDistance((LineString) opp.getGeometry(), opp.length-mr.pos);
-					DBEdge e21 = new DBEdge(net.getNextID(), opp.id+"-"+stop.mid, opp.from, intermediateNode, opp.modes, opp.vmax, geom, geom.getLength()/*opp.length-mr.pos*/);
-					net.addEdge(e21);
+					net.addEdge(net.getNextID(), opp.id+"-"+stop.mid, opp.from, intermediateNode, opp.modes, opp.vmax, geom, geom.getLength()/*opp.length-mr.pos*/);
 					geom = GeomHelper.getGeomBehindDistance((LineString) opp.getGeometry(), opp.length-mr.pos);
-					DBEdge e22 = new DBEdge(net.getNextID(), stop.mid+"-"+opp.id, intermediateNode, opp.to, opp.modes, opp.vmax, geom, geom.getLength()/*mr.pos*/);
-					net.addEdge(e22);
+					net.addEdge(net.getNextID(), stop.mid+"-"+opp.id, intermediateNode, opp.to, opp.modes, opp.vmax, geom, geom.getLength()/*mr.pos*/);
 				}
 				
 				Coordinate[] edgeCoords = new Coordinate[2];
