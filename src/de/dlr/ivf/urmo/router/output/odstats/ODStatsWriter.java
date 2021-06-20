@@ -88,7 +88,7 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
 	 * @throws SQLException When something fails
 	 */
-	public ODStatsWriter(String url, String tableName, String user, String pw, boolean dropPrevious) throws SQLException {
+	public ODStatsWriter(String url, String tableName, String user, String pw, boolean dropPrevious) throws IOException {
 		super(url, user, pw, tableName,
 				"(fid bigint, sid bigint, num bigint, "
 				+ "avg_distance real, avg_tt real, avg_value real, avg_kcal real, avg_price real, avg_co2 real, "
@@ -122,7 +122,7 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 	 * @throws IOException When something fails
 	 */
 	@Override
-	public void writeResult(ODSingleStatsResult result) throws SQLException, IOException {
+	public void writeResult(ODSingleStatsResult result) throws IOException {
 		Stats distD = new Stats(result.allDistances);
 		Stats ttD = new Stats(result.allTravelTimes);
 		Stats valuesD = new Stats(result.allValues);
@@ -130,20 +130,24 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 		Stats pricesD = new Stats(result.allPrices);
 		Stats CO2D = new Stats(result.allCO2s);
 		if (intoDB()) {
-			_ps.setLong(1, result.srcID);
-			_ps.setLong(2, result.destID);
-			_ps.setLong(3, result.allCO2s.size());
-			insertIntoPS(_ps, distD, 4);
-			insertIntoPS(_ps, ttD, 5);
-			insertIntoPS(_ps, valuesD, 6);
-			insertIntoPS(_ps, kcalsD, 7);
-			insertIntoPS(_ps, pricesD, 8);
-			insertIntoPS(_ps, CO2D, 9);
-			_ps.addBatch();
-			++batchCount;
-			if(batchCount>10000) {
-				_ps.executeBatch();
-				batchCount = 0;
+			try {
+				_ps.setLong(1, result.srcID);
+				_ps.setLong(2, result.destID);
+				_ps.setLong(3, result.allCO2s.size());
+				insertIntoPS(_ps, distD, 4);
+				insertIntoPS(_ps, ttD, 5);
+				insertIntoPS(_ps, valuesD, 6);
+				insertIntoPS(_ps, kcalsD, 7);
+				insertIntoPS(_ps, pricesD, 8);
+				insertIntoPS(_ps, CO2D, 9);
+				_ps.addBatch();
+				++batchCount;
+				if(batchCount>10000) {
+					_ps.executeBatch();
+					batchCount = 0;
+				}
+			} catch (SQLException ex) {
+				throw new IOException(ex);
 			}
 		} else {
 			_fileWriter.append(result.srcID + ";" + result.destID + ";" + result.allCO2s.size()

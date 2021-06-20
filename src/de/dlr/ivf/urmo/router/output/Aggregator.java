@@ -199,7 +199,7 @@ public class Aggregator<T extends AbstractSingleResult> {
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	private synchronized void write(T entry) throws SQLException, IOException {
+	private synchronized void write(T entry) throws IOException {
 		for (AbstractResultsWriter<T> bw : writers) {
 			bw.writeResult(entry);
 		}
@@ -223,7 +223,7 @@ public class Aggregator<T extends AbstractSingleResult> {
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	public void finish() throws SQLException, IOException {
+	public void finish() throws IOException {
 		Vector<EdgeMappable> sources = fromLayer.getObjects();
 		for (Long srcID : measurements.keySet()) {
 			// compute number of sources in this layer

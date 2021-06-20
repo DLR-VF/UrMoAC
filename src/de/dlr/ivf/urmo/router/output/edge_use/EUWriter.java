@@ -43,7 +43,7 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
 	 * @throws SQLException When something fails
 	 */
-	public EUWriter(String url, String tableName, String user, String pw, boolean dropPrevious) throws SQLException {
+	public EUWriter(String url, String tableName, String user, String pw, boolean dropPrevious) throws IOException {
 		super(url, user, pw, tableName,
 				"(fid bigint, sid bigint, eid text, num real, srcweight real, normed real)", "VALUES (?, ?, ?, ?, ?, ?)", dropPrevious);
 	}
@@ -68,22 +68,26 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 	 * @throws IOException When something fails
 	 */
 	@Override
-	public void writeResult(EUSingleResult result) throws SQLException, IOException {
+	public void writeResult(EUSingleResult result) throws IOException {
 		if (intoDB()) {
-			for(String id : result.stats.keySet()) {
-				EdgeParam ep = result.stats.get(id);
-				_ps.setLong(1, result.srcID);
-				_ps.setLong(2, result.destID);
-				_ps.setString(3, id);
-				_ps.setFloat(4, (float) ep.num);
-				_ps.setFloat(5, (float) ep.sourcesWeight);
-				_ps.setFloat(6, (float) (ep.num / ep.sourcesWeight));
-				_ps.addBatch();
-				++batchCount;
-				if(batchCount>10000) {
-					_ps.executeBatch();
-					batchCount = 0;
+			try {
+				for(String id : result.stats.keySet()) {
+					EdgeParam ep = result.stats.get(id);
+						_ps.setLong(1, result.srcID);
+						_ps.setLong(2, result.destID);
+						_ps.setString(3, id);
+						_ps.setFloat(4, (float) ep.num);
+						_ps.setFloat(5, (float) ep.sourcesWeight);
+						_ps.setFloat(6, (float) (ep.num / ep.sourcesWeight));
+						_ps.addBatch();
+						++batchCount;
+						if(batchCount>10000) {
+							_ps.executeBatch();
+							batchCount = 0;
+						}
 				}
+			} catch (SQLException ex) {
+				throw new IOException(ex);
 			}
 		} else {
 			for(String id : result.stats.keySet()) {

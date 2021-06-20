@@ -21,7 +21,6 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.Vector;
 
 import org.apache.commons.cli.BasicParser;
@@ -478,12 +477,10 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 * 
 	 * @param[in] options The options to use
 	 * @return Whether everything went good
-	 * @throws SQLException When accessing the database failed
 	 * @throws IOException When accessing a file failed
-	 * @throws ParseException When an option could not been parsed
-	 * @throws com.vividsolutions.jts.io.ParseException When a geometry could not been parsed
+	 * @throws ParseException 
 	 */
-	protected boolean init(CommandLine options) throws SQLException, IOException, ParseException, com.vividsolutions.jts.io.ParseException {
+	protected boolean init(CommandLine options) throws IOException, ParseException {
 		verbose = options.hasOption("verbose");
 		// -------- mode
 		Modes.init();
@@ -682,7 +679,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 * @throws IOException When accessing a file failed
 	 * @throws ParseException When an option could not been parsed
 	 */
-	protected boolean run(CommandLine options) throws ParseException, SQLException, IOException {
+	protected boolean run(CommandLine options) throws ParseException, IOException {
 		if (verbose) System.out.println("Computing shortest paths");
 		int maxNumber = options.hasOption("max-number") ? ((Long) options.getParsedOptionValue("max-number")).intValue() : -1;
 		double maxTT = options.hasOption("max-tt") ? ((Double) options.getParsedOptionValue("max-tt")).doubleValue() : -1;
@@ -847,17 +844,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			} 
 		} catch (IOException e) {
 			e.printStackTrace();
-		} catch (SQLException e) {
+		} catch (ParseException e) {
 			e.printStackTrace();
-			SQLException e2 = e.getNextException();
-			while (e2 != null) {
-				e2.printStackTrace();
-				e2 = e2.getNextException();
-			}
-		} catch (com.vividsolutions.jts.io.ParseException e) {
-			e.printStackTrace();
-		} catch (ParseException e1) {
-			e1.printStackTrace();
 		}
 		// -------- finish
 		System.out.println("done.");

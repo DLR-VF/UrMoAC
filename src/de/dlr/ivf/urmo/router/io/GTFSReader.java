@@ -84,16 +84,22 @@ public class GTFSReader {
 	 * @todo which modes to use to access the road network
 	 * @todo which modes to use to access the stations
 	 */
-	public static GTFSData load(CommandLine options, Geometry bounds, DBNet net, EntrainmentMap entrainmentMap, int epsg, boolean verbose) throws IOException, SQLException, ParseException {
+	public static GTFSData load(CommandLine options, Geometry bounds, DBNet net, EntrainmentMap entrainmentMap, int epsg, boolean verbose) throws IOException {
 		String[] r = Utils.checkDefinition(options.getOptionValue("pt", ""), "pt");
 		// parse modes vector
 		Vector<Integer> allowedCarrier = parseCarrierDef(options.getOptionValue("pt-restriction", ""));
 		if (r[0].equals("db")) {
-			return loadGTFSFromDB(r[1], r[2], r[3], r[4], allowedCarrier, options.getOptionValue("date", ""),
-					bounds, net, entrainmentMap, epsg, verbose);
-		} else {
+			try {
+				return loadGTFSFromDB(r[1], r[2], r[3], r[4], allowedCarrier, options.getOptionValue("date", ""),
+						bounds, net, entrainmentMap, epsg, verbose);
+			} catch (SQLException | ParseException e) {
+				throw new IOException(e);
+			}
+		} else if (r[0].equals("file")) {
 			return loadGTFSFromFile(r[1], allowedCarrier, options.getOptionValue("date", ""),
 					bounds, net, entrainmentMap, epsg, verbose);
+		} else {
+			throw new IOException("The prefix '" + r[0] + "' is not known or does not support GTFS.");
 		}
 	}
 	

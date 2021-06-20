@@ -125,7 +125,7 @@ public class DijkstraResultsProcessor {
 	/**
 	 * @brief Finishes the processing
 	 */
-	public void finish() throws SQLException, IOException {
+	public void finish() throws IOException {
 		if(directWriter!=null) {
 			directWriter.close();
 		}

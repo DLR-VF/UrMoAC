@@ -56,7 +56,7 @@ import de.dlr.ivf.urmo.router.shapes.Layer;
 
 public class OutputBuilder {
 
-	public static Vector<Aggregator> buildOutputs(CommandLine options, Layer fromLayer, Layer fromAggLayer, Layer toLayer, Layer toAggLayer) throws SQLException, IOException {
+	public static Vector<Aggregator> buildOutputs(CommandLine options, Layer fromLayer, Layer fromAggLayer, Layer toLayer, Layer toAggLayer) throws IOException {
 		Vector<Aggregator> aggregators = new Vector<>();
 		boolean dropExistingTables = options.hasOption("dropprevious");
 		String comment = buildComment(options);
@@ -120,7 +120,7 @@ public class OutputBuilder {
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	public static DirectWriter buildDirectOutput(CommandLine options, int rsid, HashMap<DBEdge, Vector<MapResult>> nearestToEdges) throws SQLException, IOException {
+	public static DirectWriter buildDirectOutput(CommandLine options, int rsid, HashMap<DBEdge, Vector<MapResult>> nearestToEdges) throws IOException {
 		String d = options.getOptionValue("direct-output", "");
 		if ("".equals(d)) {
 			return null;
@@ -174,8 +174,7 @@ public class OutputBuilder {
 	 * @throws IOException If the file cannot be written
 	 * @throws SQLException
 	 */
-	public static void writeEdgeAllocation(String d, HashMap<DBEdge, Vector<MapResult>> nearestEdges, int epsg, boolean dropPrevious)
-			throws IOException, SQLException {
+	public static void writeEdgeAllocation(String d, HashMap<DBEdge, Vector<MapResult>> nearestEdges, int epsg, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "X-to-road-output");
 		EdgeMappingWriter emw = null;
 		if (r[0].equals("db")) {
@@ -186,12 +185,8 @@ public class OutputBuilder {
 		} else {
 			emw = new EdgeMappingWriter(r[1]);
 		}
-		try {
-			emw.writeResults(nearestEdges);
-			emw.close();
-		} catch (FactoryException | TransformException e) {
-			e.printStackTrace();
-		}
+		emw.writeResults(nearestEdges);
+		emw.close();
 	}
 
 	
@@ -213,7 +208,7 @@ public class OutputBuilder {
 	private static <T extends AbstractSingleResult> Aggregator<T> buildAggregator(MeasurementGenerator measuresGenerator,
 			boolean shortest, String fromAgg, String toAgg, 
 			Layer fromLayer, Layer fromAggLayer, Layer toLayer, Layer toAggLayer,
-			AbstractResultsWriter<T> writer, String comment) throws SQLException {
+			AbstractResultsWriter<T> writer, String comment) throws IOException {
 		Aggregator<T> agg = new Aggregator<T>(measuresGenerator, fromLayer, shortest);
 		if (fromAggLayer != null) {
 			agg.setOriginAggregation(fromLayer, fromAggLayer);
@@ -240,12 +235,14 @@ public class OutputBuilder {
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	private static AbstractResultsWriter<ODSingleResult> buildNMOutput(String d, boolean dropPrevious) throws SQLException, IOException {
+	private static AbstractResultsWriter<ODSingleResult> buildNMOutput(String d, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "nm-output");
 		if (r[0].equals("db")) {
 			return new ODWriter(r[1], r[2], r[3], r[4], dropPrevious);
-		} else {
+		} else if (r[0].equals("file") || r[0].equals("csv")) {
 			return new ODWriter(r[1]);
+		} else {
+			throw new IOException("The prefix '" + r[0] + "' is not known or does not support outputs.");
 		}
 	}
 	
@@ -258,12 +255,14 @@ public class OutputBuilder {
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	private static AbstractResultsWriter<ODSingleExtendedResult> buildExtNMOutput(String d, boolean dropPrevious) throws SQLException, IOException {
+	private static AbstractResultsWriter<ODSingleExtendedResult> buildExtNMOutput(String d, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "ext-nm-output");
 		if (r[0].equals("db")) {
 			return new ODExtendedWriter(r[1], r[2], r[3], r[4], dropPrevious);
-		} else {
+		} else if (r[0].equals("file") || r[0].equals("csv")) {
 			return new ODExtendedWriter(r[1]);
+		} else {
+			throw new IOException("The prefix '" + r[0] + "' is not known or does not support outputs.");
 		}
 	}
 	
@@ -276,12 +275,14 @@ public class OutputBuilder {
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	private static AbstractResultsWriter<ODSingleStatsResult> buildStatNMOutput(String d, boolean dropPrevious) throws SQLException, IOException {
+	private static AbstractResultsWriter<ODSingleStatsResult> buildStatNMOutput(String d, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "stat-nm-output");
 		if (r[0].equals("db")) {
 			return new ODStatsWriter(r[1], r[2], r[3], r[4], dropPrevious);
-		} else {
+		} else if (r[0].equals("file") || r[0].equals("csv")) {
 			return new ODStatsWriter(r[1]);
+		} else {
+			throw new IOException("The prefix '" + r[0] + "' is not known or does not support outputs.");
 		}
 	}
 	
@@ -294,12 +295,14 @@ public class OutputBuilder {
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	private static AbstractResultsWriter<InterchangeSingleResult> buildInterchangeOutput(String d, boolean dropPrevious) throws SQLException, IOException {
+	private static AbstractResultsWriter<InterchangeSingleResult> buildInterchangeOutput(String d, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "interchanges-output");
 		if (r[0].equals("db")) {
 			return new InterchangeWriter(r[1], r[2], r[3], r[4], dropPrevious);
-		} else {
+		} else if (r[0].equals("file") || r[0].equals("csv")) {
 			return new InterchangeWriter(r[1]);
+		} else {
+			throw new IOException("The prefix '" + r[0] + "' is not known or does not support outputs.");
 		}
 	}
 	
@@ -312,12 +315,14 @@ public class OutputBuilder {
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	private static AbstractResultsWriter<EUSingleResult> buildEUOutput(String d, boolean dropPrevious) throws SQLException, IOException {
+	private static AbstractResultsWriter<EUSingleResult> buildEUOutput(String d, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "edges-output");
 		if (r[0].equals("db")) {
 			return new EUWriter(r[1], r[2], r[3], r[4], dropPrevious);
-		} else {
+		} else if (r[0].equals("file") || r[0].equals("csv")) {
 			return new EUWriter(r[1]);
+		} else {
+			throw new IOException("The prefix '" + r[0] + "' is not known or does not support outputs.");
 		}
 	}
 	
@@ -330,12 +335,14 @@ public class OutputBuilder {
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	private static AbstractResultsWriter<PTODSingleResult> buildPTODOutput(String d, boolean dropPrevious) throws SQLException, IOException {
+	private static AbstractResultsWriter<PTODSingleResult> buildPTODOutput(String d, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "pt-output");
 		if (r[0].equals("db")) {
 			return new PTODWriter(r[1], r[2], r[3], r[4], dropPrevious);
-		} else {
+		} else if (r[0].equals("file") || r[0].equals("csv")) {
 			return new PTODWriter(r[1]);
+		} else {
+			throw new IOException("The prefix '" + r[0] + "' is not known or does not support outputs.");
 		}
 	}
 	

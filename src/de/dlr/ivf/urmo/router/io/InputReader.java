@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2020 DLR Institute of Transport Research
+ * Copyright (c) 2016-2021 DLR Institute of Transport Research
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -17,6 +17,7 @@
 package de.dlr.ivf.urmo.router.io;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
@@ -28,18 +29,34 @@ import java.sql.Statement;
 import java.util.Vector;
 
 import org.apache.commons.cli.CommandLine;
+import org.geotools.data.shapefile.ShapefileDataStore;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.data.simple.SimpleFeatureSource;
+import org.geotools.geometry.jts.JTS;
+import org.geotools.referencing.CRS;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.geometry.MismatchedDimensionException;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
+import org.opengis.referencing.operation.TransformException;
 import org.postgresql.PGConnection;
+import org.xml.sax.Attributes;
+import org.xml.sax.helpers.DefaultHandler;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
 
 import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
 import de.dlr.ivf.urmo.router.modes.Modes;
+import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.DBODRelation;
 import de.dlr.ivf.urmo.router.shapes.IDGiver;
 import de.dlr.ivf.urmo.router.shapes.Layer;
@@ -47,9 +64,8 @@ import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
 /**
  * @class DBIOHelper
- * @brief Some helper methods for loading data from the database
- * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of
- *         Transport Research
+ * @brief Some helper methods for loading data
+ * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
  */
 public class InputReader {
 	// --------------------------------------------------------
@@ -67,42 +83,46 @@ public class InputReader {
 	 * @throws ParseException
 	 * @throws IOException 
 	 */
-	public static int findUTMZone(CommandLine options) throws SQLException, ParseException, IOException {
+	public static int findUTMZone(CommandLine options) throws IOException {
 		String[] r = Utils.checkDefinition(options.getOptionValue("from", ""), "from");
 		if (!r[0].equals("db")) {
 			return 0;
 		}
-		Connection connection = DriverManager.getConnection(r[1], r[3], r[4]);
-		connection.setAutoCommit(true);
-		connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
-		((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-		String geomString = options.getOptionValue("from.geom", "the_geom");
-		String query = "SELECT min(ST_X(ST_TRANSFORM("+geomString+",4326)))as lon, min(ST_Y(ST_TRANSFORM("+geomString+",4326)))as lat FROM " + r[2] + ";";
-		Statement s = connection.createStatement();
-		ResultSet rs = s.executeQuery(query);
-		int epsg=-1;
-		double lon, lat;
-		while (rs.next()) {
-			lon = rs.getDouble("lon");
-			lat = rs.getDouble("lat");
-			if(lat>84.0 || lat<-84.0) {
-				//around north or south-pole!
-				break;
+		try {
+			Connection connection = DriverManager.getConnection(r[1], r[3], r[4]);
+			connection.setAutoCommit(true);
+			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
+			((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
+			String geomString = options.getOptionValue("from.geom", "the_geom");
+			String query = "SELECT min(ST_X(ST_TRANSFORM("+geomString+",4326)))as lon, min(ST_Y(ST_TRANSFORM("+geomString+",4326)))as lat FROM " + r[2] + ";";
+			Statement s = connection.createStatement();
+			ResultSet rs = s.executeQuery(query);
+			int epsg=-1;
+			double lon, lat;
+			while (rs.next()) {
+				lon = rs.getDouble("lon");
+				lat = rs.getDouble("lat");
+				if(lat>84.0 || lat<-84.0) {
+					//around north or south-pole!
+					break;
+				}
+				if(lon>180.0 || lon<-180.0) {
+					//invalid longitude!
+					break;
+				}
+				if(lat>=0) { //northern hemisphere
+					epsg = 32600;
+				} else { //southern hemisphere
+					epsg = 32500;
+				}
+				epsg += ((180.0 + lon) / 6.) + 1;
 			}
-			if(lon>180.0 || lon<-180.0) {
-				//invalid longitude!
-				break;
-			}
-			if(lat>=0) { //northern hemisphere
-				epsg = 32600;
-			} else { //southern hemisphere
-				epsg = 32500;
-			}
-			epsg += ((180.0 + lon) / 6.) + 1;
+			rs.close();
+			s.close();
+			return epsg;
+		} catch (SQLException e) {
+			throw new IOException(e);
 		}
-		rs.close();
-		s.close();
-		return epsg;
 	}
 	
 	
@@ -122,16 +142,33 @@ public class InputReader {
 	 * @throws SQLException
 	 * @throws ParseException
 	 */
-	public static Layer loadLayer(CommandLine options, String base, String varName, IDGiver idGiver, int epsg) throws SQLException, ParseException, IOException {
+	public static Layer loadLayer(CommandLine options, String base, String varName, IDGiver idGiver, int epsg) throws IOException {
 		String filter = varName==null ? "" : options.getOptionValue(base + "-filter", ""); // !!! use something different
 		varName = varName==null ? null : options.getOptionValue(varName, "");
 		String[] r = Utils.checkDefinition(options.getOptionValue(base, ""), base);
 		if (r[0].equals("db")) {
-			return loadLayerFromDB(base, r[1], r[2], r[3], r[4], filter, varName, 
-					options.getOptionValue(base + ".id", "gid"), options.getOptionValue(base + ".geom", "the_geom"), 
-					idGiver, epsg);
+			try {
+				return loadLayerFromDB(base, r[1], r[2], r[3], r[4], filter, varName, 
+						options.getOptionValue(base + ".id", "gid"), options.getOptionValue(base + ".geom", "the_geom"), 
+						idGiver, epsg);
+			} catch (SQLException | ParseException e) {
+				throw new IOException(e);
+			}
+		} else if (r[0].equals("file") || r[0].equals("csv")) {
+			try {
+				return loadLayerFromCSVFile(base, r[1], idGiver);
+			} catch (ParseException | IOException e) {
+				throw new IOException(e);
+			}
+		} else if (r[0].equals("shp")) {
+			try {
+				return loadLayerFromShapefile(base, r[1], varName, options.getOptionValue(base + ".id", "gid"), 
+						options.getOptionValue(base + ".geom", "the_geom"), idGiver, epsg);
+			} catch (MismatchedDimensionException | ParseException | IOException | FactoryException | TransformException e) {
+				throw new IOException(e);
+			}
 		} else {
-			return loadLayerFromFile(base, r[1], idGiver);
+			throw new IOException("The prefix '" + r[0] + "' is not known.");
 		}
 	}
 	
@@ -211,7 +248,7 @@ public class InputReader {
 	 * @throws SQLException
 	 * @throws ParseException
 	 */
-	private static Layer loadLayerFromFile(String layerName, String fileName, IDGiver idGiver) throws ParseException, IOException { 
+	private static Layer loadLayerFromCSVFile(String layerName, String fileName, IDGiver idGiver) throws ParseException, IOException { 
 		Layer layer = new Layer(layerName);
 		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
 		BufferedReader br = new BufferedReader(new FileReader(fileName));
@@ -248,15 +285,101 @@ public class InputReader {
 	
 	
 	
+	/**
+	 * @brief Loads a set of objects from a shapefile
+	 * 
+	 * @param url The url of the database
+	 * @param table The table to read from
+	 * @param user The user name for connecting to the database
+	 * @param pw The user's password
+	 * @param filter A WHERE-clause statement (optional, empty string if not used)
+	 * @param varName The name of the attached variable
+	 * @param layerName The name of the layer to generate
+	 * @param idGiver A reference to something that supports a running ID
+	 * @return The generated layer with the read objects
+	 * @throws SQLException
+	 * @throws ParseException
+	 * @throws FactoryException 
+	 * @throws NoSuchAuthorityCodeException 
+	 * @throws TransformException 
+	 * @throws MismatchedDimensionException 
+	 */
+	private static Layer loadLayerFromShapefile(String layerName, String fileName, String varName,
+			String idS, String geomS, IDGiver idGiver, int epsg) throws ParseException, IOException, NoSuchAuthorityCodeException, FactoryException, MismatchedDimensionException, TransformException { 
+		Layer layer = new Layer(layerName);
+		File file = new File(fileName);
+		if(!file.exists() || !fileName.endsWith(".shp")) {
+		    throw new IOException("Invalid shapefile filepath: " + fileName);
+		}
+		ShapefileDataStore dataStore = new ShapefileDataStore(file.toURL());
+		SimpleFeatureSource featureSource = dataStore.getFeatureSource();
+		SimpleFeatureCollection featureCollection = featureSource.getFeatures();
+
+		SimpleFeatureType schema = featureSource.getSchema();
+		CoordinateReferenceSystem dataCRS = schema.getCoordinateReferenceSystem();
+        CoordinateReferenceSystem worldCRS = CRS.decode("EPSG:" + epsg);
+        boolean lenient = true; // allow for some error due to different datums
+        MathTransform transform = CRS.findMathTransform(dataCRS, worldCRS, lenient);		
+		
+		SimpleFeatureIterator iterator = featureCollection.features();
+		while(iterator.hasNext()) {
+		    SimpleFeature feature = iterator.next();
+		    Geometry g = (Geometry) feature.getAttribute(geomS);
+		    Geometry geom = JTS.transform(g, transform);
+		    Integer id = (Integer) feature.getAttribute(idS);
+			double var = 1;
+			if(varName!=null && !"".equals(varName)) {
+				var = (Double) feature.getAttribute(varName);
+			}
+			LayerObject o = new LayerObject(idGiver.getNextRunningID(), id, var, geom);
+			layer.addObject(o);
+		}
+		return layer;
+	}
+	
+	
+	class SUMOLayerHandler extends DefaultHandler {
+		public SUMOLayerHandler(Layer layer) {
+		}
+
+		@Override
+		public void startDocument() {
+		}
+
+		@Override
+		public void endDocument() {
+		}
+
+		@Override
+		public void startElement(String uri, String localName, String qName, Attributes attributes) {
+		}
+
+		@Override
+		public void endElement(String uri, String localName, String qName) {
+		}
+
+		@Override
+		public void characters(char ch[], int start, int length) {
+		}		
+	}
+	
+	
+	
 	// --------------------------------------------------------
 	// entrainment loading
 	// --------------------------------------------------------
-	public static EntrainmentMap loadEntrainment(CommandLine options)  throws SQLException, ParseException, IOException {
+	public static EntrainmentMap loadEntrainment(CommandLine options)  throws IOException {
 		String[] r = Utils.checkDefinition(options.getOptionValue("entrainment", ""), "entrainment");
 		if (r[0].equals("db")) {
-			return loadEntrainmentFromDB(r[1], r[2], r[3], r[4]);
+			try {
+				return loadEntrainmentFromDB(r[1], r[2], r[3], r[4]);
+			} catch (SQLException | ParseException e) {
+				throw new IOException(e);
+			}
+		} else if (r[0].equals("file") || r[0].equals("csv")) {
+			return loadEntrainmentFromCSVFile(r[1]);
 		} else {
-			return loadEntrainmentFromFile(r[1]);
+			throw new IOException("The prefix '" + r[0] + "' is not known or does not support entrainment.");
 		}
 	}
 	
@@ -281,7 +404,7 @@ public class InputReader {
 
 
 	
-	private static EntrainmentMap loadEntrainmentFromFile(String fileName) throws IOException {
+	private static EntrainmentMap loadEntrainmentFromCSVFile(String fileName) throws IOException {
 		EntrainmentMap em = new EntrainmentMap();
 		BufferedReader br = new BufferedReader(new FileReader(fileName));
 		String line = null;
@@ -302,12 +425,28 @@ public class InputReader {
 	// --------------------------------------------------------
 	// geometry loading
 	// --------------------------------------------------------
-	public static Geometry loadGeometry(String def, String what, int epsg)  throws SQLException, ParseException, IOException {
+	public static Geometry loadGeometry(String def, String what, int epsg)  throws IOException {
 		String[] r = Utils.checkDefinition(def, what);
 		if (r[0].equals("db")) {
-			return loadGeometryFromDB(r[1], r[2], r[3], r[4], epsg);
+			try {
+				return loadGeometryFromDB(r[1], r[2], r[3], r[4], epsg);
+			} catch (SQLException | ParseException e) {
+				throw new IOException(e);
+			}
+		} else if (r[0].equals("file") || r[0].equals("csv")) {
+			try {
+				return loadGeometryFromCSVFile(r[1]);
+			} catch (ParseException | IOException e) {
+				throw new IOException(e);
+			}
+		} else if (r[0].equals("shp")) {
+			try {
+				return loadGeometryFromShapefile(r[1], epsg);
+			} catch (MismatchedDimensionException | ParseException | IOException | FactoryException | TransformException e) {
+				throw new IOException(e);
+			}
 		} else {
-			return loadGeometryFromFile(r[1]);
+			throw new IOException("The prefix '" + r[0] + "' is not known or does not support geometry.");
 		}
 	}
 	
@@ -332,7 +471,7 @@ public class InputReader {
 	}
 	
 	
-	private static Geometry loadGeometryFromFile(String fileName) throws ParseException, IOException {
+	private static Geometry loadGeometryFromCSVFile(String fileName) throws ParseException, IOException {
 		BufferedReader br = new BufferedReader(new FileReader(fileName));
 		String line = br.readLine();
 		while(line!=null && (line.length()==0 || line.charAt(0)=='#')) {
@@ -354,15 +493,49 @@ public class InputReader {
 	
 	
 	
+	private static Geometry loadGeometryFromShapefile(String fileName, int epsg) throws ParseException, IOException, NoSuchAuthorityCodeException, FactoryException, MismatchedDimensionException, TransformException {
+		File file = new File(fileName);
+		if(!file.exists() || !fileName.endsWith(".shp")) {
+		    throw new IOException("Invalid shapefile filepath: " + fileName);
+		}
+		ShapefileDataStore dataStore = new ShapefileDataStore(file.toURL());
+		SimpleFeatureSource featureSource = dataStore.getFeatureSource();
+		SimpleFeatureCollection featureCollection = featureSource.getFeatures();
+
+		SimpleFeatureType schema = featureSource.getSchema();
+		CoordinateReferenceSystem dataCRS = schema.getCoordinateReferenceSystem();
+        CoordinateReferenceSystem worldCRS = CRS.decode("EPSG:" + epsg);
+        boolean lenient = true; // allow for some error due to different datums
+        MathTransform transform = CRS.findMathTransform(dataCRS, worldCRS, lenient);		
+		
+		SimpleFeatureIterator iterator = featureCollection.features();
+		while(iterator.hasNext()) {
+		    SimpleFeature feature = iterator.next();
+		    Geometry g = (Geometry) feature.getAttribute("the_geom");
+		    Geometry geom = JTS.transform(g, transform);
+		    // !!! clean up
+		    return geom;
+		}
+		throw new IOException("Could not load geometry from '" + fileName + "'.");
+	}
+	
+	
+	
 	// --------------------------------------------------------
 	// od-connections loading
 	// --------------------------------------------------------
-	public static Vector<DBODRelation> loadODConnections(String def) throws SQLException, ParseException, IOException {
+	public static Vector<DBODRelation> loadODConnections(String def) throws IOException {
 		String[] r = Utils.checkDefinition(def, "od-connections");
 		if (r[0].equals("db")) {
-			return loadODConnectionsDB(r[1], r[2], r[3], r[4]);
+			try {
+				return loadODConnectionsDB(r[1], r[2], r[3], r[4]);
+			} catch (SQLException | ParseException e) {
+				throw new IOException(e);
+			}
+		} else if (r[0].equals("file") || r[0].equals("csv")) {
+			return loadODConnectionsFromCSVFile(r[1]);
 		} else {
-			return loadODConnectionsFromFile(r[1]);
+			throw new IOException("The prefix '" + r[0] + "' is not known or does not support geometry.");
 		}
 	}
 
@@ -386,7 +559,7 @@ public class InputReader {
 
 
 
-	private static Vector<DBODRelation> loadODConnectionsFromFile(String fileName) throws IOException {
+	private static Vector<DBODRelation> loadODConnectionsFromCSVFile(String fileName) throws IOException {
 		Vector<DBODRelation> ret =  new Vector<>();
 		BufferedReader br = new BufferedReader(new FileReader(fileName));
 		String line = null;

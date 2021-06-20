@@ -42,7 +42,7 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
 	 * @throws SQLException When something fails
 	 */
-	public ODExtendedWriter(String url, String tableName, String user, String pw, boolean dropPrevious) throws SQLException {
+	public ODExtendedWriter(String url, String tableName, String user, String pw, boolean dropPrevious) throws IOException {
 		super(url, user, pw, tableName,
 				"(fid bigint, sid bigint, avg_distance real, avg_tt real, avg_v real, avg_num real, avg_value real, "
 				+ "avg_kcal real, avg_price real, avg_co2 real, avg_interchanges real, avg_access real, avg_egress real, "
@@ -70,31 +70,35 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 	 * @throws IOException When something fails
 	 */
 	@Override
-	public void writeResult(ODSingleExtendedResult result) throws SQLException, IOException {
+	public void writeResult(ODSingleExtendedResult result) throws IOException {
 		if (intoDB()) {
-			_ps.setLong(1, result.srcID);
-			_ps.setLong(2, result.destID);
-			_ps.setFloat(3, (float) result.weightedDistance);
-			_ps.setFloat(4, (float) result.weightedTravelTime);
-			_ps.setFloat(5, (float) result.weightedSpeed);
-			_ps.setFloat(6, (float) result.connectionsWeightSum);
-			_ps.setFloat(7, (float) result.weightedValue);
-			_ps.setFloat(8, (float) result.weightedKCal);
-			_ps.setFloat(9, (float) result.weightedPrice);
-			_ps.setFloat(10, (float) result.weightedCO2);
-			_ps.setFloat(11, (float) result.weightedInterchanges);
-			_ps.setFloat(12, (float) result.weightedAccess);
-			_ps.setFloat(13, (float) result.weightedEgress);
-			_ps.setFloat(14, (float) result.weightedWaitingTime);
-			_ps.setFloat(15, (float) result.weightedInitialWaitingTime);
-			_ps.setFloat(16, (float) result.weightedPTTravelTime);
-			_ps.setFloat(17, (float) result.weightedInterchangeTime);
-			_ps.setString(18, result.lines.toString()); // modes
-			_ps.addBatch();
-			++batchCount;
-			if(batchCount>10000) {
-				_ps.executeBatch();
-				batchCount = 0;
+			try {
+				_ps.setLong(1, result.srcID);
+				_ps.setLong(2, result.destID);
+				_ps.setFloat(3, (float) result.weightedDistance);
+				_ps.setFloat(4, (float) result.weightedTravelTime);
+				_ps.setFloat(5, (float) result.weightedSpeed);
+				_ps.setFloat(6, (float) result.connectionsWeightSum);
+				_ps.setFloat(7, (float) result.weightedValue);
+				_ps.setFloat(8, (float) result.weightedKCal);
+				_ps.setFloat(9, (float) result.weightedPrice);
+				_ps.setFloat(10, (float) result.weightedCO2);
+				_ps.setFloat(11, (float) result.weightedInterchanges);
+				_ps.setFloat(12, (float) result.weightedAccess);
+				_ps.setFloat(13, (float) result.weightedEgress);
+				_ps.setFloat(14, (float) result.weightedWaitingTime);
+				_ps.setFloat(15, (float) result.weightedInitialWaitingTime);
+				_ps.setFloat(16, (float) result.weightedPTTravelTime);
+				_ps.setFloat(17, (float) result.weightedInterchangeTime);
+				_ps.setString(18, result.lines.toString()); // modes
+				_ps.addBatch();
+				++batchCount;
+				if(batchCount>10000) {
+					_ps.executeBatch();
+					batchCount = 0;
+				}
+			} catch (SQLException ex) {
+				throw new IOException(ex);
 			}
 		} else {
 			_fileWriter.append(result.srcID + ";" + result.destID + ";" 

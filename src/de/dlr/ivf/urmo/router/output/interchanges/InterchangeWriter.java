@@ -44,7 +44,7 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
 	 * @throws SQLException When something fails
 	 */
-	public InterchangeWriter(String url, String tableName, String user, String pw, boolean dropPrevious) throws SQLException {
+	public InterchangeWriter(String url, String tableName, String user, String pw, boolean dropPrevious) throws IOException {
 		super(url, user, pw, tableName,
 				"(fid bigint, sid bigint, halt text, line_from text, line_to text, num bigint, tt real)",
 				"VALUES (?, ?, ?, ?, ?, ?, ?)", dropPrevious);
@@ -70,26 +70,30 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 	 * @throws IOException When something fails
 	 */
 	@Override
-	public void writeResult(InterchangeSingleResult result) throws SQLException, IOException {
+	public void writeResult(InterchangeSingleResult result) throws IOException {
 		if (intoDB()) {
-			for(String id : result.stats.keySet()) {
-				Map<String, InterchangeParam> ssstats = result.stats.get(id);
-				for(String id2 : ssstats.keySet()) {
-					String[] lineIDs = InterchangeSingleResult.splitLinesKey(id2);
-					_ps.setLong(1, result.srcID);
-					_ps.setLong(2, result.destID);
-					_ps.setString(3, id);
-					_ps.setString(4, lineIDs[0]);
-					_ps.setString(5, lineIDs[1]);
-					_ps.setLong(6, ssstats.get(id2).number);
-					_ps.setFloat(7, (float) ssstats.get(id2).weightedTT);
-					_ps.addBatch();
-					++batchCount;
+			try {
+				for(String id : result.stats.keySet()) {
+					Map<String, InterchangeParam> ssstats = result.stats.get(id);
+					for(String id2 : ssstats.keySet()) {
+						String[] lineIDs = InterchangeSingleResult.splitLinesKey(id2);
+							_ps.setLong(1, result.srcID);
+							_ps.setLong(2, result.destID);
+							_ps.setString(3, id);
+							_ps.setString(4, lineIDs[0]);
+							_ps.setString(5, lineIDs[1]);
+							_ps.setLong(6, ssstats.get(id2).number);
+							_ps.setFloat(7, (float) ssstats.get(id2).weightedTT);
+							_ps.addBatch();
+							++batchCount;
+					}
 				}
-			}
-			if(batchCount>10000) {
-				_ps.executeBatch();
-				batchCount = 0;
+				if(batchCount>10000) {
+					_ps.executeBatch();
+					batchCount = 0;
+				}
+			} catch (SQLException ex) {
+				throw new IOException(ex);
 			}
 		} else {
 			for(String id : result.stats.keySet()) {

@@ -42,7 +42,7 @@ public class PTODWriter extends AbstractResultsWriter<PTODSingleResult> {
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
 	 * @throws SQLException When something fails
 	 */
-	public PTODWriter(String url, String tableName, String user, String pw, boolean dropPrevious) throws SQLException {
+	public PTODWriter(String url, String tableName, String user, String pw, boolean dropPrevious) throws IOException {
 		super(url, user, pw, tableName,
 				"(fid bigint, sid bigint, "
 				+ "avg_access_distance real, avg_access_tt real, avg_egress_distance real, avg_egress_tt real, "
@@ -71,28 +71,32 @@ public class PTODWriter extends AbstractResultsWriter<PTODSingleResult> {
 	 * @throws IOException When something fails
 	 */
 	@Override
-	public void writeResult(PTODSingleResult result) throws SQLException, IOException {
+	public void writeResult(PTODSingleResult result) throws IOException {
 		if (intoDB()) {
-			_ps.setLong(1, result.srcID);
-			_ps.setLong(2, result.destID);
-			_ps.setFloat(3, (float) result.weightedAccessDistance);
-			_ps.setFloat(4, (float) result.weightedAccessTravelTime);
-			_ps.setFloat(5, (float) result.weightedEgressDistance);
-			_ps.setFloat(6, (float) result.weightedEgressTravelTime);
-			_ps.setFloat(7, (float) result.weightedInterchangeDistance);
-			_ps.setFloat(8, (float) result.weightedInterchangeTravelTime);
-			_ps.setFloat(9, (float) result.weightedPTDistance);
-			_ps.setFloat(10, (float) result.weightedPTTravelTime);
-			_ps.setFloat(11, (float) result.weightedInterchangesNum);
-			_ps.setFloat(12, (float) result.weightedWaitingTime);
-			_ps.setFloat(13, (float) result.weightedInitialWaitingTime);
-			_ps.setFloat(14, (float) result.connectionsWeightSum);
-			_ps.setFloat(15, (float) result.weightedValue);
-			_ps.addBatch();
-			++batchCount;
-			if(batchCount>10000) {
-				_ps.executeBatch();
-				batchCount = 0;
+			try {
+				_ps.setLong(1, result.srcID);
+				_ps.setLong(2, result.destID);
+				_ps.setFloat(3, (float) result.weightedAccessDistance);
+				_ps.setFloat(4, (float) result.weightedAccessTravelTime);
+				_ps.setFloat(5, (float) result.weightedEgressDistance);
+				_ps.setFloat(6, (float) result.weightedEgressTravelTime);
+				_ps.setFloat(7, (float) result.weightedInterchangeDistance);
+				_ps.setFloat(8, (float) result.weightedInterchangeTravelTime);
+				_ps.setFloat(9, (float) result.weightedPTDistance);
+				_ps.setFloat(10, (float) result.weightedPTTravelTime);
+				_ps.setFloat(11, (float) result.weightedInterchangesNum);
+				_ps.setFloat(12, (float) result.weightedWaitingTime);
+				_ps.setFloat(13, (float) result.weightedInitialWaitingTime);
+				_ps.setFloat(14, (float) result.connectionsWeightSum);
+				_ps.setFloat(15, (float) result.weightedValue);
+				_ps.addBatch();
+				++batchCount;
+				if(batchCount>10000) {
+					_ps.executeBatch();
+					batchCount = 0;
+				}
+			} catch (SQLException ex) {
+				throw new IOException(ex);
 			}
 		} else {
 			_fileWriter.append(result.srcID + ";" + result.destID + ";" 

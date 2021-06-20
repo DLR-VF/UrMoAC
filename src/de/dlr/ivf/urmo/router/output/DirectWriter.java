@@ -53,7 +53,7 @@ public class DirectWriter extends BasicCombinedWriter {
 	 * @throws SQLException When something fails
 	 */
 	public DirectWriter(String url, String tableName, String user, String pw, int rsid, 
-			HashMap<DBEdge, Vector<MapResult>> _nearestToEdges, boolean dropPrevious) throws SQLException {
+			HashMap<DBEdge, Vector<MapResult>> _nearestToEdges, boolean dropPrevious) throws IOException {
 		super(url, user, pw, tableName, "(fid bigint, sid bigint, line text, mode text, tt real, node text, idx integer)", "VALUES (?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?, " + rsid + "))", dropPrevious);
 		addGeometryColumn("geom", rsid, "LINESTRING", 2);
 		nearestToEdges = _nearestToEdges;
@@ -84,7 +84,7 @@ public class DirectWriter extends BasicCombinedWriter {
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	public synchronized void writeResult(DijkstraResult result, MapResult from, boolean needsPT, long singleDestination) throws SQLException, IOException {
+	public synchronized void writeResult(DijkstraResult result, MapResult from, boolean needsPT, long singleDestination) throws IOException {
 		for(DBEdge e : result.edgeMap.keySet()) {
 			DijkstraEntry toEdgeEntry = result.getEdgeInfo(e);
 			if(!toEdgeEntry.matchesRequirements(needsPT)) {
@@ -103,20 +103,24 @@ public class DirectWriter extends BasicCombinedWriter {
 						id = ((GTFSStop) current.n).mid;
 					}
 					if (intoDB()) {
-						_ps.setLong(1, from.em.getOuterID());
-						_ps.setLong(2, toObject.em.getOuterID());
-						_ps.setString(3, current.line);
-						_ps.setString(4, current.usedMode.mml);
-						_ps.setDouble(5, current.ttt);
-						_ps.setString(6, id);
-						_ps.setInt(7, index);
-						_ps.setString(8, current.e.geom.toText());
-						_ps.addBatch();
-						++batchCount;
-						if(batchCount>100) {
-							_ps.executeBatch();
-							_connection.commit();
-							batchCount = 0;
+						try {
+							_ps.setLong(1, from.em.getOuterID());
+							_ps.setLong(2, toObject.em.getOuterID());
+							_ps.setString(3, current.line);
+							_ps.setString(4, current.usedMode.mml);
+							_ps.setDouble(5, current.ttt);
+							_ps.setString(6, id);
+							_ps.setInt(7, index);
+							_ps.setString(8, current.e.geom.toText());
+							_ps.addBatch();
+							++batchCount;
+							if(batchCount>100) {
+								_ps.executeBatch();
+								_connection.commit();
+								batchCount = 0;
+							}
+						} catch (SQLException ex) {
+							throw new IOException(ex);
 						}
 					} else {
 						_fileWriter.append(from.em.getOuterID() + ";" + toObject.em.getOuterID() + ";" + current.line + ";"
@@ -130,8 +134,12 @@ public class DirectWriter extends BasicCombinedWriter {
 			}
 		}
 		if (intoDB()) {
-			_ps.executeBatch();
-			_connection.commit();
+			try {
+				_ps.executeBatch();
+				_connection.commit();
+			} catch (SQLException ex) {
+				throw new IOException(ex);
+			}	
 		}
 	}
 

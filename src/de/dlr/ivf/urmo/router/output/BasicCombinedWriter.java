@@ -62,21 +62,25 @@ public class BasicCombinedWriter {
 	 * @throws SQLException When something fails
 	 */
 	public BasicCombinedWriter(String url, String user, String pw, String tableName, String tableDef, 
-			String insertStmt, boolean dropPrevious) throws SQLException {
-		_tableName = tableName;
-		_connection = DriverManager.getConnection(url, user, pw);
-		_connection.setAutoCommit(true);
-		_connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
-		((PGConnection) _connection).addDataType("geometry", org.postgis.PGgeometry.class);
-		if(dropPrevious) {
-			String sql = "DROP TABLE IF EXISTS " + _tableName + ";";
-			_connection.createStatement().executeUpdate(sql);
+			String insertStmt, boolean dropPrevious) throws IOException {
+		try {
+			_tableName = tableName;
+			_connection = DriverManager.getConnection(url, user, pw);
+			_connection.setAutoCommit(true);
+			_connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
+			((PGConnection) _connection).addDataType("geometry", org.postgis.PGgeometry.class);
+			if(dropPrevious) {
+				String sql = "DROP TABLE IF EXISTS " + _tableName + ";";
+				_connection.createStatement().executeUpdate(sql);
+			}
+			String sql = "CREATE TABLE " + _tableName + " " + tableDef + ";";
+			Statement s = _connection.createStatement();
+			s.executeUpdate(sql);
+			_connection.setAutoCommit(false);
+			_ps = _connection.prepareStatement("INSERT INTO " + _tableName + " " + insertStmt + ";");
+		} catch (SQLException e) {
+			throw new IOException(e);
 		}
-		String sql = "CREATE TABLE " + _tableName + " " + tableDef + ";";
-		Statement s = _connection.createStatement();
-		s.executeUpdate(sql);
-		_connection.setAutoCommit(false);
-		_ps = _connection.prepareStatement("INSERT INTO " + _tableName + " " + insertStmt + ";");
 	}
 
 
@@ -106,11 +110,15 @@ public class BasicCombinedWriter {
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	public synchronized void close() throws SQLException, IOException {
+	public synchronized void close() throws IOException {
 		if (intoDB()) {
-			_ps.executeBatch();
-			_connection.commit();
-			_connection.close();
+			try {
+				_ps.executeBatch();
+				_connection.commit();
+				_connection.close();
+			} catch (SQLException e) {
+				throw new IOException(e);
+			}
 		} else {
 			_fileWriter.close();
 		}
@@ -122,11 +130,15 @@ public class BasicCombinedWriter {
 	 * @param comment The comment to add
 	 * @throws SQLException When something fails
 	 */
-	public void addComment(String comment) throws SQLException {
+	public void addComment(String comment) throws IOException {
 		if (intoDB()) {
 			String sql = "COMMENT ON TABLE " + _tableName + " IS '" + comment + "';";
-			Statement s = _connection.createStatement();
-			s.executeUpdate(sql);
+			try {
+				Statement s = _connection.createStatement();
+				s.executeUpdate(sql);
+			} catch (SQLException ex) {
+				throw new IOException(ex);
+			}
 		}
 	}
 
@@ -139,11 +151,15 @@ public class BasicCombinedWriter {
 	 * @param numDim The number of dimensions of this geometry
 	 * @throws SQLException When something fails
 	 */
-	protected void addGeometryColumn(String name, int rsid, String geomType, int numDim) throws SQLException {
+	protected void addGeometryColumn(String name, int rsid, String geomType, int numDim) throws IOException {
 		String[] d = _tableName.split("\\.");
-		_connection.createStatement().executeQuery("SELECT AddGeometryColumn('" + d[0] + "', '" + d[1] + "', '" + name
-				+ "', " + rsid + ", '" + geomType + "', " + numDim + ");");
-		_connection.commit();
+		try {
+			_connection.createStatement().executeQuery("SELECT AddGeometryColumn('" + d[0] + "', '" + d[1] + "', '" + name
+					+ "', " + rsid + ", '" + geomType + "', " + numDim + ");");
+			_connection.commit();
+		} catch (SQLException e) {
+			throw new IOException(e);
+		}
 	}
 
 
@@ -152,10 +168,14 @@ public class BasicCombinedWriter {
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	protected synchronized void flush() throws SQLException, IOException {
+	protected synchronized void flush() throws IOException {
 		if (intoDB()) {
-			_ps.executeBatch();
-			_connection.commit();
+			try {
+				_ps.executeBatch();
+				_connection.commit();
+			} catch (SQLException e) {
+				throw new IOException(e);
+			}
 		} else {
 			_fileWriter.flush();
 		}

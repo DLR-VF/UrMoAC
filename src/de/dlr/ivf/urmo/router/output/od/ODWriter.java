@@ -42,7 +42,7 @@ public class ODWriter extends AbstractResultsWriter<ODSingleResult> {
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
 	 * @throws SQLException When something fails
 	 */
-	public ODWriter(String url, String tableName, String user, String pw, boolean dropPrevious) throws SQLException {
+	public ODWriter(String url, String tableName, String user, String pw, boolean dropPrevious) throws IOException {
 		super(url, user, pw, tableName,
 				"(fid bigint, sid bigint, avg_distance real, avg_tt real, avg_num real, avg_value real)",
 				"VALUES (?, ?, ?, ?, ?, ?)", dropPrevious);
@@ -68,19 +68,23 @@ public class ODWriter extends AbstractResultsWriter<ODSingleResult> {
 	 * @throws IOException When something fails
 	 */
 	@Override
-	public void writeResult(ODSingleResult result) throws SQLException, IOException {
+	public void writeResult(ODSingleResult result) throws IOException {
 		if (intoDB()) {
-			_ps.setLong(1, result.srcID);
-			_ps.setLong(2, result.destID);
-			_ps.setFloat(3, (float) result.weightedDistance);
-			_ps.setFloat(4, (float) result.weightedTravelTime);
-			_ps.setFloat(5, (float) result.connectionsWeightSum);
-			_ps.setFloat(6, (float) result.weightedValue);
-			_ps.addBatch();
-			++batchCount;
-			if(batchCount>10000) {
-				_ps.executeBatch();
-				batchCount = 0;
+			try {
+				_ps.setLong(1, result.srcID);
+				_ps.setLong(2, result.destID);
+				_ps.setFloat(3, (float) result.weightedDistance);
+				_ps.setFloat(4, (float) result.weightedTravelTime);
+				_ps.setFloat(5, (float) result.connectionsWeightSum);
+				_ps.setFloat(6, (float) result.weightedValue);
+				_ps.addBatch();
+				++batchCount;
+				if(batchCount>10000) {
+					_ps.executeBatch();
+					batchCount = 0;
+				}
+			} catch (SQLException ex) {
+				throw new IOException(ex);
 			}
 		} else {
 			_fileWriter.append(result.srcID + ";" + result.destID + ";" 

@@ -40,7 +40,7 @@ public abstract class AbstractResultsWriter<T> extends BasicCombinedWriter {
 	 * @throws SQLException When something fails
 	 */
 	public AbstractResultsWriter(String url, String user, String pw, String _tableName, String tableDef, 
-			String insertStmt, boolean dropPrevious) throws SQLException {
+			String insertStmt, boolean dropPrevious) throws IOException {
 		super(url, user, pw, _tableName, tableDef, insertStmt, dropPrevious);
 	}
 
@@ -63,6 +63,6 @@ public abstract class AbstractResultsWriter<T> extends BasicCombinedWriter {
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	public abstract void writeResult(T result) throws SQLException, IOException;
+	public abstract void writeResult(T result) throws IOException;
 
 }

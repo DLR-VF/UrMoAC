@@ -52,7 +52,7 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
 	 * @throws SQLException When something fails
 	 */
-	public EdgeMappingWriter(String url, String tableName, String user, String pw, int rsid, boolean dropPrevious) throws SQLException {
+	public EdgeMappingWriter(String url, String tableName, String user, String pw, int rsid, boolean dropPrevious) throws IOException {
 		super(url, user, pw, tableName, "(gid bigint, rid text, rpos real, dist real)", "VALUES (?, ?, ?, ?, ST_GeomFromText(?, " + rsid + "))", dropPrevious);
 		addGeometryColumn("pos", rsid, "LINESTRING", 2);
 	}
@@ -79,8 +79,7 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 	 * @throws FactoryException When something fails
 	 * @throws TransformException When something fails
 	 */
-	public void writeResults(HashMap<DBEdge, Vector<MapResult>> nearestEdges)
-			throws SQLException, IOException, NoSuchAuthorityCodeException, FactoryException, TransformException {
+	public void writeResults(HashMap<DBEdge, Vector<MapResult>> nearestEdges) throws IOException {
 		Vector<DBEdge> edges = new Vector<>(nearestEdges.keySet());
 		Collections.sort(edges, new Comparator<DBEdge>() {
             public int compare(DBEdge e1, DBEdge e2) {
@@ -101,14 +100,18 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 				PointPairDistance ppd = new PointPairDistance();
 				DistanceToPointFinder.computeDistance(e.geom, o.em.getPoint().getCoordinate(), ppd);
 				if (intoDB()) {
-					_ps.setLong(1, o.em.getOuterID());
-					_ps.setString(2, e.id);
-					_ps.setFloat(3, (float) o.pos);
-					_ps.setFloat(4, (float) o.dist);
-					String p1 = ppd.getCoordinate(0).x + " " + ppd.getCoordinate(0).y;
-					String p2 = ppd.getCoordinate(1).x + " " + ppd.getCoordinate(1).y;
-					_ps.setString(5, "LINESTRING(" + p1 + "," + p2 + ")");
-					_ps.addBatch();
+					try {
+						_ps.setLong(1, o.em.getOuterID());
+						_ps.setString(2, e.id);
+						_ps.setFloat(3, (float) o.pos);
+						_ps.setFloat(4, (float) o.dist);
+						String p1 = ppd.getCoordinate(0).x + " " + ppd.getCoordinate(0).y;
+						String p2 = ppd.getCoordinate(1).x + " " + ppd.getCoordinate(1).y;
+						_ps.setString(5, "LINESTRING(" + p1 + "," + p2 + ")");
+						_ps.addBatch();
+					} catch (SQLException ex) {
+						throw new IOException(ex);
+					}
 				} else {
 					_fileWriter.append(o.em.getOuterID() + ";" + e.id + ";" + o.pos + ";" + o.dist + ";" 
 							+ ppd.getCoordinate(0).x + ";" + ppd.getCoordinate(0).y + ";" 
@@ -124,11 +127,15 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 	 * @param comment The comment to add
 	 * @throws SQLException When something fails
 	 */
-	public void addComment(String comment) throws SQLException {
+	public void addComment(String comment) throws IOException {
 		if (intoDB()) {
-			String sql = "COMMENT ON TABLE " + _tableName + " IS '" + comment + "';";
-			Statement s = _connection.createStatement();
-			s.executeUpdate(sql);
+			try {
+				String sql = "COMMENT ON TABLE " + _tableName + " IS '" + comment + "';";
+				Statement s = _connection.createStatement();
+				s.executeUpdate(sql);
+			} catch (SQLException ex) {
+				throw new IOException(ex);
+			}
 		}
 	}
 
