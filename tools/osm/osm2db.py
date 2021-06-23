@@ -14,7 +14,7 @@ import datetime
 from xml.sax import saxutils, make_parser, handler
 import psycopg2
 
-
+from db_config import db_host, db_user, db_name, db_password
 
 class OSMNode:
   def __init__(self, id, lat, lon):
@@ -141,13 +141,14 @@ class OSMReader(handler.ContentHandler):
     self.nodes.clear() 
     self.ways.clear()
     self.relations.clear()
-    
 
-(host, db, tableFull, user, password) = sys.argv[1].split(";")
-(schema, prefix) = tableFull.split(".")
+
+# database credentials (except table information) moved to config.py
+# example call would now be: python osm2db.py <SCHEMA>.<PREFIX> <FILE>
+(schema, prefix) = sys.argv[1].split(".")
 t1 = datetime.datetime.now()
 print ("Connecting to the db...")
-conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
+conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db_name, db_user, db_host, db_password))
 cursor = conn.cursor()
 print ("Building tables for %s..." % prefix)
 # http://stackoverflow.com/questions/20582500/how-to-check-if-a-table-exists-in-a-given-schema

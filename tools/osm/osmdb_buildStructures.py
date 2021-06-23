@@ -17,6 +17,8 @@ import sys, os
 import psycopg2
 import datetime
 
+from db_config import db_name, db_user, db_password, db_host
+
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'helper' )
 sys.path.append( mymodule_dir )
@@ -152,9 +154,9 @@ for subtype in ["node", "way", "rel"]:
 
 # -- write extracted objects
 # --- open connection
-(host, db, tableFull, user, password) = sys.argv[3].split(";")
-(schema, name) = tableFull.split(".")
-conn2 = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
+# database credentials moved to config.py
+(schema, name) = sys.argv[3].split(".")
+conn2 = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db_name, db_user, db_host, db_password))
 cursor2 = conn2.cursor()
 # --- build tables
 cursor2.execute("DROP TABLE IF EXISTS %s.%s" % (schema, name))

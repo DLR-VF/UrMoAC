@@ -21,6 +21,7 @@ from xml.sax import saxutils, make_parser, handler
 import psycopg2, osmdb
 from osmmodes import *
 
+from db_config import db_host, db_user, db_name, db_password
 
 def parsePOINT2XY(which, scale=1.):
   which = which[6:-1]
@@ -349,13 +350,13 @@ def getParams(params):
   ret = Params()
   for p in params:
     ret.params[p[1]] = p[2]
-  return ret 
-  
-  
-(host, db, tableFull, user, password) = sys.argv[1].split(";")
-(schema, prefix) = tableFull.split(".")
+  return ret
+
+
+# database credentials moved to config.py
+(schema, prefix) = sys.argv[1].split(".")
 t1 = datetime.datetime.now()
-conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
+conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db_name, db_user, db_host, db_password))
 cursor = conn.cursor()
 
 db = osmdb.OSMDB(schema, prefix, conn, cursor)
