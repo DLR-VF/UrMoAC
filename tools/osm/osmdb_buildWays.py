@@ -7,7 +7,7 @@
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Imports an OSM-file into the database
 # Call with
-#  osmdb_buildWays <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD>
+#  osmdb_buildWays <SCHEMA>.<PREFIX>
 # =========================================================
 # ToDo
 # - modi
@@ -20,8 +20,9 @@ import datetime
 from xml.sax import saxutils, make_parser, handler
 import psycopg2, osmdb
 from osmmodes import *
+import getpass
 
-from db_config import db_host, db_user, db_name, db_password
+from db_config import db_host, db_user, db_name
 
 def parsePOINT2XY(which, scale=1.):
   which = which[6:-1]
@@ -353,8 +354,9 @@ def getParams(params):
   return ret
 
 
-# database credentials moved to config.py
+# database credentials moved to db_config.py
 (schema, prefix) = sys.argv[1].split(".")
+db_password = getpass.getpass(f"Enter password for database {db_name}: ")
 t1 = datetime.datetime.now()
 conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db_name, db_user, db_host, db_password))
 cursor = conn.cursor()

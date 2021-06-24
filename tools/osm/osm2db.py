@@ -7,14 +7,15 @@
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Imports an OSM-file into the database
 # Call with
-#  osm2db <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD> <FILE>
+#  osm2db <SCHEMA>.<PREFIX> <FILE>
 # =========================================================
 import os, string, sys
 import datetime
 from xml.sax import saxutils, make_parser, handler
 import psycopg2
+import getpass
 
-from db_config import db_host, db_user, db_name, db_password
+from db_config import db_host, db_user, db_name
 
 class OSMNode:
   def __init__(self, id, lat, lon):
@@ -143,9 +144,9 @@ class OSMReader(handler.ContentHandler):
     self.relations.clear()
 
 
-# database credentials (except table information) moved to config.py
-# example call would now be: python osm2db.py <SCHEMA>.<PREFIX> <FILE>
+# database credentials (except table information, password) moved to db_config.py
 (schema, prefix) = sys.argv[1].split(".")
+db_password = getpass.getpass(f"Enter password for database {db_name}: ")
 t1 = datetime.datetime.now()
 print ("Connecting to the db...")
 conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db_name, db_user, db_host, db_password))

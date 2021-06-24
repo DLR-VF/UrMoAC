@@ -9,15 +9,16 @@
 # Call with
 #  osmdb_buildStructures.py <INPUT_TABLE> <DEF_FILE> <OUTPUT_TABLE> 
 # where <INPUT_TABLE> is defined as:
-#  <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD>  
+#  <SCHEMA>.<PREFIX>
 # and <OUTPUT_TABLE> is defined as:
-#  <HOST>;<DB>;<SCHEMA>.<NAME>;<USER>;<PASSWD>  
+#  <SCHEMA>.<NAME>
 # =========================================================
 import sys, os
 import psycopg2
 import datetime
+import getpass
 
-from db_config import db_name, db_user, db_password, db_host
+from db_config import db_name, db_user, db_host
 
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'helper' )
@@ -126,9 +127,12 @@ def getAndConvertGeometry(conn, cursor, schema, prefix, objects, subtype, destGe
 # - main
 t1 = datetime.datetime.now()
 # -- open connection
-(host, db, tableFull, user, password) = sys.argv[1].split(";")
-(schema, prefix) = tableFull.split(".")
-conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
+# NOTE: database credentials moved to db_config.py
+# this assumes both tables are within the same database
+# TODO: change credential handling if multiple database support is needed
+(schema, prefix) = sys.argv[1].split(".")
+db_password = getpass.getpass(f"Enter password for database {db_name}: ")
+conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db_name, db_user, db_host, db_password))
 cursor = conn.cursor()
 # -- load definitions of things to extract
 defs = loadDefinitions(sys.argv[2])
@@ -156,6 +160,7 @@ for subtype in ["node", "way", "rel"]:
 # --- open connection
 # database credentials moved to config.py
 (schema, name) = sys.argv[3].split(".")
+# for db_password see line 132
 conn2 = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db_name, db_user, db_host, db_password))
 cursor2 = conn2.cursor()
 # --- build tables
