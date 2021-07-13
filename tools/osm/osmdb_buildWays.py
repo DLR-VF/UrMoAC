@@ -22,7 +22,7 @@ import psycopg2, osmdb
 from osmmodes import *
 import getpass
 
-from db_config import db_host, db_user, db_name
+from tools.db_config import db_host, db_user, db_name
 
 def parsePOINT2XY(which, scale=1.):
   which = which[6:-1]

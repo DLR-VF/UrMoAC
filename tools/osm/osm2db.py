@@ -15,7 +15,7 @@ from xml.sax import saxutils, make_parser, handler
 import psycopg2
 import getpass
 
-from db_config import db_host, db_user, db_name
+from tools.db_config import db_host, db_user, db_name
 
 class OSMNode:
   def __init__(self, id, lat, lon):

@@ -18,7 +18,7 @@ import psycopg2
 import datetime
 import getpass
 
-from db_config import db_name, db_user, db_host
+from tools.db_config import db_name, db_user, db_host
 
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, '..', 'helper' )
