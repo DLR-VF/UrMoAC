@@ -93,7 +93,7 @@ db_password = getpass.getpass(f"Enter password for database {db_name}: ")
 conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db_name, db_user, db_host, db_password))
 cursor = conn.cursor()
 
-cursor.execute(f"""SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '%s' AND table_name = '%s_agency');""" % (schema, prefix))
+cursor.execute("""SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '%s' AND table_name = '%s_agency');""" % (schema, prefix))
 if cursor.fetchall()[0][0]:
   cursor.execute("""DROP TABLE %s.%s_agency;""" % (schema, prefix))
   cursor.execute("""DROP TABLE %s.%s_calendar;""" % (schema, prefix))
