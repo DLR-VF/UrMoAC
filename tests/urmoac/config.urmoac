@@ -3,6 +3,8 @@ binary:$URMOAC_BINARY
 copy_test_path:network.csv
 copy_test_path:sources.csv
 copy_test_path:destinations.csv
+copy_test_path:agg_sources.csv
+copy_test_path:agg_destinations.csv
 copy_test_path:od_connections.csv
 
 [collate_file]
