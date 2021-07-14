@@ -1,0 +1,9 @@
+# no weights given for source or destination
+simple_offset_no_weight
+
+# source has a weight of 1
+simple_offset_src_weight1
+
+# source has a weight of 10
+simple_offset_src_weight10
+

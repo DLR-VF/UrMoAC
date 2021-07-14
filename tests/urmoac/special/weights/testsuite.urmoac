@@ -1,0 +1,12 @@
+# no aggregation applied
+no_aggregation
+
+# aggregation applied to sources
+src_aggregation
+
+# aggregation applied to destinations
+dst_aggregation
+
+# aggregation applied to sources and destinations
+src_dst_aggregation
+
