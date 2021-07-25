@@ -250,6 +250,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		OptionsCont options = new OptionsCont();
 		
 		options.beginSection("Input Options");
+		options.add("config", 'c', new Option_String());
+		options.setDescription("config", "Defines the configuration to load.");
 		options.add("from", 'f', new Option_String());
 		options.setDescription("from", "Defines the data source of origins.");
 		options.add("to", 't', new Option_String());
@@ -274,25 +276,25 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("od-connections", "The OD connections to compute.");
 		
 		options.beginSection("Input Adaptation");
-		options.add("from.filter", 'F', new Option_String(""));
+		options.add("from.filter", 'F', new Option_String());
 		options.setDescription("from.filter", "Defines a filter for origins to load.");
 		options.add("from.id", new Option_String("gid"));
 		options.setDescription("from.id", "Defines the column name of the origins' ids.");
 		options.add("from.geom", new Option_String("the_geom"));
 		options.setDescription("from.geom", "Defines the column name of the origins' geometries.");
-		options.add("to.filter", 'T', new Option_String(""));
+		options.add("to.filter", 'T', new Option_String());
 		options.setDescription("to.filter", "Defines a filter for destinations to load.");
 		options.add("to.id", new Option_String("gid"));
 		options.setDescription("to.id", "Defines the column name of the destinations' ids.");
 		options.add("to.geom", new Option_String("the_geom"));
 		options.setDescription("to.geom", "Defines the column name of the destinations' geometries.");
-		options.add("from-agg.filter", new Option_String(""));
+		options.add("from-agg.filter", new Option_String());
 		options.setDescription("from-agg.filter", "Defines a filter for origin aggregation areas to load.");
 		options.add("from-agg.id", new Option_String("gid"));
 		options.setDescription("from-agg.id", "Defines the column name of the origins aggregation areas' ids.");
 		options.add("from-agg.geom", new Option_String("the_geom"));
 		options.setDescription("from-agg.geom", "Defines the column name of the origins aggregation areas' geometries.");
-		options.add("to-agg.filter", new Option_String(""));
+		options.add("to-agg.filter", new Option_String());
 		options.setDescription("to-agg.filter", "Defines a filter for destination aggregation areas to load.");
 		options.add("to-agg.id", new Option_String("gid"));
 		options.setDescription("to-agg.id", "Defines the column name of the destination aggregation areas' ids.");
@@ -366,10 +368,14 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("help", "Prints the help screen.");
 		options.add("verbose", 'v', new Option_Bool());
 		options.setDescription("verbose", "Prints what is being done.");
+		options.add("save-config", new Option_String());
+		options.setDescription("save-config", "Saves the set options as a configuration file.");
+		options.add("save-template", new Option_String());
+		options.setDescription("save-template", "Saves a template to add options to.");
 
 		// parse options
 		try {
-			OptionsIO.parseAndLoad(options, args, null, false, false);
+			OptionsIO.parseAndLoad(options, args, "config", false, false);
 		} catch (RuntimeException e) {
 			System.err.println("Error: " + e.getMessage());
 			return null;
@@ -381,6 +387,23 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		if(options.getBool("help")) {
 			options.printHelp(System.out, 80, 2, 2, 1);
 			return null;
+		}
+		// check template / configuration options
+		if(options.isSet("save-config")) {
+			try {
+				OptionsIO.writeXMLConfiguration(options.getString("save-config"), options);
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		if(options.isSet("save-template")) {
+			try {
+				OptionsIO.writeXMLTemplate(options.getString("save-template"), options);
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
 		}
 		// check options
 		boolean check = true;

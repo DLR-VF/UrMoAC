@@ -1,6 +1,9 @@
 # meta options processing
 meta
 
+# dealing with configs
+config
+
 # error handling
 errors
 

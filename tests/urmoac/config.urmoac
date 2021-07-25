@@ -1,5 +1,6 @@
 import_config_file:../config_all
 binary:$URMOAC_BINARY
+copy_test_path:configuration.xml
 copy_test_path:network.csv
 copy_test_path:sources.csv
 copy_test_path:destinations.csv
@@ -13,6 +14,8 @@ d2r_output:d2r_output.csv
 od_output:od_output.csv
 ext_od_output:ext_od_output.csv
 direct_output:direct_output.csv
+configuration:configuration.xml
+template:template.xml
 
 [floating_point_tolerance]
 output:0.0101
