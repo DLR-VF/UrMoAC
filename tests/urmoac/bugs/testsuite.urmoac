@@ -1,6 +1,3 @@
-# single dash on long option
-help_long_singledash
-
 # double dash on short option
 help_short_doubledash
 
