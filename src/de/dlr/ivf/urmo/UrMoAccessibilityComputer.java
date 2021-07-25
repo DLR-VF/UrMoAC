@@ -23,18 +23,18 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.apache.commons.cli.BasicParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.xml.sax.SAXException;
 
 import com.vividsolutions.jts.geom.Geometry;
 
-import de.dlr.ivf.helper.options.OptionsHelper;
+import de.dks.utils.options.Option_Bool;
+import de.dks.utils.options.Option_Double;
+import de.dks.utils.options.Option_Integer;
+import de.dks.utils.options.Option_String;
+import de.dks.utils.options.OptionsCont;
+import de.dks.utils.options.OptionsIO;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.NearestEdgeFinder;
 import de.dlr.ivf.urmo.router.algorithms.routing.AbstractRouteWeightFunction;
@@ -245,177 +245,201 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 * @return The parsed command line
 	 */
 	@SuppressWarnings("static-access")
-	private static CommandLine getCMDOptions(String[] args) {
-		HelpFormatter lvFormater = new HelpFormatter();
-		// add options
-		Options lvOptions = new Options();
-		lvOptions.addOption(new Option("?", "help", false, "Prints the help screen."));
-		lvOptions.addOption(new Option("v", "verbose", false, "Prints what is being done."));
-
-		lvOptions.addOption(OptionBuilder.withLongOpt("from")
-				.withDescription("Defines the data source of origins.").hasArg().create("f"));
-		lvOptions.addOption(OptionBuilder.withLongOpt("from-filter")
-				.withDescription("Defines a filter for origins to load.").hasArg().create("F"));
-		lvOptions.addOption(OptionBuilder.withLongOpt("to")
-				.withDescription("Defines the data source of destinations.").hasArg().create("t"));
-		lvOptions.addOption(OptionBuilder.withLongOpt("to-filter")
-				.withDescription("Defines a filter for destinations to load.").hasArg().create("T"));
-		lvOptions.addOption(OptionBuilder.withLongOpt("weight")
-				.withDescription("An optional weighting attribute for the origins.").hasArg().create("W"));
-		lvOptions.addOption(OptionBuilder.withLongOpt("variable")
-				.withDescription("An optional destinations' variable to collect.").hasArg().create("V"));
-		lvOptions.addOption(OptionBuilder.withLongOpt("from-agg")
-				.withDescription("Defines the data source of origin aggregation areas.").hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("to-agg")
-				.withDescription("Defines the data source of destination aggregation areas.").hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("epsg")
-				.withDescription("The EPSG projection to use.").withType(Number.class).hasArg().create());
-
-		lvOptions.addOption(OptionBuilder.withLongOpt("net")
-				.withDescription("Defines the road network to load.").hasArg().create("n"));
-		lvOptions.addOption(new Option("subnets", false, "When set, unconnected network parts are not removed."));
-		lvOptions.addOption(OptionBuilder.withLongOpt("traveltimes")
-				.withDescription("Defines the data source of traveltimes.").hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("pt")
-				.withDescription("Defines the GTFS-based public transport representation.").hasArg().create("p"));
-		lvOptions.addOption(OptionBuilder.withLongOpt("pt-boundary")
-				.withDescription("Defines the data source of the boundary for the PT offer.").hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("mode")
-				.withDescription("The mode to use ['passenger', 'foot', 'bicycle'].").hasArg().create("m"));
-		lvOptions.addOption(new Option("requirespt", false, "When set, only information that contains a PT part are stored."));
-		lvOptions.addOption(OptionBuilder.withLongOpt("pt-restriction")
-				.withDescription("Restrictions to usable GTFS carriers.").hasArg().create("P"));
-		lvOptions.addOption(OptionBuilder.withLongOpt("entrainment")
-				.withDescription("Data source for entrainment description.").hasArg().create("E"));
-		lvOptions.addOption(OptionBuilder.withLongOpt("time").withDescription("The time the trips start at in seconds.")
-				.withType(Number.class).hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("date").withDescription("The date for which the accessibilities shall be computed.")
-				.hasArg().create());
-		lvOptions.addOption(new Option("shortest", false, "Searches only one destination per origin."));
-		lvOptions.addOption(OptionBuilder.withLongOpt("max-number").withDescription("The maximum number of destinations to visit.")
-				.withType(Number.class).hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("max-distance").withDescription("The maximum distance to check.")
-				.withType(Number.class).hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("max-tt").withDescription("The maximum travel time to check.")
-				.withType(Number.class).hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("max-variable-sum")
-				.withDescription("The maximum sum of variable's values to collect.").withType(Number.class).hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("measure")
-				.withDescription("The measure to use during the routing ['tt_mode', 'price_tt', 'interchanges_tt', 'maxinterchanges_tt'].").hasArg()
-				.create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("od-connections").withDescription("The OD connections to compute.").hasArg().create());
-
-		lvOptions.addOption(OptionBuilder.withLongOpt("measure-param1").withDescription("First parameter of the chosen weight function.").withType(Number.class).hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("measure-param2").withDescription("Second parameter of the chosen weight function.").withType(Number.class).hasArg().create());
+	private static OptionsCont getCMDOptions(String[] args) {
+		// set up options
+		OptionsCont options = new OptionsCont();
 		
+		options.beginSection("Input Options");
+		options.add("from", 'f', new Option_String());
+		options.setDescription("from", "Defines the data source of origins.");
+		options.add("to", 't', new Option_String());
+		options.setDescription("to", "Defines the data source of destinations.");
+		options.add("net", 'n', new Option_String());
+		options.setDescription("net", "Defines the road network to load.");
+		options.add("mode", 'm', new Option_String());
+		options.setDescription("mode", "The mode to use ['passenger', 'foot', 'bicycle'].");
+		options.add("from-agg", new Option_String());
+		options.setDescription("from-agg", "Defines the data source of origin aggregation areas.");
+		options.add("to-agg", new Option_String());
+		options.setDescription("to-agg", "Defines the data source of destination aggregation areas.");
+		options.add("pt", 'p', new Option_String());
+		options.setDescription("pt", "Defines the GTFS-based public transport representation.");
+		options.add("traveltimes", new Option_String());
+		options.setDescription("traveltimes", "Defines the data source of traveltimes.");
+		options.add("epsg", new Option_Integer());
+		options.setDescription("epsg", "The EPSG projection to use.");
+		options.add("time", new Option_Integer());
+		options.setDescription("time", "The time the trips start at in seconds.");
+		options.add("od-connections", new Option_String());
+		options.setDescription("od-connections", "The OD connections to compute.");
 		
-		lvOptions.addOption(OptionBuilder.withLongOpt("threads").withDescription("The number of threads.")
-				.withType(Number.class).hasArg().create());
+		options.beginSection("Input Adaptation");
+		options.add("from.filter", 'F', new Option_String(""));
+		options.setDescription("from.filter", "Defines a filter for origins to load.");
+		options.add("from.id", new Option_String("gid"));
+		options.setDescription("from.id", "Defines the column name of the origins' ids.");
+		options.add("from.geom", new Option_String("the_geom"));
+		options.setDescription("from.geom", "Defines the column name of the origins' geometries.");
+		options.add("to.filter", 'T', new Option_String(""));
+		options.setDescription("to.filter", "Defines a filter for destinations to load.");
+		options.add("to.id", new Option_String("gid"));
+		options.setDescription("to.id", "Defines the column name of the destinations' ids.");
+		options.add("to.geom", new Option_String("the_geom"));
+		options.setDescription("to.geom", "Defines the column name of the destinations' geometries.");
+		options.add("from-agg.filter", new Option_String(""));
+		options.setDescription("from-agg.filter", "Defines a filter for origin aggregation areas to load.");
+		options.add("from-agg.id", new Option_String("gid"));
+		options.setDescription("from-agg.id", "Defines the column name of the origins aggregation areas' ids.");
+		options.add("from-agg.geom", new Option_String("the_geom"));
+		options.setDescription("from-agg.geom", "Defines the column name of the origins aggregation areas' geometries.");
+		options.add("to-agg.filter", new Option_String(""));
+		options.setDescription("to-agg.filter", "Defines a filter for destination aggregation areas to load.");
+		options.add("to-agg.id", new Option_String("gid"));
+		options.setDescription("to-agg.id", "Defines the column name of the destination aggregation areas' ids.");
+		options.add("to-agg.geom", new Option_String("the_geom"));
+		options.setDescription("to-agg.geom", "Defines the column name of the destination aggregation areas' geometries.");
+		options.add("subnets", new Option_Bool());
+		options.setDescription("subnets", "When set, unconnected network parts are not removed.");
 		
-		lvOptions.addOption(OptionBuilder.withLongOpt("origins-to-road-output")
-				.withDescription("Defines output of the mapping between from-objects to the road.")
-				.hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("destinations-to-road-output")
-				.withDescription("Defines output of the mapping between to-objects to the road.")
-				.hasArg().create());
-		lvOptions.addOption(
-				OptionBuilder.withLongOpt("nm-output").withDescription("Defines the n:m output.").hasArg().create("o"));
-		lvOptions.addOption(
-				OptionBuilder.withLongOpt("ext-nm-output").withDescription("Defines the extended n:m output.").hasArg().create());
-		lvOptions.addOption(
-				OptionBuilder.withLongOpt("stat-nm-output").withDescription("Defines the n:m statistics output.").hasArg().create());
-		lvOptions.addOption(
-				OptionBuilder.withLongOpt("interchanges-output").withDescription("Defines the interchanges output.").hasArg().create("i"));
-		lvOptions.addOption(
-				OptionBuilder.withLongOpt("edges-output").withDescription("Defines the edges output.").hasArg().create("e"));
-		lvOptions.addOption(
-				OptionBuilder.withLongOpt("pt-output").withDescription("Defines the public transport output.").hasArg().create());
-		lvOptions.addOption(
-				OptionBuilder.withLongOpt("direct-output").withDescription("Defines the direct output.").hasArg().create("d"));
-		lvOptions.addOption(new Option("dropprevious", false, "When set, previous output with the same name is replaced."));
-		/*
-		lvOptions.addOption(
-				OptionBuilder.withLongOpt("output-steps").withDescription("Pseudo-steps.").withType(Number.class).hasArg().create());
-				*/
+		options.beginSection("Weighting Options");
+		options.add("weight", 'W', new Option_String(""));
+		options.setDescription("weight", "An optional weighting attribute for the origins.");
+		options.add("variable", 'V', new Option_String(""));
+		options.setDescription("variable", "An optional destinations' variable to collect.");
 
-		lvOptions.addOption(OptionBuilder.withLongOpt("from.id")
-				.withDescription("Defines the column name of the origins' ids.").hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("to.id")
-				.withDescription("Defines the column name of the destinations' ids.").hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("from.geom")
-				.withDescription("Defines the column name of the origins' geometries.").hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("to.geom")
-				.withDescription("Defines the column name of the destinations' geometries.").hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("from-agg.id")
-				.withDescription("Defines the column name of the origins aggregations' ids.").hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("to-agg.id")
-				.withDescription("Defines the column name of the destination aggregations' ids.").hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("from-agg.geom")
-				.withDescription("Defines the column name of the origins aggregations' geometries.").hasArg().create());
-		lvOptions.addOption(OptionBuilder.withLongOpt("to-agg.geom")
-				.withDescription("Defines the column name of the destination aggregations' geometries.").hasArg().create());
+		options.beginSection("Routing Options");
+		options.add("max-number", new Option_Integer());
+		options.setDescription("max-number", "The maximum number of destinations to visit.");
+		options.add("max-distance", new Option_Double());
+		options.setDescription("max-distance", "The maximum distance to check.");
+		options.add("max-tt", new Option_Double());
+		options.setDescription("max-tt", "The maximum travel time to check.");
+		options.add("max-variable-sum", new Option_Double());
+		options.setDescription("max-variable-sum", "The maximum sum of variable's values to collect.");
+		options.add("shortest", new Option_Bool());
+		options.setDescription("shortest", "Searches only one destination per origin.");
+		options.add("requirespt", new Option_Bool());
+		options.setDescription("requirespt", "When set, only information that contains a PT part are stored.");
+		options.add("measure", new Option_String());
+		options.setDescription("measure", "The measure to use during the routing ['tt_mode', 'price_tt', 'interchanges_tt', 'maxinterchanges_tt'].");
+		options.add("measure-param1", new Option_Double());
+		options.setDescription("measure-param1", "First parameter of the chosen weight function.");
+		options.add("measure-param2", new Option_Double());
+		options.setDescription("measure-param2", "Second parameter of the chosen weight function.");
 		
+		options.beginSection("Public Transport Options");
+		options.add("pt-boundary", new Option_String());
+		options.setDescription("pt-boundary", "Defines the data source of the boundary for the PT offer.");
+		options.add("date", new Option_String());
+		options.setDescription("date", "The date for which the accessibilities shall be computed.");
+		options.add("entrainment", 'E', new Option_String());
+		options.setDescription("entrainment", "Data source for entrainment description.");
+		options.add("pt-restriction", new Option_String());
+		options.setDescription("pt-restriction", "Restrictions to usable GTFS carriers.");
+		
+		options.beginSection("Output Options");
+		options.add("nm-output", 'o', new Option_String());
+		options.setDescription("nm-output", "Defines the n:m output.");
+		options.add("ext-nm-output", new Option_String());
+		options.setDescription("ext-nm-output", "Defines the extended n:m output.");
+		options.add("stat-nm-output", new Option_String());
+		options.setDescription("stat-nm-output", "Defines the n:m statistics output.");
+		options.add("interchanges-output", 'i', new Option_String());
+		options.setDescription("interchanges-output", "Defines the interchanges output.");
+		options.add("edges-output", 'e', new Option_String());
+		options.setDescription("edges-output", "Defines the edges output.");
+		options.add("pt-output", new Option_String());
+		options.setDescription("pt-output", "Defines the public transport output.");
+		options.add("direct-output", 'd', new Option_String());
+		options.setDescription("direct-output", "Defines the direct output.");
+		options.add("origins-to-road-output", new Option_String());
+		options.setDescription("origins-to-road-output", "Defines output of the mapping between sources and the network.");
+		options.add("destinations-to-road-output", new Option_String());
+		options.setDescription("destinations-to-road-output", "Defines output of the mapping between destinations and the network.");
+		options.add("dropprevious", new Option_Bool());
+		options.setDescription("dropprevious", "When set, previous output with the same name is replaced.");
+		
+		options.beginSection("Process Options");
+		options.add("threads", new Option_Integer(1));
+		options.setDescription("threads", "The number of threads to use.");
+		options.add("help", '?', new Option_Bool());
+		options.setDescription("help", "Prints the help screen.");
+		options.add("verbose", 'v', new Option_Bool());
+		options.setDescription("verbose", "Prints what is being done.");
+
 		// parse options
-		CommandLine lvCmd = null;
 		try {
-			CommandLineParser lvParser = new BasicParser();
-			lvCmd = lvParser.parse(lvOptions, args);
-			if (lvCmd.hasOption("help")) {
-				lvFormater.printHelp("UrMoAccessibilityComputer", lvOptions);
-				return null;
-			}
-			boolean check = true;
-			// TODO: add information about unset options
-			check &= OptionsHelper.isSet(lvCmd, "from");
-			check &= OptionsHelper.isSet(lvCmd, "to");
-			check &= OptionsHelper.isSet(lvCmd, "net");
-			check &= OptionsHelper.isSet(lvCmd, "mode");
-			check &= OptionsHelper.isSet(lvCmd, "time");
-			// TODO: clarify epsg usage check &= OptionsHelper.isSet(lvCmd, "epsg"); --can be unset
-			// TODO: add information about double set options
-			check &= OptionsHelper.isIntegerOrUnset(lvCmd, "epsg");
-			check &= OptionsHelper.isIntegerOrUnset(lvCmd, "time");
-			check &= OptionsHelper.isIntegerOrUnset(lvCmd, "max-number");
-			check &= OptionsHelper.isDoubleOrUnset(lvCmd, "max-distance");
-			check &= OptionsHelper.isDoubleOrUnset(lvCmd, "max-tt");
-			check &= OptionsHelper.isDoubleOrUnset(lvCmd, "max-variable-sum");
-			//
-			if(lvCmd.hasOption("pt")) {
-				if(OptionsHelper.isSet(lvCmd, "date")) {
-					try {
-						String date = lvCmd.getOptionValue("date", "");
-						if(date.length()!=8) {
-							System.err.println("The date must be given as yyyyMMdd.");
-							check = false;
-						}
-						Integer.parseInt(date);
-						SimpleDateFormat parser = new SimpleDateFormat("yyyyMMdd");
-						parser.parse(date);							
-					} catch (NumberFormatException e) {
-						System.err.println("The date must be given as yyyyMMdd.");
-						check = false;
-					} catch (java.text.ParseException e) {
+			OptionsIO.parseAndLoad(options, args, null, false, false);
+		} catch (RuntimeException e) {
+			System.err.println("Error: " + e.getMessage());
+			return null;
+		} catch (ParserConfigurationException | SAXException | IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+		// print help if wanted
+		if(options.getBool("help")) {
+			options.printHelp(System.out, 80, 2, 2, 1);
+			return null;
+		}
+		// check options
+		boolean check = true;
+		if(!options.isSet("from")) {
+			System.err.println("Error: The 'from' parameter is missing.");
+			check = false;
+		}
+		if(!options.isSet("to")) {
+			System.err.println("Error: The 'to' parameter is missing.");
+			check = false;
+		}
+		if(!options.isSet("net")) {
+			System.err.println("Error: The 'net' parameter is missing.");
+			check = false;
+		}
+		if(!options.isSet("mode")) {
+			System.err.println("Error: The 'mode' parameter is missing.");
+			check = false;
+		}
+		if(!options.isSet("time")) {
+			System.err.println("Error: The 'time' parameter is missing.");
+			check = false;
+		}
+		//
+		if(options.isSet("pt")) {
+			if(options.isSet("date")) {
+				try {
+					String date = options.getString("date");
+					if(date.length()!=8) {
 						System.err.println("The date must be given as yyyyMMdd.");
 						check = false;
 					}
-				}
-			}
-			//
-			if(lvCmd.hasOption("measure")) {
-				String t = lvCmd.getOptionValue("measure", "");
-				if(!"tt_mode".equals(t)&&!"price_tt".equals(t)&&!"interchanges_tt".equals(t)&&!"maxinterchanges_tt".equals(t)) {
-					System.err.println("Unknown measure '" + t + "'; allowed are: 'tt_mode', 'price_tt', 'interchanges_tt', and 'maxinterchanges_tt'.");
+					Integer.parseInt(date);
+					SimpleDateFormat parser = new SimpleDateFormat("yyyyMMdd");
+					parser.parse(date);							
+				} catch (NumberFormatException e) {
+					System.err.println("The date must be given as yyyyMMdd.");
+					check = false;
+				} catch (java.text.ParseException e) {
+					System.err.println("The date must be given as yyyyMMdd.");
 					check = false;
 				}
-			}			
-			if (!check) {
-				return null;
+			} else {
+				System.err.println("The date must be given when using GTFS data.");
+				check = false;
 			}
-		} catch (ParseException pvException) {
-			lvFormater.printHelp("UrMoAccessibilityComputer", lvOptions);
-			System.err.println("Parse Error:" + pvException.getMessage());
 		}
-		return lvCmd;
+		//
+		if(options.isSet("measure")) {
+			String t = options.getString("measure");
+			if(!"tt_mode".equals(t)&&!"price_tt".equals(t)&&!"interchanges_tt".equals(t)&&!"maxinterchanges_tt".equals(t)) {
+				System.err.println("Unknown measure '" + t + "'; allowed are: 'tt_mode', 'price_tt', 'interchanges_tt', and 'maxinterchanges_tt'.");
+				check = false;
+			}
+		}
+		if (!check) {
+			return null;
+		}
+		return options;
 	}
 
 		
@@ -446,9 +470,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 * @brief Checks whether the needed route weight function parameter are set
 	 * 
 	 */
-	protected boolean checkParameterOptions(CommandLine options, int num) {
+	protected boolean checkParameterOptions(OptionsCont options, int num) {
 		for(int i=0; i<num; ++i) {
-			if(!options.hasOption("measure-param"+(i+1))) {
+			if(!options.isSet("measure-param"+(i+1))) {
 				System.err.println("Error: value for route weighting function #"+(i+1)+" is missing; use --measure-param"+(i+1)+" <DOUBLE>.");
 				hadError = true;
 			}
@@ -480,20 +504,23 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 * @throws IOException When accessing a file failed
 	 * @throws ParseException 
 	 */
-	protected boolean init(CommandLine options) throws IOException, ParseException {
-		verbose = options.hasOption("verbose");
+	protected boolean init(OptionsCont options) throws IOException {
+		verbose = options.getBool("verbose");
 		// -------- mode
 		Modes.init();
-		Vector<Mode> modesV = getModes(options.getOptionValue("mode", "<unknown>"));
+		if (!options.isSet("mode")) {
+			throw new IOException("At least one allowed mode must be given.");
+		}
+		Vector<Mode> modesV = getModes(options.getString("mode"));
 		if (modesV == null) {
-			throw new IOException("The mode(s) '" + options.getOptionValue("mode", "") + "' is/are not known.");
+			throw new IOException("The mode(s) '" + options.getString("mode") + "' is/are not known.");
 		}
 		modes = Modes.getCombinedModeIDs(modesV);
 		initMode = modesV.get(0).id;
 		// -------- projection
 		int epsg;
-		if(options.hasOption("epsg")) {
-			epsg = ((Long) options.getParsedOptionValue("epsg")).intValue();
+		if(options.isSet("epsg")) {
+			epsg = options.getInteger("epsg");
 		} else {
 			// automatic epsg-value
 			epsg = InputReader.findUTMZone(options);
@@ -521,7 +548,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		}
 		// from aggregation
 		Layer fromAggLayer = null;
-		if (options.hasOption("from-agg") && !options.getOptionValue("from-agg", "").equals("all")) {
+		if (options.isSet("from-agg") && !options.getString("from-agg").equals("all")) {
 			if (verbose) System.out.println("Reading origin aggregation zones");
 			fromAggLayer = InputReader.loadLayer(options, "from-agg", null, this, epsg); 
 			if (verbose) System.out.println(" " + fromAggLayer.getObjects().size() + " origin aggregation geometries loaded");
@@ -536,18 +563,21 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		}
 		// to aggregation
 		Layer toAggLayer = null;
-		if (options.hasOption("to-agg") && !options.getOptionValue("to-agg", "").equals("all")) {
+		if (options.isSet("to-agg") && !options.getString("to-agg").equals("all")) {
 			if (verbose) System.out.println("Reading sink aggregation zones");
 			toAggLayer = InputReader.loadLayer(options, "to-agg", null, this, epsg); 
 			if (verbose) System.out.println(" " + toAggLayer.getObjects().size() + " sink aggregation geometries loaded");
 		}
 		
 		// net
+		if (!options.isSet("net")) {
+			throw new IOException("A network must be given.");
+		}
 		if (verbose) System.out.println("Reading the road network");
-		DBNet net = NetLoader.loadNet(this, options.getOptionValue("net", ""), epsg, modes);
+		DBNet net = NetLoader.loadNet(this, options.getString("net"), epsg, modes);
 		if (verbose) System.out.println(" " + net.getNumEdges() + " edges loaded (" + net.getNodes().size() + " nodes)");
 		net.pruneForModes(modes); // TODO (implement, add message)
-		if(!options.hasOption("subnets")) {
+		if(!options.getBool("subnets")) {
 			if (verbose) System.out.println("Checking for connectivity...");
 			net.dismissUnconnectedEdges(false);
 			if (verbose) System.out.println(" " + net.getNumEdges() + " remaining after removing unconnected ones.");
@@ -558,34 +588,34 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		*/
 
 		// travel times
-		if (options.hasOption("traveltimes")) {
+		if (options.isSet("traveltimes")) {
 			if (verbose) System.out.println("Reading the roads' travel times");
-			NetLoader.loadTravelTimes(net, options.getOptionValue("traveltimes", ""), verbose);
+			NetLoader.loadTravelTimes(net, options.getString("traveltimes"), verbose);
 		}
 		
 		// entrainment
 		EntrainmentMap entrainmentMap = new EntrainmentMap();
-		if (options.hasOption("entrainment")) {
+		if (options.isSet("entrainment")) {
 			if (verbose) System.out.println("Reading entrainment table");
 			entrainmentMap = InputReader.loadEntrainment(options);
 			if (verbose) System.out.println(" " + entrainmentMap.carrier2carried.size() + " entrainment fields loaded");
 		}
 		
 		// public transport network
-		if (options.hasOption("pt")) {
+		if (options.isSet("pt")) {
 			if (verbose) System.out.println("Reading the public transport network");
 			Geometry bounds = null;
-			if (options.hasOption("pt-boundary")) {
-				bounds = InputReader.loadGeometry(options.getOptionValue("pt-boundary", ""), "pt-boundary", epsg);
+			if (options.isSet("pt-boundary")) {
+				bounds = InputReader.loadGeometry(options.getString("pt-boundary"), "pt-boundary", epsg);
 			}
 			gtfs = GTFSReader.load(options, bounds, net, entrainmentMap, epsg, verbose);
 			if (verbose) System.out.println(" loaded");
 		}
 
 		// explicit O/D-connections
-		if (options.hasOption("od-connections")) {
+		if (options.isSet("od-connections")) {
 			if (verbose) System.out.println("Reading the explicite O/D connections");
-			connections = InputReader.loadODConnections(options.getOptionValue("od-connections"));
+			connections = InputReader.loadODConnections(options.getString("od-connections"));
 			nextConnectionPointer = connections.iterator();
 			if (verbose) System.out.println(" loaded");
 		}
@@ -595,14 +625,14 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		if (verbose) System.out.println("Computing access from the origins to the network");
 		NearestEdgeFinder nef1 = new NearestEdgeFinder(fromLayer.getObjects(), net, initMode);
 		nearestFromEdges = nef1.getNearestEdges(false);
-		if (options.hasOption("origins-to-road-output")) {
-			OutputBuilder.writeEdgeAllocation(options.getOptionValue("origins-to-road-output", ""), nearestFromEdges, epsg, options.hasOption("dropprevious"));
+		if (options.isSet("origins-to-road-output")) {
+			OutputBuilder.writeEdgeAllocation(options.getString("origins-to-road-output"), nearestFromEdges, epsg, options.getBool("dropprevious"));
 		}
 		if (verbose) System.out.println("Computing egress from the network to the destinations");
 		NearestEdgeFinder nef2 = new NearestEdgeFinder(toLayer.getObjects(), net, initMode);
 		nearestToEdges = nef2.getNearestEdges(true);
-		if (options.hasOption("destinations-to-road-output")) {
-			OutputBuilder.writeEdgeAllocation(options.getOptionValue("destinations-to-road-output", ""), nearestToEdges, epsg, options.hasOption("dropprevious"));
+		if (options.isSet("destinations-to-road-output")) {
+			OutputBuilder.writeEdgeAllocation(options.getString("destinations-to-road-output"), nearestToEdges, epsg, options.getBool("dropprevious"));
 		}
 
 		// -------- instantiate outputs
@@ -632,13 +662,13 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		// -------- build outputs
 		Vector<Aggregator> aggregators = OutputBuilder.buildOutputs(options, fromLayer, fromAggLayer, toLayer, toAggLayer);
 		DirectWriter dw = OutputBuilder.buildDirectOutput(options, epsg, nearestToEdges);
-		time = ((Long) options.getParsedOptionValue("time")).intValue();
+		time = options.getInteger("time");
 		resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, nearestFromEdges, nearestToEdges); 
 
 		// -------- measure
 		measure = new RouteWeightFunction_TT_Modes();
-		if(options.hasOption("measure")) {
-			String t = options.getOptionValue("measure", "");
+		if(options.isSet("measure")) {
+			String t = options.getString("measure");
 			if("price_tt".equals(t)) {
 				measure = new RouteWeightFunction_Price_TT();
 			} else if("interchanges_tt".equals(t)) {
@@ -646,16 +676,13 @@ public class UrMoAccessibilityComputer implements IDGiver {
 					hadError = true;
 					return false;
 				} 
-				measure = new RouteWeightFunction_ExpInterchange_TT(
-						((Double) options.getParsedOptionValue("measure-param1")).doubleValue(), 
-						((Double) options.getParsedOptionValue("measure-param2")).doubleValue());
+				measure = new RouteWeightFunction_ExpInterchange_TT(options.getDouble("measure-param1"), options.getDouble("measure-param2"));
 			} else if("maxinterchanges_tt".equals(t)) {
 				if(!checkParameterOptions(options, 1)) {
 					hadError = true;
 					return false;
 				}
-				measure = new RouteWeightFunction_MaxInterchange_TT(
-						(int) ((Long) options.getParsedOptionValue("measure-param1")).longValue());
+				measure = new RouteWeightFunction_MaxInterchange_TT((int) options.getDouble("measure-param1"));
 			} else if(!"tt_mode".equals(t)) {
 				System.err.println("Error: the route weight function '" + t + "' is not known.");
 				hadError = true;
@@ -679,18 +706,18 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 * @throws IOException When accessing a file failed
 	 * @throws ParseException When an option could not been parsed
 	 */
-	protected boolean run(CommandLine options) throws ParseException, IOException {
+	protected boolean run(OptionsCont options) throws IOException {
 		if (verbose) System.out.println("Computing shortest paths");
-		int maxNumber = options.hasOption("max-number") ? ((Long) options.getParsedOptionValue("max-number")).intValue() : -1;
-		double maxTT = options.hasOption("max-tt") ? ((Double) options.getParsedOptionValue("max-tt")).doubleValue() : -1;
-		double maxDistance = options.hasOption("max-distance") ? ((Double) options.getParsedOptionValue("max-distance")).doubleValue() : -1;
-		double maxVar = options.hasOption("max-variable-sum") ? ((Double) options.getParsedOptionValue("max-variable-sum")).doubleValue() : -1;
-		boolean shortestOnly = options.hasOption("shortest");
-		boolean needsPT = options.hasOption("requirespt");
+		int maxNumber = options.isSet("max-number") ? options.getInteger("max-number") : -1;
+		double maxTT = options.isSet("max-tt") ? options.getDouble("max-tt") : -1;
+		double maxDistance = options.isSet("max-distance") ? options.getDouble("max-distance") : -1;
+		double maxVar = options.isSet("max-variable-sum") ? options.getDouble("max-variable-sum") : -1;
+		boolean shortestOnly = options.getBool("shortest");
+		boolean needsPT = options.getBool("requirespt");
 		if (verbose) System.out.println(" between " + nearestFromEdges.size() + " origin and " + nearestToEdges.size() + " destination edges");
 		
 		// initialise threads
-		int numThreads = options.hasOption("threads") ? ((Long) options.getParsedOptionValue("threads")).intValue() : 1;
+		int numThreads = options.getInteger("threads");
 		nextEdgePointer = nearestFromEdges.keySet().iterator();
 		seenEdges = 0;
 		Vector<Thread> threads = new Vector<>();
@@ -824,7 +851,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 */
 	public static void main(String[] args) {
 		// parse and check options
-		CommandLine options = getCMDOptions(args);
+		OptionsCont options = getCMDOptions(args);
 		if (options == null) {
 			return;
 		}
@@ -843,8 +870,6 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				return;
 			} 
 		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ParseException e) {
 			e.printStackTrace();
 		}
 		// -------- finish
