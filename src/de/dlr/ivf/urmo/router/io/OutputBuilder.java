@@ -16,12 +16,17 @@
  */
 package de.dlr.ivf.urmo.router.io;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Vector;
 
 import de.dks.utils.options.OptionsCont;
+import de.dks.utils.options.OptionsIO;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
 import de.dlr.ivf.urmo.router.output.AbstractSingleResult;
@@ -127,32 +132,6 @@ public class OutputBuilder {
 		return dw;
 	}
 
-
-
-	/**
-	 * @brief Builds a comment string that shows the set options
-	 * @param options The options to encode
-	 * @return A comment string with set options
-	 */
-	public static String buildComment(OptionsCont options) {
-		StringBuffer sb = new StringBuffer();
-		sb.append("Generated using UrMoAC with the following options:\n");
-		/*
-		Option[] args = options.getOptions();
-		for(Option argO : args) {
-			if(!"".equals(argO.getValue(""))) {
-				String value = argO.getValue();
-				value = value.replace("'", "''");
-				if(value.indexOf("jdbc")>=0) {
-					value = value.substring(0, value.lastIndexOf(";")+1) + "---";
-				}
-				sb.append("--").append(argO.getLongOpt()).append(' ').append(value).append('\n');
-			}
-		}
-		*/
-		return sb.toString();
-	}
-
 	
 	/**
 	 * @brief Writes the connections from objects to the road network
@@ -180,6 +159,27 @@ public class OutputBuilder {
 		}
 		emw.writeResults(nearestEdges);
 		emw.close();
+	}
+
+
+	/**
+	 * @brief Builds a comment string that shows the set options
+	 * @param options The options to encode
+	 * @return A comment string with set options
+	 */
+	private static String buildComment(OptionsCont options) {
+		StringBuffer sb = new StringBuffer();
+		sb.append("Generated using UrMoAC with the following options:\n");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	    String utf8 = StandardCharsets.UTF_8.name();
+		try {
+			PrintStream ps = new PrintStream(baos, true, utf8);
+			OptionsIO.printSetOptions(ps, options, false, false, true);
+		    sb.append(baos.toString(utf8));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		return sb.toString();
 	}
 
 	
