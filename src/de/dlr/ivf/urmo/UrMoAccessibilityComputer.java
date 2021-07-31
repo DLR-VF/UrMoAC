@@ -385,7 +385,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		}
 		// print help if wanted
 		if(options.getBool("help")) {
-			options.printHelp(System.out, 80, 2, 2, 1);
+			OptionsIO.printHelp(System.out, options, 80, 2, 2, 1);
 			return null;
 		}
 		// check template / configuration options

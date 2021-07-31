@@ -1,4 +1,5 @@
  Input Options
+  -c, --config                   Defines the configuration to load.
   -f, --from                     Defines the data source of origins.
   -t, --to                       Defines the data source of destinations.
   -n, --net                      Defines the road network to load.
@@ -81,3 +82,5 @@
   --threads                      The number of threads to use.
   -?, --help                     Prints the help screen.
   -v, --verbose                  Prints what is being done.
+  --save-config                  Saves the set options as a configuration file.
+  --save-template                Saves a template to add options to.
