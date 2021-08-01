@@ -254,6 +254,7 @@ public class InputReader {
 		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
 		BufferedReader br = new BufferedReader(new FileReader(fileName));
 		String line = null;
+		boolean dismissWeightReported = false;
 		do {
 			line = br.readLine();
 			if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
@@ -274,8 +275,15 @@ public class InputReader {
 					geom2 = gf.createPolygon(geom.toArray(arr));
 				}
 				double var = 1;
-				if(!dismissWeight && i<vals.length) {
-					var = Double.parseDouble(vals[i]);
+				if(i<vals.length) {
+					if(!dismissWeight) {
+						var = Double.parseDouble(vals[i]);
+					} else {
+						if(!dismissWeightReported) {
+							dismissWeightReported = true;
+							System.out.println("Warning: the weight option is not used as no aggregation takes place.");
+						}
+					}
 				}
 				layer.addObject(new LayerObject(idGiver.getNextRunningID(), Long.parseLong(vals[0]), var, geom2));
 			}
