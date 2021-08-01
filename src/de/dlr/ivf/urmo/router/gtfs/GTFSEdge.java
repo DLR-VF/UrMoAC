@@ -20,7 +20,7 @@ import java.util.Comparator;
 import java.util.Set;
 import java.util.Vector;
 
-import com.vividsolutions.jts.geom.LineString;
+import org.locationtech.jts.geom.LineString;
 
 import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;

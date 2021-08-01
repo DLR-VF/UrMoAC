@@ -27,6 +27,10 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
@@ -42,14 +46,17 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.postgresql.PGConnection;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.PrecisionModel;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKBReader;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.PrecisionModel;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKBReader;
 
 import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
@@ -221,6 +228,19 @@ public class NetLoader {
 		}
 		return net;
 	}
+
+	
+	
+	private static DBNet loadNetFromSUMOFile(IDGiver idGiver, String fileName, long uModes) throws IOException, ParserConfigurationException, SAXException {
+		NetLoader nl = new NetLoader();
+		DBNet net = new DBNet(idGiver);
+		SAXParserFactory factory = SAXParserFactory.newInstance();
+        SAXParser saxParser = factory.newSAXParser();
+        SUMONetHandler handler = new SUMONetHandler(net);
+        saxParser.parse(fileName, handler);
+        return net;
+	}
+
 	
 	
 	public static int loadTravelTimes(DBNet net, String def, boolean verbose) throws IOException {

@@ -21,8 +21,8 @@ import java.util.Vector;
 
 import com.infomatiq.jsi.Point;
 import com.infomatiq.jsi.SpatialIndex;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.LineString;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.LineString;
 
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
@@ -55,7 +55,7 @@ public class NearestEdgeFinder {
 	/// @brief Temporary minimum direction
 	private int minDir;
 	/// @brief The centroid of the current object
-	private com.vividsolutions.jts.geom.Point opivot;
+	private org.locationtech.jts.geom.Point opivot;
 	
 	// @brief Enum for points being on the right side of the road
 	private static final int DIRECTION_RIGHT = 1;

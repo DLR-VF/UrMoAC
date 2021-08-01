@@ -19,9 +19,9 @@ package de.dlr.ivf.urmo.router.shapes;
 import java.util.Vector;
 
 import com.infomatiq.jsi.Rectangle;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
 

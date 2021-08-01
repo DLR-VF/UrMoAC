@@ -32,7 +32,7 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 import de.dlr.ivf.helper.options.OptionsHelper;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
