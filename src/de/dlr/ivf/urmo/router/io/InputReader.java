@@ -44,8 +44,6 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.postgresql.PGConnection;
-import org.xml.sax.Attributes;
-import org.xml.sax.helpers.DefaultHandler;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -56,7 +54,6 @@ import com.vividsolutions.jts.io.WKBReader;
 
 import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
 import de.dlr.ivf.urmo.router.modes.Modes;
-import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.DBODRelation;
 import de.dlr.ivf.urmo.router.shapes.IDGiver;
 import de.dlr.ivf.urmo.router.shapes.Layer;
@@ -140,8 +137,7 @@ public class InputReader {
 	 * @param idGiver An instance to retrieve new ids from
 	 * @param epsg The used projection
 	 * @return The generated layer with the read objects
-	 * @throws SQLException
-	 * @throws ParseException
+	 * @throws IOException
 	 */
 	public static Layer loadLayer(CommandLine options, String base, String varName, boolean dismissWeight, IDGiver idGiver, int epsg) throws IOException {
 		String filter = varName==null ? "" : options.getOptionValue(base + "-filter", ""); // !!! use something different
@@ -185,10 +181,12 @@ public class InputReader {
 	 * @param pw The user's password
 	 * @param filter A WHERE-clause statement (optional, empty string if not used)
 	 * @param varName The name of the attached variable
-	 * @param layerName The name of the layer to generate
+	 * @param idS The name of the column to read the IDs from
+	 * @param geomS The name of the column to read the geometry from
 	 * @param idGiver A reference to something that supports a running ID
+	 * @param epsg The EPSG of the projection to use
 	 * @return The generated layer with the read objects
-	 * @throws SQLException
+	 * @throws IOException
 	 * @throws ParseException
 	 */
 	private static Layer loadLayerFromDB(String layerName, String url, String table, String user, String pw, String filter, String varName,
@@ -235,18 +233,14 @@ public class InputReader {
 	
 	
 	/**
-	 * @brief Loads a set of objects from file
+	 * @brief Loads a set of objects from a CVS-file
 	 * 
-	 * @param url The url of the database
-	 * @param table The table to read from
-	 * @param user The user name for connecting to the database
-	 * @param pw The user's password
-	 * @param filter A WHERE-clause statement (optional, empty string if not used)
-	 * @param varName The name of the attached variable
 	 * @param layerName The name of the layer to generate
+	 * @param fileName The name of the file to read
 	 * @param idGiver A reference to something that supports a running ID
+	 * @param dismissWeight Whether the weight shall be discarded
 	 * @return The generated layer with the read objects
-	 * @throws SQLException
+	 * @throws IOException
 	 * @throws ParseException
 	 */
 	private static Layer loadLayerFromCSVFile(String layerName, String fileName, IDGiver idGiver, boolean dismissWeight) throws ParseException, IOException { 
@@ -297,21 +291,20 @@ public class InputReader {
 	/**
 	 * @brief Loads a set of objects from a shapefile
 	 * 
-	 * @param url The url of the database
-	 * @param table The table to read from
-	 * @param user The user name for connecting to the database
-	 * @param pw The user's password
-	 * @param filter A WHERE-clause statement (optional, empty string if not used)
-	 * @param varName The name of the attached variable
 	 * @param layerName The name of the layer to generate
+	 * @param fileName The name of the file to read
+	 * @param varName The name of the attached variable
+	 * @param idS The name of the column to read the IDs from
+	 * @param geomS The name of the column to read the geometry from
 	 * @param idGiver A reference to something that supports a running ID
+	 * @param epsg The EPSG of the projection to use
 	 * @return The generated layer with the read objects
-	 * @throws SQLException
 	 * @throws ParseException
-	 * @throws FactoryException 
-	 * @throws NoSuchAuthorityCodeException 
-	 * @throws TransformException 
-	 * @throws MismatchedDimensionException 
+	 * @throws IOException
+	 * @throws NoSuchAuthorityCodeException
+	 * @throws FactoryException
+	 * @throws MismatchedDimensionException
+	 * @throws TransformException
 	 */
 	private static Layer loadLayerFromShapefile(String layerName, String fileName, String varName,
 			String idS, String geomS, IDGiver idGiver, int epsg) throws ParseException, IOException, NoSuchAuthorityCodeException, FactoryException, MismatchedDimensionException, TransformException { 
@@ -345,33 +338,6 @@ public class InputReader {
 		}
 		return layer;
 	}
-	
-	
-	class SUMOLayerHandler extends DefaultHandler {
-		public SUMOLayerHandler(Layer layer) {
-		}
-
-		@Override
-		public void startDocument() {
-		}
-
-		@Override
-		public void endDocument() {
-		}
-
-		@Override
-		public void startElement(String uri, String localName, String qName, Attributes attributes) {
-		}
-
-		@Override
-		public void endElement(String uri, String localName, String qName) {
-		}
-
-		@Override
-		public void characters(char ch[], int start, int length) {
-		}		
-	}
-	
 	
 	
 	// --------------------------------------------------------

@@ -27,10 +27,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
@@ -46,9 +42,6 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.postgresql.PGConnection;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -228,47 +221,6 @@ public class NetLoader {
 		}
 		return net;
 	}
-
-	
-	
-	
-	class SUMONetHandler extends DefaultHandler {
-		public SUMONetHandler(DBNet net) {
-		}
-
-		@Override
-		public void startDocument() {
-		}
-
-		@Override
-		public void endDocument() {
-		}
-
-		@Override
-		public void startElement(String uri, String localName, String qName, Attributes attributes) {
-		}
-
-		@Override
-		public void endElement(String uri, String localName, String qName) {
-		}
-
-		@Override
-		public void characters(char ch[], int start, int length) {
-		}		
-	}
-	
-	
-	
-	private static DBNet loadNetFromSUMOFile(IDGiver idGiver, String fileName, long uModes) throws IOException, ParserConfigurationException, SAXException {
-		NetLoader nl = new NetLoader();
-		DBNet net = new DBNet(idGiver);
-		SAXParserFactory factory = SAXParserFactory.newInstance();
-        SAXParser saxParser = factory.newSAXParser();
-        SUMONetHandler handler = nl.new SUMONetHandler(net);
-        saxParser.parse(fileName, handler);
-        return net;
-	}
-
 	
 	
 	public static int loadTravelTimes(DBNet net, String def, boolean verbose) throws IOException {
