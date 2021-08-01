@@ -136,13 +136,14 @@ public class InputReader {
 	 * @param options The command line options 
 	 * @param base The layer/type ("from", "to") of the objects to load
 	 * @param varName Name of the variable field
+	 * @param dismissWeight Whether the weight shall be discarded
 	 * @param idGiver An instance to retrieve new ids from
 	 * @param epsg The used projection
 	 * @return The generated layer with the read objects
 	 * @throws SQLException
 	 * @throws ParseException
 	 */
-	public static Layer loadLayer(CommandLine options, String base, String varName, IDGiver idGiver, int epsg) throws IOException {
+	public static Layer loadLayer(CommandLine options, String base, String varName, boolean dismissWeight, IDGiver idGiver, int epsg) throws IOException {
 		String filter = varName==null ? "" : options.getOptionValue(base + "-filter", ""); // !!! use something different
 		varName = varName==null ? null : options.getOptionValue(varName, "");
 		String[] r = Utils.checkDefinition(options.getOptionValue(base, ""), base);
@@ -156,7 +157,7 @@ public class InputReader {
 			}
 		} else if (r[0].equals("file") || r[0].equals("csv")) {
 			try {
-				return loadLayerFromCSVFile(base, r[1], idGiver);
+				return loadLayerFromCSVFile(base, r[1], idGiver, dismissWeight);
 			} catch (ParseException | IOException e) {
 				throw new IOException(e);
 			}
@@ -248,7 +249,7 @@ public class InputReader {
 	 * @throws SQLException
 	 * @throws ParseException
 	 */
-	private static Layer loadLayerFromCSVFile(String layerName, String fileName, IDGiver idGiver) throws ParseException, IOException { 
+	private static Layer loadLayerFromCSVFile(String layerName, String fileName, IDGiver idGiver, boolean dismissWeight) throws ParseException, IOException { 
 		Layer layer = new Layer(layerName);
 		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
 		BufferedReader br = new BufferedReader(new FileReader(fileName));
@@ -273,7 +274,7 @@ public class InputReader {
 					geom2 = gf.createPolygon(geom.toArray(arr));
 				}
 				double var = 1;
-				if(i<vals.length) {
+				if(!dismissWeight && i<vals.length) {
 					var = Double.parseDouble(vals[i]);
 				}
 				layer.addObject(new LayerObject(idGiver.getNextRunningID(), Long.parseLong(vals[0]), var, geom2));
