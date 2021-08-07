@@ -590,8 +590,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			}
 		}
 		// -------- loading
-		boolean dismissWeight =  !options.isSet("from-agg");
-		if(dismissWeight && options.isSet("weight")) {
+		boolean dismissWeight = !options.isSet("from-agg");
+		if(dismissWeight && !options.isDefault("weight")) {
 			System.out.println("Warning: the weight option is not used as no aggregation takes place.");
 		}
 		// from

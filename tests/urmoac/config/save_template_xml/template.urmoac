@@ -39,6 +39,11 @@
    <date></date>
    <entrainment></entrainment>
    <pt-restriction></pt-restriction>
+   <custom.vmax></custom.vmax>
+   <custom.kkc-per-hour></custom.kkc-per-hour>
+   <custom.co2-per-km></custom.co2-per-km>
+   <custom.price-per-km></custom.price-per-km>
+   <custom.allowed></custom.allowed>
    <nm-output></nm-output>
    <ext-nm-output></ext-nm-output>
    <stat-nm-output></stat-nm-output>
