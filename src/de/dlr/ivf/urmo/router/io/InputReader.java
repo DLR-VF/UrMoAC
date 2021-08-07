@@ -33,7 +33,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.commons.cli.CommandLine;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
@@ -64,6 +63,7 @@ import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 
+import de.dks.utils.options.OptionsCont;
 import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
 import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
@@ -93,8 +93,8 @@ public class InputReader {
 	 * @throws ParseException
 	 * @throws IOException 
 	 */
-	public static int findUTMZone(CommandLine options) throws IOException {
-		String[] r = Utils.checkDefinition(options.getOptionValue("from", ""), "from");
+	public static int findUTMZone(OptionsCont options) throws IOException {
+		String[] r = Utils.checkDefinition(options.getString("from"), "from");
 		if (!r[0].equals("db")) {
 			return 0;
 		}
@@ -103,7 +103,7 @@ public class InputReader {
 			connection.setAutoCommit(true);
 			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 			((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-			String geomString = options.getOptionValue("from.geom", "the_geom");
+			String geomString = options.getString("from.geom");
 			String query = "SELECT min(ST_X(ST_TRANSFORM("+geomString+",4326)))as lon, min(ST_Y(ST_TRANSFORM("+geomString+",4326)))as lat FROM " + r[2] + ";";
 			Statement s = connection.createStatement();
 			ResultSet rs = s.executeQuery(query);
@@ -152,15 +152,13 @@ public class InputReader {
 	 * @return The generated layer with the read objects
 	 * @throws IOException
 	 */
-	public static Layer loadLayer(CommandLine options, String base, String varName, boolean dismissWeight, IDGiver idGiver, int epsg) throws IOException {
-		String filter = varName==null ? "" : options.getOptionValue(base + "-filter", ""); // !!! use something different
-		varName = varName==null ? null : options.getOptionValue(varName, "");
-		String[] r = Utils.checkDefinition(options.getOptionValue(base, ""), base);
+	public static Layer loadLayer(OptionsCont options, String base, String varName, boolean dismissWeight, IDGiver idGiver, int epsg) throws IOException {
+		String filter = options.isSet(base+".filter") ? options.getString(base + ".filter") : ""; // !!! use something different
+		varName = varName==null ? null : options.getString(varName);
+		String[] r = Utils.checkDefinition(options.getString(base), base);
 		if (r[0].equals("db")) {
 			try {
-				return loadLayerFromDB(base, r[1], r[2], r[3], r[4], filter, varName, 
-						options.getOptionValue(base + ".id", "gid"), options.getOptionValue(base + ".geom", "the_geom"), 
-						idGiver, epsg);
+				return loadLayerFromDB(base, r[1], r[2], r[3], r[4], filter, varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg);
 			} catch (SQLException | ParseException e) {
 				throw new IOException(e);
 			}
@@ -172,8 +170,7 @@ public class InputReader {
 			}
 		} else if (r[0].equals("shp")) {
 			try {
-				return loadLayerFromShapefile(base, r[1], varName, options.getOptionValue(base + ".id", "gid"), 
-						options.getOptionValue(base + ".geom", "the_geom"), idGiver, epsg);
+				return loadLayerFromShapefile(base, r[1], varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg);
 			} catch (MismatchedDimensionException | ParseException | IOException | FactoryException | TransformException e) {
 				throw new IOException(e);
 			}
@@ -205,7 +202,7 @@ public class InputReader {
 	 * @param idGiver A reference to something that supports a running ID
 	 * @param epsg The EPSG of the projection to use
 	 * @return The generated layer with the read objects
-	 * @throws IOException
+	 * @throws SQLException
 	 * @throws ParseException
 	 */
 	private static Layer loadLayerFromDB(String layerName, String url, String table, String user, String pw, String filter, String varName,
@@ -407,8 +404,8 @@ public class InputReader {
 	// --------------------------------------------------------
 	// entrainment loading
 	// --------------------------------------------------------
-	public static EntrainmentMap loadEntrainment(CommandLine options)  throws IOException {
-		String[] r = Utils.checkDefinition(options.getOptionValue("entrainment", ""), "entrainment");
+	public static EntrainmentMap loadEntrainment(OptionsCont options)  throws IOException {
+		String[] r = Utils.checkDefinition(options.getString("entrainment"), "entrainment");
 		if (r[0].equals("db")) {
 			try {
 				return loadEntrainmentFromDB(r[1], r[2], r[3], r[4]);

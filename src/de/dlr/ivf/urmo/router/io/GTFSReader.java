@@ -32,7 +32,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Vector;
 
-import org.apache.commons.cli.CommandLine;
 import org.postgresql.PGConnection;
 
 import org.locationtech.jts.geom.Coordinate;
@@ -43,6 +42,7 @@ import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 
+import de.dks.utils.options.OptionsCont;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.NearestEdgeFinder;
@@ -84,20 +84,21 @@ public class GTFSReader {
 	 * @todo which modes to use to access the road network
 	 * @todo which modes to use to access the stations
 	 */
-	public static GTFSData load(CommandLine options, Geometry bounds, DBNet net, EntrainmentMap entrainmentMap, int epsg, boolean verbose) throws IOException {
-		String[] r = Utils.checkDefinition(options.getOptionValue("pt", ""), "pt");
+	public static GTFSData load(OptionsCont options, Geometry bounds, DBNet net, EntrainmentMap entrainmentMap, int epsg, boolean verbose) throws IOException {
+		if(!options.isSet("date")) {
+			throw new IOException("A date must be given when using GTFS.");
+		}
+		String[] r = Utils.checkDefinition(options.getString("pt"), "pt");
 		// parse modes vector
-		Vector<Integer> allowedCarrier = parseCarrierDef(options.getOptionValue("pt-restriction", ""));
+		Vector<Integer> allowedCarrier = options.isSet("pt-restriction") ? parseCarrierDef(options.getString("pt-restriction")) : new Vector<>();
 		if (r[0].equals("db")) {
 			try {
-				return loadGTFSFromDB(r[1], r[2], r[3], r[4], allowedCarrier, options.getOptionValue("date", ""),
-						bounds, net, entrainmentMap, epsg, verbose);
+				return loadGTFSFromDB(r[1], r[2], r[3], r[4], allowedCarrier, options.getString("date"), bounds, net, entrainmentMap, epsg, verbose);
 			} catch (SQLException | ParseException e) {
 				throw new IOException(e);
 			}
 		} else if (r[0].equals("file")) {
-			return loadGTFSFromFile(r[1], allowedCarrier, options.getOptionValue("date", ""),
-					bounds, net, entrainmentMap, epsg, verbose);
+			return loadGTFSFromFile(r[1], allowedCarrier, options.getString("date"), bounds, net, entrainmentMap, epsg, verbose);
 		} else {
 			throw new IOException("The prefix '" + r[0] + "' is not known or does not support GTFS.");
 		}

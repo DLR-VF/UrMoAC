@@ -1,96 +1,95 @@
-usage: UrMoAccessibilityComputer
- -?,--help                                Prints the help screen.
- -d,--direct-output <arg>                 Defines the direct output.
-    --date <arg>                          The date for which the
-                                          accessibilities shall be
-                                          computed.
-    --destinations-to-road-output <arg>   Defines output of the mapping
-                                          between to-objects to the road.
- -dropprevious                            When set, previous output with
-                                          the same name is replaced.
- -E,--entrainment <arg>                   Data source for entrainment
-                                          description.
- -e,--edges-output <arg>                  Defines the edges output.
-    --epsg <arg>                          The EPSG projection to use.
-    --ext-nm-output <arg>                 Defines the extended n:m output.
- -F,--from-filter <arg>                   Defines a filter for origins to
-                                          load.
- -f,--from                                Defines the data source of
-                                          origins.
-    --from-agg <arg>                      Defines the data source of
-                                          origin aggregation areas.
-    --from-agg.geom <arg>                 Defines the column name of the
-                                          origins aggregations'
-                                          geometries.
-    --from-agg.id <arg>                   Defines the column name of the
-                                          origins aggregations' ids.
-    --from.geom <arg>                     Defines the column name of the
-                                          origins' geometries.
-    --from.id <arg>                       Defines the column name of the
-                                          origins' ids.
- -i,--interchanges-output <arg>           Defines the interchanges output.
- -m,--mode <arg>                          The mode to use ['passenger',
-                                          'foot', 'bicycle'].
-    --max-distance <arg>                  The maximum distance to check.
-    --max-number <arg>                    The maximum number of
-                                          destinations to visit.
-    --max-tt <arg>                        The maximum travel time to
-                                          check.
-    --max-variable-sum <arg>              The maximum sum of variable's
-                                          values to collect.
-    --measure <arg>                       The measure to use during the
-                                          routing ['tt_mode', 'price_tt',
-                                          'interchanges_tt',
-                                          'maxinterchanges_tt'].
-    --measure-param1 <arg>                First parameter of the chosen
-                                          weight function.
-    --measure-param2 <arg>                Second parameter of the chosen
-                                          weight function.
- -n,--net <arg>                           Defines the road network to
-                                          load.
- -o,--nm-output <arg>                     Defines the n:m output.
-    --od-connections <arg>                The OD connections to compute.
-    --origins-to-road-output <arg>        Defines output of the mapping
-                                          between from-objects to the
-                                          road.
- -P,--pt-restriction <arg>                Restrictions to usable GTFS
-                                          carriers.
- -p,--pt <arg>                            Defines the GTFS-based public
-                                          transport representation.
-    --pt-boundary <arg>                   Defines the data source of the
-                                          boundary for the PT offer.
-    --pt-output <arg>                     Defines the public transport
-                                          output.
- -requirespt                              When set, only information that
-                                          contains a PT part are stored.
- -shortest                                Searches only one destination
-                                          per origin.
-    --stat-nm-output <arg>                Defines the n:m statistics
-                                          output.
- -subnets                                 When set, unconnected network
-                                          parts are not removed.
- -T,--to-filter <arg>                     Defines a filter for
-                                          destinations to load.
- -t,--to <arg>                            Defines the data source of
-                                          destinations.
-    --threads <arg>                       The number of threads.
-    --time <arg>                          The time the trips start at in
-                                          seconds.
-    --to-agg <arg>                        Defines the data source of
-                                          destination aggregation areas.
-    --to-agg.geom <arg>                   Defines the column name of the
-                                          destination aggregations'
-                                          geometries.
-    --to-agg.id <arg>                     Defines the column name of the
-                                          destination aggregations' ids.
-    --to.geom <arg>                       Defines the column name of the
-                                          destinations' geometries.
-    --to.id <arg>                         Defines the column name of the
-                                          destinations' ids.
-    --traveltimes <arg>                   Defines the data source of
-                                          traveltimes.
- -V,--variable <arg>                      An optional destinations'
-                                          variable to collect.
- -v,--verbose                             Prints what is being done.
- -W,--weight <arg>                        An optional weighting attribute
-                                          for the origins.
+ Input Options
+  -c, --config                   Defines the configuration to load.
+  -f, --from                     Defines the data source of origins.
+  -t, --to                       Defines the data source of destinations.
+  -n, --net                      Defines the road network to load.
+  -m, --mode                     The mode to use ['passenger', 'foot',
+                                   'bicycle'].
+  --from-agg                     Defines the data source of origin aggregation
+                                   areas.
+  --to-agg                       Defines the data source of destination
+                                   aggregation areas.
+  -p, --pt                       Defines the GTFS-based public transport
+                                   representation.
+  --traveltimes                  Defines the data source of traveltimes.
+  --epsg                         The EPSG projection to use.
+  --time                         The time the trips start at in seconds.
+  --od-connections               The OD connections to compute.
+ Input Adaptation
+  -F, --from.filter              Defines a filter for origins to load.
+  --from.id                      Defines the column name of the origins' ids.
+  --from.geom                    Defines the column name of the origins'
+                                   geometries.
+  -T, --to.filter                Defines a filter for destinations to load.
+  --to.id                        Defines the column name of the destinations'
+                                   ids.
+  --to.geom                      Defines the column name of the destinations'
+                                   geometries.
+  --from-agg.filter              Defines a filter for origin aggregation areas
+                                   to load.
+  --from-agg.id                  Defines the column name of the origins
+                                   aggregation areas' ids.
+  --from-agg.geom                Defines the column name of the origins
+                                   aggregation areas' geometries.
+  --to-agg.filter                Defines a filter for destination aggregation
+                                   areas to load.
+  --to-agg.id                    Defines the column name of the destination
+                                   aggregation areas' ids.
+  --to-agg.geom                  Defines the column name of the destination
+                                   aggregation areas' geometries.
+  --subnets                      When set, unconnected network parts are not
+                                   removed.
+ Weighting Options
+  -W, --weight                   An optional weighting attribute for the
+                                   origins.
+  -V, --variable                 An optional destinations' variable to collect.
+ Routing Options
+  --max-number                   The maximum number of destinations to visit.
+  --max-distance                 The maximum distance to check.
+  --max-tt                       The maximum travel time to check.
+  --max-variable-sum             The maximum sum of variable's values to
+                                   collect.
+  --shortest                     Searches only one destination per origin.
+  --requirespt                   When set, only information that contains a PT
+                                   part are stored.
+  --measure                      The measure to use during the routing
+                                   ['tt_mode', 'price_tt', 'interchanges_tt',
+                                   'maxinterchanges_tt'].
+  --measure-param1               First parameter of the chosen weight function.
+  --measure-param2               Second parameter of the chosen weight function.
+ Public Transport Options
+  --pt-boundary                  Defines the data source of the boundary for the
+                                   PT offer.
+  --date                         The date for which the accessibilities shall be
+                                   computed.
+  -E, --entrainment              Data source for entrainment description.
+  --pt-restriction               Restrictions to usable GTFS carriers.
+ Custom Mode Options
+  --custom.vmax                  Maximum velocity of the custom mode.
+  --custom.kkc-per-hour          kkc used per hour when using the custom mode.
+  --custom.co2-per-km            CO2 emitted per kilometer when using the custom
+                                   mode.
+  --custom.price-per-km          Price for using the custom mode per kilometre.
+  --custom.allowed               The type of roads the custom mode can use
+                                   (combination of 'foot', 'bike', 'passenger'
+                                   divided by ';').
+ Output Options
+  -o, --nm-output                Defines the n:m output.
+  --ext-nm-output                Defines the extended n:m output.
+  --stat-nm-output               Defines the n:m statistics output.
+  -i, --interchanges-output      Defines the interchanges output.
+  -e, --edges-output             Defines the edges output.
+  --pt-output                    Defines the public transport output.
+  -d, --direct-output            Defines the direct output.
+  --origins-to-road-output       Defines output of the mapping between sources
+                                   and the network.
+  --destinations-to-road-output  Defines output of the mapping between
+                                   destinations and the network.
+  --dropprevious                 When set, previous output with the same name is
+                                   replaced.
+ Process Options
+  --threads                      The number of threads to use.
+  -?, --help                     Prints the help screen.
+  -v, --verbose                  Prints what is being done.
+  --save-config                  Saves the set options as a configuration file.
+  --save-template                Saves a template to add options to.

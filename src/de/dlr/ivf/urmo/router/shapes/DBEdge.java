@@ -226,12 +226,10 @@ public class DBEdge {
 					if(vg<=0) {
 						vg = 5./3.6;
 					}
-					//System.out.println(Math.min(ivmax, Math.min(vg, vmax))+";"+vmax);
 					return length / Math.min(ivmax, Math.min(vg, vmax));
 				}
 			}
 		}
-		// we do not have the speed for this edge; we'll use half of the allowed one
 		double v = Math.min(vmax, ivmax);
 		return length / v;
 	}

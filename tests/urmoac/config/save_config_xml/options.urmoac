@@ -1,0 +1,2 @@
+--from file;sources.csv --to file;destinations.csv --net file;network.csv --origins-to-road-output file;o2r_output.csv --destinations-to-road-output file;d2r_output.csv --epsg 0 --mode bicycle --time 0 --from-agg file;agg_sources.csv --to-agg file;agg_destinations.csv --save-config configuration.xml
+

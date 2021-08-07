@@ -16,14 +16,17 @@
  */
 package de.dlr.ivf.urmo.router.io;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Vector;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-
+import de.dks.utils.options.OptionsCont;
+import de.dks.utils.options.OptionsIO;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
 import de.dlr.ivf.urmo.router.output.AbstractSingleResult;
@@ -54,56 +57,52 @@ import de.dlr.ivf.urmo.router.shapes.Layer;
 
 public class OutputBuilder {
 
-	public static Vector<Aggregator> buildOutputs(CommandLine options, Layer fromLayer, Layer fromAggLayer, Layer toLayer, Layer toAggLayer) throws IOException {
+	public static Vector<Aggregator> buildOutputs(OptionsCont options, Layer fromLayer, Layer fromAggLayer, Layer toLayer, Layer toAggLayer) throws IOException {
 		Vector<Aggregator> aggregators = new Vector<>();
-		boolean dropExistingTables = options.hasOption("dropprevious");
+		boolean dropExistingTables = options.getBool("dropprevious");
+		boolean aggAllFrom = options.isSet("from-agg") && options.getString("from-agg").equals("all");
+		boolean aggAllTo = options.isSet("to-agg") && options.getString("to-agg").equals("all");
 		String comment = buildComment(options);
-		if (!"".equals(options.getOptionValue("nm-output", ""))) {
+		if (options.isSet("nm-output")) {
 			ODMeasuresGenerator mgNM = new ODMeasuresGenerator();
-			AbstractResultsWriter<ODSingleResult> writer = buildNMOutput(options.getOptionValue("nm-output", ""), dropExistingTables);
-			Aggregator<ODSingleResult> agg = buildAggregator(mgNM, options.hasOption("shortest"), 
-					options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
-					fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+			AbstractResultsWriter<ODSingleResult> writer = buildNMOutput(options.getString("nm-output"), dropExistingTables);
+			Aggregator<ODSingleResult> agg = buildAggregator(mgNM, options.getBool("shortest"), 
+					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
 		}
-		if (!"".equals(options.getOptionValue("ext-nm-output", ""))) {
+		if (options.isSet("ext-nm-output")) {
 			ODExtendedMeasuresGenerator mg = new ODExtendedMeasuresGenerator();
-			AbstractResultsWriter<ODSingleExtendedResult> writer = buildExtNMOutput(options.getOptionValue("ext-nm-output", ""), dropExistingTables);
-			Aggregator<ODSingleExtendedResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
-					options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
-					fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+			AbstractResultsWriter<ODSingleExtendedResult> writer = buildExtNMOutput(options.getString("ext-nm-output"), dropExistingTables);
+			Aggregator<ODSingleExtendedResult> agg = buildAggregator(mg, options.getBool("shortest"), 
+					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
 		}
-		if (!"".equals(options.getOptionValue("stat-nm-output", ""))) {
+		if (options.isSet("stat-nm-output")) {
 			ODStatsMeasuresGenerator mg = new ODStatsMeasuresGenerator();
-			AbstractResultsWriter<ODSingleStatsResult> writer = buildStatNMOutput(options.getOptionValue("stat-nm-output", ""), dropExistingTables);
-			Aggregator<ODSingleStatsResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
-					options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
-					fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+			AbstractResultsWriter<ODSingleStatsResult> writer = buildStatNMOutput(options.getString("stat-nm-output"), dropExistingTables);
+			Aggregator<ODSingleStatsResult> agg = buildAggregator(mg, options.getBool("shortest"), 
+					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
 		}
-		if (!"".equals(options.getOptionValue("interchanges-output", ""))) {
+		if (options.isSet("interchanges-output")) {
 			InterchangeMeasuresGenerator mg = new InterchangeMeasuresGenerator();
-			AbstractResultsWriter<InterchangeSingleResult> writer = buildInterchangeOutput(options.getOptionValue("interchanges-output", ""), dropExistingTables);
-			Aggregator<InterchangeSingleResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
-					options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
-					fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+			AbstractResultsWriter<InterchangeSingleResult> writer = buildInterchangeOutput(options.getString("interchanges-output"), dropExistingTables);
+			Aggregator<InterchangeSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
+					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
 		}
-		if (!"".equals(options.getOptionValue("edges-output", ""))) {
+		if (options.isSet("edges-output")) {
 			EUMeasuresGenerator mg = new EUMeasuresGenerator();
-			AbstractResultsWriter<EUSingleResult> writer = buildEUOutput(options.getOptionValue("edges-output", ""), dropExistingTables);
-			Aggregator<EUSingleResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
-					options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
-					fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+			AbstractResultsWriter<EUSingleResult> writer = buildEUOutput(options.getString("edges-output"), dropExistingTables);
+			Aggregator<EUSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
+					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
 		}
-		if (!"".equals(options.getOptionValue("pt-output", ""))) {
+		if (options.isSet("pt-output")) {
 			PTODMeasuresGenerator mg = new PTODMeasuresGenerator();
-			AbstractResultsWriter<PTODSingleResult> writer = buildPTODOutput(options.getOptionValue("pt-output", ""), dropExistingTables);
-			Aggregator<PTODSingleResult> agg = buildAggregator(mg, options.hasOption("shortest"), 
-					options.getOptionValue("from-agg", ""), options.getOptionValue("to-agg", ""),
-					fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+			AbstractResultsWriter<PTODSingleResult> writer = buildPTODOutput(options.getString("pt-output"), dropExistingTables);
+			Aggregator<PTODSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
+					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
 		}
 		return aggregators;
@@ -118,44 +117,19 @@ public class OutputBuilder {
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	public static DirectWriter buildDirectOutput(CommandLine options, int rsid, HashMap<DBEdge, Vector<MapResult>> nearestToEdges) throws IOException {
-		String d = options.getOptionValue("direct-output", "");
-		if ("".equals(d)) {
+	public static DirectWriter buildDirectOutput(OptionsCont options, int rsid, HashMap<DBEdge, Vector<MapResult>> nearestToEdges) throws IOException {
+		if (!options.isSet("direct-output")) {
 			return null;
 		}
-		String[] r = Utils.checkDefinition(d, "direct-output");
+		String[] r = Utils.checkDefinition(options.getString("direct-output"), "direct-output");
 		DirectWriter dw = null;
 		if (r[0].equals("db")) {
-			dw = new DirectWriter(r[1], r[2], r[3], r[4], rsid, nearestToEdges, options.hasOption("dropprevious"));
+			dw = new DirectWriter(r[1], r[2], r[3], r[4], rsid, nearestToEdges, options.getBool("dropprevious"));
 		} else {
 			dw = new DirectWriter(r[1], rsid, nearestToEdges);
 		}
 		dw.addComment(buildComment(options));
 		return dw;
-	}
-
-
-
-	/**
-	 * @brief Builds a comment string that shows the set options
-	 * @param options The options to encode
-	 * @return A comment string with set options
-	 */
-	public static String buildComment(CommandLine options) {
-		StringBuffer sb = new StringBuffer();
-		sb.append("Generated using UrMoAC with the following options:\n");
-		Option[] args = options.getOptions();
-		for(Option argO : args) {
-			if(!"".equals(argO.getValue(""))) {
-				String value = argO.getValue();
-				value = value.replace("'", "''");
-				if(value.indexOf("jdbc")>=0) {
-					value = value.substring(0, value.lastIndexOf(";")+1) + "---";
-				}
-				sb.append("--").append(argO.getLongOpt()).append(' ').append(value).append('\n');
-			}
-		}
-		return sb.toString();
 	}
 
 	
@@ -187,6 +161,27 @@ public class OutputBuilder {
 		emw.close();
 	}
 
+
+	/**
+	 * @brief Builds a comment string that shows the set options
+	 * @param options The options to encode
+	 * @return A comment string with set options
+	 */
+	private static String buildComment(OptionsCont options) {
+		StringBuffer sb = new StringBuffer();
+		sb.append("Generated using UrMoAC with the following options:\n");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	    String utf8 = StandardCharsets.UTF_8.name();
+		try {
+			PrintStream ps = new PrintStream(baos, true, utf8);
+			OptionsIO.printSetOptions(ps, options, false, false, true);
+		    sb.append(baos.toString(utf8));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		return sb.toString();
+	}
+
 	
 	/**
 	 * @brief Brief builds the results processing aggregator
@@ -204,18 +199,18 @@ public class OutputBuilder {
 	 * @throws SQLException When something fails
 	 */
 	private static <T extends AbstractSingleResult> Aggregator<T> buildAggregator(MeasurementGenerator measuresGenerator,
-			boolean shortest, String fromAgg, String toAgg, 
+			boolean shortest, boolean aggAllFrom, boolean aggAllTo, 
 			Layer fromLayer, Layer fromAggLayer, Layer toLayer, Layer toAggLayer,
 			AbstractResultsWriter<T> writer, String comment) throws IOException {
 		Aggregator<T> agg = new Aggregator<T>(measuresGenerator, fromLayer, shortest);
 		if (fromAggLayer != null) {
 			agg.setOriginAggregation(fromLayer, fromAggLayer);
-		} else if (fromAgg.equals("all")) {
+		} else if (aggAllFrom) {
 			agg.sumOrigins();
 		}
 		if (toAggLayer != null) {
 			agg.setDestinationAggregation(toLayer, toAggLayer);
-		} else if (toAgg.equals("all")) {
+		} else if (aggAllTo) {
 			agg.sumDestinations();
 		}
 		agg.buildMeasurementsMap(fromLayer, toLayer);

@@ -1,3 +1,6 @@
+# single dash on long option
+help_long_singledash
+
 # missing parameter for net
 net_missing parameter
 
