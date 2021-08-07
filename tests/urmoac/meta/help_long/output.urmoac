@@ -87,6 +87,8 @@
                                    destinations and the network.
   --dropprevious                 When set, previous output with the same name is
                                    replaced.
+  --precision                    Defines the number of positions after the
+                                   decimal point.
  Process Options
   --threads                      The number of threads to use.
   -?, --help                     Prints the help screen.

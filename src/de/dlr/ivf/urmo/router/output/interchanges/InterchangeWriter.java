@@ -18,6 +18,7 @@ package de.dlr.ivf.urmo.router.output.interchanges;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Locale;
 import java.util.Map;
 
 import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
@@ -56,10 +57,11 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 	 * 
 	 * Opens the file to write the results to
 	 * @param fileName The path to the file to write the results to
+	 * @param precision The precision to use
 	 * @throws IOException When something fails
 	 */
-	public InterchangeWriter(String fileName) throws IOException {
-		super(fileName);
+	public InterchangeWriter(String fileName, int precision) throws IOException {
+		super(fileName, precision);
 	}
 
 	
@@ -101,7 +103,9 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 				for(String id2 : ssstats.keySet()) {
 					String[] lineIDs = InterchangeSingleResult.splitLinesKey(id2);
 					_fileWriter.append(result.srcID + ";" + result.destID + ";" + id + ";" + 
-							lineIDs[0] + ";" + lineIDs[1] + ";" + ssstats.get(id2).number + ";" + ssstats.get(id2).weightedTT + "\n");
+							lineIDs[0] + ";" + lineIDs[1] + ";" 
+							+ String.format(Locale.US, _FS, ssstats.get(id2).number) + ";" 
+							+ String.format(Locale.US, _FS, ssstats.get(id2).weightedTT) + "\n");
 				}
 			}
 			

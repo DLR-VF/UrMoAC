@@ -19,6 +19,7 @@ package de.dlr.ivf.urmo.router.output;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Vector;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
@@ -65,12 +66,13 @@ public class DirectWriter extends BasicCombinedWriter {
 	 * 
 	 * Opens the file to write the results to
 	 * @param fileName The path to the file to write the results to
+	 * @param precision The precision to use
 	 * @param rsid The RSID to use
 	 * @param _nearestToEdges A map of edges to assigned destinations
 	 * @throws IOException When something fails
 	 */
-	public DirectWriter(String fileName, int rsid, HashMap<DBEdge, Vector<MapResult>> _nearestToEdges) throws IOException {
-		super(fileName);
+	public DirectWriter(String fileName, int precision, int rsid, HashMap<DBEdge, Vector<MapResult>> _nearestToEdges) throws IOException {
+		super(fileName, precision);
 		nearestToEdges = _nearestToEdges;
 	}
 	
@@ -124,7 +126,8 @@ public class DirectWriter extends BasicCombinedWriter {
 						}
 					} else {
 						_fileWriter.append(from.em.getOuterID() + ";" + toObject.em.getOuterID() + ";" + current.line + ";"
-								+ current.usedMode.mml + ";" + current.ttt + ";" + id + ";" + index + ";"
+								+ current.usedMode.mml + ";" 
+								+ String.format(Locale.US, _FS, current.ttt) + ";" + id + ";" + index + ";"
 								+ current.e.geom.toText() 
 								+ "\n");
 					}

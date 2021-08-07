@@ -1,3 +1,6 @@
+# testing mode restrictions
+mode_restrictions
+
 # route weight functions
 route_weight_functions
 

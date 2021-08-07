@@ -62,45 +62,46 @@ public class OutputBuilder {
 		boolean dropExistingTables = options.getBool("dropprevious");
 		boolean aggAllFrom = options.isSet("from-agg") && options.getString("from-agg").equals("all");
 		boolean aggAllTo = options.isSet("to-agg") && options.getString("to-agg").equals("all");
+		int precision = options.getInteger("precision");
 		String comment = buildComment(options);
 		if (options.isSet("nm-output")) {
 			ODMeasuresGenerator mgNM = new ODMeasuresGenerator();
-			AbstractResultsWriter<ODSingleResult> writer = buildNMOutput(options.getString("nm-output"), dropExistingTables);
+			AbstractResultsWriter<ODSingleResult> writer = buildNMOutput(options.getString("nm-output"), precision, dropExistingTables);
 			Aggregator<ODSingleResult> agg = buildAggregator(mgNM, options.getBool("shortest"), 
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
 		}
 		if (options.isSet("ext-nm-output")) {
 			ODExtendedMeasuresGenerator mg = new ODExtendedMeasuresGenerator();
-			AbstractResultsWriter<ODSingleExtendedResult> writer = buildExtNMOutput(options.getString("ext-nm-output"), dropExistingTables);
+			AbstractResultsWriter<ODSingleExtendedResult> writer = buildExtNMOutput(options.getString("ext-nm-output"), precision, dropExistingTables);
 			Aggregator<ODSingleExtendedResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
 		}
 		if (options.isSet("stat-nm-output")) {
 			ODStatsMeasuresGenerator mg = new ODStatsMeasuresGenerator();
-			AbstractResultsWriter<ODSingleStatsResult> writer = buildStatNMOutput(options.getString("stat-nm-output"), dropExistingTables);
+			AbstractResultsWriter<ODSingleStatsResult> writer = buildStatNMOutput(options.getString("stat-nm-output"), precision, dropExistingTables);
 			Aggregator<ODSingleStatsResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
 		}
 		if (options.isSet("interchanges-output")) {
 			InterchangeMeasuresGenerator mg = new InterchangeMeasuresGenerator();
-			AbstractResultsWriter<InterchangeSingleResult> writer = buildInterchangeOutput(options.getString("interchanges-output"), dropExistingTables);
+			AbstractResultsWriter<InterchangeSingleResult> writer = buildInterchangeOutput(options.getString("interchanges-output"), precision, dropExistingTables);
 			Aggregator<InterchangeSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
 		}
 		if (options.isSet("edges-output")) {
 			EUMeasuresGenerator mg = new EUMeasuresGenerator();
-			AbstractResultsWriter<EUSingleResult> writer = buildEUOutput(options.getString("edges-output"), dropExistingTables);
+			AbstractResultsWriter<EUSingleResult> writer = buildEUOutput(options.getString("edges-output"), precision, dropExistingTables);
 			Aggregator<EUSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
 		}
 		if (options.isSet("pt-output")) {
 			PTODMeasuresGenerator mg = new PTODMeasuresGenerator();
-			AbstractResultsWriter<PTODSingleResult> writer = buildPTODOutput(options.getString("pt-output"), dropExistingTables);
+			AbstractResultsWriter<PTODSingleResult> writer = buildPTODOutput(options.getString("pt-output"), precision, dropExistingTables);
 			Aggregator<PTODSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
@@ -117,7 +118,7 @@ public class OutputBuilder {
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	public static DirectWriter buildDirectOutput(OptionsCont options, int rsid, HashMap<DBEdge, Vector<MapResult>> nearestToEdges) throws IOException {
+	public static DirectWriter buildDirectOutput(OptionsCont options, int precision, int rsid, HashMap<DBEdge, Vector<MapResult>> nearestToEdges) throws IOException {
 		if (!options.isSet("direct-output")) {
 			return null;
 		}
@@ -126,7 +127,7 @@ public class OutputBuilder {
 		if (r[0].equals("db")) {
 			dw = new DirectWriter(r[1], r[2], r[3], r[4], rsid, nearestToEdges, options.getBool("dropprevious"));
 		} else {
-			dw = new DirectWriter(r[1], rsid, nearestToEdges);
+			dw = new DirectWriter(r[1], precision, rsid, nearestToEdges);
 		}
 		dw.addComment(buildComment(options));
 		return dw;
@@ -146,7 +147,7 @@ public class OutputBuilder {
 	 * @throws IOException If the file cannot be written
 	 * @throws SQLException
 	 */
-	public static void writeEdgeAllocation(String d, HashMap<DBEdge, Vector<MapResult>> nearestEdges, int epsg, boolean dropPrevious) throws IOException {
+	public static void writeEdgeAllocation(String d, int precision, HashMap<DBEdge, Vector<MapResult>> nearestEdges, int epsg, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "X-to-road-output");
 		EdgeMappingWriter emw = null;
 		if (r[0].equals("db")) {
@@ -155,7 +156,7 @@ public class OutputBuilder {
 			}
 			emw = new EdgeMappingWriter(r[1], r[2], r[3], r[4], epsg, dropPrevious);
 		} else {
-			emw = new EdgeMappingWriter(r[1]);
+			emw = new EdgeMappingWriter(r[1], precision);
 		}
 		emw.writeResults(nearestEdges);
 		emw.close();
@@ -223,17 +224,18 @@ public class OutputBuilder {
 	/**
 	 * @brief Builds a ODSingleResult-output
 	 * @param d The output storage definition
+	 * @param precision The precision to use when writing to a file
 	 * @param dropPrevious Whether a prior database shall be dropped
 	 * @return The built output
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	private static AbstractResultsWriter<ODSingleResult> buildNMOutput(String d, boolean dropPrevious) throws IOException {
+	private static AbstractResultsWriter<ODSingleResult> buildNMOutput(String d, int precision, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "nm-output");
 		if (r[0].equals("db")) {
 			return new ODWriter(r[1], r[2], r[3], r[4], dropPrevious);
 		} else if (r[0].equals("file") || r[0].equals("csv")) {
-			return new ODWriter(r[1]);
+			return new ODWriter(r[1], precision);
 		} else {
 			throw new IOException("The prefix '" + r[0] + "' is not known or does not support outputs.");
 		}
@@ -243,17 +245,18 @@ public class OutputBuilder {
 	/**
 	 * @brief Builds a ODSingleExtendedResult-output
 	 * @param d The output storage definition
+	 * @param precision The precision to use when writing to a file
 	 * @param dropPrevious Whether a prior database shall be dropped
 	 * @return The built output
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	private static AbstractResultsWriter<ODSingleExtendedResult> buildExtNMOutput(String d, boolean dropPrevious) throws IOException {
+	private static AbstractResultsWriter<ODSingleExtendedResult> buildExtNMOutput(String d, int precision, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "ext-nm-output");
 		if (r[0].equals("db")) {
 			return new ODExtendedWriter(r[1], r[2], r[3], r[4], dropPrevious);
 		} else if (r[0].equals("file") || r[0].equals("csv")) {
-			return new ODExtendedWriter(r[1]);
+			return new ODExtendedWriter(r[1], precision);
 		} else {
 			throw new IOException("The prefix '" + r[0] + "' is not known or does not support outputs.");
 		}
@@ -263,17 +266,18 @@ public class OutputBuilder {
 	/**
 	 * @brief Builds a ODSingleStatsResult-output
 	 * @param d The output storage definition
+	 * @param precision The precision to use when writing to a file
 	 * @param dropPrevious Whether a prior database shall be dropped
 	 * @return The built output
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	private static AbstractResultsWriter<ODSingleStatsResult> buildStatNMOutput(String d, boolean dropPrevious) throws IOException {
+	private static AbstractResultsWriter<ODSingleStatsResult> buildStatNMOutput(String d, int precision, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "stat-nm-output");
 		if (r[0].equals("db")) {
 			return new ODStatsWriter(r[1], r[2], r[3], r[4], dropPrevious);
 		} else if (r[0].equals("file") || r[0].equals("csv")) {
-			return new ODStatsWriter(r[1]);
+			return new ODStatsWriter(r[1], precision);
 		} else {
 			throw new IOException("The prefix '" + r[0] + "' is not known or does not support outputs.");
 		}
@@ -283,17 +287,18 @@ public class OutputBuilder {
 	/**
 	 * @brief Builds a InterchangeSingleResult-output
 	 * @param d The output storage definition
+	 * @param precision The precision to use when writing to a file
 	 * @param dropPrevious Whether a prior database shall be dropped
 	 * @return The built output
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	private static AbstractResultsWriter<InterchangeSingleResult> buildInterchangeOutput(String d, boolean dropPrevious) throws IOException {
+	private static AbstractResultsWriter<InterchangeSingleResult> buildInterchangeOutput(String d, int precision, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "interchanges-output");
 		if (r[0].equals("db")) {
 			return new InterchangeWriter(r[1], r[2], r[3], r[4], dropPrevious);
 		} else if (r[0].equals("file") || r[0].equals("csv")) {
-			return new InterchangeWriter(r[1]);
+			return new InterchangeWriter(r[1], precision);
 		} else {
 			throw new IOException("The prefix '" + r[0] + "' is not known or does not support outputs.");
 		}
@@ -303,17 +308,18 @@ public class OutputBuilder {
 	/**
 	 * @brief Builds a EUSingleResult-output
 	 * @param d The output storage definition
+	 * @param precision The precision to use when writing to a file
 	 * @param dropPrevious Whether a prior database shall be dropped
 	 * @return The built output
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	private static AbstractResultsWriter<EUSingleResult> buildEUOutput(String d, boolean dropPrevious) throws IOException {
+	private static AbstractResultsWriter<EUSingleResult> buildEUOutput(String d, int precision, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "edges-output");
 		if (r[0].equals("db")) {
 			return new EUWriter(r[1], r[2], r[3], r[4], dropPrevious);
 		} else if (r[0].equals("file") || r[0].equals("csv")) {
-			return new EUWriter(r[1]);
+			return new EUWriter(r[1], precision);
 		} else {
 			throw new IOException("The prefix '" + r[0] + "' is not known or does not support outputs.");
 		}
@@ -323,17 +329,18 @@ public class OutputBuilder {
 	/**
 	 * @brief Builds a PTODSingleResult-output
 	 * @param d The output storage definition
+	 * @param precision The precision to use when writing to a file
 	 * @param dropPrevious Whether a prior database shall be dropped
 	 * @return The built output
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	private static AbstractResultsWriter<PTODSingleResult> buildPTODOutput(String d, boolean dropPrevious) throws IOException {
+	private static AbstractResultsWriter<PTODSingleResult> buildPTODOutput(String d, int precision, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "pt-output");
 		if (r[0].equals("db")) {
 			return new PTODWriter(r[1], r[2], r[3], r[4], dropPrevious);
 		} else if (r[0].equals("file") || r[0].equals("csv")) {
-			return new PTODWriter(r[1]);
+			return new PTODWriter(r[1], precision);
 		} else {
 			throw new IOException("The prefix '" + r[0] + "' is not known or does not support outputs.");
 		}

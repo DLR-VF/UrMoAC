@@ -45,6 +45,8 @@ public class BasicCombinedWriter {
 	/// @{ file settings
 	/// @brief The writer to use to write to the file
 	protected FileWriter _fileWriter = null;
+	/// @brief The floating point precision format string to use
+	protected String _FS;
 	/// @}
 	
 	
@@ -89,10 +91,12 @@ public class BasicCombinedWriter {
 	 * 
 	 * Opens the file to write the results to
 	 * @param fileName The path to the file to write the results to
+	 * @param precision The precision to use
 	 * @throws IOException When something fails
 	 */
-	public BasicCombinedWriter(String fileName) throws IOException {
+	public BasicCombinedWriter(String fileName, int precision) throws IOException {
 		_fileWriter = new FileWriter(fileName);
+		_FS = "%." + precision + "f";
 	}
 
 

@@ -18,6 +18,7 @@ package de.dlr.ivf.urmo.router.output.od;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Locale;
 
 import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
 
@@ -54,10 +55,11 @@ public class ODWriter extends AbstractResultsWriter<ODSingleResult> {
 	 * 
 	 * Opens the file to write the results to
 	 * @param fileName The path to the file to write the results to
+	 * @param precision The precision to use
 	 * @throws IOException When something fails
 	 */
-	public ODWriter(String fileName) throws IOException {
-		super(fileName);
+	public ODWriter(String fileName, int precision) throws IOException {
+		super(fileName, precision);
 	}
 
 	
@@ -88,8 +90,10 @@ public class ODWriter extends AbstractResultsWriter<ODSingleResult> {
 			}
 		} else {
 			_fileWriter.append(result.srcID + ";" + result.destID + ";" 
-					+ result.weightedDistance + ";" + result.weightedTravelTime + ";"
-					+ result.connectionsWeightSum + ";" + result.weightedValue + "\n");
+					+ String.format(Locale.US, _FS, result.weightedDistance) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedTravelTime) + ";"
+					+ String.format(Locale.US, _FS, result.connectionsWeightSum) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedValue) + "\n");
 		}
 	}
 

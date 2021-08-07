@@ -372,6 +372,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("destinations-to-road-output", "Defines output of the mapping between destinations and the network.");
 		options.add("dropprevious", new Option_Bool());
 		options.setDescription("dropprevious", "When set, previous output with the same name is replaced.");
+		options.add("precision", new Option_Integer(2));
+		options.setDescription("precision", "Defines the number of positions after the decimal point.");
 		
 		options.beginSection("Process Options");
 		options.add("threads", new Option_Integer(1));
@@ -682,13 +684,13 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		NearestEdgeFinder nef1 = new NearestEdgeFinder(fromLayer.getObjects(), net, initMode);
 		nearestFromEdges = nef1.getNearestEdges(false);
 		if (options.isSet("origins-to-road-output")) {
-			OutputBuilder.writeEdgeAllocation(options.getString("origins-to-road-output"), nearestFromEdges, epsg, options.getBool("dropprevious"));
+			OutputBuilder.writeEdgeAllocation(options.getString("origins-to-road-output"), options.getInteger("precision"), nearestFromEdges, epsg, options.getBool("dropprevious"));
 		}
 		if (verbose) System.out.println("Computing egress from the network to the destinations");
 		NearestEdgeFinder nef2 = new NearestEdgeFinder(toLayer.getObjects(), net, initMode);
 		nearestToEdges = nef2.getNearestEdges(true);
 		if (options.isSet("destinations-to-road-output")) {
-			OutputBuilder.writeEdgeAllocation(options.getString("destinations-to-road-output"), nearestToEdges, epsg, options.getBool("dropprevious"));
+			OutputBuilder.writeEdgeAllocation(options.getString("destinations-to-road-output"), options.getInteger("precision"), nearestToEdges, epsg, options.getBool("dropprevious"));
 		}
 
 		// -------- instantiate outputs
@@ -717,7 +719,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		*/
 		// -------- build outputs
 		Vector<Aggregator> aggregators = OutputBuilder.buildOutputs(options, fromLayer, fromAggLayer, toLayer, toAggLayer);
-		DirectWriter dw = OutputBuilder.buildDirectOutput(options, epsg, nearestToEdges);
+		DirectWriter dw = OutputBuilder.buildDirectOutput(options, options.getInteger("precision"), epsg, nearestToEdges);
 		time = options.getInteger("time");
 		resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, nearestFromEdges, nearestToEdges); 
 

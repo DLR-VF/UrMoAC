@@ -18,6 +18,7 @@ package de.dlr.ivf.urmo.router.output.edge_use;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Locale;
 
 import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
 import de.dlr.ivf.urmo.router.output.edge_use.EUSingleResult.EdgeParam;
@@ -54,10 +55,11 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 	 * 
 	 * Opens the file to write the results to
 	 * @param fileName The path to the file to write the results to
+	 * @param precision The precision to use
 	 * @throws IOException When something fails
 	 */
-	public EUWriter(String fileName) throws IOException {
-		super(fileName);
+	public EUWriter(String fileName, int precision) throws IOException {
+		super(fileName, precision);
 	}
 
 	
@@ -92,8 +94,10 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 		} else {
 			for(String id : result.stats.keySet()) {
 				EdgeParam ep = result.stats.get(id);
-				_fileWriter.append(result.srcID + ";" + result.destID + ";" + id + ";" + ep.num 
-						+ ";" + ep.sourcesWeight + ";" + (ep.num / ep.sourcesWeight) + "\n");
+				_fileWriter.append(result.srcID + ";" + result.destID + ";" + id + ";" 
+						+ String.format(Locale.US, _FS, ep.num) + ";" 
+						+ String.format(Locale.US, _FS, ep.sourcesWeight) + ";" 
+						+ String.format(Locale.US, _FS, (ep.num / ep.sourcesWeight)) + "\n");
 			}
 		}
 	}

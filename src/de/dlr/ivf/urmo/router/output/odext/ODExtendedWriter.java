@@ -18,6 +18,7 @@ package de.dlr.ivf.urmo.router.output.odext;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Locale;
 
 import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
 
@@ -56,10 +57,11 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 	 * 
 	 * Opens the file to write the results to
 	 * @param fileName The path to the file to write the results to
+	 * @param precision The precision to use
 	 * @throws IOException When something fails
 	 */
-	public ODExtendedWriter(String fileName) throws IOException {
-		super(fileName);
+	public ODExtendedWriter(String fileName, int precision) throws IOException {
+		super(fileName, precision);
 	}
 
 	
@@ -102,12 +104,22 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 			}
 		} else {
 			_fileWriter.append(result.srcID + ";" + result.destID + ";" 
-					+ result.weightedDistance + ";" + result.weightedTravelTime + ";" + result.weightedSpeed + ";"
-					+ result.connectionsWeightSum + ";" + result.weightedValue + ";" 
-					+ result.weightedKCal + ";" + result.weightedPrice + ";" + result.weightedCO2 + ";"
-					+ result.weightedInterchanges + ";" + result.weightedAccess + ";" + result.weightedEgress + ";" 
-					+ result.weightedWaitingTime + ";" + result.weightedInitialWaitingTime + ";"
-					+ result.weightedPTTravelTime + ";" + result.weightedInterchangeTime + ";" + result.lines.toString() + "\n");
+					+ String.format(Locale.US, _FS, result.weightedDistance) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedTravelTime) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedSpeed) + ";"
+					+ String.format(Locale.US, _FS, result.connectionsWeightSum) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedValue) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedKCal) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedPrice) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedCO2) + ";"
+					+ String.format(Locale.US, _FS, result.weightedInterchanges) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedAccess) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedEgress) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedWaitingTime) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedInitialWaitingTime) + ";"
+					+ String.format(Locale.US, _FS, result.weightedPTTravelTime) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedInterchangeTime) + ";" 
+					+ result.lines.toString() + "\n");
 		}
 	}
 

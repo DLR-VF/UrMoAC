@@ -50,10 +50,11 @@ public abstract class AbstractResultsWriter<T> extends BasicCombinedWriter {
 	 * 
 	 * Opens the file to write the results to
 	 * @param fileName The path to the file to write the results to
+	 * @param precision The precision to use
 	 * @throws IOException When something fails
 	 */
-	public AbstractResultsWriter(String fileName) throws IOException {
-		super(fileName);
+	public AbstractResultsWriter(String fileName, int precision) throws IOException {
+		super(fileName, precision);
 	}
 
 	

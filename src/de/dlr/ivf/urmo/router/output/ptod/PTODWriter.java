@@ -18,6 +18,7 @@ package de.dlr.ivf.urmo.router.output.ptod;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Locale;
 
 import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
 
@@ -57,10 +58,11 @@ public class PTODWriter extends AbstractResultsWriter<PTODSingleResult> {
 	 * 
 	 * Opens the file to write the results to
 	 * @param fileName The path to the file to write the results to
+	 * @param precision The precision to use
 	 * @throws IOException When something fails
 	 */
-	public PTODWriter(String fileName) throws IOException {
-		super(fileName);
+	public PTODWriter(String fileName, int precision) throws IOException {
+		super(fileName, precision);
 	}
 
 	
@@ -100,13 +102,19 @@ public class PTODWriter extends AbstractResultsWriter<PTODSingleResult> {
 			}
 		} else {
 			_fileWriter.append(result.srcID + ";" + result.destID + ";" 
-					+ result.weightedAccessDistance + ";" + result.weightedAccessTravelTime + ";"
-					+ result.weightedEgressDistance + ";" + result.weightedEgressTravelTime + ";"
-					+ result.weightedInterchangeDistance + ";" + result.weightedInterchangeTravelTime + ";"
-					+ result.weightedPTDistance + ";" + result.weightedPTTravelTime + ";" 
-					+ result.weightedInterchangesNum + ";" + result.weightedWaitingTime + ";" 
-					+ result.weightedInitialWaitingTime + ";"
-					+ result.connectionsWeightSum + ";" + result.weightedValue + "\n");
+					+ String.format(Locale.US, _FS, result.weightedAccessDistance) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedAccessTravelTime) + ";"
+					+ String.format(Locale.US, _FS, result.weightedEgressDistance) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedEgressTravelTime) + ";"
+					+ String.format(Locale.US, _FS, result.weightedInterchangeDistance) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedInterchangeTravelTime) + ";"
+					+ String.format(Locale.US, _FS, result.weightedPTDistance) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedPTTravelTime) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedInterchangesNum) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedWaitingTime) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedInitialWaitingTime) + ";"
+					+ String.format(Locale.US, _FS, result.connectionsWeightSum) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedValue) + "\n");
 		}
 	}
 

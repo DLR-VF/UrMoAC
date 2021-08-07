@@ -22,6 +22,7 @@ import java.sql.Statement;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Vector;
 
 import org.opengis.referencing.FactoryException;
@@ -63,10 +64,11 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 	 * 
 	 * Opens the file to write the results to
 	 * @param fileName The path to the file to write the results to
+	 * @param precision The precision to use
 	 * @throws IOException When something fails
 	 */
-	public EdgeMappingWriter(String fileName) throws IOException {
-		super(fileName);
+	public EdgeMappingWriter(String fileName, int precision) throws IOException {
+		super(fileName, precision);
 	}
 
 
@@ -113,9 +115,13 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 						throw new IOException(ex);
 					}
 				} else {
-					_fileWriter.append(o.em.getOuterID() + ";" + e.id + ";" + o.pos + ";" + o.dist + ";" 
-							+ ppd.getCoordinate(0).x + ";" + ppd.getCoordinate(0).y + ";" 
-							+ ppd.getCoordinate(1).x + ";" + ppd.getCoordinate(1).y + "\n");
+					_fileWriter.append(o.em.getOuterID() + ";" + e.id + ";" 
+							+ String.format(Locale.US, _FS, o.pos) + ";" 
+							+ String.format(Locale.US, _FS, o.dist) + ";" 
+							+ String.format(Locale.US, _FS, ppd.getCoordinate(0).x) + ";" 
+							+ String.format(Locale.US, _FS, ppd.getCoordinate(0).y) + ";" 
+							+ String.format(Locale.US, _FS, ppd.getCoordinate(1).x) + ";" 
+							+ String.format(Locale.US, _FS, ppd.getCoordinate(1).y) + "\n");
 				}
 			}
 		}
