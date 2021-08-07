@@ -137,8 +137,7 @@ public class InputReader {
 	 * @param idGiver An instance to retrieve new ids from
 	 * @param epsg The used projection
 	 * @return The generated layer with the read objects
-	 * @throws SQLException
-	 * @throws ParseException
+	 * @throws IOException
 	 */
 	public static Layer loadLayer(OptionsCont options, String base, String varName, boolean dismissWeight, IDGiver idGiver, int epsg) throws IOException {
 		String filter = options.isSet(base+".filter") ? options.getString(base + ".filter") : ""; // !!! use something different
