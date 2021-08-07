@@ -1,9 +1,3 @@
-# missing double dot
-missing_dot_at_double
-
-# single dash on long option
-help_long_singledash
-
 # double dash on short option
 help_short_doubledash
 

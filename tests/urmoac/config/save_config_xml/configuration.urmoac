@@ -1,0 +1,13 @@
+<configuration>
+   <from>file;sources.csv</from>
+   <to>file;destinations.csv</to>
+   <net>file;network.csv</net>
+   <mode>bicycle</mode>
+   <from-agg>file;agg_sources.csv</from-agg>
+   <to-agg>file;agg_destinations.csv</to-agg>
+   <epsg>0</epsg>
+   <time>0</time>
+   <origins-to-road-output>file;o2r_output.csv</origins-to-road-output>
+   <destinations-to-road-output>file;d2r_output.csv</destinations-to-road-output>
+   <save-config>configuration.xml</save-config>
+</configuration>

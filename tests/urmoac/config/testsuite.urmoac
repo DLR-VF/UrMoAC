@@ -1,0 +1,9 @@
+# loading parameter from a xml configuration file
+load_config_xml
+
+# saving parameter to a xml configuration file
+save_config_xml
+
+# saving an xml configuration template
+save_template_xml
+
