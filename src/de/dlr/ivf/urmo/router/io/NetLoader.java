@@ -27,10 +27,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
@@ -46,9 +42,6 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.postgresql.PGConnection;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -122,6 +115,7 @@ public class NetLoader {
 			if(rs.getBoolean("mode_walk")) modes = modes | Modes.getMode("foot").id;
 			if(rs.getBoolean("mode_bike")) modes = modes | Modes.getMode("bicycle").id;
 			if(rs.getBoolean("mode_mit")) modes = modes | Modes.getMode("passenger").id;
+			modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
 			//if(rs.getBoolean("mode_walk") || rs.getBoolean("mode_bike")) modes = modes | Modes.getMode("e-scooter").id;
 			if(modes==0 && ((modes&uModes)==0)) {
 				continue;
@@ -160,6 +154,7 @@ public class NetLoader {
 				if("true".equals(vals[3].toLowerCase()) || "1".equals(vals[3])) modes = modes | Modes.getMode("foot").id;
 				if("true".equals(vals[4].toLowerCase()) || "1".equals(vals[4])) modes = modes | Modes.getMode("bicycle").id;
 				if("true".equals(vals[5].toLowerCase()) || "1".equals(vals[5])) modes = modes | Modes.getMode("passenger").id;
+				modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
 				if(modes==0 && ((modes&uModes)==0)) {
 					continue;
 				}
@@ -209,6 +204,7 @@ public class NetLoader {
 			if((Boolean) feature.getAttribute("mode_walk")) modes = modes | Modes.getMode("foot").id;
 			if((Boolean) feature.getAttribute("mode_bike")) modes = modes | Modes.getMode("bicycle").id;
 			if((Boolean) feature.getAttribute("mode_mit")) modes = modes | Modes.getMode("passenger").id;
+			modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
 			if(modes==0 && ((modes&uModes)==0)) {
 				continue;
 			}
@@ -228,47 +224,6 @@ public class NetLoader {
 		}
 		return net;
 	}
-
-	
-	
-	
-	class SUMONetHandler extends DefaultHandler {
-		public SUMONetHandler(DBNet net) {
-		}
-
-		@Override
-		public void startDocument() {
-		}
-
-		@Override
-		public void endDocument() {
-		}
-
-		@Override
-		public void startElement(String uri, String localName, String qName, Attributes attributes) {
-		}
-
-		@Override
-		public void endElement(String uri, String localName, String qName) {
-		}
-
-		@Override
-		public void characters(char ch[], int start, int length) {
-		}		
-	}
-	
-	
-	
-	private static DBNet loadNetFromSUMOFile(IDGiver idGiver, String fileName, long uModes) throws IOException, ParserConfigurationException, SAXException {
-		NetLoader nl = new NetLoader();
-		DBNet net = new DBNet(idGiver);
-		SAXParserFactory factory = SAXParserFactory.newInstance();
-        SAXParser saxParser = factory.newSAXParser();
-        SUMONetHandler handler = nl.new SUMONetHandler(net);
-        saxParser.parse(fileName, handler);
-        return net;
-	}
-
 	
 	
 	public static int loadTravelTimes(DBNet net, String def, boolean verbose) throws IOException {

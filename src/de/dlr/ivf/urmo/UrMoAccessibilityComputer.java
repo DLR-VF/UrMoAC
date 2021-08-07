@@ -339,6 +339,18 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("pt-restriction", new Option_String());
 		options.setDescription("pt-restriction", "Restrictions to usable GTFS carriers.");
 		
+		options.beginSection("Custom Mode Options");
+		options.add("custom.vmax", new Option_Double());
+		options.setDescription("custom.vmax", "Maximum velocity of the custom mode.");
+		options.add("custom.kkc-per-hour", new Option_Double());
+		options.setDescription("custom.kkc-per-hour", "kkc used per hour when using the custom mode.");
+		options.add("custom.co2-per-km", new Option_Double());
+		options.setDescription("custom.co2-per-km", "CO2 emitted per kilometer when using the custom mode.");
+		options.add("custom.price-per-km", new Option_Double());
+		options.setDescription("custom.price-per-km", "Price for using the custom mode per kilometre.");
+		options.add("custom.allowed", new Option_String());
+		options.setDescription("custom.allowed", "The type of roads the custom mode can use (combination of 'foot', 'bike', 'passenger' divided by ';').");
+
 		options.beginSection("Output Options");
 		options.add("nm-output", 'o', new Option_String());
 		options.setDescription("nm-output", "Defines the n:m output.");
@@ -529,7 +541,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 */
 	protected boolean init(OptionsCont options) throws IOException {
 		verbose = options.getBool("verbose");
-		// -------- mode
+		// -------- modes
+		// ------ set up and parse modes
 		Modes.init();
 		if (!options.isSet("mode")) {
 			throw new IOException("At least one allowed mode must be given.");
@@ -540,6 +553,22 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		}
 		modes = Modes.getCombinedModeIDs(modesV);
 		initMode = modesV.get(0).id;
+		// ------ reset custom mode if used
+		if((modes&Modes.getMode("custom").id)!=0) { // 
+			double custom_vmax = options.isSet("custom.vmax") ? options.getDouble("custom.vmax") : -1;
+			double custom_kkc = options.isSet("custom.kkc-per-hour") ? options.getDouble("custom.kkc-per-hour") : -1;
+			double custom_co2 = options.isSet("custom.co2-per-km") ? options.getDouble("custom.co2-per-km") : -1;
+			double custom_price = options.isSet("custom.price-per-km") ? options.getDouble("custom.price-per-km") : -1;
+			Vector<Mode> allowedV = options.isSet("custom.allowed") ? getModes(options.getString("custom.allowed")) : new Vector<>();
+			long allowedModes = Modes.getCombinedModeIDs(allowedV);
+			if(allowedModes==0) {
+				throw new IOException("At least one lane type should be allowed for the custom mode.");
+			}
+			if(custom_vmax<0) {
+				throw new IOException("The custom mode must have a maximum velocity given that is >0.");
+			}
+			Modes.setCustomMode(custom_vmax, custom_kkc, custom_co2, custom_price, allowedModes);
+		}
 		// -------- projection
 		int epsg;
 		if(options.isSet("epsg")) {
@@ -561,9 +590,13 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			}
 		}
 		// -------- loading
+		boolean dismissWeight =  !options.isSet("from-agg");
+		if(dismissWeight && options.isSet("weight")) {
+			System.out.println("Warning: the weight option is not used as no aggregation takes place.");
+		}
 		// from
 		if (verbose) System.out.println("Reading origin places");
-		Layer fromLayer = InputReader.loadLayer(options, "from", "weight", this, epsg); 
+		Layer fromLayer = InputReader.loadLayer(options, "from", "weight", dismissWeight, this, epsg); 
 		if (verbose) System.out.println(" " + fromLayer.getObjects().size() + " origin places loaded");
 		if (fromLayer.getObjects().size()==0) {
 			hadError = true;
@@ -573,12 +606,12 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		Layer fromAggLayer = null;
 		if (options.isSet("from-agg") && !options.getString("from-agg").equals("all")) {
 			if (verbose) System.out.println("Reading origin aggregation zones");
-			fromAggLayer = InputReader.loadLayer(options, "from-agg", null, this, epsg); 
+			fromAggLayer = InputReader.loadLayer(options, "from-agg", null, true, this, epsg);
 			if (verbose) System.out.println(" " + fromAggLayer.getObjects().size() + " origin aggregation geometries loaded");
 		}
 		// to
 		if (verbose) System.out.println("Reading destination places");
-		Layer toLayer = InputReader.loadLayer(options, "to", "variable", this, epsg); 
+		Layer toLayer = InputReader.loadLayer(options, "to", "variable", false, this, epsg);
 		if (verbose) System.out.println(" " + toLayer.getObjects().size() + " destination places loaded");
 		if (toLayer.getObjects().size()==0) {
 			hadError = true;
@@ -588,7 +621,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		Layer toAggLayer = null;
 		if (options.isSet("to-agg") && !options.getString("to-agg").equals("all")) {
 			if (verbose) System.out.println("Reading sink aggregation zones");
-			toAggLayer = InputReader.loadLayer(options, "to-agg", null, this, epsg); 
+			toAggLayer = InputReader.loadLayer(options, "to-agg", null, true, this, epsg); 
 			if (verbose) System.out.println(" " + toAggLayer.getObjects().size() + " sink aggregation geometries loaded");
 		}
 		
