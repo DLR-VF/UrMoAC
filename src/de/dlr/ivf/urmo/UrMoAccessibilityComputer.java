@@ -281,7 +281,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		lvOptions.addOption(OptionBuilder.withLongOpt("pt-boundary")
 				.withDescription("Defines the data source of the boundary for the PT offer.").hasArg().create());
 		lvOptions.addOption(OptionBuilder.withLongOpt("mode")
-				.withDescription("The mode to use ['passenger', 'foot', 'bicycle'].").hasArg().create("m"));
+				.withDescription("The mode to use ['passenger', 'foot', 'bicycle', 'custom'].").hasArg().create("m"));
 		lvOptions.addOption(new Option("requirespt", false, "When set, only information that contains a PT part are stored."));
 		lvOptions.addOption(OptionBuilder.withLongOpt("pt-restriction")
 				.withDescription("Restrictions to usable GTFS carriers.").hasArg().create("P"));
@@ -308,6 +308,11 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		lvOptions.addOption(OptionBuilder.withLongOpt("measure-param1").withDescription("First parameter of the chosen weight function.").withType(Number.class).hasArg().create());
 		lvOptions.addOption(OptionBuilder.withLongOpt("measure-param2").withDescription("Second parameter of the chosen weight function.").withType(Number.class).hasArg().create());
 		
+		lvOptions.addOption(OptionBuilder.withLongOpt("custom.vmax").withDescription("Maximum velocity of the custom mode.").withType(Number.class).hasArg().create());
+		lvOptions.addOption(OptionBuilder.withLongOpt("custom.kkc-per-hour").withDescription("kkc used per hour when using the custom mode.").withType(Number.class).hasArg().create());
+		lvOptions.addOption(OptionBuilder.withLongOpt("custom.co2-per-km").withDescription("CO2 emitted per kilometer when using the custom mode.").withType(Number.class).hasArg().create());
+		lvOptions.addOption(OptionBuilder.withLongOpt("custom.price-per-km").withDescription("Price for using the custom mode per kilometre.").withType(Number.class).hasArg().create());
+		lvOptions.addOption(OptionBuilder.withLongOpt("custom.allowed").withDescription("The type of roads the custom mode can use (combination of 'foot', 'bike', 'passenger' divided by ';').").hasArg().create());
 		
 		lvOptions.addOption(OptionBuilder.withLongOpt("threads").withDescription("The number of threads.")
 				.withType(Number.class).hasArg().create());
@@ -482,7 +487,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 */
 	protected boolean init(CommandLine options) throws IOException, ParseException {
 		verbose = options.hasOption("verbose");
-		// -------- mode
+		// -------- modes
+		// ------ set up and parse modes
 		Modes.init();
 		Vector<Mode> modesV = getModes(options.getOptionValue("mode", "<unknown>"));
 		if (modesV == null) {
@@ -490,6 +496,22 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		}
 		modes = Modes.getCombinedModeIDs(modesV);
 		initMode = modesV.get(0).id;
+		// ------ reset custom mode if used
+		if((modes&Modes.getMode("custom").id)!=0) { // 
+			double custom_vmax = options.hasOption("custom.vmax") ? ((Double) options.getParsedOptionValue("custom.vmax")).doubleValue() : -1;
+			double custom_kkc = options.hasOption("custom.kkc-per-hour") ? ((Double) options.getParsedOptionValue("custom.kkc-per-hour")).doubleValue() : -1;
+			double custom_co2 = options.hasOption("custom.co2-per-km") ? ((Double) options.getParsedOptionValue("custom.co2-per-km")).doubleValue() : -1;
+			double custom_price = options.hasOption("custom.price-per-km") ? ((Double) options.getParsedOptionValue("custom.price-per-km")).doubleValue() : -1;
+			Vector<Mode> allowedV = getModes(options.getOptionValue("custom.allowed", ""));
+			long allowedModes = Modes.getCombinedModeIDs(allowedV);
+			if(allowedModes==0) {
+				throw new IOException("At least one lane type should be allowed for the custom mode.");
+			}
+			if(custom_vmax<0) {
+				throw new IOException("The custom mode must have a maximum velocity given that is >0.");
+			}
+			Modes.setCustomMode(custom_vmax, custom_kkc, custom_co2, custom_price, allowedModes);
+		}
 		// -------- projection
 		int epsg;
 		if(options.hasOption("epsg")) {

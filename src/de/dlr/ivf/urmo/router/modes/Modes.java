@@ -40,6 +40,8 @@ public class Modes {
 	static public HashMap<Long, Mode> id2mode;
 	/// @brief The modes as a list
 	static public Vector<Mode> modes;
+	/// @brief The lanes the custom mode is allowed at /// @todo: don't make it public
+	static public long customAllowedAt = 0;
 
 
 	/**
@@ -50,41 +52,13 @@ public class Modes {
 		id2mode = new HashMap<>();
 		modes = new Vector<>();
 
+		// _id, _mml, _vmax, _maxDist, _kkcPerHour, _co2PerKm, _pricePerKm
 		// costs: Eisenmann, Christine und Kuhnimhof, Tobias (2017) Vehicle cost imputation in travel surveys: Gaining insight into the fundamentals of (auto-) mobility choices. 11th International Conference on Transport Survey Methods, 24.-29. Sept. 2017, Estérel, Kanada. 
-		add(new Mode(1, "passenger", 200, 500, 170, 150, 31)); // kcal: 16010
-		add(new Mode(2, "bus", 80, 500, 85, 75, 0)); // kcal: 16016
-		add(new Mode(4, "foot", 3.6, 50, 280, 0, 0)); // kcal: 17190
-		add(new Mode(8, "bicycle", 13, 300, 510, 0, 0)); // kcal: 1020
-		add(new Mode(16, "motorcycle", 200, 300, 0, 0, 0));
-		add(new Mode(32, "delivery", 200, 500, 170, 150, 0));
-		add(new Mode(64, "hgv", 120, 500, 0, 0, 0));
-		add(new Mode(128, "psv", 80, 100, 0, 0, 0));
-
-		add(new Mode(256, "horse", 20, 100, 0, 0, 0));
-		add(new Mode(512, "moped", 200, 500, 0, 0, 0));
-		add(new Mode(1024, "emergency", 200, 500, 0, 0, 0));
-		add(new Mode(2048, "rail", 200, 500, 0, 0, 0));
-		add(new Mode(4096, "tram", 200, 500, 0, 0, 0));
-		add(new Mode(8192, "taxi", 200, 500, 0, 0, 0));
-		add(new Mode(16384, "ski", 200, 500, 0, 0, 0));
-		add(new Mode(32768, "inline skates", 200, 500, 0, 0, 0));
-
-		add(new Mode(65536, "ice skates", 200, 500, 0, 0, 0));
-		add(new Mode(131072, "carriage", 200, 500, 0, 0, 0));
-		add(new Mode(262144, "trailer", 200, 500, 0, 0, 0));
-		add(new Mode(524288, "caravan", 200, 500, 0, 0, 0));
-		add(new Mode(1048576, "mofa", 200, 500, 0, 0, 0));
-		add(new Mode(2097152, "motorhome", 200, 500, 0, 0, 0));
-		add(new Mode(4194304, "tourist bus", 200, 500, 0, 0, 0));
-		add(new Mode(8388608, "goods", 200, 500, 0, 0, 0));
-		add(new Mode(16777216, "agricultural", 200, 500, 0, 0, 0));
-		add(new Mode(33554432, "atv", 200, 500, 0, 0, 0));
-		add(new Mode(67108864, "snowmobile", 200, 500, 0, 0, 0));
-		add(new Mode(134217728, "hov", 200, 500, 0, 0, 0));
-		add(new Mode(268435456, "car sharing", 200, 500, 0, 0, 0));
-		add(new Mode(536870912, "hazmat", 200, 500, 0, 0, 0));
-		add(new Mode(1073741824, "disabled", 200, 500, 0, 0, 0));
-		add(new Mode(2147483648L, "closed", 200, 500, 0, 0, 0));
+		add(new Mode(1, "custom", 0, 300, 0, 0, 0));
+		add(new Mode(2, "foot", 3.6, 50, 280, 0, 0)); // kcal: 17190
+		add(new Mode(4, "bicycle", 13, 300, 510, 0, 0)); // kcal: 1020
+		add(new Mode(8, "passenger", 200, 500, 170, 150, 31)); // kcal: 16010
+		//add(new Mode(8, "custom", custom_vmax, 300, custom_kkc, custom_co2, custom_price));
 	}
 
 
@@ -99,6 +73,16 @@ public class Modes {
 	}
 
 
+	
+	public static void setCustomMode(double custom_vmax, double custom_kkc, double custom_co2, double custom_price, long allowedModes) {
+		Mode custom = getMode("custom");
+		custom.vmax = custom_vmax;
+		custom.kkcPerHour = custom_kkc;
+		custom.co2PerKm = custom_co2;
+		custom.pricePerKm = custom_price;
+		customAllowedAt = allowedModes;
+	}
+		
 	/**
 	 * @brief Returns an array of the names of all known modes
 	 * @return The names of all known modes

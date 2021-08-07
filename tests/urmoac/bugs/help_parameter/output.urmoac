@@ -1,5 +1,17 @@
 usage: UrMoAccessibilityComputer
  -?,--help                                Prints the help screen.
+    --custom.allowed <arg>                The type of roads the custom
+                                          mode can use (combination of
+                                          'foot', 'bike', 'passenger'
+                                          divided by ';').
+    --custom.co2-per-km <arg>             CO2 emitted per kilometer when
+                                          using the custom mode.
+    --custom.kkc-per-hour <arg>           kkc used per hour when using the
+                                          custom mode.
+    --custom.price-per-km <arg>           Price for using the custom mode
+                                          per kilometre.
+    --custom.vmax <arg>                   Maximum velocity of the custom
+                                          mode.
  -d,--direct-output <arg>                 Defines the direct output.
     --date <arg>                          The date for which the
                                           accessibilities shall be
@@ -30,7 +42,7 @@ usage: UrMoAccessibilityComputer
                                           origins' ids.
  -i,--interchanges-output <arg>           Defines the interchanges output.
  -m,--mode <arg>                          The mode to use ['passenger',
-                                          'foot', 'bicycle'].
+                                          'foot', 'bicycle', 'custom'].
     --max-distance <arg>                  The maximum distance to check.
     --max-number <arg>                    The maximum number of
                                           destinations to visit.
