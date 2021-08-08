@@ -266,28 +266,17 @@ public class DBNet {
 			Vector<DBEdge> next = new Vector<>();
 			next.add(e);
 			Set<DBEdge> cluster = new HashSet<>();
-			DBEdge hadSeen = null;
 			while (!next.isEmpty()) {
 				DBEdge e2 = next.get(next.size() - 1);
 				next.remove(next.size() - 1);
 				cluster.add(e2);
-				if (seen.contains(e2)&&!cluster.contains(e2)) {
-					hadSeen = e2;
-				}
 				if(!seen.contains(e2)) {
 					seen.add(e2);
 					next.addAll(e2.getToNode().getOutgoing());
+					next.addAll(e2.getFromNode().getIncoming());
 				}
 			}
-			if (clusters.size()!=0 && hadSeen != null) {
-				for (Set<DBEdge> c : clusters) {
-					if (c.contains(hadSeen)) {
-						c.addAll(cluster);
-					}
-				}
-			} else {
-				clusters.add(cluster);
-			}
+			clusters.add(cluster);
 		}
 		//
 		FileWriter fileWriter = null;
