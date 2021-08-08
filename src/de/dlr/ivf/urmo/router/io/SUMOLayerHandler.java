@@ -56,7 +56,8 @@ class SUMOLayerHandler extends DefaultHandler {
 					yS = attributes.getValue(i);
 				}
 				Geometry geom2 = _gf.createPoint(new Coordinate(Double.parseDouble(xS), Double.parseDouble(yS)));
-				_layer.addObject(new LayerObject(_idGiver.getNextRunningID(), Long.parseLong(id), 1, geom2));
+				// @todo use string ids?
+				_layer.addObject(new LayerObject(Long.parseLong(id), Long.parseLong(id), 1, geom2));
 			}
 		}
 		if(localName.equals("polygon")) {
@@ -77,7 +78,8 @@ class SUMOLayerHandler extends DefaultHandler {
 				}
 				Coordinate[] arr = new Coordinate[geom.size()];
 				Geometry geom2 = _gf.createPolygon(geom.toArray(arr));
-				_layer.addObject(new LayerObject(_idGiver.getNextRunningID(), Long.parseLong(id), 1, geom2));
+				// @todo use string ids?
+				_layer.addObject(new LayerObject(Long.parseLong(id), Long.parseLong(id), 1, geom2));
 			}
 		}
 	}

@@ -43,6 +43,8 @@ public class DBNet {
 	public HashMap<Long, DBNode> nodes = new HashMap<>();
 	/// @brief Map of edge names to edges
 	private HashMap<String, DBEdge> name2edge = new HashMap<String, DBEdge>();
+	/// @brief Map of node names (if using strings) to nodes
+	private HashMap<String, Long> name2nodeID = new HashMap<String, Long>();
 	/// @brief The network's minimum coordinates (left top)
 	public Coordinate minCorner = null;
 	/// @brief The network's maximum coordinates (right bottom)
@@ -136,6 +138,22 @@ public class DBNet {
 		DBNode n = new DBNode(id, pos);
 		nodes.put(id, n);
 		return n;
+	}
+
+
+	/**
+	 * @brief Returns the named node or builds it if not existing
+	 * @param id The id of the node to return
+	 * @param pos The node's position
+	 * @return The node
+	 */
+	public DBNode getNode(String sid, Coordinate pos) {
+		if(!name2nodeID.containsKey(sid)) {
+			long id = idGiver.getNextRunningID();
+			name2nodeID.put(sid, id);
+		}
+		long id = name2nodeID.get(sid);
+		return getNode(id, pos);
 	}
 
 

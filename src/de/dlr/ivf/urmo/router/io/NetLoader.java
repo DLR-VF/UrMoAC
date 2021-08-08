@@ -96,6 +96,12 @@ public class NetLoader {
 			} catch (MismatchedDimensionException | IOException | FactoryException | TransformException e) {
 				throw new IOException(e);
 			}
+		} else if (r[0].equals("xml")) {
+			try {
+				net = loadNetFromSUMOFile(idGiver, r[1], uModes);
+			} catch (MismatchedDimensionException | IOException | ParserConfigurationException | SAXException e) {
+				throw new IOException(e);
+			}
 		} else {
 			throw new IOException("The prefix '" + r[0] + "' is not known or does not support networks.");
 		}
@@ -239,7 +245,7 @@ public class NetLoader {
 		DBNet net = new DBNet(idGiver);
 		SAXParserFactory factory = SAXParserFactory.newInstance();
         SAXParser saxParser = factory.newSAXParser();
-        SUMONetHandler handler = new SUMONetHandler(net);
+        SUMONetHandler handler = new SUMONetHandler(net, uModes);
         saxParser.parse(fileName, handler);
         return net;
 	}
