@@ -54,6 +54,7 @@
    <origins-to-road-output></origins-to-road-output>
    <destinations-to-road-output></destinations-to-road-output>
    <dropprevious></dropprevious>
+   <precision></precision>
    <threads></threads>
    <help></help>
    <verbose></verbose>

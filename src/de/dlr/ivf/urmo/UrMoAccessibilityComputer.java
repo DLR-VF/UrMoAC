@@ -372,6 +372,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("destinations-to-road-output", "Defines output of the mapping between destinations and the network.");
 		options.add("dropprevious", new Option_Bool());
 		options.setDescription("dropprevious", "When set, previous output with the same name is replaced.");
+		options.add("precision", new Option_Integer(2));
+		options.setDescription("precision", "Defines the number of positions after the decimal point.");
 		
 		options.beginSection("Process Options");
 		options.add("threads", new Option_Integer(1));
@@ -489,7 +491,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		for(String r1 : r) {
 			Mode m = Modes.getMode(r1);
 			if(m==null) {
-				// TODO: add error message
+				System.out.println("Error: Mode '" + r1 + "' is not known.");
 				return null;
 			}
 			ret.add(m);
@@ -560,12 +562,18 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			double custom_co2 = options.isSet("custom.co2-per-km") ? options.getDouble("custom.co2-per-km") : -1;
 			double custom_price = options.isSet("custom.price-per-km") ? options.getDouble("custom.price-per-km") : -1;
 			Vector<Mode> allowedV = options.isSet("custom.allowed") ? getModes(options.getString("custom.allowed")) : new Vector<>();
+			if(allowedV==null) {
+				System.err.println("Could not parse usable lane modes defined in --custom.allowed <MODES>.");
+				return false;
+			}
 			long allowedModes = Modes.getCombinedModeIDs(allowedV);
 			if(allowedModes==0) {
-				throw new IOException("At least one lane type should be allowed for the custom mode.");
+				System.err.println("At least one lane type should be allowed for the custom mode; use --custom.allowed <MODES>.");
+				return false;
 			}
 			if(custom_vmax<0) {
-				throw new IOException("The custom mode must have a maximum velocity given that is >0.");
+				System.err.println("The custom mode must have a maximum velocity given that is >0; use --custom.vmax <SPEED>.");
+				return false;
 			}
 			Modes.setCustomMode(custom_vmax, custom_kkc, custom_co2, custom_price, allowedModes);
 		}
@@ -682,13 +690,13 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		NearestEdgeFinder nef1 = new NearestEdgeFinder(fromLayer.getObjects(), net, initMode);
 		nearestFromEdges = nef1.getNearestEdges(false);
 		if (options.isSet("origins-to-road-output")) {
-			OutputBuilder.writeEdgeAllocation(options.getString("origins-to-road-output"), nearestFromEdges, epsg, options.getBool("dropprevious"));
+			OutputBuilder.writeEdgeAllocation(options.getString("origins-to-road-output"), options.getInteger("precision"), nearestFromEdges, epsg, options.getBool("dropprevious"));
 		}
 		if (verbose) System.out.println("Computing egress from the network to the destinations");
 		NearestEdgeFinder nef2 = new NearestEdgeFinder(toLayer.getObjects(), net, initMode);
 		nearestToEdges = nef2.getNearestEdges(true);
 		if (options.isSet("destinations-to-road-output")) {
-			OutputBuilder.writeEdgeAllocation(options.getString("destinations-to-road-output"), nearestToEdges, epsg, options.getBool("dropprevious"));
+			OutputBuilder.writeEdgeAllocation(options.getString("destinations-to-road-output"), options.getInteger("precision"), nearestToEdges, epsg, options.getBool("dropprevious"));
 		}
 
 		// -------- instantiate outputs
@@ -717,7 +725,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		*/
 		// -------- build outputs
 		Vector<Aggregator> aggregators = OutputBuilder.buildOutputs(options, fromLayer, fromAggLayer, toLayer, toAggLayer);
-		DirectWriter dw = OutputBuilder.buildDirectOutput(options, epsg, nearestToEdges);
+		DirectWriter dw = OutputBuilder.buildDirectOutput(options, options.getInteger("precision"), epsg, nearestToEdges);
 		time = options.getInteger("time");
 		resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, nearestFromEdges, nearestToEdges); 
 

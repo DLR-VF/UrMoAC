@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Vector;
 
 import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
@@ -57,7 +58,7 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 		 * @brief Constructor
 		 * 
 		 * Computes the statistics
-		 * @param from The verctor of entries to use
+		 * @param from The vector of entries to use
 		 */
 		public Stats(Vector<Double> from) {
 			if(from.size()!=0) {
@@ -108,10 +109,11 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 	 * 
 	 * Opens the file to write the results to
 	 * @param fileName The path to the file to write the results to
+	 * @param precision The precision to use
 	 * @throws IOException When something fails
 	 */
-	public ODStatsWriter(String fileName) throws IOException {
-		super(fileName);
+	public ODStatsWriter(String fileName, int precision) throws IOException {
+		super(fileName, precision);
 	}
 
 	
@@ -151,12 +153,12 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 			}
 		} else {
 			_fileWriter.append(result.srcID + ";" + result.destID + ";" + result.allCO2s.size()
-					+ ";" + distD.avg + ";" + ttD.avg + ";" + valuesD.avg + ";" + kcalsD.avg + ";" + pricesD.avg + ";" + CO2D.avg
-					+ ";" + distD.med + ";" + ttD.med + ";" + valuesD.med + ";" + kcalsD.med + ";" + pricesD.med + ";" + CO2D.med
-					+ ";" + distD.min + ";" + ttD.min + ";" + valuesD.min + ";" + kcalsD.min + ";" + pricesD.min + ";" + CO2D.min
-					+ ";" + distD.max + ";" + ttD.max + ";" + valuesD.max + ";" + kcalsD.max + ";" + pricesD.max + ";" + CO2D.max
-					+ ";" + distD.p15 + ";" + ttD.p15 + ";" + valuesD.p15 + ";" + kcalsD.p15 + ";" + pricesD.p15 + ";" + CO2D.p15
-					+ ";" + distD.p85 + ";" + ttD.p85 + ";" + valuesD.p85 + ";" + kcalsD.p85 + ";" + pricesD.p85 + ";" + CO2D.p85
+					+ ";" + String.format(Locale.US, _FS, distD.avg) + ";" + String.format(Locale.US, _FS, ttD.avg) + ";" + String.format(Locale.US, _FS, valuesD.avg) + ";" + String.format(Locale.US, _FS, kcalsD.avg) + ";" + String.format(Locale.US, _FS, pricesD.avg) + ";" + String.format(Locale.US, _FS, CO2D.avg)
+					+ ";" + String.format(Locale.US, _FS, distD.med) + ";" + String.format(Locale.US, _FS, ttD.med) + ";" + String.format(Locale.US, _FS, valuesD.med) + ";" + String.format(Locale.US, _FS, kcalsD.med) + ";" + String.format(Locale.US, _FS, pricesD.med) + ";" + String.format(Locale.US, _FS, CO2D.med)
+					+ ";" + String.format(Locale.US, _FS, distD.min) + ";" + String.format(Locale.US, _FS, ttD.min) + ";" + String.format(Locale.US, _FS, valuesD.min) + ";" + String.format(Locale.US, _FS, kcalsD.min) + ";" + String.format(Locale.US, _FS, pricesD.min) + ";" + String.format(Locale.US, _FS, CO2D.min)
+					+ ";" + String.format(Locale.US, _FS, distD.max) + ";" + String.format(Locale.US, _FS, ttD.max) + ";" + String.format(Locale.US, _FS, valuesD.max) + ";" + String.format(Locale.US, _FS, kcalsD.max) + ";" + String.format(Locale.US, _FS, pricesD.max) + ";" + String.format(Locale.US, _FS, CO2D.max)
+					+ ";" + String.format(Locale.US, _FS, distD.p15) + ";" + String.format(Locale.US, _FS, ttD.p15) + ";" + String.format(Locale.US, _FS, valuesD.p15) + ";" + String.format(Locale.US, _FS, kcalsD.p15) + ";" + String.format(Locale.US, _FS, pricesD.p15) + ";" + String.format(Locale.US, _FS, CO2D.p15)
+					+ ";" + String.format(Locale.US, _FS, distD.p85) + ";" + String.format(Locale.US, _FS, ttD.p85) + ";" + String.format(Locale.US, _FS, valuesD.p85) + ";" + String.format(Locale.US, _FS, kcalsD.p85) + ";" + String.format(Locale.US, _FS, pricesD.p85) + ";" + String.format(Locale.US, _FS, CO2D.p85)
 					+ "\n");
 		}
 	}
