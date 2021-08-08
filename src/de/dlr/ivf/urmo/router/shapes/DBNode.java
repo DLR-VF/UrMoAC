@@ -18,7 +18,7 @@ package de.dlr.ivf.urmo.router.shapes;
 
 import java.util.Vector;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  * @class DBNode

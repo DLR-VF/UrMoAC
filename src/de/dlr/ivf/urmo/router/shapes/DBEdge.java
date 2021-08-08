@@ -21,7 +21,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Vector;
 
-import com.vividsolutions.jts.geom.LineString;
+import org.locationtech.jts.geom.LineString;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
 import de.dlr.ivf.urmo.router.modes.Mode;

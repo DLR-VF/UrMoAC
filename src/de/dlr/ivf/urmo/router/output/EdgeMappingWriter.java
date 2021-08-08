@@ -29,8 +29,8 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.operation.TransformException;
 
-import com.vividsolutions.jts.operation.buffer.validate.DistanceToPointFinder;
-import com.vividsolutions.jts.operation.buffer.validate.PointPairDistance;
+import org.locationtech.jts.operation.buffer.validate.DistanceToPointFinder;
+import org.locationtech.jts.operation.buffer.validate.PointPairDistance;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;

@@ -26,34 +26,47 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.StringTokenizer;
 import java.util.Vector;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.geometry.jts.JTS;
+import org.geotools.geopkg.GeoPackage;
+import org.geotools.geopkg.mosaic.GeoPackageReader;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.geometry.MismatchedDimensionException;
+import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.postgresql.PGConnection;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.DefaultHandler;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.PrecisionModel;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKBReader;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.PrecisionModel;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKBReader;
 
 import de.dks.utils.options.OptionsCont;
 import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
 import de.dlr.ivf.urmo.router.modes.Modes;
+import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.DBODRelation;
 import de.dlr.ivf.urmo.router.shapes.IDGiver;
 import de.dlr.ivf.urmo.router.shapes.Layer;
@@ -159,6 +172,12 @@ public class InputReader {
 			try {
 				return loadLayerFromShapefile(base, r[1], varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg);
 			} catch (MismatchedDimensionException | ParseException | IOException | FactoryException | TransformException e) {
+				throw new IOException(e);
+			}
+		}  else if (r[0].equals("sumo")) {
+			try {
+				return loadLayerFromSUMOPOIs(base, r[1], idGiver);
+			} catch (MismatchedDimensionException | IOException | ParserConfigurationException | SAXException e) {
 				throw new IOException(e);
 			}
 		} else {
@@ -335,6 +354,51 @@ public class InputReader {
 		}
 		return layer;
 	}
+	
+
+	/**
+	 * @brief Loads a set of objects from a SUMO-POI-file
+	 * 
+	 * @param layerName The name of the layer to generate
+	 * @param fileName The name of the file to read
+	 * @param idGiver A reference to something that supports a running ID
+	 * @return The generated layer with the read objects
+	 * @throws IOException
+	 * @throws SAXException 
+	 * @throws ParserConfigurationException 
+	 */
+	private static Layer loadLayerFromSUMOPOIs(String layerName, String fileName, IDGiver idGiver) throws ParserConfigurationException, SAXException, IOException { 
+		Layer layer = new Layer(layerName);
+        SAXParserFactory spf = SAXParserFactory.newInstance();
+        spf.setNamespaceAware(true);
+        SAXParser saxParser = spf.newSAXParser();
+        XMLReader xmlReader = saxParser.getXMLReader();
+        xmlReader.setContentHandler(new SUMOLayerHandler(layer, idGiver));
+        xmlReader.parse(fileName);
+        return layer;
+	}
+	
+	
+	
+	/**
+	 * @brief Loads a set of objects from a Geopackage file
+	 * 
+	 * @param layerName The name of the layer to generate
+	 * @param fileName The name of the file to read
+	 * @param idGiver A reference to something that supports a running ID
+	 * @return The generated layer with the read objects
+	 * @throws IOException
+	 * @throws SAXException 
+	 * @throws ParserConfigurationException 
+	 */
+	private static Layer loadLayerFromGPKG(String layerName, String fileName, IDGiver idGiver) throws ParserConfigurationException, SAXException, IOException { 
+		Layer layer = new Layer(layerName);
+		GeoPackage geoPackage = new GeoPackage(new File(fileName));
+		GeoPackageReader reader = new GeoPackageReader(fileName, null);
+		GeneralParameterValue[] parameters = new GeneralParameterValue[1];
+        return layer;
+	}
+	
 	
 	
 	// --------------------------------------------------------

@@ -17,8 +17,8 @@
 package de.dlr.ivf.urmo.router.shapes;
 
 import com.infomatiq.jsi.Point;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.LineString;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.LineString;
 
 public class GeomHelper {
 	/**
@@ -193,7 +193,7 @@ public class GeomHelper {
 	 * @param opivot The point represented as a point
 	 * @return The distance to the point, -1 if the point is not perpendicular
 	 */
-	public static double getDistanceOnLineString(DBEdge e, Coordinate point, com.vividsolutions.jts.geom.Point opivot) {
+	public static double getDistanceOnLineString(DBEdge e, Coordinate point, org.locationtech.jts.geom.Point opivot) {
 		double minDist = -1;
 		double pos = 0;
 		double minPos = 0;
