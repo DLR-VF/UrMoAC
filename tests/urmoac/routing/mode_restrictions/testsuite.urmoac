@@ -22,7 +22,7 @@ disallowed_center_foot
 disallowed_center_car
 
 # custom - center is not allowed for custom (custom = all)
-disallowed_centerl_custom
+disallowed_center_custom
 
 
 

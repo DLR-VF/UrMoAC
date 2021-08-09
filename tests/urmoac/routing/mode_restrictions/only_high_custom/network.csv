@@ -1,0 +1,19 @@
+#id;fromNode;toNode;foot;bicycle;passenger;speed;length;coords...
+# begin
+10000;0;1;true;true;true;50;100;-350;0;-250;0
+# end
+10001;2;3;true;true;true;50;100;250;0;350;0
+# middle
+10002;1;2;false;false;false;50;500;-250;0;250;0
+# high
+10003;4;5;true;true;true;50;500;-250;100;250;100
+# low
+10004;6;7;false;false;false;50;500;-250;-10;250;-10
+# begin to high
+10005;1;4;true;true;true;50;100;-250;0;-250;100
+# begin to low
+10006;1;6;true;true;true;50;10;-250;0;-250;-10
+# high to end
+10007;5;2;true;true;true;50;100;250;100;250;0
+# low to end
+10008;7;2;true;true;true;50;10;250;-10;250;0
