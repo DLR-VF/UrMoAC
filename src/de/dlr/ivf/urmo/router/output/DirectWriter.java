@@ -18,6 +18,7 @@ package de.dlr.ivf.urmo.router.output;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Vector;
@@ -55,7 +56,7 @@ public class DirectWriter extends BasicCombinedWriter {
 	 */
 	public DirectWriter(String url, String tableName, String user, String pw, int rsid, 
 			HashMap<DBEdge, Vector<MapResult>> _nearestToEdges, boolean dropPrevious) throws IOException {
-		super(url, user, pw, tableName, "(fid bigint, sid bigint, line text, mode text, tt real, node text, idx integer)", "VALUES (?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?, " + rsid + "))", dropPrevious);
+		super(url, user, pw, tableName, "(fid bigint, sid bigint, edge text, line text, mode text, tt real, node text, idx integer)", "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?, " + rsid + "))", dropPrevious);
 		addGeometryColumn("geom", rsid, "LINESTRING", 2);
 		nearestToEdges = _nearestToEdges;
 	}
@@ -97,9 +98,17 @@ public class DirectWriter extends BasicCombinedWriter {
 				if(singleDestination>=0 && toObject.em.getOuterID()!=singleDestination) {
 					continue;
 				}
-				int index = 0;
-				DijkstraEntry current = toEdgeEntry;
+				// revert order
+				Vector<DijkstraEntry> entries = new Vector<>();
+				DijkstraEntry c = toEdgeEntry;
 				do {
+					entries.add(c);
+					c = c.prev;
+				} while(c!=null);
+				Collections.reverse(entries);
+				// go through entries
+				int index = 0;
+				for(DijkstraEntry current : entries) {
 					String id = Long.toString(current.n.id);
 					if(current.n instanceof GTFSStop) {
 						id = ((GTFSStop) current.n).mid;
@@ -108,12 +117,13 @@ public class DirectWriter extends BasicCombinedWriter {
 						try {
 							_ps.setLong(1, from.em.getOuterID());
 							_ps.setLong(2, toObject.em.getOuterID());
-							_ps.setString(3, current.line);
-							_ps.setString(4, current.usedMode.mml);
-							_ps.setDouble(5, current.ttt);
-							_ps.setString(6, id);
-							_ps.setInt(7, index);
-							_ps.setString(8, current.e.geom.toText());
+							_ps.setString(3, current.e.id);
+							_ps.setString(4, current.line);
+							_ps.setString(5, current.usedMode.mml);
+							_ps.setDouble(6, current.ttt);
+							_ps.setString(7, id);
+							_ps.setInt(8, index);
+							_ps.setString(9, current.e.geom.toText());
 							_ps.addBatch();
 							++batchCount;
 							if(batchCount>100) {
@@ -125,15 +135,15 @@ public class DirectWriter extends BasicCombinedWriter {
 							throw new IOException(ex);
 						}
 					} else {
-						_fileWriter.append(from.em.getOuterID() + ";" + toObject.em.getOuterID() + ";" + current.line + ";"
-								+ current.usedMode.mml + ";" 
+						_fileWriter.append(from.em.getOuterID() + ";" + toObject.em.getOuterID() + ";" 
+								+ current.e.id + ";" + current.line + ";"
+								+ current.usedMode.mml + ";"  
 								+ String.format(Locale.US, _FS, current.ttt) + ";" + id + ";" + index + ";"
 								+ current.e.geom.toText() 
 								+ "\n");
 					}
 					++index;
-					current = current.prev;
-				} while(current!=null);
+				}
 			}
 		}
 		if (intoDB()) {
