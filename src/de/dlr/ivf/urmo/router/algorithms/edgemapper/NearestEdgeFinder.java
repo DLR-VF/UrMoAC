@@ -19,10 +19,11 @@ package de.dlr.ivf.urmo.router.algorithms.edgemapper;
 import java.util.HashMap;
 import java.util.Vector;
 
-import com.infomatiq.jsi.Point;
-import com.infomatiq.jsi.SpatialIndex;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.LineString;
+
+import com.infomatiq.jsi.Point;
+import com.infomatiq.jsi.SpatialIndex;
 
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;

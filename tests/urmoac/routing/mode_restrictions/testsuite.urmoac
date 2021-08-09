@@ -10,3 +10,31 @@ all_car
 # custom - all ways allowed
 all_custom
 
+
+
+# bike - center is not allowed for bikes
+disallowed_center_bike
+
+# foot - center is not allowed for foot
+disallowed_center_foot
+
+# car - center is not allowed for car
+disallowed_center_car
+
+# custom - center is not allowed for custom (custom = all)
+disallowed_centerl_custom
+
+
+
+# bike - only high allowed for bikes
+only_high_bike
+
+# foot - only high allowed for foot
+only_high_foot
+
+# car - only high allowed for car
+only_high_car
+
+# custom - only high allowed for custom (custom = all)
+only_high_custom
+

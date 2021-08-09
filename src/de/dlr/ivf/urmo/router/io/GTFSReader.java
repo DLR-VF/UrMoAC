@@ -32,8 +32,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Vector;
 
-import org.postgresql.PGConnection;
-
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -41,6 +39,7 @@ import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
+import org.postgresql.PGConnection;
 
 import de.dks.utils.options.OptionsCont;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;

@@ -25,9 +25,8 @@ import java.util.Vector;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.xml.sax.SAXException;
-
 import org.locationtech.jts.geom.Geometry;
+import org.xml.sax.SAXException;
 
 import de.dks.utils.options.Option_Bool;
 import de.dks.utils.options.Option_Double;

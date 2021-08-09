@@ -24,12 +24,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Vector;
 
-import com.infomatiq.jsi.Rectangle;
-import com.infomatiq.jsi.SpatialIndex;
-import com.infomatiq.jsi.rtree.RTree;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.PrecisionModel;
+
+import com.infomatiq.jsi.Rectangle;
+import com.infomatiq.jsi.SpatialIndex;
+import com.infomatiq.jsi.rtree.RTree;
 
 import de.dlr.ivf.urmo.router.modes.Modes;
 

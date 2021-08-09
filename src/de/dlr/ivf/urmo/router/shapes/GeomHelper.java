@@ -16,9 +16,10 @@
  */
 package de.dlr.ivf.urmo.router.shapes;
 
-import com.infomatiq.jsi.Point;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.LineString;
+
+import com.infomatiq.jsi.Point;
 
 public class GeomHelper {
 	/**

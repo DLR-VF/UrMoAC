@@ -25,12 +25,11 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Vector;
 
+import org.locationtech.jts.operation.buffer.validate.DistanceToPointFinder;
+import org.locationtech.jts.operation.buffer.validate.PointPairDistance;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.operation.TransformException;
-
-import org.locationtech.jts.operation.buffer.validate.DistanceToPointFinder;
-import org.locationtech.jts.operation.buffer.validate.PointPairDistance;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
