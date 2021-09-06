@@ -7,7 +7,7 @@
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Imports a given GTFS data set
 # =========================================================
-import psycopg2, sys, os.path
+import psycopg2, sys, os.path, io
 
 
 def myValSplit(line):
@@ -18,11 +18,6 @@ def myValSplit(line):
     #v2 = v.strip()
     v2 = v
     if hadQuotes:
-      if len(v2)==0:
-        print ("------------------")
-        print (line)
-        print (vals)
-        raise "haha"
       nVals[-1] = nVals[-1] + "," + v2
       if v2[-1]=='"':
         hadQuotes = False
@@ -40,11 +35,10 @@ def myValSplit(line):
 
 def readImportTable(conn, cursor, tableName, fileName, posNames, realNames, intNames):
   print ("Processing " + fileName)
-  fd = open(fileName)
+  fd = io.open(fileName, 'r', encoding='utf8')
   first = True
   num = 0
   for l in fd:
-  
     if first:
       names = l.strip().split(",")
       namesDB = ", ".join(names)
