@@ -247,7 +247,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	private static OptionsCont getCMDOptions(String[] args) {
 		// set up options
 		OptionsCont options = new OptionsCont();
-		
+		options.setHelpHeadAndTail("Urban Mobility Accessibility Computer (UrMoAC) v0.6\n  (c) German Aerospace Center (DLR), 2016-2021\n  https://github.com/DLR-VF/UrMoAC\n\nUsage:\n"
+				+"  java -jar UrMoAC.jar --help\n"
+				+"  java -jar UrMoAC.jar --from file;sources.csv --to file;destinations.csv\n    --net file;network.csv --nm-output file;nm_output.csv\n    --mode bicycle --time 0\n", "");
 		options.beginSection("Input Options");
 		options.add("config", 'c', new Option_String());
 		options.setDescription("config", "Defines the configuration to load.");
@@ -379,14 +381,14 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.beginSection("Process Options");
 		options.add("threads", new Option_Integer(1));
 		options.setDescription("threads", "The number of threads to use.");
-		options.add("help", '?', new Option_Bool());
-		options.setDescription("help", "Prints the help screen.");
 		options.add("verbose", 'v', new Option_Bool());
 		options.setDescription("verbose", "Prints what is being done.");
 		options.add("save-config", new Option_String());
 		options.setDescription("save-config", "Saves the set options as a configuration file.");
 		options.add("save-template", new Option_String());
 		options.setDescription("save-template", "Saves a template to add options to.");
+		options.add("help", '?', new Option_Bool());
+		options.setDescription("help", "Prints the help screen.");
 
 		// parse options
 		try {

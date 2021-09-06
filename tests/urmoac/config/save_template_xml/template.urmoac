@@ -57,8 +57,8 @@
    <dropprevious></dropprevious>
    <precision></precision>
    <threads></threads>
-   <help></help>
    <verbose></verbose>
    <save-config></save-config>
    <save-template></save-template>
+   <help></help>
 </configuration>

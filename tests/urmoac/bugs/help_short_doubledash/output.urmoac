@@ -1,3 +1,13 @@
+Urban Mobility Accessibility Computer (UrMoAC) v0.6
+  (c) German Aerospace Center (DLR), 2016-2021
+  https://github.com/DLR-VF/UrMoAC
+
+Usage:
+  java -jar UrMoAC.jar --help
+  java -jar UrMoAC.jar --from file;sources.csv --to file;destinations.csv
+    --net file;network.csv --nm-output file;nm_output.csv
+    --mode bicycle --time 0
+
  Input Options
   -c, --config                   Defines the configuration to load.
   -f, --from                     Defines the data source of origins.
@@ -93,7 +103,8 @@
                                    decimal point.
  Process Options
   --threads                      The number of threads to use.
-  -?, --help                     Prints the help screen.
   -v, --verbose                  Prints what is being done.
   --save-config                  Saves the set options as a configuration file.
   --save-template                Saves a template to add options to.
+  -?, --help                     Prints the help screen.
+
