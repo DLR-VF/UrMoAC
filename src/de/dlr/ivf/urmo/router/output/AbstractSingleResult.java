@@ -111,8 +111,6 @@ public abstract class AbstractSingleResult {
 		if(dist<0||tt<0) {
 			System.err.println("Negative distance or travel time occured between '" + from.em.getOuterID() + "' to '" + to.em.getOuterID() + "'.");
 		}
-		dist = dist + from.dist + to.dist;
-		tt = tt + (from.dist + to.dist) / Modes.getMode("foot").vmax;
 	}
 	
 	

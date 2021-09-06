@@ -48,9 +48,9 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 	/// @brief The weighted number of interchanges
 	public double weightedInterchanges = 0;
 	/// @brief The weighted access
-	public double weightedAccess = 0; // @todo reckeck: note that this is as well included in the travel time
+	public double weightedAccess = 0;
 	/// @brief The weighted egress
-	public double weightedEgress = 0; // @todo reckeck: note that this is as well included in the travel time
+	public double weightedEgress = 0;
 	/// @brief The weighted waiting time
 	public double weightedWaitingTime = 0;
 	/// @brief The weighted initial weighting time

@@ -50,8 +50,6 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 		e.weightedTravelTime = e.tt * e.val;
 		e.weightedSpeed = e.tt!=0 ? (e.dist/e.tt) * e.val : -1; /// TODO: document
 		e.weightedValue = ((LayerObject) to.em).getAttachedValue() * e.val;
-		e.weightedAccess = 0;
-		e.weightedEgress = 0;
 		e.weightedWaitingTime = 0;
 		e.weightedInitialWaitingTime = 0;
 		e.weightedPTTravelTime = 0;
@@ -163,6 +161,8 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 		e.weightedInterchanges *= e.val;
 		e.weightedWaitingTime *= e.val;
 		e.weightedPTTravelTime *= e.val;
+		e.weightedAccess = from.dist * e.val;
+		e.weightedEgress = to.dist * e.val;
 		return e;
 	}	
 	
