@@ -19,7 +19,7 @@ def myValSplit(line):
     v2 = v
     if hadQuotes:
       nVals[-1] = nVals[-1] + "," + v2
-      if v2[-1]=='"':
+      if len(v2)>0 and v2[-1]=='"':
         hadQuotes = False
         nVals[-1] = nVals[-1][:-1]
       continue

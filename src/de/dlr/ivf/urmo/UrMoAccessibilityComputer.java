@@ -250,6 +250,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setHelpHeadAndTail("Urban Mobility Accessibility Computer (UrMoAC) v0.6\n  (c) German Aerospace Center (DLR), 2016-2021\n  https://github.com/DLR-VF/UrMoAC\n\nUsage:\n"
 				+"  java -jar UrMoAC.jar --help\n"
 				+"  java -jar UrMoAC.jar --from file;sources.csv --to file;destinations.csv\n    --net file;network.csv --nm-output file;nm_output.csv\n    --mode bicycle --time 0\n", "");
+		
 		options.beginSection("Input Options");
 		options.add("config", 'c', new Option_String());
 		options.setDescription("config", "Defines the configuration to load.");
