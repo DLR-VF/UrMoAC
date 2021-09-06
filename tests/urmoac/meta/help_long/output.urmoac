@@ -37,6 +37,8 @@
                                    aggregation areas' ids.
   --to-agg.geom                  Defines the column name of the destination
                                    aggregation areas' geometries.
+  --net.vmax                     Defines the column name of networks's vmax
+                                   attribute.
   --subnets                      When set, unconnected network parts are not
                                    removed.
  Weighting Options

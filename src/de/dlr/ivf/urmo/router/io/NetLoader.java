@@ -72,12 +72,12 @@ public class NetLoader {
 	 * @return The loaded net
 	 * @throws IOException 
 	 */
-	public static DBNet loadNet(IDGiver idGiver, String def, int epsg, long uModes) throws IOException {
+	public static DBNet loadNet(IDGiver idGiver, String def, String vmax, int epsg, long uModes) throws IOException {
 		String[] r = Utils.checkDefinition(def, "net");
 		DBNet net = null;
 		if (r[0].equals("db")) {
 			try {
-				net = loadNetFromDB(idGiver, r[1], r[2], r[3], r[4], epsg, uModes);
+				net = loadNetFromDB(idGiver, r[1], r[2], r[3], r[4], vmax, epsg, uModes);
 			} catch (SQLException | ParseException e) {
 				throw new IOException(e);
 			}
@@ -109,12 +109,12 @@ public class NetLoader {
 		return net;
 	}
 
-	private static DBNet loadNetFromDB(IDGiver idGiver, String url, String table, String user, String pw, int epsg, long uModes) throws SQLException, ParseException {
+	private static DBNet loadNetFromDB(IDGiver idGiver, String url, String table, String user, String pw, String vmax, int epsg, long uModes) throws SQLException, ParseException {
 		Connection connection = DriverManager.getConnection(url, user, pw);
 		connection.setAutoCommit(true);
 		connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 		((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-		String query = "SELECT oid,nodefrom,nodeto,mode_walk,mode_bike,mode_mit,vmax,length,ST_AsBinary(ST_TRANSFORM(the_geom," + epsg + ")) FROM " + table + ";";
+		String query = "SELECT oid,nodefrom,nodeto,mode_walk,mode_bike,mode_mit,"+vmax+",length,ST_AsBinary(ST_TRANSFORM(the_geom," + epsg + ")) FROM " + table + ";";
 		Statement s = connection.createStatement();
 		ResultSet rs = s.executeQuery(query);
 		WKBReader wkbRead = new WKBReader();
@@ -141,7 +141,7 @@ public class NetLoader {
 			Coordinate[] cs = geom2.getCoordinates();
 			DBNode fromNode = net.getNode(rs.getLong("nodefrom"), cs[0]);
 			DBNode toNode = net.getNode(rs.getLong("nodeto"), cs[cs.length - 1]);
-			ok &= net.addEdge(net.getNextID(), rs.getString("oid"), fromNode, toNode, modes, rs.getDouble("vmax") / 3.6, geom2, rs.getDouble("length"));
+			ok &= net.addEdge(net.getNextID(), rs.getString("oid"), fromNode, toNode, modes, rs.getDouble(vmax) / 3.6, geom2, rs.getDouble("length"));
 		}
 		rs.close();
 		s.close();

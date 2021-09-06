@@ -299,6 +299,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("to-agg.id", "Defines the column name of the destination aggregation areas' ids.");
 		options.add("to-agg.geom", new Option_String("the_geom"));
 		options.setDescription("to-agg.geom", "Defines the column name of the destination aggregation areas' geometries.");
+		options.add("net.vmax", new Option_String("vmax"));
+		options.setDescription("net.vmax", "Defines the column name of networks's vmax attribute.");
 		options.add("subnets", new Option_Bool());
 		options.setDescription("subnets", "When set, unconnected network parts are not removed.");
 		
@@ -637,7 +639,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			throw new IOException("A network must be given.");
 		}
 		if (verbose) System.out.println("Reading the road network");
-		DBNet net = NetLoader.loadNet(this, options.getString("net"), epsg, modes);
+		DBNet net = NetLoader.loadNet(this, options.getString("net"), options.getString("net.vmax"), epsg, modes);
 		if (verbose) System.out.println(" " + net.getNumEdges() + " edges loaded (" + net.getNodes().size() + " nodes)");
 		net.pruneForModes(modes); // TODO (implement, add message)
 		if(!options.getBool("subnets")) {

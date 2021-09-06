@@ -23,6 +23,7 @@
    <to-agg.filter></to-agg.filter>
    <to-agg.id></to-agg.id>
    <to-agg.geom></to-agg.geom>
+   <net.vmax></net.vmax>
    <subnets></subnets>
    <weight></weight>
    <variable></variable>
