@@ -175,9 +175,9 @@
   			<version>1.1</version>
   		</dependency>
   		<dependency>
-  			<groupId>com.vividsolutions</groupId>
+  			<groupId>com.locationtech.jts</groupId>
   			<artifactId>jts</artifactId>
-  			<version>1.13</version>
+  			<version>1.18.2</version>
   		</dependency>
   		<dependency>
   			<groupId>org.slf4j</groupId>
@@ -277,7 +277,7 @@
   		<dependency>
   			<groupId>org.postgresql</groupId>
   			<artifactId>postgresql</artifactId>
-  			<version>9.4-1206-jdbc4</version>
+  			<version>42.2.23</version>
   		</dependency>
   		<dependency>
   			<groupId>org.postgis</groupId>
