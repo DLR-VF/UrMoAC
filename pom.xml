@@ -97,7 +97,7 @@
   		<artifactId>vecmath</artifactId>
   	</dependency>
   	<dependency>
-  		<groupId>jdom</groupId>
+  		<groupId>org.jdom</groupId>
   		<artifactId>jdom</artifactId>
   	</dependency>
   	<dependency>
@@ -105,8 +105,8 @@
   		<artifactId>jgridshift</artifactId>
   	</dependency>
   	<dependency>
-  		<groupId>log4j</groupId>
-  		<artifactId>log4j</artifactId>
+  		<groupId>org.apache.logging.log4j</groupId>
+  		<artifactId>log4j-core</artifactId>
   	</dependency>
   	<dependency>
   		<groupId>net.sourceforge.jsi</groupId>
@@ -192,9 +192,9 @@
   			<version>1.5.2</version>
   		</dependency>
   		<dependency>
-  			<groupId>jdom</groupId>
+  			<groupId>org.jdom</groupId>
   			<artifactId>jdom</artifactId>
-  			<version>2.0</version>
+  			<version>2.0.2</version>
   		</dependency>
   		<dependency>
   			<groupId>jgridshift</groupId>
@@ -202,9 +202,9 @@
   			<version>1.0</version>
   		</dependency>
   		<dependency>
-  			<groupId>log4j</groupId>
-  			<artifactId>log4j</artifactId>
-  			<version>2.14</version>
+  			<groupId>org.apache.logging.log4j</groupId>
+  			<artifactId>log4j-core</artifactId>
+  			<version>2.14.1</version>
   		</dependency>
   		<dependency>
   			<groupId>net.sourceforge.jsi</groupId>
