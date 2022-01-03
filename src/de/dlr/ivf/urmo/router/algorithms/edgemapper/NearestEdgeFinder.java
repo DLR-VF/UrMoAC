@@ -17,13 +17,14 @@
 package de.dlr.ivf.urmo.router.algorithms.edgemapper;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
 
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.LineString;
-
-import com.infomatiq.jsi.Point;
-import com.infomatiq.jsi.SpatialIndex;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.index.strtree.STRtree;
 
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
@@ -45,7 +46,7 @@ public class NearestEdgeFinder {
 	/// @brief The transport modes to use
 	private long modes;
 	/// @brief A spatial index
-	private SpatialIndex rtree = null;
+	private STRtree tree = null;
 	/// @brief The (resulting after being built) map of object ids to edges
 	private HashMap<Integer, DBEdge> id2edge = new HashMap<>();
 
@@ -55,8 +56,6 @@ public class NearestEdgeFinder {
 	private double minDist;
 	/// @brief Temporary minimum direction
 	private int minDir;
-	/// @brief The centroid of the current object
-	private org.locationtech.jts.geom.Point opivot;
 	
 	// @brief Enum for points being on the right side of the road
 	private static final int DIRECTION_RIGHT = 1;
@@ -78,7 +77,7 @@ public class NearestEdgeFinder {
 		modes = _modes;
 		found = null;
 		minDist = -1;
-		rtree = _net.getModedSpatialIndex(modes);
+		tree = _net.getModedSpatialIndex(modes);
 		id2edge = _net.getID2EdgeForMode(modes);
 	}
 
@@ -91,53 +90,50 @@ public class NearestEdgeFinder {
 	public HashMap<DBEdge, Vector<MapResult>> getNearestEdges(boolean addToEdge) {
 		HashMap<DBEdge, Vector<MapResult>> ret = new HashMap<>();
 		for (EdgeMappable c : source) {
-			opivot = c.getPoint();
-			Point pivot = new Point((float) opivot.getX(), (float) opivot.getY());
+			Point p = c.getPoint();
 			minDist = -1;
 			minDir = 0;
 			found = null;
 			float viewDist = 10;
 			while ((found == null && viewDist < Math.max(net.size.x, net.size.y)) || viewDist / 2. < minDist) {
-				rtree.nearestN(pivot, new TIntProcedure() {
-					@Override
-					public boolean execute(int i) {
-						DBEdge e = id2edge.get(i);
-						if (!e.allowsAny(modes)) {
-							return true;
-						}
-						double dist = opivot.distance(e.geom);
-						if (minDist < 0 || (minDist > dist && Math.abs(minDist-dist)>=.1)) {
-							minDist = dist;
-							minDir = getDirectionToPoint(e);
-							found = e;
-						} else if (Math.abs(minDist-dist)<.1) {
-							// get the current edge's direction (at minimum distance)
-							int dir = getDirectionToPoint(e);
-							if(dir==DIRECTION_RIGHT) {
-								// ok, the point is on the right side of this one
-								if(minDir!=DIRECTION_RIGHT || e.id.compareTo(found.id) > 0) {
-									// use this one either if the point was on the false side of the initially found one
-									// or sort by id
-									minDist = dist;
-									minDir = dir;
-									found = e;
-								}
-							} else if(minDir==DIRECTION_LEFT && e.id.compareTo(found.id) > 0) {
-								// the point is on the left; sort by id if the initially found was on the left side, too
+				Envelope env = new Envelope(new Coordinate(p.getX()-viewDist, p.getY()-viewDist), new Coordinate(p.getX()+viewDist, p.getY()+viewDist));
+				List objs = tree.query(env);
+				for(Object o : objs) {
+					DBEdge e = (DBEdge) o;
+					if (!e.allowsAny(modes)) {
+						continue;
+					}
+					double dist = p.distance(e.geom);
+					if (minDist < 0 || (minDist > dist && Math.abs(minDist-dist)>=.1)) {
+						minDist = dist;
+						minDir = getDirectionToPoint(e, p);
+						found = e;
+					} else if (Math.abs(minDist-dist)<.1) {
+						// get the current edge's direction (at minimum distance)
+						int dir = getDirectionToPoint(e, p);
+						if(dir==DIRECTION_RIGHT) {
+							// ok, the point is on the right side of this one
+							if(minDir!=DIRECTION_RIGHT || e.id.compareTo(found.id) > 0) {
+								// use this one either if the point was on the false side of the initially found one
+								// or sort by id
 								minDist = dist;
 								minDir = dir;
 								found = e;
 							}
+						} else if(minDir==DIRECTION_LEFT && e.id.compareTo(found.id) > 0) {
+							// the point is on the left; sort by id if the initially found was on the left side, too
+							minDist = dist;
+							minDir = dir;
+							found = e;
 						}
-						return true;
 					}
-				}, 100, viewDist);
+				}
 				viewDist = viewDist * 2;
 			}
 			//
 			if(found!=null) {
-				Coordinate coord = new Coordinate(pivot.x, pivot.y, 0);
-				double posAtEdge = GeomHelper.getDistanceOnLineString(found, coord, opivot);
+				Coordinate coord = new Coordinate(p.getX(), p.getY(), 0);
+				double posAtEdge = GeomHelper.getDistanceOnLineString(found, coord, p);
 				if (addToEdge) {
 					found.addMappedObject(c);
 				}
@@ -178,7 +174,7 @@ public class NearestEdgeFinder {
 	 * @param e The edge
 	 * @return The direction of the opivot point
 	 */
-	private int getDirectionToPoint(DBEdge e) {
+	private int getDirectionToPoint(DBEdge e, Point p) {
 		double minDist = -1;
 		double minDir = 0;
 		int numPoints = e.geom.getNumPoints();
@@ -188,10 +184,10 @@ public class NearestEdgeFinder {
 			coord[0] = tcoord[i];
 			coord[1] = tcoord[i+1];
 			LineString ls = new LineString(coord, e.geom.getPrecisionModel(), e.geom.getSRID());
-			double dist = opivot.distance(ls);
+			double dist = p.distance(ls);
 			if(minDist<0 || minDist>dist) {
 				minDist = dist;
-				minDir = (coord[1].x - coord[0].x) * (opivot.getY() - coord[0].y) - (opivot.getX() - coord[0].x) * (coord[1].y - coord[0].y);
+				minDir = (coord[1].x - coord[0].x) * (p.getY() - coord[0].y) - (p.getX() - coord[0].x) * (coord[1].y - coord[0].y);
 			}
 		}
 		return minDir<0 ? DIRECTION_RIGHT : DIRECTION_LEFT;

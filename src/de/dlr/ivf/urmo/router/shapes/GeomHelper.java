@@ -18,8 +18,7 @@ package de.dlr.ivf.urmo.router.shapes;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.LineString;
-
-import com.infomatiq.jsi.Point;
+import org.locationtech.jts.geom.Point;
 
 public class GeomHelper {
 	/**
@@ -114,8 +113,8 @@ public class GeomHelper {
 	 * @return The distance between both points
 	 */
 	public static double distance(Point p1, Point p2) {
-		double dx = p1.x - p2.x;
-		double dy = p1.y - p2.y;
+		double dx = p1.getX() - p2.getX();
+		double dy = p1.getY() - p2.getY();
 		return Math.sqrt(dx*dx + dy*dy);
 	}
 	
@@ -146,7 +145,7 @@ public class GeomHelper {
 		if(lineLength2D==0) {
 			return 0;
 		}
-        double u = (((p.x - lineStart.x) * (lineEnd.x - lineStart.x)) + ((p.y - lineStart.y) * (lineEnd.y - lineStart.y)) ) / (lineLength2D * lineLength2D);
+        double u = (((p.getX() - lineStart.getX()) * (lineEnd.getX() - lineStart.getX())) + ((p.getY() - lineStart.getY()) * (lineEnd.getY() - lineStart.getY())) ) / (lineLength2D * lineLength2D);
         if (u < 0.0f || u > 1.0f) {  // closest point does not fall within the line segment
         	if (perpendicular) {
         		return -1;

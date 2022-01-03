@@ -22,8 +22,6 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 
-import com.infomatiq.jsi.Rectangle;
-
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
 
 /**
@@ -58,31 +56,6 @@ public class Layer {
 	public void addObject(LayerObject o) {
 		// !!! update min/max
 		objects.add(o);
-		Geometry e = o.getGeometry().getEnvelope();
-		Rectangle r;
-		if (e instanceof Point) {
-			Point p = (Point) e;
-			r = new Rectangle((float) (p.getX() - 1.), (float) (p.getY() - 1.), (float) (p.getX() + 1.),
-					(float) (p.getY() + 1.));
-		} else {
-			double minX = 0;
-			double minY = 0;
-			double maxX = 0;
-			double maxY = 0;
-			Coordinate cs[] = e.getCoordinates();
-			for (int i = 0; i < cs.length; ++i) {
-				Coordinate c = cs[i];
-				if (i == 0 || minX > c.x)
-					minX = c.x;
-				if (i == 0 || minY > c.y)
-					minY = c.y;
-				if (i == 0 || maxX < c.x)
-					maxX = c.x;
-				if (i == 0 || maxY < c.y)
-					maxY = c.y;
-			}
-			r = new Rectangle((float) (minX - 1.), (float) (minY - 1.), (float) (maxX + 1.), (float) (maxY + 1.));
-		}
 	}
 
 

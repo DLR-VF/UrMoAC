@@ -25,12 +25,12 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.PrecisionModel;
+import org.locationtech.jts.index.strtree.STRtree;
 
-import com.infomatiq.jsi.Rectangle;
-import com.infomatiq.jsi.SpatialIndex;
-import com.infomatiq.jsi.rtree.RTree;
+
 
 import de.dlr.ivf.urmo.router.modes.Modes;
 
@@ -53,7 +53,7 @@ public class DBNet {
 	/// @brief The network's size
 	public Coordinate size = new Coordinate(0, 0);
 	/// @brief A spatial index for speeding up some computations
-	public SpatialIndex rtree = new RTree();
+	public STRtree tree = new STRtree();
 	/// @brief The used precision model
 	public PrecisionModel precisionModel = null;
 	/// @brief The used srid
@@ -66,7 +66,6 @@ public class DBNet {
 	 */
 	public DBNet(IDGiver _idGiver) {
 		idGiver = _idGiver;
-		rtree.init(null);
 	}
 
 	
@@ -95,7 +94,6 @@ public class DBNet {
 	 */
 	private void addEdge(DBEdge e) {
 		name2edge.put(e.id, e);
-		Rectangle r = new Rectangle();
 		Coordinate[] cs = e.getGeometry().getCoordinates();
 		for (int i = 0; i < cs.length; ++i) {
 			Coordinate c = cs[i];
@@ -109,9 +107,8 @@ public class DBNet {
 			maxCorner.y = Math.max(maxCorner.y, c.y);
 			size.x = maxCorner.x - minCorner.x;
 			size.y = maxCorner.y - minCorner.y;
-			r.add(new com.infomatiq.jsi.Point((float) c.x, (float) c.y));
 		}
-		rtree.add(r, (int) e.numID);
+		tree.insert(e.getGeometry().getEnvelopeInternal(), e);
 		precisionModel = e.geom.getPrecisionModel();
 		srid = e.geom.getSRID();
 	}
@@ -201,22 +198,16 @@ public class DBNet {
 	 * @param modes The available modes of transport
 	 * @return The network subparts compound of edges that may be traveled by the given modes
 	 */
-	public SpatialIndex getModedSpatialIndex(long modes) {
-		SpatialIndex rtree = new RTree();
-		rtree.init(null);
+	public STRtree getModedSpatialIndex(long modes) {
+		STRtree tree = new STRtree();
 		for (DBEdge e : name2edge.values()) {
 			if (!e.allowsAny(modes)) {
 				continue;
 			}
-			Rectangle r = new Rectangle();
-			Coordinate[] cs = e.getGeometry().getCoordinates();
-			for (int i = 0; i < cs.length; ++i) {
-				Coordinate c = cs[i];
-				r.add(new com.infomatiq.jsi.Point((float) c.x, (float) c.y));
-			}
-			rtree.add(r, (int) e.numID);
+			tree.insert(e.getGeometry().getEnvelopeInternal(), e);
 		}
-		return rtree;
+		return tree;
+
 	}
 
 
