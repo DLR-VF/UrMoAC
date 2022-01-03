@@ -29,7 +29,6 @@ import org.locationtech.jts.index.strtree.STRtree;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.GeomHelper;
-import gnu.trove.TIntProcedure;
 
 /**
  * @class NearestEdgeFinder
