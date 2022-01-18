@@ -78,7 +78,7 @@ def readImportTable(conn, cursor, tableName, fileName, posNames, realNames, intN
 # parse command line parameter
 if len(sys.argv)<3:
   print ("importGTFS.py <INPUT_FOLDER> <TARGET_DB_DEFINITION>")
-  print ("  where <TARGET_DB_DEFINITION> is <HOST>;<DB>;<SCHEMA>;TABLE_PREFIX>;<USER>;<PASSWD>")
+  print ("  where <TARGET_DB_DEFINITION> is <HOST>;<DB>;<SCHEMA>;<TABLE_PREFIX>;<USER>;<PASSWD>")
   sys.exit()
 # - input folder and files
 inputFolder = sys.argv[1]
@@ -123,7 +123,7 @@ cursor.execute("""CREATE TABLE %s.%s_stops ( stop_id varchar(12),stop_code varch
 cursor.execute("""CREATE TABLE %s.%s_agency ( agency_id varchar(8),agency_name text,agency_url text,agency_timezone varchar(40),agency_lang varchar(2),agency_phone varchar(20) );""" % (schema, tableName))
 cursor.execute("""CREATE TABLE %s.%s_calendar ( service_id varchar(8),monday smallint,tuesday smallint,wednesday smallint,thursday smallint,friday smallint,saturday smallint,sunday smallint,start_date integer,end_date integer );""" % (schema, tableName))
 cursor.execute("""CREATE TABLE %s.%s_calendar_dates ( service_id varchar(8),date integer,exception_type smallint );""" % (schema, tableName))
-cursor.execute("""CREATE TABLE %s.%s_routes ( route_id varchar(12),agency_id varchar(8),route_short_name varchar(8),route_long_name varchar(80),route_desc text,route_type smallint,route_url varchar(40),route_color varchar(6),route_text_color varchar(20) );""" % (schema, tableName))
+cursor.execute("""CREATE TABLE %s.%s_routes ( route_id varchar(12),agency_id text,route_short_name text,route_long_name varchar(80),route_desc text,route_type smallint,route_url varchar(40),route_color varchar(6),route_text_color varchar(20) );""" % (schema, tableName))
 cursor.execute("""CREATE TABLE %s.%s_stop_times ( trip_id integer,arrival_time varchar(8),departure_time varchar(8),stop_id varchar(16),stop_sequence smallint,stop_headsign varchar(80),pickup_type smallint,drop_off_type smallint,shape_dist_traveled text);""" % (schema, tableName))
 cursor.execute("""CREATE TABLE %s.%s_trips ( route_id varchar(12),service_id varchar(8),trip_id integer,trip_headsign varchar(80),trip_short_name varchar(8),direction_id varchar(8),block_id varchar(8),shape_id varchar(8) );""" % (schema, tableName))
 conn.commit()
