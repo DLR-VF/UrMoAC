@@ -68,9 +68,10 @@ public class GTFSEdge extends DBEdge {
 	 * 
 	 * Here, the travel time is extracted from the list of departs /
 	 * trips to the next node.
-	 * @param startPos The starting position at this edge
+	 * @param line The pt line that realises this connection
 	 * @param ivmax The individual's maximum velocity
 	 * @param time The time at which this edge is started to be traveled
+	 * @return The travel time needed to pass this edge
 	 */
 	@Override
 	public double getTravelTime(String line, double ivmax, double time) {
@@ -156,7 +157,7 @@ public class GTFSEdge extends DBEdge {
 	/**
 	 * @brief Returns the price to pass this edge
 	 * @param usedMode The used mode of transport
-	 * @param nline The previously used lines
+	 * @param nlines The previously used lines
 	 * @return The price to pass this edge
 	 */
 	@Override

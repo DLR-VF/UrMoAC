@@ -29,22 +29,41 @@ import de.dlr.ivf.urmo.router.shapes.DBNode;
  *         Transport Research
  */
 public class DijkstraResult {
-	/// @brief A map of node to their accessibility measures
+	/// @brief A map of nodes to their accessibility measures
 	public HashMap<DBNode, HashMap<Long, DijkstraEntry> > nodeMap = new HashMap<DBNode, HashMap<Long, DijkstraEntry>>();
+	/// @brief A map of edges to their accessibility measures
 	public HashMap<DBEdge, DijkstraEntry> edgeMap = new HashMap<>();
+	/// @brief The number of seen objects
 	public int seenObjects = 0;
+	/// @brief Sum of seen destination weights
 	public double seenVar = 0;
+	/// @brief List of edges to find/visit
 	public HashSet<DBEdge> toFind;
+	/// @brief Number of destinations to find (-1 if not used)
 	public int boundNumber;
+	/// @brief Maximum travel time (-1 if not used)
 	public int boundTT;
+	/// @brief Maximum distance (-1 if not used)
 	public int boundDist;
+	/// @brief Maximum weight sum to find (-1 if not used)
 	public double boundVar;
+	/// @brief Whether only the next item shall be found
 	public boolean shortestOnly;
+	/// @brief Starting time
 	public int time;
-	
+	/// @brief The result seen as last
 	public DijkstraEntry lastSeen = null;
 
 	
+	/** @brief Contructor
+	 * @param _toFind List of edges to find/visit
+	 * @param _boundNumber Number of destinations to find (-1 if not used)
+	 * @param _boundTT Maximum travel time (-1 if not used)
+	 * @param _boundDist Maximum distance (-1 if not used)
+	 * @param _boundVar Maximum weight sum to find (-1 if not used)
+	 * @param _shortestOnly Whether only the next item shall be found
+	 * @param _time Starting time
+	 */
 	public DijkstraResult(HashSet<DBEdge> _toFind, int _boundNumber, double _boundTT, double _boundDist, 
 			double _boundVar, boolean _shortestOnly, int _time) {
 		toFind = _toFind;
@@ -55,6 +74,12 @@ public class DijkstraResult {
 	}
 	
 
+	/** @brief Adds the information about an accessed node
+	 * @param node The seen node
+	 * @param availableModes The still available modes
+	 * @param m The routing result
+	 * @todo Recheck whether the mode is needed
+	 */
 	public void addNodeInfo(DBNode node, long availableModes, DijkstraEntry m) {
 		if(!nodeMap.containsKey(node)) {
 			nodeMap.put(node, new HashMap<Long, DijkstraEntry>());
@@ -64,6 +89,11 @@ public class DijkstraResult {
 	}
 	
 	
+	/** @brief Returns the information about the prior node
+	 * @param node The accessed node
+	 * @param availableModes The still available modes
+	 * @return The prior node used to access the given one using the given modes
+	 */
 	public DijkstraEntry getPriorNodeInfo(DBNode node, long availableModes) {
 		if(!nodeMap.containsKey(node)) {
 			return null;
@@ -76,6 +106,12 @@ public class DijkstraResult {
 	}
 
 
+	/** @brief Adds the information about an accessed edge
+	 * @param measure The routing weight function to use
+	 * @param oe The accessed edge
+	 * @param newValue The routing element used to approach the edge
+	 * @return Whether all needed destinations were found
+	 */
 	public boolean addEdgeInfo(AbstractRouteWeightFunction measure, DBEdge oe, DijkstraEntry newValue) {
 		// check only edges that have attached destinations
 		if(oe.getAttachedObjectsNumber()==0) {
@@ -113,11 +149,19 @@ public class DijkstraResult {
 	}
 
 	
+	/** @brief Returns the information how the given edge was accessed
+	 * @param edge The approached edge
+	 * @return Information how this edge was approached 
+	 */
 	public DijkstraEntry getEdgeInfo(DBEdge edge) {
 		return edgeMap.get(edge);
 	}
 	
 	
+	/** @brief Returns whether all destination edges were found
+	 * @todo Why is this needed, but not other limits
+	 * @return Whether all destination edges were found
+	 */
 	public boolean allFound() {
 		return toFind.size()==0;
 	}

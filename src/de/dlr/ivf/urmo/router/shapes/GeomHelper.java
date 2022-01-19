@@ -20,6 +20,9 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Point;
 
+/** @class GeomHelper
+ * @brief Some geometric help functions
+ */
 public class GeomHelper {
 	/**
 	 * @brief Returns the point at the linestring at the given distance

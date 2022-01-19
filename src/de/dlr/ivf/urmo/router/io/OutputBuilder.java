@@ -55,8 +55,21 @@ import de.dlr.ivf.urmo.router.output.ptod.PTODWriter;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.Layer;
 
+/**
+ * @class OutputBuilder
+ * @brief Loads the road network stored in a database or files
+ * @author Daniel Krajzewicz (c) 2021 German Aerospace Center, Institute of Transport Research
+ */
 public class OutputBuilder {
-
+	/** @brief Builds outputs as defined in the given options
+	 * @param options The options to use for parsing
+	 * @param fromLayer The sources
+	 * @param fromAggLayer The source aggregation data
+	 * @param toLayer  The destinations
+	 * @param toAggLayer The destination aggregation data
+	 * @return Built output devices
+	 * @throws IOException When something fails
+	 */
 	public static Vector<Aggregator> buildOutputs(OptionsCont options, Layer fromLayer, Layer fromAggLayer, Layer toLayer, Layer toAggLayer) throws IOException {
 		Vector<Aggregator> aggregators = new Vector<>();
 		boolean dropExistingTables = options.getBool("dropprevious");
@@ -110,12 +123,12 @@ public class OutputBuilder {
 	}
 	
 	
-	/**
-	 * @brief Builds a "direct"-output
-	 * @param !!!
-	 * @param !!!
-	 * @return The built output
-	 * @throws SQLException When something fails
+	/** @brief Builds a "direct" output
+	 * @param options The options that include the output definition
+	 * @param precision Used floating number precision
+	 * @param rsid Used projection
+	 * @param nearestToEdges Information about the destination mapping
+	 * @return The direct output device
 	 * @throws IOException When something fails
 	 */
 	public static DirectWriter buildDirectOutput(OptionsCont options, int precision, int rsid, HashMap<DBEdge, Vector<MapResult>> nearestToEdges) throws IOException {
@@ -143,9 +156,11 @@ public class OutputBuilder {
 	 *        Otherwise, only the object ID is written the rest is filled with
 	 *        -1.
 	 * @param d Definition about where to write to
+	 * @param precision Used floating number precision
 	 * @param nearestEdges The map of objects to road positions
-	 * @throws IOException If the file cannot be written
-	 * @throws SQLException
+	 * @param epsg Used projection
+	 * @param dropPrevious Whether already existing database tables shall be removed
+	 * @throws IOException When something fails
 	 */
 	public static void writeEdgeAllocation(String d, int precision, HashMap<DBEdge, Vector<MapResult>> nearestEdges, int epsg, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "X-to-road-output");
@@ -189,7 +204,8 @@ public class OutputBuilder {
 	 * @param measuresGenerator The measures generator to use
 	 * @param shortest Whether only the shortest connection shall be computed
 	 * @param fromAgg The origins aggregation layer name
-	 * @param toAgg The destinations aggregation layer name
+	 * @param aggAllFrom Whether all sources shall be aggregated
+	 * @param aggAllTo Whether all destinations shall be aggregated
 	 * @param fromLayer The origins layer
 	 * @param fromAggLayer The origins aggregation layer
 	 * @param toLayer The destinations layer
@@ -197,7 +213,7 @@ public class OutputBuilder {
 	 * @param writer The writer to use
 	 * @param comment The comment to add
 	 * @return The built aggregator
-	 * @throws SQLException When something fails
+	 * @throws IOException When something fails
 	 */
 	private static <T extends AbstractSingleResult> Aggregator<T> buildAggregator(MeasurementGenerator measuresGenerator,
 			boolean shortest, boolean aggAllFrom, boolean aggAllTo, 
@@ -222,12 +238,11 @@ public class OutputBuilder {
 
 	
 	/**
-	 * @brief Builds a ODSingleResult-output
+	 * @brief Builds an ODSingleResult-output
 	 * @param d The output storage definition
 	 * @param precision The precision to use when writing to a file
 	 * @param dropPrevious Whether a prior database shall be dropped
 	 * @return The built output
-	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
 	private static AbstractResultsWriter<ODSingleResult> buildNMOutput(String d, int precision, boolean dropPrevious) throws IOException {
@@ -243,12 +258,11 @@ public class OutputBuilder {
 	
 
 	/**
-	 * @brief Builds a ODSingleExtendedResult-output
+	 * @brief Builds an ODSingleExtendedResult-output
 	 * @param d The output storage definition
 	 * @param precision The precision to use when writing to a file
 	 * @param dropPrevious Whether a prior database shall be dropped
 	 * @return The built output
-	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
 	private static AbstractResultsWriter<ODSingleExtendedResult> buildExtNMOutput(String d, int precision, boolean dropPrevious) throws IOException {
@@ -264,12 +278,11 @@ public class OutputBuilder {
 	
 
 	/**
-	 * @brief Builds a ODSingleStatsResult-output
+	 * @brief Builds an ODSingleStatsResult-output
 	 * @param d The output storage definition
 	 * @param precision The precision to use when writing to a file
 	 * @param dropPrevious Whether a prior database shall be dropped
 	 * @return The built output
-	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
 	private static AbstractResultsWriter<ODSingleStatsResult> buildStatNMOutput(String d, int precision, boolean dropPrevious) throws IOException {
@@ -290,7 +303,6 @@ public class OutputBuilder {
 	 * @param precision The precision to use when writing to a file
 	 * @param dropPrevious Whether a prior database shall be dropped
 	 * @return The built output
-	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
 	private static AbstractResultsWriter<InterchangeSingleResult> buildInterchangeOutput(String d, int precision, boolean dropPrevious) throws IOException {
@@ -311,7 +323,6 @@ public class OutputBuilder {
 	 * @param precision The precision to use when writing to a file
 	 * @param dropPrevious Whether a prior database shall be dropped
 	 * @return The built output
-	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
 	private static AbstractResultsWriter<EUSingleResult> buildEUOutput(String d, int precision, boolean dropPrevious) throws IOException {
@@ -332,7 +343,6 @@ public class OutputBuilder {
 	 * @param precision The precision to use when writing to a file
 	 * @param dropPrevious Whether a prior database shall be dropped
 	 * @return The built output
-	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
 	private static AbstractResultsWriter<PTODSingleResult> buildPTODOutput(String d, int precision, boolean dropPrevious) throws IOException {

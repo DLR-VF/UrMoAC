@@ -62,8 +62,8 @@ import de.dlr.ivf.urmo.router.shapes.DBNode;
 import de.dlr.ivf.urmo.router.shapes.IDGiver;
 
 /**
- * @class DBNetLoader
- * @brief Loads the road network stored in the db
+ * @class NetLoader
+ * @brief Loads the road network stored in a database or files
  * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
  */
 public class NetLoader {

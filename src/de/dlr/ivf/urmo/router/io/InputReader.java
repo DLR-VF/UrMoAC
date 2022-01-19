@@ -68,8 +68,8 @@ import de.dlr.ivf.urmo.router.shapes.Layer;
 import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
 /**
- * @class DBIOHelper
- * @brief Some helper methods for loading data
+ * @class InputReader
+ * @brief Methods for loading sources/destniations, entrainment data, geometries and O/D-connections 
  * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
  */
 public class InputReader {

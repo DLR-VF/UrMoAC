@@ -18,6 +18,9 @@ package de.dlr.ivf.urmo.router.io;
 
 import java.io.IOException;
 
+/** @class Utils
+ * @brief Some helper methods for output building
+ */
 public class Utils {
 	/**
 	 * @brief Parses the definition of the output storage and verfies it

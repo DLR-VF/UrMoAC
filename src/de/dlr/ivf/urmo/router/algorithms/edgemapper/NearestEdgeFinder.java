@@ -65,7 +65,7 @@ public class NearestEdgeFinder {
 
 
 	/**
-	 * @Constructor
+	 * @brief Constructor
 	 * @param _source The list of objects to allocate in the network
 	 * @param _net The network to use
 	 * @param _modes Bitset of usable transport modes

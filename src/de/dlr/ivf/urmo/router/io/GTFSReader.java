@@ -58,8 +58,8 @@ import de.dlr.ivf.urmo.router.shapes.DBNode;
 import de.dlr.ivf.urmo.router.shapes.GeomHelper;
 
 /**
- * @class GTFSDBReader
- * @brief Reads a GTFS plan from the db
+ * @class GTFSReader
+ * @brief Reads a GTFS plan from a DB or a file
  * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of
  *         Transport Research
  */
@@ -68,20 +68,15 @@ public class GTFSReader {
 	public static String[] weekdays = { "", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday" };
 	
 	
-	/**
-	 * @brief Loads GTFS data from a db
-	 * @param url The url of the database
-	 * @param tablePrefix The prefix of the tables to read from
-	 * @param user The user name for connecting to the database
-	 * @param pw The user's password
-	 * @param net The network, used for mapping stations onto it
-	 * @param epsg The EPSG of the coordinates projection to use
-	 * @param verbose Whether information about the process shall be printed
+	/** @brief Loads GTFS data from a database or a file
+	 * @param options The options to read the input definition from
+	 * @param bounds A bounding box for prunning read information
+	 * @param net The used network
+	 * @param entrainmentMap The used entrainment map
+	 * @param epsg The used projection
+	 * @param verbose Whether additional information shall be printed
 	 * @return The loaded GTFS data
-	 * @throws SQLException
-	 * @throws ParseException
-	 * @todo which modes to use to access the road network
-	 * @todo which modes to use to access the stations
+	 * @throws IOException When someting fails
 	 */
 	public static GTFSData load(OptionsCont options, Geometry bounds, DBNet net, EntrainmentMap entrainmentMap, int epsg, boolean verbose) throws IOException {
 		if(!options.isSet("date")) {
@@ -103,7 +98,7 @@ public class GTFSReader {
 		}
 	}
 	
-		
+	
 	private static GTFSData loadGTFSFromDB(String url, String tablePrefix, String user, String pw, Vector<Integer> allowedCarrier, String date, 
 			Geometry bounds, DBNet net, EntrainmentMap entrainmentMap, int epsg, boolean verbose)
 			throws SQLException, ParseException {

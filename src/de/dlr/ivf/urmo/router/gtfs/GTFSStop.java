@@ -41,7 +41,7 @@ public class GTFSStop extends DBNode implements EdgeMappable {
 	public Point point;
 	/// @brief A map of one-hop destinations to routes to pt edges that start at this node
 	public HashMap<GTFSStop, HashMap<GTFSRoute, GTFSEdge>> connections = new HashMap<>();
-	
+	/// @brief The map of interchange times between different lines
 	public HashMap<String, HashMap<String, Double>> myInterchangeTimes = new HashMap<>();
 
 
@@ -95,6 +95,9 @@ public class GTFSStop extends DBNode implements EdgeMappable {
 	 * @param to The destination stop
 	 * @param nextID A running id
 	 * @param route The route that realises this connection
+	 * @param em The enttrainment map
+	 * @param pm The used preicision model
+	 * @param srid The used projection
 	 * @return The built or already available edge
 	 */
 	public GTFSEdge getEdgeTo(GTFSStop to, long nextID, GTFSRoute route, EntrainmentMap em, PrecisionModel pm, int srid) {

@@ -23,7 +23,7 @@ import de.dlr.ivf.urmo.router.gtfs.GTFSStop;
 import de.dlr.ivf.urmo.router.output.MeasurementGenerator;
 
 /**
- * @class InterchangeSingleResult
+ * @class InterchangeMeasuresGenerator
  * @brief Interprets a path to build an InterchangeSingleResult
  * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
  * @param <T>

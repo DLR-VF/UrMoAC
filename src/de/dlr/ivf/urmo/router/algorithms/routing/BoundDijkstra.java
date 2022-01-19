@@ -40,10 +40,9 @@ public class BoundDijkstra {
 	 * @param measure The measure computer and comperator to use for routing
 	 * @param time The time the trip starts at
 	 * @param startEdge The starting road
-	 * @param usedMode The first used mode
+	 * @param usedModesIDs The first used mode
 	 * @param modes Bitset of usable transport modes
 	 * @param ends A set of all destinations
-	 * @param startPos The starting position at the starting road
 	 * @param boundNumber If >0 then the router will stop after this number of ends has been found
 	 * @param boundTT If >0 then the router will stop after this travel time has been reached
 	 * @param boundDist If >0 then the router will stop after this distance has been reached
@@ -52,12 +51,12 @@ public class BoundDijkstra {
 	 * @return A results container
 	 * @see DijkstraResult
 	 */
-	public static DijkstraResult run(AbstractRouteWeightFunction measure, int time, DBEdge startEdge, long _usedMode, long modes, Set<DBEdge> ends, 
-			int boundNumber, double boundTT, double boundDist, double boundVar, boolean shortestOnly) {
+	public static DijkstraResult run(AbstractRouteWeightFunction measure, int time, DBEdge startEdge, long usedModesIDs, long modes, 
+			Set<DBEdge> ends, int boundNumber, double boundTT, double boundDist, double boundVar, boolean shortestOnly) {
 		
 		boolean hadExtension = false;
 		long availableModes = modes;
-		Mode usedMode = Modes.getMode(_usedMode);
+		Mode usedMode = Modes.getMode(usedModesIDs);
 		double tt = startEdge.getTravelTime("", usedMode.vmax, time);
 		DijkstraResult ret = new DijkstraResult(new HashSet<>(ends), boundNumber, boundTT, boundDist, boundVar, shortestOnly, time);
 		PriorityQueue<DijkstraEntry> next = new PriorityQueue<DijkstraEntry>(1000, measure);

@@ -41,6 +41,7 @@ public class MapResult {
 
 	/**
 	 * @brief Constructor
+	 * @param _em The mapped object
 	 * @param _e The edge the thing is located at
 	 * @param _dist The distance to the edge
 	 * @param _pos The position along the edge

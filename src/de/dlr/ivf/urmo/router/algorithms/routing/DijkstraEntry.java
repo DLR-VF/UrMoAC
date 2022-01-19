@@ -54,13 +54,23 @@ public class DijkstraEntry {
 	public boolean wasOpposite;
 	/// @brief Additional measures for weighting the route
 	public HashMap<String, Object> measures;
-
+	/// @brief Reference to the first entry
 	public DijkstraEntry first = null;
 	
 
-	/**
-	 * @brief Constructor
-	 * @param !!!
+	/** @brief Constructor
+	 * @param measure The route weighting function
+	 * @param _prev The previous edge
+	 * @param _n The last node
+	 * @param _e The current edge
+	 * @param _availableModes List of still available modes
+	 * @param _usedMode The currently used mode
+	 * @param _distance The overall distance
+	 * @param _tt The travel time on this edge
+	 * @param _line The used pt line
+	 * @param _ttt The overall travel tmie
+	 * @param _interchangeTT Time needed for the interchange
+	 * @param _wasOpposite Whether it is the opposite direction of the current edge
 	 */
 	public DijkstraEntry(AbstractRouteWeightFunction measure, DijkstraEntry _prev, DBNode _n, DBEdge _e, long _availableModes, Mode _usedMode, 
 			double _distance, double _tt, String _line, double _ttt, double _interchangeTT, boolean _wasOpposite) {

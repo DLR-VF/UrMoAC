@@ -17,7 +17,7 @@
 package de.dlr.ivf.urmo.router.gtfs;
 
 /**
- * @class GTFSConnnection
+ * @class GTFSConnection
  * @brief A connection between two pt stations (a single ride between both)
  * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of
  *         Transport Research
@@ -37,7 +37,9 @@ public class GTFSConnection {
 
 	/**
 	 * @brief Constructor
+	 * @param e The edge representation of this connection
 	 * @param _line The pt line that realises this connection
+	 * @param _tripID The id of the pt trip that realises this connection
 	 * @param _departureTime The departure time of the pt vehicle from the starting station
 	 * @param _arrivalTime The arrival time of the pt vehicle at the ending station
 	 */

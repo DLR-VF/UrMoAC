@@ -54,13 +54,12 @@ public class GTFSData {
 	
 	
 
-
-	/**
-	 * @brief Constructor
+	/** @brief Constructor
+	 * @param _net The used network
+	 * @param _entrainmentMap The entrainment map
 	 * @param _stops A map of ids to the respective stop
 	 * @param _routes A map of ids to the respective route
 	 * @param _trips A list of trips
-	 * @param _connections A set of edges (!!! unused?)
 	 */
 	public GTFSData(DBNet _net, EntrainmentMap _entrainmentMap, HashMap<Long, GTFSStop> _stops, HashMap<String, GTFSRoute> _routes, HashMap<String, GTFSTrip> _trips) {
 		net = _net;
@@ -125,7 +124,9 @@ public class GTFSData {
 	 * 
 	 * After this is done, the connections are inserted into the respective edges.
 	 * 
-	 * @param lastConnections The connections to recheck
+	 * @param tripID The ID of the trip
+	 * @param stopTimes The stop times to recheck
+	 * @param id2stop The map of ids to stops
 	 */
 	public int recheckTimesAndInsert(String tripID, Vector<GTFSStopTime> stopTimes, HashMap<String, GTFSStop> id2stop) {
 		Collections.sort(stopTimes, new Comparator<GTFSStopTime>() {
@@ -218,6 +219,8 @@ public class GTFSData {
 	}	
 
 	
+	/** @brief Sorts all GTFS connections
+	 */
 	public void sortConnections() {
 		for (GTFSEdge e : ptedges) {
 			e.sortConnections();
