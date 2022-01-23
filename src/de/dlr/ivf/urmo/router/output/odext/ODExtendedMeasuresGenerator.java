@@ -108,32 +108,12 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 				e.weightedAccess = 0;
 				e.weightedInitialWaitingTime = 0;
 				e.weightedInterchangeTime += current.interchangeTT;
-				e.weightedPTTravelTime += ((GTFSEdge) edge).getTravelTime(current.line, 80, beginTime + current.prev.tt) - ((GTFSEdge) edge).getWaitingTime(beginTime + current.prev.tt);
-				if( (current.prev==null) || (current.prev!=null && !current.prev.line.equals(current.line))) {
+				e.weightedPTTravelTime += ((GTFSEdge) edge).getTravelTime(current.line, 1000, beginTime + current.prev.tt) - ((GTFSEdge) edge).getWaitingTime(beginTime + current.prev.tt);
+				if( (current.prev==null) || !current.prev.line.equals(current.line)) {
 					e.weightedWaitingTime += ((GTFSEdge) edge).getWaitingTime(beginTime + current.prev.tt) * factor;
-					e.weightedInitialWaitingTime += ((GTFSEdge) edge).getWaitingTime(beginTime + current.prev.tt) * factor;
+					e.weightedInitialWaitingTime = ((GTFSEdge) edge).getWaitingTime(beginTime + current.prev.tt) * factor;
 				}
 			}
-			
-			/*
-			String tline = current.line==null||"".equals(current.line) ? "foot" : current.line;
-			double tTravelTime1 = ttt * factor;
-			double tTravelTime2 = current.line==null||"".equals(current.line) ? -1 : ((GTFSEdge) edge).getTravelTime(current.line, 100, beginTime + current.prev.tt) * factor;
-			double tWaitingTime = current.line==null||"".equals(current.line) ? -1 : ((GTFSEdge) edge).getWaitingTime(beginTime + current.prev.tt) * factor;
-			
-			System.out.println(e.srcID + ";" + e.destID + ";" + tline + ";"
-					+ e.weightedDistance + ";" + e.weightedTravelTime + ";" + e.weightedSpeed + ";"
-					+ e.connectionsWeightSum + ";" + e.weightedValue + ";" 
-					+ e.weightedKCal + ";" + e.weightedPrice + ";" + e.weightedCO2 + ";"
-					+ e.weightedInterchanges + ";" + e.weightedAccess + ";" + e.weightedEgress + ";" 
-					+ e.weightedWaitingTime + ";" + e.weightedInitialWaitingTime + ";" + e.weightedPTTravelTime + ";"
-					+ e.weightedInterchangeTime + ";" 
-					+ tTravelTime1 + ";" + tTravelTime2 + ";" + tWaitingTime + ";" + factor + ";"
-					+ e.lines.toString()
-					);
-			*/
-			
-			
 			factor = 1.;
 			if(current.line.length()!=0) {
 				lastPT = current.line;
@@ -151,18 +131,10 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 		
 		e.weightedKCal *= e.val;
 		e.weightedPrice *= e.val; 
-		
 		e.weightedCO2 *= e.val;
-		e.connectionsWeightSum = e.val;
-		e.weightedAccess += from.dist / Modes.getMode("foot").vmax;
-		e.weightedEgress += to.dist / Modes.getMode("foot").vmax;
-		e.weightedAccess *= e.val;
-		e.weightedEgress *= e.val;
 		e.weightedInterchanges *= e.val;
 		e.weightedWaitingTime *= e.val;
 		e.weightedPTTravelTime *= e.val;
-		e.weightedAccess = from.dist * e.val;
-		e.weightedEgress = to.dist * e.val;
 		return e;
 	}	
 	

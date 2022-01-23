@@ -53,8 +53,6 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 				dist = to.pos - from.pos;				
 			}
 			tt = tt / to.edge.length * dist;
-			dist = dist + from.dist + to.dist;
-			tt = tt + (from.dist + to.dist) / Modes.getMode("foot").vmax;
 			step = 3;
 		} else if(from.edge.opposite==to.edge) {
 			tt = current.first.ttt;
@@ -64,8 +62,6 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 				dist = (to.edge.length - to.pos) - from.pos;				
 			}
 			tt = tt / to.edge.length * dist;
-			dist = dist + from.dist + to.dist;
-			tt = tt + (from.dist + to.dist) / Modes.getMode("foot").vmax;
 			step = 3;
 		} else {
 			if(current.wasOpposite) {
@@ -77,8 +73,6 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 			}
 			dist -= current.e.length;
 			tt -= current.ttt;
-			tt += to.dist / Modes.getMode("foot").vmax;
-			dist += to.dist;
 
 			step = 0;
 			do {
@@ -89,6 +83,9 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 				if(prev==null) {
 					current = prev;
 					continue;
+				}
+				if(current.line.length()!=0) {
+					e.weightedPTTravelTime += dist;
 				}
 				if(prev.line.equals(current.line)) {
 					current = prev;
@@ -103,6 +100,7 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 					GTFSEdge edge = (GTFSEdge) current.e;
 					lastWaitingTime = edge.getWaitingTime(beginTime + prev.tt);
 					e.weightedWaitingTime += lastWaitingTime;
+					e.weightedInitialWaitingTime = lastWaitingTime;
 				} else {
 					// pt->foot|pt
 					if(current.line.length()==0) {
@@ -114,6 +112,7 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 						GTFSEdge edge = (GTFSEdge) current.e;
 						lastWaitingTime = edge.getWaitingTime(beginTime + prev.tt);
 						e.weightedWaitingTime += lastWaitingTime;
+						e.weightedInitialWaitingTime = lastWaitingTime;
 					}
 					step = 1;
 				}
@@ -123,13 +122,6 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 			tt += from.dist / Modes.getMode("foot").vmax;
 			current = dr.getEdgeInfo(to.edge);
 			double firstTT = current.first.ttt;
-			if(current.first.e==from.edge.opposite) {
-				dist -= (from.edge.length - from.pos);
-				tt -= (firstTT - firstTT * from.pos / from.edge.length);
-			} else {
-				dist -= from.pos;
-				tt -= (firstTT * from.pos / from.edge.length);
-			}
 			dist -= from.pos;
 			tt -= (firstTT * (from.pos / from.edge.length));
 		}
