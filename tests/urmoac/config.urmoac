@@ -13,6 +13,10 @@ o2r_output:o2r_output.csv
 d2r_output:d2r_output.csv
 od_output:od_output.csv
 ext_od_output:ext_od_output.csv
+stat_od_output:stat_od_output.csv
+edges_output:edges_output.csv
+interchanges_output:interchanges_output.csv
+pt_output:pt_output.csv
 direct_output:direct_output.csv
 configuration:configuration.xml
 template:template.xml
