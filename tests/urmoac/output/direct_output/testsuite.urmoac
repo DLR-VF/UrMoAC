@@ -1,0 +1,16 @@
+# origin and destination have the same position, no offset from net
+same_origin_destination_no_offset
+
+# origin and destination have the same position, different offsets from net
+same_origin_destination_offset
+
+
+# simple routing between two different positions, no offset from net
+simple_no_offset
+
+# simple routing between two different positions, different offsets from net
+simple_offset
+
+
+# routing over more edges between two different positions, no offset from net
+multiple_edges_no_offset
