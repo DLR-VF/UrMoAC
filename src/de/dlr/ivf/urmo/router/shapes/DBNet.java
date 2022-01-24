@@ -386,12 +386,13 @@ public class DBNet {
 				}
 			}
 			// add a reverse direction edge for pedestrians
-			if(opposite==null && e.allows(modeFoot)) {
+			if((opposite==null && e.allows(modeFoot)) || (opposite==e)) {
+				// todo: recheck whether opposite==e is correct - it happens, though maybe when using an external OSM importer
 				opposite = new DBEdge(getNextID(), "opp_"+e.id, e.to, e.from, modeFoot, e.vmax, (LineString) e.geom.reverse(), e.length);
 				newEdges.add(opposite);
 			}
 			// add the information about the opposite edge
-			if(opposite!=null) {
+			if(opposite!=null&&opposite!=e) {
 				opposite.opposite = e;
 				e.opposite = opposite;
 			}
