@@ -104,7 +104,7 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 					String[] lineIDs = InterchangeSingleResult.splitLinesKey(id2);
 					_fileWriter.append(result.srcID + ";" + result.destID + ";" + id + ";" + 
 							lineIDs[0] + ";" + lineIDs[1] + ";" 
-							+ String.format(Locale.US, _FS, ssstats.get(id2).number) + ";" 
+							+ ssstats.get(id2).number + ";" 
 							+ String.format(Locale.US, _FS, ssstats.get(id2).weightedTT) + "\n");
 				}
 			}

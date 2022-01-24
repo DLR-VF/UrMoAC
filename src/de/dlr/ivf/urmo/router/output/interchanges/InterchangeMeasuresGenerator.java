@@ -41,8 +41,6 @@ public class InterchangeMeasuresGenerator extends MeasurementGenerator<Interchan
 		DijkstraEntry current = dr.getEdgeInfo(to.edge);
 		InterchangeSingleResult e = new InterchangeSingleResult(from.em.getOuterID(), to.em.getOuterID());
 		
-		//int numInterchanges = 0;
-		
 		do {
 			DijkstraEntry next = current;
 			current = current.prev;
