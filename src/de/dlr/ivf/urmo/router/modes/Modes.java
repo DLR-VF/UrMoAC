@@ -58,6 +58,7 @@ public class Modes {
 		add(new Mode(2, "foot", 3.6, 50, 280, 0, 0)); // kcal: 17190
 		add(new Mode(4, "bicycle", 13, 300, 510, 0, 0)); // kcal: 1020
 		add(new Mode(8, "passenger", 200, 500, 170, 150, 31)); // kcal: 16010
+		add(new Mode(16, "bus", 80, 500, 85, 75, 0)); // kcal: 16016
 		//add(new Mode(8, "custom", custom_vmax, 300, custom_kkc, custom_co2, custom_price));
 	}
 
