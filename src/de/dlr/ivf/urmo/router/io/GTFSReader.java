@@ -190,7 +190,7 @@ public class GTFSReader {
 		HashMap<String, GTFSRoute> routes = new HashMap<>();
 		while (rs.next()) {
 			GTFSRoute route = new GTFSRoute(rs.getString("route_id"), rs.getString("route_short_name"), rs.getInt("route_type"));
-			if(allowedCarrier==null || allowedCarrier.contains(route.type)) {
+			if(allowedCarrier.size()==0 || allowedCarrier.contains(route.type)) {
 				routes.put(rs.getString("route_id"), route);
 			}
 		}
