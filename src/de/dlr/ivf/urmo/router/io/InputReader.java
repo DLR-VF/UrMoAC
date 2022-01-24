@@ -84,8 +84,6 @@ public class InputReader {
 	 * The returned UTM-zones start with 32500 for the southern hemisphere and with 32600 for the northern hemisphere.
 	 * @param[in] options The command line options 
 	 * @return The epsg-code of the UTM-zone or -1 of no UTM-zone could be found (e.g. north-pole )
-	 * @throws SQLException
-	 * @throws ParseException
 	 * @throws IOException 
 	 */
 	public static int findUTMZone(OptionsCont options) throws IOException {
@@ -444,7 +442,6 @@ public class InputReader {
 			if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
 				String[] vals = line.split(";");
 				em.add(vals[0]+vals[1], Modes.getMode(vals[2]).id);
-				line = br.readLine();
 			}
 	    } while(line!=null);
 		br.close();
