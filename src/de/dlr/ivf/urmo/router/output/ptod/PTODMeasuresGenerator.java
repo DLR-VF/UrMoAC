@@ -16,6 +16,8 @@
  */
 package de.dlr.ivf.urmo.router.output.ptod;
 
+import java.util.HashSet;
+
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraEntry;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
@@ -45,6 +47,13 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 		DijkstraEntry current = dr.getEdgeInfo(to.edge);
 		double tt = 0;
 		double dist = 0;
+		HashSet<String> trips = new HashSet<>();
+		if(current.line!=null) {
+			e.lines.add(current.line.trip.route.id);
+			trips.add(current.line.trip.tripID);
+		} else {
+			e.lines.add(current.usedMode.mml);
+		}
 		if(from.edge==to.edge) {
 			tt = current.first.ttt;
 			if(from.pos>to.pos) {
@@ -53,7 +62,7 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 				dist = to.pos - from.pos;				
 			}
 			tt = tt / to.edge.length * dist;
-			step = 3;
+			step = 4;
 		} else if(from.edge.opposite==to.edge) {
 			tt = current.first.ttt;
 			if(from.pos>(to.edge.length - to.pos)) {
@@ -62,7 +71,7 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 				dist = (to.edge.length - to.pos) - from.pos;				
 			}
 			tt = tt / to.edge.length * dist;
-			step = 3;
+			step = 4;
 		} else {
 			if(current.wasOpposite) {
 				dist -= to.pos;
@@ -71,74 +80,82 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 				dist -= (to.edge.length - to.pos);
 				tt -= (current.ttt - current.ttt * (to.pos / to.edge.length));
 			}
-			dist -= current.e.length;
-			tt -= current.ttt;
-
 			step = 0;
 			do {
+				e.weightedInterchangeTravelTime += current.interchangeTT;
 				dist += current.e.length;
 				tt += current.ttt;
 				DijkstraEntry prev = current.prev;
-				double lastWaitingTime = 0;
 				if(prev==null) {
 					current = prev;
 					continue;
 				}
-				if(current.line.length()!=0) {
-					e.weightedPTTravelTime += dist;
+				if(current.line!=null) {
+					e.lines.add(current.line.trip.route.id);
+					trips.add(current.line.trip.tripID);
+				} else {
+					e.lines.add(current.usedMode.mml);
 				}
-				if(prev.line.equals(current.line)) {
+				if( (prev.line==null&&current.line==null) || (prev.line!=null && current.line!=null && prev.line.trip.equals(current.line.trip)) ) {
 					current = prev;
 					continue;
 				}
 				addStep(e, step, dist, tt);
 				tt = 0;
 				dist = 0;
-				if(prev.line.length()==0) {
+				if(prev.line==null) {
 					// foot->pt; 
 					step = 2; // either interchange or access 
-					GTFSEdge edge = (GTFSEdge) current.e;
-					lastWaitingTime = edge.getWaitingTime(beginTime + prev.tt);
-					e.weightedWaitingTime += lastWaitingTime;
-					e.weightedInitialWaitingTime = lastWaitingTime;
+					double waitingTime = current.line.getWaitingTime(beginTime + prev.tt);
+					e.weightedWaitingTime += waitingTime;
+					e.weightedInitialWaitingTime = waitingTime;
 				} else {
 					// pt->foot|pt
-					if(current.line.length()==0) {
-						// change from foot to pt
-						e.weightedInterchangesNum += 1.;
-					} else {
+					if(current.line!=null) {
 						// change from pt to pt
-						e.weightedInterchangesNum += 1.;
-						GTFSEdge edge = (GTFSEdge) current.e;
-						lastWaitingTime = edge.getWaitingTime(beginTime + prev.tt);
-						e.weightedWaitingTime += lastWaitingTime;
-						e.weightedInitialWaitingTime = lastWaitingTime;
+						double waitingTime = current.line.getWaitingTime(beginTime + prev.tt);
+						e.weightedWaitingTime += waitingTime;
+						e.weightedInitialWaitingTime = waitingTime;
 					}
 					step = 1;
 				}
 				current = prev;
 			} while(current!=null);
-			dist += from.dist;
-			tt += from.dist / Modes.getMode("foot").vmax;
 			current = dr.getEdgeInfo(to.edge);
 			double firstTT = current.first.ttt;
-			dist -= from.pos;
-			tt -= (firstTT * (from.pos / from.edge.length));
+			if(current.first.wasOpposite) {
+				dist -= (from.edge.length - from.pos);
+				tt -= (firstTT - firstTT * (from.pos / from.edge.length));
+			} else {
+				dist -= from.pos;
+				tt -= (firstTT * (from.pos / from.edge.length));
+			}
 		}
-		if(dist>0&&tt>0) {
+		if(step!=4 && dist>0 && tt>0) {
 			if(step==2) {
 				step = 3;
 			}
 			addStep(e, step, dist, tt);
 		}
+		// no access / egress when no pt
+		if(trips.size()<2) {
+			e.weightedAccessDistance = 0;
+			e.weightedAccessTravelTime = 0;
+			e.weightedEgressDistance = 0;
+			e.weightedEgressTravelTime = 0;
+		}
+		// apply weight
+		e.weightedInterchangesNum = Math.max(0, (double) trips.size() - 1.);
+		e.weightedDistance = e.dist * e.val;
+		e.weightedTravelTime = e.tt * e.val;
+		e.weightedAccessDistance *= e.val;
+		e.weightedAccessTravelTime *= e.val;
 		e.weightedEgressDistance *= e.val;
 		e.weightedEgressTravelTime *= e.val;
 		e.weightedPTDistance *= e.val;
-		e.weightedPTTravelTime *= e.val;
+		e.weightedPTTravelTime = (e.weightedPTTravelTime-e.weightedWaitingTime) * e.val;
 		e.weightedInterchangeDistance *= e.val;
 		e.weightedInterchangeTravelTime *= e.val;
-		e.weightedAccessDistance *= e.val;
-		e.weightedAccessTravelTime *= e.val;
 		e.weightedInterchangesNum *= e.val;
 		e.weightedWaitingTime *= e.val;
 		e.weightedInitialWaitingTime *= e.val;
@@ -183,6 +200,8 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 		case 3: // access
 			e.weightedAccessDistance = dist;
 			e.weightedAccessTravelTime = tt;
+			break;
+		case 4: // single edge
 			break;
 		}
 	}

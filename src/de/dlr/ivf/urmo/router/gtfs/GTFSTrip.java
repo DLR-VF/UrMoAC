@@ -23,23 +23,19 @@ package de.dlr.ivf.urmo.router.gtfs;
  *         Transport Research
  */
 public class GTFSTrip {
-	/// @brief The id of the route
-	public String routeID;
-	/// @brief The id of the service
-	public String serviceID;
 	/// @brief The id of the trip
 	public String tripID;
+	/// @brief The route
+	public GTFSRoute route;
 
 
 	/**
 	 * @brief Constructor
 	 * @param _routeID The id of the route
-	 * @param _serviceID The id of the service
 	 * @param _tripID The id of the trip
 	 */
-	public GTFSTrip(String _routeID, String _serviceID, String _tripID) {
-		routeID = _routeID;
-		serviceID = _serviceID;
+	public GTFSTrip(String _tripID, GTFSRoute _route) {
+		route = _route;
 		tripID = _tripID;
 	}
 

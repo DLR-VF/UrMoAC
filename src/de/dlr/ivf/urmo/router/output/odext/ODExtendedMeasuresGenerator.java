@@ -56,6 +56,7 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 		e.weightedInterchangeTime = 0;
 		e.connectionsWeightSum = e.val;
 
+		HashSet<String> trips = new HashSet<>();
 		double factor = 1.;
 		boolean single = false;
 		if(from.edge==to.edge) {
@@ -93,38 +94,42 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 				}
 			}
 			DBEdge edge = current.e;
-			if(lastPT!=null&&current.line.length()!=0&&!lastPT.equals(current.line)) {
-				e.weightedInterchanges += 1.;
-			}
 			e.weightedKCal += edge.getKKC(current.usedMode, ttt) * factor;
 			e.weightedPrice += edge.getPrice(current.usedMode, seenLines) * factor;
 			e.weightedCO2 += edge.getCO2(current.usedMode) * factor;
-			if(current.line.length()==0) {
+			if(current.line==null) {
 				if(lastPT==null) {
 					e.weightedEgress += ttt * factor;
 				}
 				e.weightedAccess += ttt * factor;
 			} else {
-				e.weightedAccess = 0;
+				if(lastPT!=null&&!current.line.trip.tripID.equals(lastPT)) {
+					e.weightedInterchanges += 1.;
+					e.weightedInterchangeTime += e.weightedAccess;
+				}
 				e.weightedInitialWaitingTime = 0;
 				e.weightedInterchangeTime += current.interchangeTT;
-				e.weightedPTTravelTime += ((GTFSEdge) edge).getTravelTime(current.line, 1000, beginTime + current.prev.tt) - ((GTFSEdge) edge).getWaitingTime(beginTime + current.prev.tt);
-				if( (current.prev==null) || !current.prev.line.equals(current.line)) {
-					e.weightedWaitingTime += ((GTFSEdge) edge).getWaitingTime(beginTime + current.prev.tt) * factor;
-					e.weightedInitialWaitingTime = ((GTFSEdge) edge).getWaitingTime(beginTime + current.prev.tt) * factor;
+				e.weightedAccess = 0;
+				e.weightedPTTravelTime += current.ttt;
+				if(current.prev==null || current.prev.line==null || !current.line.trip.equals(current.prev.line.trip)) {
+					double waitingTime = current.line.getWaitingTime(beginTime + current.prev.tt);
+					e.weightedWaitingTime += waitingTime;
+					e.weightedInitialWaitingTime = waitingTime;
+					e.weightedPTTravelTime -= waitingTime;
 				}
 			}
-			factor = 1.;
-			if(current.line.length()!=0) {
-				lastPT = current.line;
-				e.lines.add(current.line);
+			if(current.line!=null) {
+				lastPT = current.line.trip.tripID;
+				e.lines.add(current.line.trip.route.id);
+				trips.add(current.line.trip.tripID);
 			} else {
 				e.lines.add(current.usedMode.mml);
 			}
 			current = current.prev;
+			factor = 1.;
 		} while(current!=null);
 		// TODO: recheck
-		if(e.lines.size()<2) {
+		if(trips.size()<2) {
 			e.weightedAccess = 0;
 			e.weightedEgress = 0;
 		}

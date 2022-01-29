@@ -26,9 +26,7 @@ public class GTFSConnection {
 	/// @brief The edge this connection runs over
 	public GTFSEdge edge;
 	/// @brief The pt line that realises this connection
-	public String line;
-	/// @brief The trip id this connection represents
-	public String tripID;
+	public GTFSTrip trip;
 	/// @brief The departure time of the pt vehicle from the starting station
 	public int departureTime;
 	/// @brief The arrival time of the pt vehicle at the ending station
@@ -43,12 +41,21 @@ public class GTFSConnection {
 	 * @param _departureTime The departure time of the pt vehicle from the starting station
 	 * @param _arrivalTime The arrival time of the pt vehicle at the ending station
 	 */
-	public GTFSConnection(GTFSEdge e, String _line, String _tripID, int _departureTime, int _arrivalTime) {
+	public GTFSConnection(GTFSEdge e, GTFSTrip _trip, int _departureTime, int _arrivalTime) {
 		edge = e;
-		line = _line;
-		tripID = _tripID;
+		//line = _line;
+		trip = _trip;
 		departureTime = _departureTime;
 		arrivalTime = _arrivalTime;
+	}
+
+	
+	public double getTravelTime(double time) {
+		return arrivalTime - time;
+	}
+
+	public double getWaitingTime(double time) {
+		return departureTime - time;
 	}
 
 }

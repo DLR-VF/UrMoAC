@@ -45,11 +45,11 @@ public class PTODWriter extends AbstractResultsWriter<PTODSingleResult> {
 	 */
 	public PTODWriter(String url, String tableName, String user, String pw, boolean dropPrevious) throws IOException {
 		super(url, user, pw, tableName,
-				"(fid bigint, sid bigint, "
+				"(fid bigint, sid bigint, avg_distance real, avg_tt real, "
 				+ "avg_access_distance real, avg_access_tt real, avg_egress_distance real, avg_egress_tt real, "
 				+ "avg_interchange_distance real, avg_interchange_tt real, avg_pt_distance real, avg_pt_tt real, "
 				+ "avg_num_interchanges real, avg_waiting_time real, avg_init_waiting_time real, avg_num real, avg_value real)",
-				"VALUES (?, ?,  ?, ?, ?, ?,  ?, ?, ?, ?,  ?, ?, ?, ?, ?)", dropPrevious);
+				"VALUES (?, ?,  ?, ?,  ?, ?, ?, ?,  ?, ?, ?, ?,  ?, ?, ?, ?, ?)", dropPrevious);
 	}
 
 
@@ -78,19 +78,21 @@ public class PTODWriter extends AbstractResultsWriter<PTODSingleResult> {
 			try {
 				_ps.setLong(1, result.srcID);
 				_ps.setLong(2, result.destID);
-				_ps.setFloat(3, (float) result.weightedAccessDistance);
-				_ps.setFloat(4, (float) result.weightedAccessTravelTime);
-				_ps.setFloat(5, (float) result.weightedEgressDistance);
-				_ps.setFloat(6, (float) result.weightedEgressTravelTime);
-				_ps.setFloat(7, (float) result.weightedInterchangeDistance);
-				_ps.setFloat(8, (float) result.weightedInterchangeTravelTime);
-				_ps.setFloat(9, (float) result.weightedPTDistance);
-				_ps.setFloat(10, (float) result.weightedPTTravelTime);
-				_ps.setFloat(11, (float) result.weightedInterchangesNum);
-				_ps.setFloat(12, (float) result.weightedWaitingTime);
-				_ps.setFloat(13, (float) result.weightedInitialWaitingTime);
-				_ps.setFloat(14, (float) result.connectionsWeightSum);
-				_ps.setFloat(15, (float) result.weightedValue);
+				_ps.setFloat(3, (float) result.weightedDistance);
+				_ps.setFloat(4, (float) result.weightedTravelTime);
+				_ps.setFloat(5, (float) result.weightedAccessDistance);
+				_ps.setFloat(6, (float) result.weightedAccessTravelTime);
+				_ps.setFloat(7, (float) result.weightedEgressDistance);
+				_ps.setFloat(8, (float) result.weightedEgressTravelTime);
+				_ps.setFloat(9, (float) result.weightedInterchangeDistance);
+				_ps.setFloat(10, (float) result.weightedInterchangeTravelTime);
+				_ps.setFloat(11, (float) result.weightedPTDistance);
+				_ps.setFloat(12, (float) result.weightedPTTravelTime);
+				_ps.setFloat(13, (float) result.weightedInterchangesNum);
+				_ps.setFloat(14, (float) result.weightedWaitingTime);
+				_ps.setFloat(15, (float) result.weightedInitialWaitingTime);
+				_ps.setFloat(16, (float) result.connectionsWeightSum);
+				_ps.setFloat(17, (float) result.weightedValue);
 				_ps.addBatch();
 				++batchCount;
 				if(batchCount>10000) {
@@ -102,6 +104,8 @@ public class PTODWriter extends AbstractResultsWriter<PTODSingleResult> {
 			}
 		} else {
 			_fileWriter.append(result.srcID + ";" + result.destID + ";" 
+					+ String.format(Locale.US, _FS, result.weightedDistance) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedTravelTime) + ";"
 					+ String.format(Locale.US, _FS, result.weightedAccessDistance) + ";" 
 					+ String.format(Locale.US, _FS, result.weightedAccessTravelTime) + ";"
 					+ String.format(Locale.US, _FS, result.weightedEgressDistance) + ";" 

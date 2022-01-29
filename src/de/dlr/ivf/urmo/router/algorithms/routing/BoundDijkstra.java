@@ -21,7 +21,10 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.Vector;
 
+import de.dlr.ivf.urmo.router.gtfs.GTFSConnection;
 import de.dlr.ivf.urmo.router.gtfs.GTFSEdge;
+import de.dlr.ivf.urmo.router.gtfs.GTFSStop;
+import de.dlr.ivf.urmo.router.gtfs.GTFSTrip;
 import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
@@ -57,11 +60,11 @@ public class BoundDijkstra {
 		boolean hadExtension = false;
 		long availableModes = modes;
 		Mode usedMode = Modes.getMode(usedModesIDs);
-		double tt = startEdge.getTravelTime("", usedMode.vmax, time);
+		double tt = startEdge.getTravelTime(usedMode.vmax, time);
 		DijkstraResult ret = new DijkstraResult(new HashSet<>(ends), boundNumber, boundTT, boundDist, boundVar, shortestOnly, time);
 		PriorityQueue<DijkstraEntry> next = new PriorityQueue<DijkstraEntry>(1000, measure);
 		DijkstraEntry nm = new DijkstraEntry(measure, null, startEdge.getToNode(), startEdge, availableModes, usedMode,
-				startEdge.getLength(), tt, "", tt, 0, false);
+				startEdge.getLength(), tt, null, tt, 0, false);
 		// originally, "startPos" was used - currently the offset of the mappable object is not regarded in the 
 		// distance limit computation
 		next.add(nm);
@@ -76,8 +79,8 @@ public class BoundDijkstra {
 		// consider starting in the opposite direction
 		if(startEdge.opposite!=null && startEdge.opposite.allows(usedMode)) {
 			DBEdge e = startEdge.opposite;
-			tt = e.getTravelTime("", usedMode.vmax, time);
-			nm = new DijkstraEntry(measure, null, e.getToNode(), e, availableModes, usedMode, e.getLength(), tt, "", tt, 0, true);
+			tt = e.getTravelTime(usedMode.vmax, time);
+			nm = new DijkstraEntry(measure, null, e.getToNode(), e, availableModes, usedMode, e.getLength(), tt, null, tt, 0, true);
 			// originally, "startPos" was used - currently the offset of the mappable object
 			// is not regarded in the distance limit computation
 			next.add(nm);
@@ -117,16 +120,30 @@ public class BoundDijkstra {
 					usedMode = Modes.selectModeFrom(availableModes);
 					interchangeTT = 0;
 				}
-				String line = oe.isGTFSEdge() ? ((GTFSEdge) oe).route.nameHack : "";
-				if(!line.equals(nns.line)) { // slow string comparison
-					interchangeTT = nns.n.getInterchangeTime(line, nns.line, 0);
+				GTFSConnection ptConnection = null;
+				double ttt;
+				if(oe.isGTFSEdge()) {
+					GTFSEdge ge = (GTFSEdge) oe;
+					ptConnection = ge.getConnection(time + nns.tt);
+					if(ptConnection==null) {
+						ttt = 86400;
+					} else {
+						GTFSTrip prevTrip = nns.line!=null ? nns.line.trip : null;
+						if(!ptConnection.trip.equals(prevTrip)) {
+							interchangeTT = ((GTFSStop) nns.n).getInterchangeTime(ptConnection.trip, prevTrip, 0);
+						}
+						ttt = ptConnection.arrivalTime - time + interchangeTT;
+					}
+				} else {
+					ttt = oe.getTravelTime(usedMode.vmax, time + nns.tt) + interchangeTT;
+					// @todo: interchange times at nodes
 				}
 				DBNode n = oe.getToNode();
 				double distance = nns.distance + oe.getLength();
-				double ttt = oe.getTravelTime("", usedMode.vmax, time + nns.tt) + interchangeTT;
+				//double ttt = oe.getTravelTime("", usedMode.vmax, time + nns.tt) + interchangeTT;
 				tt = nns.tt + ttt;
 				DijkstraEntry oldValue = ret.getPriorNodeInfo(n, availableModes);
-				DijkstraEntry newValue = new DijkstraEntry(measure, nns, n, oe, availableModes, usedMode, distance, tt, line, ttt, interchangeTT, false);
+				DijkstraEntry newValue = new DijkstraEntry(measure, nns, n, oe, availableModes, usedMode, distance, tt, ptConnection, ttt, interchangeTT, false);
 				if(oldValue==null) {
 					next.add(newValue);
 					ret.addNodeInfo(n, availableModes, newValue);
@@ -144,7 +161,7 @@ public class BoundDijkstra {
 				
 				// check opposite direction
 				if(oe.opposite!=null && oe.opposite.getAttachedObjectsNumber()!=0) {
-					DijkstraEntry newOppositeValue = new DijkstraEntry(measure, nns, n, oe.opposite, availableModes, usedMode, distance, tt, line, ttt, interchangeTT, true);
+					DijkstraEntry newOppositeValue = new DijkstraEntry(measure, nns, n, oe.opposite, availableModes, usedMode, distance, tt, ptConnection, ttt, interchangeTT, true);
 					if(ret.addEdgeInfo(measure, oe.opposite, newOppositeValue)) {
 						if(!hadExtension&&!ret.allFound()) {
 							boundTT = Math.max(boundTT, tt+newOppositeValue.first.ttt+ttt);

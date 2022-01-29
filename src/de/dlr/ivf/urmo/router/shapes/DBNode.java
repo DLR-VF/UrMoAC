@@ -100,23 +100,5 @@ public class DBNode {
 		outgoing.remove(e);
 	}
 
-
-	/**
-	 * @brief Returns the set interchange time - or no time if no time is given
-	 * 
-	 * Returns 0 (seconds) if the line is not changed. Returns the defaultTime otherwise.
-	 * 
-	 * @param line First line
-	 * @param line2 Second line
-	 * @param defaultTime The default interchange time
-	 * @return The interchange time
-	 * @todo Play with this
-	 */
-	public double getInterchangeTime(String line, String line2, double defaultTime) {
-		if(line.equals(line2)) {
-			return 0;
-		}
-		return defaultTime;
-	}
-
+	
 }

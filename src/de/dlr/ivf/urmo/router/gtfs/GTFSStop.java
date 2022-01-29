@@ -42,7 +42,7 @@ public class GTFSStop extends DBNode implements EdgeMappable {
 	/// @brief A map of one-hop destinations to routes to pt edges that start at this node
 	public HashMap<GTFSStop, HashMap<GTFSRoute, GTFSEdge>> connections = new HashMap<>();
 	/// @brief The map of interchange times between different lines
-	public HashMap<String, HashMap<String, Double>> myInterchangeTimes = new HashMap<>();
+	public HashMap<GTFSTrip, HashMap<GTFSTrip, Double>> myInterchangeTimes = new HashMap<>();
 
 
 	/**
@@ -130,11 +130,11 @@ public class GTFSStop extends DBNode implements EdgeMappable {
 	 * @param line2 Second line
 	 * @param time The interchange time
 	 */
-	public void setInterchangeTime(String line, String line2, double time) {
+	public void setInterchangeTime(GTFSTrip line, GTFSTrip line2, double time) {
 		if(!myInterchangeTimes.containsKey(line)) {
-			myInterchangeTimes.put(line, new HashMap<String, Double>());
+			myInterchangeTimes.put(line, new HashMap<GTFSTrip, Double>());
 		}
-		HashMap<String, Double> it2 = myInterchangeTimes.get(line);
+		HashMap<GTFSTrip, Double> it2 = myInterchangeTimes.get(line);
 		it2.put(line2, time);
 	}
 
@@ -145,14 +145,14 @@ public class GTFSStop extends DBNode implements EdgeMappable {
 	 * @param line2 Second line
 	 * @param defaultTime The default interchange time
 	 * @return The interchange time
+	 * @todo play with this
 	 */
-	@Override
-	public double getInterchangeTime(String line, String line2, double defaultTime) {
+	public double getInterchangeTime(GTFSTrip line, GTFSTrip line2, double defaultTime) {
 		if(line.equals(line2)) {
 			return 0;
 		}
 		if(myInterchangeTimes.containsKey(line)) {
-			HashMap<String, Double> it2 = myInterchangeTimes.get(line);
+			HashMap<GTFSTrip, Double> it2 = myInterchangeTimes.get(line);
 			if(it2.containsKey(line2)) {
 				return it2.get(line2);
 			}

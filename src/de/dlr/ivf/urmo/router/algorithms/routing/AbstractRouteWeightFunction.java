@@ -19,6 +19,8 @@ package de.dlr.ivf.urmo.router.algorithms.routing;
 import java.util.Comparator;
 import java.util.HashMap;
 
+import de.dlr.ivf.urmo.router.gtfs.GTFSTrip;
+
 /**
  * @class AbstractRouteWeightFunction
  * @brief Base class for methods that weight paths.
@@ -52,20 +54,20 @@ public abstract class AbstractRouteWeightFunction implements Comparator<Dijkstra
 		int numInterchanges = 0;
 		if(prev!=null) {
 			numInterchanges = (Integer) prev.measures.get("interchanges");
-			if(current.line.length()!=0) {
-				String prevLastPT = (String) prev.measures.get("lastPT");
-				if(!prevLastPT.equals(current.line)) {
+			if(current.line.trip!=null) {
+				GTFSTrip prevLastPT = (GTFSTrip) prev.measures.get("lastPT");
+				if(!prevLastPT.equals(current.line.trip)) {
 					numInterchanges = numInterchanges + 1;
 				}
 			}
 		}
 		ret.put("interchanges", numInterchanges);
-		if(current.line.length()!=0) {
-			ret.put("lastPT", current.line);
+		if(current.line!=null) {
+			ret.put("lastPT", current.line.trip);
 		} else if(prev!=null) {
-			ret.put("lastPT", (String) prev.measures.get("lastPT"));
+			ret.put("lastPT", (GTFSTrip) prev.measures.get("lastPT"));
 		} else {
-			ret.put("lastPT", "");
+			ret.put("lastPT", null);
 		}
 	}
 

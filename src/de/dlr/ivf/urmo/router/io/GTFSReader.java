@@ -372,10 +372,11 @@ public class GTFSReader {
 			if(dateI!=0&&!services.contains(service_id)) {
 				continue;
 			}
-			if(!routes.containsKey(rs.getString("route_id"))) {
+			String route_id = rs.getString("route_id");
+			if(!routes.containsKey(route_id)) {
 				continue;
 			}
-			GTFSTrip trip = new GTFSTrip(rs.getString("route_id"), service_id, rs.getString("trip_id"));
+			GTFSTrip trip = new GTFSTrip(rs.getString("trip_id"), routes.get(route_id));
 			trips.put(rs.getString("trip_id"), trip);
 		}
 		rs.close();
@@ -462,7 +463,7 @@ public class GTFSReader {
 					GTFSTrip t1 = trips.get(Integer.parseInt(s1));
 					GTFSTrip t2 = trips.get(Integer.parseInt(s2)); // !!! todo: times are given on per-trip, not per-route base
 					if(t1!=null&&t2!=null) {
-						stop.setInterchangeTime(t1.routeID, t2.routeID, (double) rs.getInt("min_transfer_time"));
+						stop.setInterchangeTime(t1, t2, (double) rs.getInt("min_transfer_time"));
 					}
 				} catch(NumberFormatException e) {
 				}

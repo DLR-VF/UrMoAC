@@ -218,7 +218,7 @@ public class DBEdge {
 	 * @param time The time the edge is started to be passed
 	 * @return The travel time to pass this edge
 	 */
-	public double getTravelTime(String line, double ivmax, double time) {
+	public double getTravelTime(double ivmax, double time) {
 		if(speeds!=null) {
 			for(V v : speeds) {
 				if(v.ibeg<=time && v.iend>=time) {

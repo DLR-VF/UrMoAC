@@ -76,7 +76,7 @@ public class GTFSRoute {
 			name = "ferry";
 			break;
 		}
-		return name + "(" + nameS + ")";
+		return name + "(" + nameS + ")/"+id;
 	}
 
 }

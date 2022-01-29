@@ -63,39 +63,18 @@ public class GTFSEdge extends DBEdge {
 	}
 
 
-	/**
-	 * @brief Returns the travel time
-	 * 
-	 * Here, the travel time is extracted from the list of departs /
-	 * trips to the next node.
-	 * @param line The pt line that realises this connection
-	 * @param ivmax The individual's maximum velocity
-	 * @param time The time at which this edge is started to be traveled
-	 * @return The travel time needed to pass this edge
-	 */
-	@Override
-	public double getTravelTime(String line, double ivmax, double time) {
-		for (GTFSConnection c : connections) {
-			if (c.departureTime >= time) {
-				return c.arrivalTime - time;
-			}
-		}
-		return 86400;
-	}
-
-
 	/** 
-	 * @brief Returns the waiting time until boarding the next carrier 
+	 * @brief Returns the next available connection at this edge
 	 * @param time The time of arrival at this edge/stop
-	 * @return The waiting time at this edge
+	 * @return The next connection on this edge
 	 */
-	public double getWaitingTime(double time) {
+	public GTFSConnection getConnection(double time) {
 		for (GTFSConnection c : connections) {
 			if (c.departureTime >= time) {
-				return c.departureTime - time;
+				return c;
 			}
 		}
-		return 86400;
+		return null;
 	}
 
 		

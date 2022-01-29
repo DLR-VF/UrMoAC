@@ -77,46 +77,6 @@ public class GTFSData {
 	}
 
 
-	/**
-	 * @brief TODO: a hack for obtaining the used mode
-	 * @param lines The used lines
-	 * @return The used modes
-	 */
-	public String getModesString(Set<String> lines) {
-		Set<String> modes = new HashSet<>();
-		for (String line : lines) {
-			if (line == null) {
-				continue;
-			}
-			if ("foot".equals(line)) {
-				modes.add("foot");
-				continue;
-			}
-			if ("bicycle".equals(line)) {
-				modes.add("bicycle");
-				continue;
-			}
-			if ("passenger".equals(line)) {
-				modes.add("passenger");
-				continue;
-			}
-			/* !!!!
-			String mode = line;
-			GTFSRoute route = routes.get(Long.decode(line));
-			if(route!=null) {
-				String mode2 = namemap.get("" + routes.get(Long.decode(line)).type);
-				if(mode2!=null) {
-					mode = mode2;
-				}
-			}
-			modes.add(mode);
-			*/
-		}
-		return modes.toString();
-	}
-
-
-
 	/** @brief Revisits connections correcting the times and inserts them into respective edges
 	 * 
 	 * It may happen that a pt carrier departs a stop and enters the next at the same time. This is patched by adding / subtracting
@@ -147,10 +107,10 @@ public class GTFSData {
 			GTFSStop lastStop = id2stop.get(lastStopTime.stopID);
 			if(stop!=null && lastStop!=null) {
 				GTFSTrip trip = trips.get(tripID);
-				GTFSRoute route = routes.get(trip.routeID);
+				GTFSRoute route = trip.route;
 				GTFSEdge e = lastStop.getEdgeTo(stop, net.getNextID(), route, entrainmentMap, net.getPrecisionModel(), net.getSRID());
 				ptedges.add(e);
-				GTFSConnection c = new GTFSConnection(e, trip.serviceID, trip.tripID, lastStopTime.departureTime, stopTime.arrivalTime);
+				GTFSConnection c = new GTFSConnection(e, trip, lastStopTime.departureTime, stopTime.arrivalTime);
 				connections.add(c);
 			}
 			lastStopTime = stopTime;		

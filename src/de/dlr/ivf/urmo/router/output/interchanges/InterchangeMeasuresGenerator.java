@@ -47,7 +47,7 @@ public class InterchangeMeasuresGenerator extends MeasurementGenerator<Interchan
 			if(current==null) {
 				continue;
 			}
-			if(next.line.equals(current.line)&&next.usedMode.equals(current.usedMode)) {
+			if( (next.line==null&&current.line==null) || (next.line!=null && next.line.equals(current.line)&&next.usedMode.equals(current.usedMode)) ) {
 				continue;
 			}
 			//++numInterchanges;

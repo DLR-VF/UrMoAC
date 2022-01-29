@@ -18,6 +18,7 @@ package de.dlr.ivf.urmo.router.algorithms.routing;
 
 import java.util.HashMap;
 
+import de.dlr.ivf.urmo.router.gtfs.GTFSConnection;
 import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNode;
@@ -40,8 +41,8 @@ public class DijkstraEntry {
 	public long availableModes;
 	/// @brief The modes used as last
 	public Mode usedMode;
-	/// @brief Used line
-	public String line;
+	/// @brief Used GTFS connection
+	public GTFSConnection line;
 	/// @brief The traveled distance from the starting point
 	public double distance;
 	/// @brief The travel time since the begin of the route
@@ -73,7 +74,7 @@ public class DijkstraEntry {
 	 * @param _wasOpposite Whether it is the opposite direction of the current edge
 	 */
 	public DijkstraEntry(AbstractRouteWeightFunction measure, DijkstraEntry _prev, DBNode _n, DBEdge _e, long _availableModes, Mode _usedMode, 
-			double _distance, double _tt, String _line, double _ttt, double _interchangeTT, boolean _wasOpposite) {
+			double _distance, double _tt, GTFSConnection _line, double _ttt, double _interchangeTT, boolean _wasOpposite) {
 		prev = _prev;
 		n = _n;
 		e = _e;
@@ -130,10 +131,10 @@ public class DijkstraEntry {
 	 * @return The name of the used line
 	 */
 	public String buildLineModeID() {
-		if(line.length()==0) {
+		if(line==null) {
 			return usedMode.mml;
 		}
-		return line;
+		return line.trip.route.id;
 	}
 
 

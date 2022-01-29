@@ -16,6 +16,9 @@
  */
 package de.dlr.ivf.urmo.router.output.ptod;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
 import de.dlr.ivf.urmo.router.output.AbstractSingleResult;
@@ -26,6 +29,10 @@ import de.dlr.ivf.urmo.router.output.AbstractSingleResult;
  * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
  */
 public class PTODSingleResult extends AbstractSingleResult {
+	/// @brief The weighted distance
+	public double weightedDistance = 0;
+	/// @brief The weighted travel time
+	public double weightedTravelTime = 0;
 	/// @brief The weighted access distance
 	public double weightedAccessDistance = 0;
 	/// @brief The weighted access travel time
@@ -52,6 +59,8 @@ public class PTODSingleResult extends AbstractSingleResult {
 	public double weightedValue = 0;
 	/// @brief The sum of connection weights
 	public double connectionsWeightSum = 0;
+	/// @brief The used lines
+	public Set<String> lines = new HashSet<>();
 	
 	
 	/**
@@ -85,6 +94,8 @@ public class PTODSingleResult extends AbstractSingleResult {
 	@Override
 	public void addCounting(AbstractSingleResult asr) {
 		PTODSingleResult srnm = (PTODSingleResult) asr;
+		weightedDistance += srnm.weightedDistance;
+		weightedTravelTime += srnm.weightedTravelTime;
 		weightedAccessDistance += srnm.weightedAccessDistance;
 		weightedAccessTravelTime += srnm.weightedAccessTravelTime;
 		weightedEgressDistance += srnm.weightedEgressDistance;

@@ -113,12 +113,13 @@ public class DirectWriter extends BasicCombinedWriter {
 					if(current.n instanceof GTFSStop) {
 						id = ((GTFSStop) current.n).mid;
 					}
+					String routeID = getLineID(current.line);
 					if (intoDB()) {
 						try {
 							_ps.setLong(1, from.em.getOuterID());
 							_ps.setLong(2, toObject.em.getOuterID());
 							_ps.setString(3, current.e.id);
-							_ps.setString(4, current.line);
+							_ps.setString(4, routeID);
 							_ps.setString(5, current.usedMode.mml);
 							_ps.setDouble(6, current.ttt);
 							_ps.setString(7, id);
@@ -136,7 +137,7 @@ public class DirectWriter extends BasicCombinedWriter {
 						}
 					} else {
 						_fileWriter.append(from.em.getOuterID() + ";" + toObject.em.getOuterID() + ";" 
-								+ current.e.id + ";" + current.line + ";"
+								+ current.e.id + ";" + routeID + ";"
 								+ current.usedMode.mml + ";"  
 								+ String.format(Locale.US, _FS, current.ttt) + ";" + id + ";" + index + ";"
 								+ current.e.geom.toText() 

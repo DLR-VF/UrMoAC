@@ -27,6 +27,8 @@ import java.sql.Statement;
 
 import org.postgresql.PGConnection;
 
+import de.dlr.ivf.urmo.router.gtfs.GTFSConnection;
+
 /**
  * @class BasicCombinedWriter
  * @brief Base class for an output that writes to a database or a file
@@ -183,6 +185,16 @@ public class BasicCombinedWriter {
 		} else {
 			_fileWriter.flush();
 		}
+	}
+	
+	
+	/**
+	 * @brief Helper method for getting a route id, if given
+	 * @param[in] c The GTFSConnection that represents a pt ride
+	 * @return The id of the route or an empty string if the connection is null
+	 */
+	String getLineID(GTFSConnection c) {
+		return c!=null ? c.trip.route.id : "";
 	}
 
 }
