@@ -120,6 +120,8 @@ public class PTODSingleResult extends AbstractSingleResult {
 	@Override
 	public AbstractSingleResult getNormed(int numSources, double sourcesWeight) {
 		PTODSingleResult srnm = new PTODSingleResult(srcID, destID);
+		srnm.weightedDistance = connectionsWeightSum!=0 ? weightedDistance / connectionsWeightSum : 0;
+		srnm.weightedTravelTime = connectionsWeightSum!=0 ? weightedTravelTime / connectionsWeightSum : 0;
 		srnm.weightedAccessDistance = connectionsWeightSum!=0 ? weightedAccessDistance / connectionsWeightSum : 0;
 		srnm.weightedAccessTravelTime = connectionsWeightSum!=0 ? weightedAccessTravelTime / connectionsWeightSum : 0;
 		srnm.weightedEgressDistance = connectionsWeightSum!=0 ? weightedEgressDistance / connectionsWeightSum : 0;
