@@ -1,0 +1,15 @@
+Reading origin places
+ 7 origin places loaded
+Reading destination places
+ 5 destination places loaded
+Reading the road network
+ 2 edges loaded (2 nodes)
+Checking for connectivity...
+ 1 remaining after removing unconnected ones.
+Reading the explicite O/D connections
+ loaded
+Computing access from the origins to the network
+Computing egress from the network to the destinations
+Computing shortest paths for 2 connections.
+ 1 of 2 connections 2 of 2 connections
+done.

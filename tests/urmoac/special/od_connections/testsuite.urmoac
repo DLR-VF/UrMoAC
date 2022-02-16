@@ -4,3 +4,6 @@ direct_output
 # checking whether the filter applies to plain od-output
 od_output
 
+# checking whether the filter applies to plain od-output (verbose)
+od_output_verbose
+
