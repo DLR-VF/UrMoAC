@@ -490,7 +490,7 @@ public class InputReader {
 		Geometry geom = null;
 		WKBReader wkbRead = new WKBReader();
 		if (rs.next()) {
-			geom = wkbRead.read(rs.getBytes(0));
+			geom = wkbRead.read(rs.getBytes(1));
 		}
 		rs.close();
 		s.close();
