@@ -20,7 +20,9 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -204,7 +206,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 						for(MapResult mr : fromObjects) {
 							resultsProcessor.process(mr, ret, needsPT, -1);
 						}
-					} while(e!=null);
+					} while(e!=null&&!parent.hadError);
 				} else {
 					DBODRelationExt od = null;
 					do {
@@ -213,7 +215,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 							continue;
 						}
 						/// TODO: recheck whether routing is needed per source
-						DijkstraResult ret = BoundDijkstra.run(measure, time, od.fromEdge, initMode, modes, parent.nearestToEdges.keySet(), boundNumber, boundTT, boundDist, boundVar, shortestOnly);
+						Set<DBEdge> destinations = new HashSet<>();
+						destinations.add(od.toEdge);
+						DijkstraResult ret = BoundDijkstra.run(measure, time, od.fromEdge, initMode, modes, destinations, boundNumber, boundTT, boundDist, boundVar, shortestOnly);
 						resultsProcessor.process(od.fromMR, ret, needsPT, od.destination);
 					} while(od!=null&&!parent.hadError);
 				}
@@ -776,14 +780,19 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 * @throws ParseException When an option could not been parsed
 	 */
 	protected boolean run(OptionsCont options) throws IOException {
-		if (verbose) System.out.println("Computing shortest paths");
 		int maxNumber = options.isSet("max-number") ? options.getInteger("max-number") : -1;
 		double maxTT = options.isSet("max-tt") ? options.getDouble("max-tt") : -1;
 		double maxDistance = options.isSet("max-distance") ? options.getDouble("max-distance") : -1;
 		double maxVar = options.isSet("max-variable-sum") ? options.getDouble("max-variable-sum") : -1;
 		boolean shortestOnly = options.getBool("shortest");
 		boolean needsPT = options.getBool("requirespt");
-		if (verbose) System.out.println(" between " + nearestFromEdges.size() + " origin and " + nearestToEdges.size() + " destination edges");
+		if (verbose) {
+			if(connections==null) {
+				System.out.println("Computing shortest paths between " + nearestFromEdges.size() + " origin and " + nearestToEdges.size() + " destination edges");
+			} else {
+				System.out.println("Computing shortest paths for " + connections.size() + " connections.");
+			}
+		}
 		
 		// initialise threads
 		int numThreads = options.getInteger("threads");
@@ -828,7 +837,6 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	}
 
 	
-
 	/**
 	 * @brief Returns the next connection to process
 	 * @return The next connection to process
