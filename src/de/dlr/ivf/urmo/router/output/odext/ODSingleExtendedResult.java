@@ -97,6 +97,7 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 		weightedDistance += srnm.weightedDistance;
 		weightedTravelTime += srnm.weightedTravelTime;
 		weightedSpeed += srnm.weightedSpeed;
+		connectionsWeightSum += srnm.connectionsWeightSum;
 		weightedValue += srnm.weightedValue;
 		weightedKCal += srnm.weightedKCal;
 		weightedPrice += srnm.weightedPrice;
@@ -108,7 +109,6 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 		weightedInitialWaitingTime += srnm.weightedInitialWaitingTime;
 		weightedPTTravelTime += srnm.weightedPTTravelTime;
 		weightedInterchangeTime += srnm.weightedInterchangeTime;
-		connectionsWeightSum += srnm.connectionsWeightSum;
 		lines.addAll(srnm.lines);
 	}
 
@@ -124,6 +124,8 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 		srnm.weightedDistance = connectionsWeightSum!=0 ? weightedDistance / connectionsWeightSum : 0;
 		srnm.weightedTravelTime = connectionsWeightSum!=0 ? weightedTravelTime / connectionsWeightSum : 0;
 		srnm.weightedSpeed = connectionsWeightSum!=0 ? weightedSpeed / connectionsWeightSum : 0;
+		srnm.connectionsWeightSum = sourcesWeight!=0 ? connectionsWeightSum / sourcesWeight : 0;
+		srnm.weightedValue = sourcesWeight!=0 ? weightedValue / sourcesWeight : 0;
 		srnm.weightedKCal = connectionsWeightSum!=0 ? weightedKCal / connectionsWeightSum : 0;
 		srnm.weightedPrice = connectionsWeightSum!=0 ? weightedPrice / connectionsWeightSum : 0;
 		srnm.weightedCO2 = connectionsWeightSum!=0 ? weightedCO2 / connectionsWeightSum : 0;
@@ -134,8 +136,6 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 		srnm.weightedInitialWaitingTime = connectionsWeightSum!=0 ? weightedInitialWaitingTime / connectionsWeightSum : 0;
 		srnm.weightedPTTravelTime = connectionsWeightSum!=0 ? weightedPTTravelTime / connectionsWeightSum : 0;
 		srnm.weightedInterchangeTime = connectionsWeightSum!=0 ? weightedInterchangeTime / connectionsWeightSum : 0;
-		srnm.connectionsWeightSum = sourcesWeight!=0 ? connectionsWeightSum / sourcesWeight : 0;
-		srnm.weightedValue = sourcesWeight!=0 ? weightedValue / sourcesWeight : 0;
 		srnm.lines.addAll(lines);
 		return srnm;
 	}
