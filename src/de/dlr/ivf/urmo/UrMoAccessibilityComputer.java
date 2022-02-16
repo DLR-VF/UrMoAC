@@ -394,6 +394,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("save-template", "Saves a template to add options to.");
 		options.add("help", '?', new Option_Bool());
 		options.setDescription("help", "Prints the help screen.");
+		options.add("comment", new Option_Bool());
+		options.setDescription("comment", "Adds a comment with the used options into generated output dbs.");
 
 		// parse options
 		try {

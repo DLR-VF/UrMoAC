@@ -107,4 +107,6 @@ Usage:
   --save-config                  Saves the set options as a configuration file.
   --save-template                Saves a template to add options to.
   -?, --help                     Prints the help screen.
+  --comment                      Adds a comment with the used options into
+                                   generated output dbs.
 

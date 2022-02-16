@@ -78,7 +78,7 @@ public class OutputBuilder {
 		boolean aggAllFrom = options.isSet("from-agg") && options.getString("from-agg").equals("all");
 		boolean aggAllTo = options.isSet("to-agg") && options.getString("to-agg").equals("all");
 		int precision = options.getInteger("precision");
-		String comment = buildComment(options);
+		String comment = options.getBool("comment") ? buildComment(options) : null;
 		if (options.isSet("nm-output")) {
 			ODMeasuresGenerator mgNM = new ODMeasuresGenerator();
 			AbstractResultsWriter<ODSingleResult> writer = buildNMOutput(options.getString("nm-output"), precision, dropExistingTables);
@@ -144,7 +144,9 @@ public class OutputBuilder {
 		} else {
 			dw = new DirectWriter(r[1], precision, rsid, nearestToEdges);
 		}
-		dw.addComment(buildComment(options));
+		if(options.getBool("comment")) {
+			dw.addComment(buildComment(options));
+		}
 		return dw;
 	}
 
@@ -250,7 +252,9 @@ public class OutputBuilder {
 		}
 		agg.buildMeasurementsMap(fromLayer, toLayer);
 		agg.addOutput(writer);
-		writer.addComment(comment);
+		if(comment!=null) {
+			writer.addComment(comment);
+		}
 		return agg;
 	}	
 
