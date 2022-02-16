@@ -186,16 +186,12 @@ public class GTFSReader {
 				LineString geom;
 				double stopEdgePos = mrv.lastElement().pos;
 				double stopDist = mrv.lastElement().dist;
-				Coordinate pos = GeomHelper.getPointAtDistance(e.getGeometry(), stopEdgePos);
-				StringBuilder stopIDSB = new StringBuilder();
-				for(MapResult mr : mrv) {
-					stopIDSB.append('/').append(((GTFSStop) mr.em).mid);
-				}
-				String stopID = stopIDSB.toString().substring(1);
+				Coordinate pos = GeomHelper.getPointAtDistance(e.getGeometry(), stopEdgePos-seen);
+				String stopID = "stop@" + stopEdgePos;
 				DBNode intermediateNode = net.getNode(net.getNextID(), pos);
 				// build this side access
 				geom = GeomHelper.getGeomUntilDistance(lastGeom, stopEdgePos-seen);
-				if(!net.addEdge(net.getNextID(), e.id+"-"+stopID, e.from, intermediateNode, e.modes, e.vmax, geom, geom.getLength())) {
+				if(!net.addEdge(net.getNextID(), e.id+"-stop@"+stopEdgePos, e.from, intermediateNode, e.modes, e.vmax, geom, geom.getLength())) {
 					throw new ParseException("Could not allocate edge '" + e.id+"-"+stopID+ "'");
 				}
 				lastGeom = GeomHelper.getGeomBehindDistance(lastGeom, stopEdgePos-seen);
@@ -203,7 +199,6 @@ public class GTFSReader {
 				if(!net.addEdge(net.getNextID(), nextEdgeName, intermediateNode, e.to, e.modes, e.vmax, lastGeom, lastGeom.getLength())) {
 					throw new ParseException("Could not allocate edge '" +stopID+ "-"+e.id + "'");
 				}
-				seen += stopDist;
 				// build (optional) opposite side access
 				String nextOppEdgeName = "";
 				if(opp!=null) {
@@ -217,6 +212,7 @@ public class GTFSReader {
 						throw new ParseException("Could not allocate edge '" + stopID+"-"+opp.id + "'");
 					}
 				}
+				seen += stopDist;
 				// build access from / to the network
 				for(MapResult mr : mrv) {
 					GTFSStop stop = (GTFSStop) mr.em;
@@ -244,47 +240,6 @@ public class GTFSReader {
 			}
 		}
 		
-		
-		/*
-		HashMap<EdgeMappable, MapResult> stop2edge = NearestEdgeFinder.results2edgeSet(edge2stops);
-		
-		for (EdgeMappable stopM : stop2edge.keySet()) {
-			GTFSStop stop = (GTFSStop) stopM;
-			MapResult mr = stop2edge.get(stop);
-			if (mr==null || mr.edge == null) {
-				++failed;
-			} else {
-				LineString geom;
-				Coordinate pos = GeomHelper.getPointAtDistance((LineString) mr.edge.getGeometry(), mr.pos);
-				DBNode intermediateNode = net.getNode(net.getNextID(), pos);
-				
-				net.removeEdge(mr.edge);
-				geom = GeomHelper.getGeomUntilDistance((LineString) mr.edge.getGeometry(), mr.pos);
-				net.addEdge(net.getNextID(), mr.edge.id+"-"+stop.mid, mr.edge.from, intermediateNode, mr.edge.modes, mr.edge.vmax, geom, geom.getLength()/*mr.pos/);
-				geom = GeomHelper.getGeomBehindDistance((LineString) mr.edge.getGeometry(), mr.pos);
-				net.addEdge(net.getNextID(), stop.mid+"-"+mr.edge.id, intermediateNode, mr.edge.to, mr.edge.modes, mr.edge.vmax, geom, geom.getLength()/*mr.edge.length-mr.pos/);
-				
-				DBEdge opp = mr.edge.opposite;
-				if(opp!=null) {
-					net.removeEdge(opp);
-					geom = GeomHelper.getGeomUntilDistance((LineString) opp.getGeometry(), opp.length-mr.pos);
-					net.addEdge(net.getNextID(), opp.id+"-"+stop.mid, opp.from, intermediateNode, opp.modes, opp.vmax, geom, geom.getLength()/*opp.length-mr.pos/);
-					geom = GeomHelper.getGeomBehindDistance((LineString) opp.getGeometry(), opp.length-mr.pos);
-					net.addEdge(net.getNextID(), stop.mid+"-"+opp.id, intermediateNode, opp.to, opp.modes, opp.vmax, geom, geom.getLength()/*mr.pos/);
-				}
-				
-				Coordinate[] edgeCoords = new Coordinate[2];
-				edgeCoords[0] = new Coordinate(intermediateNode.pos);
-				edgeCoords[1] = new Coordinate(stop.pos);
-				geom = new LineString(edgeCoords, mr.edge.geom.getPrecisionModel(), mr.edge.geom.getSRID());
-				new DBEdge(net.getNextID(), "on-"+stop.mid, intermediateNode, stop, accessModes, 50, geom, mr.dist);
-				edgeCoords[0] = new Coordinate(stop.pos);
-				edgeCoords[1] = new Coordinate(intermediateNode.pos);
-				geom = new LineString(edgeCoords, mr.edge.geom.getPrecisionModel(), mr.edge.geom.getSRID());
-				new DBEdge(net.getNextID(), "off-"+stop.mid, stop, intermediateNode, accessModes, 50, geom, mr.dist);
-			}
-		}
-		*/
 		if(verbose) System.out.println(" " + failed + " stations could not be allocated");
 
 		// read routes
@@ -399,6 +354,7 @@ public class GTFSReader {
 			if(!trips.containsKey(tripID)) {
 				continue;
 			}
+			String stop_id = rs.getString("stop_id");
 			if(lastTripID!=null&&!tripID.equals(lastTripID)) {
 				err += ret.recheckTimesAndInsert(lastTripID, stopTimes, id2stop);
 				abs += stopTimes.size() - 1;
@@ -415,7 +371,7 @@ public class GTFSReader {
 				arrivalTime = Integer.parseInt(arrivalTimeS);
 				departureTime = Integer.parseInt(departureTimeS);
 			}
-			GTFSStopTime stopTime = new GTFSStopTime(tripID, arrivalTime, departureTime, rs.getString("stop_id"));
+			GTFSStopTime stopTime = new GTFSStopTime(tripID, arrivalTime, departureTime, stop_id);
 			stopTimes.add(stopTime);
 		}
 		rs.close();
