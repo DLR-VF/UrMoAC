@@ -24,8 +24,8 @@ import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNode;
 
 /**
- * @class Measurements
- * @brief A storage for dijkstra results (1-to-many)
+ * @class DijkstraEntry
+ * @brief A single Dijkstra step
  * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
  *         
  * - Weight is always at least the number of starting points         
