@@ -117,6 +117,10 @@ public class DijkstraResult {
 		if(oe.getAttachedObjectsNumber()==0) {
 			return false;
 		}
+		///
+		if(!toFind.contains(oe)) {
+			return false;
+		}
 		// add the fastest way to the edge, update seen objects and value if 
 		// the edge is visited for the first time 
 		if(!edgeMap.containsKey(oe)) {
