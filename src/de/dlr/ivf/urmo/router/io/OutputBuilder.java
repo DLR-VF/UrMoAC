@@ -22,7 +22,9 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Vector;
 
 import de.dks.utils.options.OptionsCont;
@@ -190,7 +192,23 @@ public class OutputBuilder {
 	    String utf8 = StandardCharsets.UTF_8.name();
 		try {
 			PrintStream ps = new PrintStream(baos, true, utf8);
-			OptionsIO.printSetOptions(ps, options, false, false, true);
+			
+	    	Vector<String> optionNames = options.getSortedOptionNames();
+	        for(Iterator<String> i=optionNames.iterator(); i.hasNext(); ) { 
+	            String name = i.next();
+	            if(!options.isSet(name)||options.isDefault(name)) {
+	                continue;
+	            }
+	            Vector<String> synonyms = options.getSynonyms(name);
+	            name = synonyms.elementAt(0);
+	            ps.print(name);
+	            String value = options.getValueAsString(name);
+	            if(value.startsWith("db;")) {
+	            	value = value.substring(0, value.lastIndexOf(';')+1) + "xxx";
+	            }
+	            ps.print(": " + value );
+	            ps.println();
+	        }
 		    sb.append(baos.toString(utf8));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
