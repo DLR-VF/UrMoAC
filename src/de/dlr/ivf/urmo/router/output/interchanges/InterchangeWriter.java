@@ -37,7 +37,7 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 	/**
 	 * @brief Constructor
 	 * 
-	 * Opens the connection to a database and builds the table
+	 * Opens the connection to a PostGIS database and builds the table
 	 * @param url The URL to the database
 	 * @param tableName The name of the table
 	 * @param user The name of the database user
@@ -47,6 +47,22 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 	 */
 	public InterchangeWriter(String url, String tableName, String user, String pw, boolean dropPrevious) throws IOException {
 		super(url, user, pw, tableName,
+				"(fid bigint, sid bigint, halt text, line_from text, line_to text, num bigint, tt real)",
+				"VALUES (?, ?, ?, ?, ?, ?, ?)", dropPrevious);
+	}
+
+
+	/**
+	 * @brief Constructor
+	 * 
+	 * Opens the connection to a SQLite database and builds the table
+	 * @param url The URL to the database
+	 * @param tableName The name of the table
+	 * @param dropPrevious Whether a previous table with the name shall be dropped 
+	 * @throws SQLException When something fails
+	 */
+	public InterchangeWriter(String url, String tableName, boolean dropPrevious) throws IOException {
+		super(url, tableName,
 				"(fid bigint, sid bigint, halt text, line_from text, line_to text, num bigint, tt real)",
 				"VALUES (?, ?, ?, ?, ?, ?, ?)", dropPrevious);
 	}

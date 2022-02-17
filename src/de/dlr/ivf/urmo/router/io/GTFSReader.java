@@ -87,7 +87,7 @@ public class GTFSReader {
 		String[] r = Utils.checkDefinition(options.getString("pt"), "pt");
 		// parse modes vector
 		Vector<Integer> allowedCarrier = options.isSet("pt-restriction") ? parseCarrierDef(options.getString("pt-restriction")) : new Vector<>();
-		if (r[0].equals("db")) {
+		if (r[1].startsWith("jdbc:postgresql:")) {
 			try {
 				return loadGTFSFromDB(r[1], r[2], r[3], r[4], allowedCarrier, options.getString("date"), bounds, net, entrainmentMap, epsg, verbose);
 			} catch (SQLException | ParseException e) {

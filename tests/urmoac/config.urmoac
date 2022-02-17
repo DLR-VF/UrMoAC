@@ -7,6 +7,7 @@ copy_test_path:destinations.csv
 copy_test_path:agg_sources.csv
 copy_test_path:agg_destinations.csv
 copy_test_path:od_connections.csv
+copy_test_path:sqlite.db
 
 [collate_file]
 o2r_output:o2r_output.csv
@@ -20,6 +21,7 @@ pt_output:pt_output.csv
 direct_output:direct_output.csv
 configuration:configuration.xml
 template:template.xml
+sqlite:sqlite.db
 
 [floating_point_tolerance]
 output:0.0101

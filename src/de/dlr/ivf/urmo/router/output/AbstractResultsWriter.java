@@ -29,7 +29,7 @@ public abstract class AbstractResultsWriter<T> extends BasicCombinedWriter {
 	/**
 	 * @brief Constructor
 	 * 
-	 * Opens the connection to a database and builds the table
+	 * Opens the connection to a PostGIS database and builds the table
 	 * @param url The URL to the database
 	 * @param user The name of the database user
 	 * @param pw The password of the database user
@@ -42,6 +42,23 @@ public abstract class AbstractResultsWriter<T> extends BasicCombinedWriter {
 	public AbstractResultsWriter(String url, String user, String pw, String _tableName, String tableDef, 
 			String insertStmt, boolean dropPrevious) throws IOException {
 		super(url, user, pw, _tableName, tableDef, insertStmt, dropPrevious);
+	}
+
+
+	/**
+	 * @brief Constructor
+	 * 
+	 * Opens the connection to a SQLite database and builds the table
+	 * @param url The URL to the database
+	 * @param _tableName The name of the table
+	 * @param tableDef The definition of the table
+	 * @param insertStmt The insert statement to use
+	 * @param dropPrevious Whether a previous table with the name shall be dropped 
+	 * @throws SQLException When something fails
+	 */
+	public AbstractResultsWriter(String url, String _tableName, String tableDef, 
+			String insertStmt, boolean dropPrevious) throws IOException {
+		super(url, _tableName, tableDef, insertStmt, dropPrevious);
 	}
 
 

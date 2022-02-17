@@ -934,25 +934,28 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		if (options == null) {
 			return;
 		}
+		boolean hadError = false;
 		try {
 			// set up the db connection
 			UrMoAccessibilityComputer worker = new UrMoAccessibilityComputer();
 			// initialise (load data and stuff)
-			boolean hadError = !worker.init(options);
+			hadError = !worker.init(options);
 			// compute
 			if(!hadError) {
 				hadError = !worker.run(options);
 			}
 			hadError |= worker.hadError();
-			if(hadError) {
-				System.err.println("Quitting on error...");
-				return;
-			} 
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.err.println(e.getMessage());
+			hadError = true;
+			//e.printStackTrace();
 		}
 		// -------- finish
-		System.out.println("done.");
+		if(!hadError) {
+			System.out.println("done.");
+		} else {
+			System.err.println("Quitting on error...");
+		}
 	}
 	
 	

@@ -88,7 +88,7 @@ public class InputReader {
 	 */
 	public static int findUTMZone(OptionsCont options) throws IOException {
 		String[] r = Utils.checkDefinition(options.getString("from"), "from");
-		if (!r[0].equals("db")) {
+		if (!r[1].startsWith("jdbc:postgresql:")) {
 			return 0;
 		}
 		try {
@@ -149,7 +149,7 @@ public class InputReader {
 		String filter = options.isSet(base+".filter") ? options.getString(base + ".filter") : ""; // !!! use something different
 		varName = varName==null ? null : options.getString(varName);
 		String[] r = Utils.checkDefinition(options.getString(base), base);
-		if (r[0].equals("db")) {
+		if (r[1].startsWith("jdbc:postgresql:")) {
 			try {
 				return loadLayerFromDB(base, r[1], r[2], r[3], r[4], filter, varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg);
 			} catch (SQLException | ParseException e) {
@@ -399,7 +399,7 @@ public class InputReader {
 	// --------------------------------------------------------
 	public static EntrainmentMap loadEntrainment(OptionsCont options)  throws IOException {
 		String[] r = Utils.checkDefinition(options.getString("entrainment"), "entrainment");
-		if (r[0].equals("db")) {
+		if (r[1].startsWith("jdbc:postgresql:")) {
 			try {
 				return loadEntrainmentFromDB(r[1], r[2], r[3], r[4]);
 			} catch (SQLException | ParseException e) {
@@ -455,7 +455,7 @@ public class InputReader {
 	// --------------------------------------------------------
 	public static Geometry loadGeometry(String def, String what, int epsg)  throws IOException {
 		String[] r = Utils.checkDefinition(def, what);
-		if (r[0].equals("db")) {
+		if (r[1].startsWith("jdbc:postgresql:")) {
 			try {
 				return loadGeometryFromDB(r[1], r[2], r[3], r[4], epsg);
 			} catch (SQLException | ParseException e) {
@@ -554,7 +554,7 @@ public class InputReader {
 	// --------------------------------------------------------
 	public static Vector<DBODRelation> loadODConnections(String def) throws IOException {
 		String[] r = Utils.checkDefinition(def, "od-connections");
-		if (r[0].equals("db")) {
+		if (r[1].startsWith("jdbc:postgresql:")) {
 			try {
 				return loadODConnectionsDB(r[1], r[2], r[3], r[4]);
 			} catch (SQLException | ParseException e) {

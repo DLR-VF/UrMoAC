@@ -51,11 +51,14 @@ public class BasicCombinedWriter {
 	protected String _FS;
 	/// @}
 	
+	/// @brief Whether comments are supported
+	boolean _allowsComments = false;
+
 	
 	/**
 	 * @brief Constructor
 	 * 
-	 * Opens the connection to a database and builds the table
+	 * Opens the connection to a PostGIS database and builds the table
 	 * @param url The URL to the database
 	 * @param user The name of the database user
 	 * @param pw The password of the database user
@@ -73,6 +76,42 @@ public class BasicCombinedWriter {
 			_connection.setAutoCommit(true);
 			_connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 			((PGConnection) _connection).addDataType("geometry", org.postgis.PGgeometry.class);
+			if(dropPrevious) {
+				String sql = "DROP TABLE IF EXISTS " + _tableName + ";";
+				_connection.createStatement().executeUpdate(sql);
+			}
+			String sql = "CREATE TABLE " + _tableName + " " + tableDef + ";";
+			Statement s = _connection.createStatement();
+			s.executeUpdate(sql);
+			_connection.setAutoCommit(false);
+			_ps = _connection.prepareStatement("INSERT INTO " + _tableName + " " + insertStmt + ";");
+			_allowsComments = true;
+		} catch (SQLException e) {
+			throw new IOException(e);
+		}
+	}
+	
+	
+	/**
+	 * @brief Constructor
+	 * 
+	 * Opens the connection to a SQLite database and builds the table
+	 * @param url The URL to the database
+	 * @param user The name of the database user
+	 * @param pw The password of the database user
+	 * @param _tableName The name of the table
+	 * @param tableDef The definition of the table
+	 * @param insertStmt The insert statement to use
+	 * @param dropPrevious Whether a previous table with the name shall be dropped 
+	 * @throws SQLException When something fails
+	 */
+	public BasicCombinedWriter(String url, String tableName, String tableDef, 
+			String insertStmt, boolean dropPrevious) throws IOException {
+		try {
+			_tableName = tableName;
+			_connection = DriverManager.getConnection(url);
+			_connection.setAutoCommit(true);
+			_connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 			if(dropPrevious) {
 				String sql = "DROP TABLE IF EXISTS " + _tableName + ";";
 				_connection.createStatement().executeUpdate(sql);
@@ -137,7 +176,7 @@ public class BasicCombinedWriter {
 	 * @throws SQLException When something fails
 	 */
 	public void addComment(String comment) throws IOException {
-		if (intoDB()) {
+		if (_allowsComments) {
 			String sql = "COMMENT ON TABLE " + _tableName + " IS '" + comment + "';";
 			try {
 				Statement s = _connection.createStatement();

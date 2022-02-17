@@ -75,7 +75,7 @@ public class NetLoader {
 	public static DBNet loadNet(IDGiver idGiver, String def, String vmax, int epsg, long uModes) throws IOException {
 		String[] r = Utils.checkDefinition(def, "net");
 		DBNet net = null;
-		if (r[0].equals("db")) {
+		if (r[1].startsWith("jdbc:postgresql:")) {
 			try {
 				net = loadNetFromDB(idGiver, r[1], r[2], r[3], r[4], vmax, epsg, uModes);
 			} catch (SQLException | ParseException e) {
@@ -252,7 +252,7 @@ public class NetLoader {
 	public static int loadTravelTimes(DBNet net, String def, boolean verbose) throws IOException {
 		String[] r = Utils.checkDefinition(def, "travel times");
 		int numFalse = 0;
-		if (r[0].equals("db")) {
+		if (r[1].startsWith("jdbc:postgresql:")) {
 			try {
 				numFalse = loadTravelTimesFromDB(net, r[1], r[2], r[3], r[4], verbose);
 			} catch (SQLException | ParseException e) {

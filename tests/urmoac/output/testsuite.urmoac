@@ -19,3 +19,5 @@ pt_output
 # edges-output tests
 edges_output
 
+# tests whether writing to sqlite databases work
+zz_sqlite

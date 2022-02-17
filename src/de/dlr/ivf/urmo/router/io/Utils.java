@@ -32,7 +32,14 @@ public class Utils {
 	public static String[] checkDefinition(String input, String outputName) throws IOException {
 		String[] r = input.split(";");
 		if (r[0].equals("db")) {
-			if(r.length!=5) {
+			boolean ok = false;
+			if(r.length==3 && r[1].indexOf("jdbc:sqlite:")==0) {
+				ok = true;
+			}
+			if(r.length==5 && r[1].indexOf("jdbc:postgresql:")==0) {
+				ok = true;
+			}
+			if(!ok) {
 				throw new IOException("False database definition for '" + outputName + "'\nshould be 'db;<DB_HOST>;<SCHEMA.TABLE>;<USER>;<PASSWORD>'.");
 			}
 		} else {

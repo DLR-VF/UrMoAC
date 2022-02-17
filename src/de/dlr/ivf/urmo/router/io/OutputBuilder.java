@@ -139,13 +139,15 @@ public class OutputBuilder {
 		}
 		String[] r = Utils.checkDefinition(options.getString("direct-output"), "direct-output");
 		DirectWriter dw = null;
-		if (r[0].equals("db")) {
+		if (r[1].startsWith("jdbc:postgresql:")) {
 			dw = new DirectWriter(r[1], r[2], r[3], r[4], rsid, nearestToEdges, options.getBool("dropprevious"));
+			if(options.getBool("comment")) {
+				dw.addComment(buildComment(options));
+			}
+		} else if (r[1].startsWith("jdbc:sqlite:")) {
+			dw = new DirectWriter(r[1], r[2], rsid, nearestToEdges, options.getBool("dropprevious"));
 		} else {
 			dw = new DirectWriter(r[1], precision, rsid, nearestToEdges);
-		}
-		if(options.getBool("comment")) {
-			dw.addComment(buildComment(options));
 		}
 		return dw;
 	}
@@ -169,11 +171,16 @@ public class OutputBuilder {
 	public static void writeEdgeAllocation(String d, int precision, HashMap<DBEdge, Vector<MapResult>> nearestEdges, int epsg, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "X-to-road-output");
 		EdgeMappingWriter emw = null;
-		if (r[0].equals("db")) {
+		if (r[1].startsWith("jdbc:postgresql:")) {
 			if(r.length!=5) {
 				throw new IOException("False database definition; should be 'db;<connector_host>;<table>;<user>;<password>'.");
 			}
 			emw = new EdgeMappingWriter(r[1], r[2], r[3], r[4], epsg, dropPrevious);
+		} else if (r[1].startsWith("jdbc:sqlite:")) {
+			if(r.length!=3) {
+				throw new IOException("False database definition; should be 'db;<connector_host>;<table>;<user>;<password>'.");
+			}
+			emw = new EdgeMappingWriter(r[1], r[2], epsg, dropPrevious);
 		} else {
 			emw = new EdgeMappingWriter(r[1], precision);
 		}
@@ -269,8 +276,10 @@ public class OutputBuilder {
 	 */
 	private static AbstractResultsWriter<ODSingleResult> buildNMOutput(String d, int precision, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "nm-output");
-		if (r[0].equals("db")) {
+		if (r[1].startsWith("jdbc:postgresql:")) {
 			return new ODWriter(r[1], r[2], r[3], r[4], dropPrevious);
+		} else if (r[1].startsWith("jdbc:sqlite:")) {
+			return new ODWriter(r[1], r[2], dropPrevious);
 		} else if (r[0].equals("file") || r[0].equals("csv")) {
 			return new ODWriter(r[1], precision);
 		} else {
@@ -289,8 +298,10 @@ public class OutputBuilder {
 	 */
 	private static AbstractResultsWriter<ODSingleExtendedResult> buildExtNMOutput(String d, int precision, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "ext-nm-output");
-		if (r[0].equals("db")) {
+		if (r[1].startsWith("jdbc:postgresql:")) {
 			return new ODExtendedWriter(r[1], r[2], r[3], r[4], dropPrevious);
+		} else if (r[1].startsWith("jdbc:sqlite:")) {
+			return new ODExtendedWriter(r[1], r[2], dropPrevious);
 		} else if (r[0].equals("file") || r[0].equals("csv")) {
 			return new ODExtendedWriter(r[1], precision);
 		} else {
@@ -309,8 +320,10 @@ public class OutputBuilder {
 	 */
 	private static AbstractResultsWriter<ODSingleStatsResult> buildStatNMOutput(String d, int precision, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "stat-nm-output");
-		if (r[0].equals("db")) {
+		if (r[1].startsWith("jdbc:postgresql:")) {
 			return new ODStatsWriter(r[1], r[2], r[3], r[4], dropPrevious);
+		} else if (r[1].startsWith("jdbc:sqlite:")) {
+			return new ODStatsWriter(r[1], r[2], dropPrevious);
 		} else if (r[0].equals("file") || r[0].equals("csv")) {
 			return new ODStatsWriter(r[1], precision);
 		} else {
@@ -329,8 +342,10 @@ public class OutputBuilder {
 	 */
 	private static AbstractResultsWriter<InterchangeSingleResult> buildInterchangeOutput(String d, int precision, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "interchanges-output");
-		if (r[0].equals("db")) {
+		if (r[1].startsWith("jdbc:postgresql:")) {
 			return new InterchangeWriter(r[1], r[2], r[3], r[4], dropPrevious);
+		} else if (r[1].startsWith("jdbc:sqlite:")) {
+			return new InterchangeWriter(r[1], r[2], dropPrevious);
 		} else if (r[0].equals("file") || r[0].equals("csv")) {
 			return new InterchangeWriter(r[1], precision);
 		} else {
@@ -349,8 +364,10 @@ public class OutputBuilder {
 	 */
 	private static AbstractResultsWriter<EUSingleResult> buildEUOutput(String d, int precision, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "edges-output");
-		if (r[0].equals("db")) {
+		if (r[1].startsWith("jdbc:postgresql:")) {
 			return new EUWriter(r[1], r[2], r[3], r[4], dropPrevious);
+		} else if (r[1].startsWith("jdbc:sqlite:")) {
+			return new EUWriter(r[1], r[2], dropPrevious);
 		} else if (r[0].equals("file") || r[0].equals("csv")) {
 			return new EUWriter(r[1], precision);
 		} else {
@@ -369,8 +386,10 @@ public class OutputBuilder {
 	 */
 	private static AbstractResultsWriter<PTODSingleResult> buildPTODOutput(String d, int precision, boolean dropPrevious) throws IOException {
 		String[] r = Utils.checkDefinition(d, "pt-output");
-		if (r[0].equals("db")) {
+		if (r[1].startsWith("jdbc:postgresql:")) {
 			return new PTODWriter(r[1], r[2], r[3], r[4], dropPrevious);
+		} else if (r[1].startsWith("jdbc:sqlite:")) {
+			return new PTODWriter(r[1], r[2], dropPrevious);
 		} else if (r[0].equals("file") || r[0].equals("csv")) {
 			return new PTODWriter(r[1], precision);
 		} else {
