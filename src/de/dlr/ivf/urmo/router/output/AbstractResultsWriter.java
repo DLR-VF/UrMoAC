@@ -19,6 +19,8 @@ package de.dlr.ivf.urmo.router.output;
 import java.io.IOException;
 import java.sql.SQLException;
 
+import de.dlr.ivf.urmo.router.io.Utils;
+
 /**
  * @class AbstractResultsWriter
  * @brief Class with interfaces for writing results of different type to databases or files 
@@ -30,55 +32,23 @@ public abstract class AbstractResultsWriter<T> extends BasicCombinedWriter {
 	 * @brief Constructor
 	 * 
 	 * Opens the connection to a PostGIS database and builds the table
-	 * @param url The URL to the database
-	 * @param user The name of the database user
-	 * @param pw The password of the database user
-	 * @param _tableName The name of the table
-	 * @param tableDef The definition of the table
-	 * @param insertStmt The insert statement to use
+	 * @param format The used format
+	 * @param inputParts The definition of the input/output source/destination
+	 * @param fileType The name of the input/output (option name)
+	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
-	 * @throws SQLException When something fails
-	 */
-	public AbstractResultsWriter(String url, String user, String pw, String _tableName, String tableDef, 
-			String insertStmt, boolean dropPrevious) throws IOException {
-		super(url, user, pw, _tableName, tableDef, insertStmt, dropPrevious);
-	}
-
-
-	/**
-	 * @brief Constructor
-	 * 
-	 * Opens the connection to a SQLite database and builds the table
-	 * @param url The URL to the database
-	 * @param _tableName The name of the table
-	 * @param tableDef The definition of the table
-	 * @param insertStmt The insert statement to use
-	 * @param dropPrevious Whether a previous table with the name shall be dropped 
-	 * @throws SQLException When something fails
-	 */
-	public AbstractResultsWriter(String url, String _tableName, String tableDef, 
-			String insertStmt, boolean dropPrevious) throws IOException {
-		super(url, _tableName, tableDef, insertStmt, dropPrevious);
-	}
-
-
-	/**
-	 * @brief Constructor
-	 * 
-	 * Opens the file to write the results to
-	 * @param fileName The path to the file to write the results to
-	 * @param precision The precision to use
+	 * @param tableDef The definition of the database table 
 	 * @throws IOException When something fails
 	 */
-	public AbstractResultsWriter(String fileName, int precision) throws IOException {
-		super(fileName, precision);
+	public AbstractResultsWriter(Utils.Format format, String[] inputParts, String fileType, int precision, 
+			boolean dropPrevious, String tableDef) throws IOException {
+		super(format, inputParts, fileType, precision, dropPrevious, tableDef);
 	}
 
 	
 	/** 
 	 * @brief Writes the results to the open database / file
 	 * @param result The result to write
-	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
 	public abstract void writeResult(T result) throws IOException;

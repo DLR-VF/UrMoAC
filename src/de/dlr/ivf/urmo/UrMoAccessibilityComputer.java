@@ -223,13 +223,6 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
-			} catch (SQLException e) {
-				e.printStackTrace();
-				SQLException e2 = e.getNextException();
-				while (e2 != null) {
-					e2.printStackTrace();
-					e2 = e2.getNextException();
-				}
 			}
 		}
 	}
@@ -701,42 +694,18 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		NearestEdgeFinder nef1 = new NearestEdgeFinder(fromLayer.getObjects(), net, initMode);
 		nearestFromEdges = nef1.getNearestEdges(false);
 		if (options.isSet("origins-to-road-output")) {
-			OutputBuilder.writeEdgeAllocation(options.getString("origins-to-road-output"), options.getInteger("precision"), nearestFromEdges, epsg, options.getBool("dropprevious"));
+			OutputBuilder.writeEdgeAllocation("origins-to-road-output", options, nearestFromEdges, epsg);
 		}
 		if (verbose) System.out.println("Computing egress from the network to the destinations");
 		NearestEdgeFinder nef2 = new NearestEdgeFinder(toLayer.getObjects(), net, initMode);
 		nearestToEdges = nef2.getNearestEdges(true);
 		if (options.isSet("destinations-to-road-output")) {
-			OutputBuilder.writeEdgeAllocation(options.getString("destinations-to-road-output"), options.getInteger("precision"), nearestToEdges, epsg, options.getBool("dropprevious"));
+			OutputBuilder.writeEdgeAllocation("destinations-to-road-output", options, nearestToEdges, epsg);
 		}
 
-		// -------- instantiate outputs
-/*
-		worker.aggregators = new HashMap<>();
-		if (!"".equals(options.getOptionValue("nm-output", ""))) {
-			String comment = buildComment(options);
-			if ("".equals(options.getOptionValue("output-steps", ""))) {
-				BasicWriter writer = buildNMOutput(options.getOptionValue("nm-output", ""));
-				writer.addComment(comment);
-				agg.addOutput(writer);
-				worker.aggregators.put(-1d, agg);
-			} else {
-				// steps is hard coded
-				int steps = (int) ((Double) options.getParsedOptionValue("output-steps")).doubleValue();
-				steps = 12;
-				for(int i=1; i<steps+1; ++i) {
-					Aggregator nagg = agg.duplicate();
-					BasicWriter writer = buildNMOutput2(options.getOptionValue("nm-output", ""), "_"+300*i);
-					writer.addComment(comment);
-					nagg.addOutput(writer);
-					worker.aggregators.put((double) (300*i), nagg);
-				}
-			}
-		}
-		*/
 		// -------- build outputs
-		Vector<Aggregator> aggregators = OutputBuilder.buildOutputs(options, fromLayer, fromAggLayer, toLayer, toAggLayer);
-		DirectWriter dw = OutputBuilder.buildDirectOutput(options, options.getInteger("precision"), epsg, nearestToEdges);
+		Vector<Aggregator> aggregators = OutputBuilder.buildOutputs(options, fromLayer, fromAggLayer, toLayer, toAggLayer, epsg);
+		DirectWriter dw = OutputBuilder.buildDirectOutput(options, epsg, nearestToEdges);
 		time = options.getInteger("time");
 		resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, nearestFromEdges, nearestToEdges); 
 

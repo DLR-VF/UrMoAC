@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Locale;
 import java.util.Vector;
 
+import de.dlr.ivf.urmo.router.io.Utils;
 import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
 
 /**
@@ -37,8 +38,6 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 	/**
 	 * @class Stats
 	 * @brief Computes percentiles and mean / median from a vector of entries
-	 * @author dkrajzew
-	 *
 	 */
 	class Stats {
 		/// @brief The average value
@@ -82,69 +81,38 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 	 * @brief Constructor
 	 * 
 	 * Opens the connection to a PostGIS database and builds the table
-	 * @param url The URL to the database
-	 * @param tableName The name of the table
-	 * @param user The name of the database user
-	 * @param pw The password of the database user
+	 * @param format The used format
+	 * @param inputParts The definition of the input/output source/destination
+	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
-	 * @throws SQLException When something fails
-	 */
-	public ODStatsWriter(String url, String tableName, String user, String pw, boolean dropPrevious) throws IOException {
-		super(url, user, pw, tableName,
-				"(fid bigint, sid bigint, num bigint, "
-				+ "avg_distance real, avg_tt real, avg_value real, avg_kcal real, avg_price real, avg_co2 real, "
-				+ "med_distance real, med_tt real, med_value real, med_kcal real, med_price real, med_co2 real, "
-				+ "min_distance real, min_tt real, min_value real, min_kcal real, min_price real, min_co2 real, "
-				+ "max_distance real, max_tt real, max_value real, max_kcal real, max_price real, max_co2 real, "
-				+ "p15_distance real, p15_tt real, p15_value real, p15_kcal real, p15_price real, p15_co2 real, "
-				+ "p85_distance real, p85_tt real, p85_value real, p85_kcal real, p85_price real, p85_co2 real "
-				+ ")",
-				"VALUES (?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?)", 
-				dropPrevious);
-	}
-
-
-	/**
-	 * @brief Constructor
-	 * 
-	 * Opens the connection to a SQLite database and builds the table
-	 * @param url The URL to the database
-	 * @param tableName The name of the table
-	 * @param dropPrevious Whether a previous table with the name shall be dropped 
-	 * @throws SQLException When something fails
-	 */
-	public ODStatsWriter(String url, String tableName, boolean dropPrevious) throws IOException {
-		super(url, tableName,
-				"(fid bigint, sid bigint, num bigint, "
-				+ "avg_distance real, avg_tt real, avg_value real, avg_kcal real, avg_price real, avg_co2 real, "
-				+ "med_distance real, med_tt real, med_value real, med_kcal real, med_price real, med_co2 real, "
-				+ "min_distance real, min_tt real, min_value real, min_kcal real, min_price real, min_co2 real, "
-				+ "max_distance real, max_tt real, max_value real, max_kcal real, max_price real, max_co2 real, "
-				+ "p15_distance real, p15_tt real, p15_value real, p15_kcal real, p15_price real, p15_co2 real, "
-				+ "p85_distance real, p85_tt real, p85_value real, p85_kcal real, p85_price real, p85_co2 real "
-				+ ")",
-				"VALUES (?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?)", 
-				dropPrevious);
-	}
-
-
-	/**
-	 * @brief Constructor
-	 * 
-	 * Opens the file to write the results to
-	 * @param fileName The path to the file to write the results to
-	 * @param precision The precision to use
 	 * @throws IOException When something fails
 	 */
-	public ODStatsWriter(String fileName, int precision) throws IOException {
-		super(fileName, precision);
+	public ODStatsWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious) throws IOException {
+		super(format, inputParts, "od-ext-stats", precision, dropPrevious, 
+				"(fid bigint, sid bigint, num bigint, "
+				+ "avg_distance real, avg_tt real, avg_value real, avg_kcal real, avg_price real, avg_co2 real, "
+				+ "med_distance real, med_tt real, med_value real, med_kcal real, med_price real, med_co2 real, "
+				+ "min_distance real, min_tt real, min_value real, min_kcal real, min_price real, min_co2 real, "
+				+ "max_distance real, max_tt real, max_value real, max_kcal real, max_price real, max_co2 real, "
+				+ "p15_distance real, p15_tt real, p15_value real, p15_kcal real, p15_price real, p15_co2 real, "
+				+ "p85_distance real, p85_tt real, p85_value real, p85_kcal real, p85_price real, p85_co2 real "
+				+ ")");
+	}
+
+
+	/** @brief Get the insert statement string
+	 * @param[in] format The used output format
+	 * @param[in] rsid The used projection
+	 * @return The insert statement string
+	 */
+	protected String getInsertStatement(Utils.Format format, int rsid) {
+		return "VALUES (?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?)";
 	}
 
 	
 	/** 
 	 * @brief Writes the results to the open database / file
 	 * @param result The result to write
-	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
 	@Override

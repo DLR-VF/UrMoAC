@@ -174,11 +174,10 @@ public class Aggregator<T extends AbstractSingleResult> {
 
 	/**
 	 * @brief Adds a result
-	 * @param entry The netry to add
-	 * @throws SQLException When something fails
-	 * @throws IOException When something fails
+	 * @param entry The entry to add
+	 * @throws IOException When writing fails
 	 */
-	public void add(T entry) throws SQLException, IOException {
+	public void add(T entry) throws IOException {
 		// no aggregation, write directly
 		if (origin2aggMap == null && dest2aggMap == null && !sumOrigins && !sumDestinations) {
 			write(entry);
@@ -196,7 +195,6 @@ public class Aggregator<T extends AbstractSingleResult> {
 	/**
 	 * @brief Writes the result to the given writers
 	 * @param entry The entry to write
-	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
 	private synchronized void write(T entry) throws IOException {
@@ -208,7 +206,6 @@ public class Aggregator<T extends AbstractSingleResult> {
 
 	/**
 	 * @brief Flushes the writers
-	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
 	public void flush() throws SQLException, IOException {
@@ -220,7 +217,6 @@ public class Aggregator<T extends AbstractSingleResult> {
 
 	/**
 	 * @brief Finishes writing, optionally generating normed collected measures and flushing outputs
-	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
 	public void finish() throws IOException {
@@ -247,22 +243,6 @@ public class Aggregator<T extends AbstractSingleResult> {
 		for (AbstractResultsWriter<T> bw : writers) {
 			bw.close();
 		}
-	}
-
-
-	/**
-	 * @brief Duplicates the aggregator
-	 * @return The duplicated aggregator
-	 * @todo Needed?
-	 */
-	public Aggregator<T> duplicate() {
-		Aggregator<T> ret = new Aggregator<T>(parent, fromLayer, shortest);
-		ret.origin2aggMap = origin2aggMap;
-		ret.dest2aggMap = dest2aggMap;
-		ret.measurements = new HashMap<>(measurements);
-		ret.sumOrigins = sumOrigins;
-		ret.sumDestinations = sumDestinations;
-		return ret;
 	}
 	
 

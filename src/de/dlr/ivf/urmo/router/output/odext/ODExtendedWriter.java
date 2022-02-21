@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Locale;
 
+import de.dlr.ivf.urmo.router.io.Utils;
 import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
 
 /**
@@ -36,57 +37,33 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 	 * @brief Constructor
 	 * 
 	 * Opens the connection to a PostGIS database and builds the table
-	 * @param url The URL to the database
-	 * @param tableName The name of the table
-	 * @param user The name of the database user
-	 * @param pw The password of the database user
+	 * @param format The used format
+	 * @param inputParts The definition of the input/output source/destination
+	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
-	 * @throws SQLException When something fails
-	 */
-	public ODExtendedWriter(String url, String tableName, String user, String pw, boolean dropPrevious) throws IOException {
-		super(url, user, pw, tableName,
-				"(fid bigint, sid bigint, avg_distance real, avg_tt real, avg_v real, avg_num real, avg_value real, "
-				+ "avg_kcal real, avg_price real, avg_co2 real, avg_interchanges real, avg_access real, avg_egress real, "
-				+ "avg_waiting_time real, avg_init_waiting_time real, avg_pt_tt real, avg_pt_interchange_time real, modes text)",
-				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dropPrevious);
-	}
-	
-	
-	/**
-	 * @brief Constructor
-	 * 
-	 * Opens the connection to a SQLite database and builds the table
-	 * @param url The URL to the database
-	 * @param tableName The name of the table
-	 * @param dropPrevious Whether a previous table with the name shall be dropped 
-	 * @throws SQLException When something fails
-	 */
-	public ODExtendedWriter(String url, String tableName, boolean dropPrevious) throws IOException {
-		super(url, tableName,
-				"(fid bigint, sid bigint, avg_distance real, avg_tt real, avg_v real, avg_num real, avg_value real, "
-				+ "avg_kcal real, avg_price real, avg_co2 real, avg_interchanges real, avg_access real, avg_egress real, "
-				+ "avg_waiting_time real, avg_init_waiting_time real, avg_pt_tt real, avg_pt_interchange_time real, modes text)",
-				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dropPrevious);
-	}
-
-
-	/**
-	 * @brief Constructor
-	 * 
-	 * Opens the file to write the results to
-	 * @param fileName The path to the file to write the results to
-	 * @param precision The precision to use
 	 * @throws IOException When something fails
 	 */
-	public ODExtendedWriter(String fileName, int precision) throws IOException {
-		super(fileName, precision);
+	public ODExtendedWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious) throws IOException {
+		super(format, inputParts, "ext-od-output", precision, dropPrevious, 
+				"(fid bigint, sid bigint, avg_distance real, avg_tt real, avg_v real, avg_num real, avg_value real, "
+				+ "avg_kcal real, avg_price real, avg_co2 real, avg_interchanges real, avg_access real, avg_egress real, "
+				+ "avg_waiting_time real, avg_init_waiting_time real, avg_pt_tt real, avg_pt_interchange_time real, modes text)");
 	}
 
+
+	/** @brief Get the insert statement string
+	 * @param[in] format The used output format
+	 * @param[in] rsid The used projection
+	 * @return The insert statement string
+	 */
+	protected String getInsertStatement(Utils.Format format, int rsid) {
+		return "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	}
+	
 	
 	/** 
 	 * @brief Writes the results to the open database / file
 	 * @param result The result to write
-	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
 	@Override

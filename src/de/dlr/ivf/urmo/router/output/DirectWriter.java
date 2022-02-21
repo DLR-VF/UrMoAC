@@ -27,6 +27,7 @@ import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraEntry;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
 import de.dlr.ivf.urmo.router.gtfs.GTFSStop;
+import de.dlr.ivf.urmo.router.io.Utils;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 
 /**
@@ -45,56 +46,35 @@ public class DirectWriter extends BasicCombinedWriter {
 	 * @brief Constructor
 	 * 
 	 * Opens the connection to a PostGIS database and builds the table
-	 * @param url The URL to the database
-	 * @param tableName The name of the table
-	 * @param user The name of the database user
-	 * @param pw The password of the database user
-	 * @param rsid The RSID to use
-	 * @param _nearestToEdges A map of edges to assigned destinations
+	 * @param format The used format
+	 * @param inputParts The definition of the input/output source/destination
+	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
-	 * @throws SQLException When something fails
-	 */
-	public DirectWriter(String url, String tableName, String user, String pw, int rsid, 
-			HashMap<DBEdge, Vector<MapResult>> _nearestToEdges, boolean dropPrevious) throws IOException {
-		super(url, user, pw, tableName, "(fid bigint, sid bigint, edge text, line text, mode text, tt real, node text, idx integer)", "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?, " + rsid + "))", dropPrevious);
-		addGeometryColumn("geom", rsid, "LINESTRING", 2);
-		nearestToEdges = _nearestToEdges;
-	}
-
-
-	/**
-	 * @brief Constructor
-	 * 
-	 * Opens the connection to a SQLite database and builds the table
-	 * @param url The URL to the database
-	 * @param tableName The name of the table
-	 * @param rsid The RSID to use
-	 * @param _nearestToEdges A map of edges to assigned destinations
-	 * @param dropPrevious Whether a previous table with the name shall be dropped 
-	 * @throws SQLException When something fails
-	 */
-	public DirectWriter(String url, String tableName, int rsid, 
-			HashMap<DBEdge, Vector<MapResult>> _nearestToEdges, boolean dropPrevious) throws IOException {
-		super(url, tableName, "(fid bigint, sid bigint, edge text, line text, mode text, tt real, node text, idx integer, geom text)", "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", dropPrevious);
-		nearestToEdges = _nearestToEdges;
-	}
-
-
-	/**
-	 * @brief Constructor
-	 * 
-	 * Opens the file to write the results to
-	 * @param fileName The path to the file to write the results to
-	 * @param precision The precision to use
 	 * @param rsid The RSID to use
 	 * @param _nearestToEdges A map of edges to assigned destinations
 	 * @throws IOException When something fails
 	 */
-	public DirectWriter(String fileName, int precision, int rsid, HashMap<DBEdge, Vector<MapResult>> _nearestToEdges) throws IOException {
-		super(fileName, precision);
+	public DirectWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious, 
+			int rsid, HashMap<DBEdge, Vector<MapResult>> _nearestToEdges) throws IOException {
+		super(format, inputParts, "direct-output", precision, dropPrevious,
+				"(fid bigint, sid bigint, edge text, line text, mode text, tt real, node text, idx integer)");
+		addGeometryColumn("geom", rsid, "LINESTRING", 2);
 		nearestToEdges = _nearestToEdges;
 	}
 	
+	
+	/** @brief Get the insert statement string
+	 * @param[in] format The used output format
+	 * @param[in] rsid The used projection
+	 * @return The insert statement string
+	 */
+	protected String getInsertStatement(Utils.Format format, int rsid) {
+		if(format==Utils.Format.FORMAT_POSTGRES) {
+			return "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?, " + rsid + "))";
+		}
+		return "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	}
+
 
 	/**
 	 * @brief Writes the "direct" representation of the result

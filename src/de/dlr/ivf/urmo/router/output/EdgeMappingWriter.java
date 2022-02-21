@@ -32,6 +32,7 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.operation.TransformException;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
+import de.dlr.ivf.urmo.router.io.Utils;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 
 /**
@@ -44,56 +45,40 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 	 * @brief Constructor
 	 * 
 	 * Opens the connection to a PostGIS database and builds the table
-	 * @param url The URL to the database
-	 * @param tableName The name of the table
-	 * @param user The name of the database user
-	 * @param pw The password of the database user
-	 * @param rsid The RSID to use
+	 * @param format The used format
+	 * @param inputParts The definition of the input/output source/destination
+	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
-	 * @throws SQLException When something fails
-	 */
-	public EdgeMappingWriter(String url, String tableName, String user, String pw, int rsid, boolean dropPrevious) throws IOException {
-		super(url, user, pw, tableName, "(gid bigint, rid text, rpos real, dist real)", "VALUES (?, ?, ?, ?, ST_GeomFromText(?, " + rsid + "))", dropPrevious);
-		addGeometryColumn("pos", rsid, "LINESTRING", 2);
-	}
-
-
-	/**
-	 * @brief Constructor
-	 * 
-	 * Opens the connection to a SQLite database and builds the table
-	 * @param url The URL to the database
-	 * @param tableName The name of the table
 	 * @param rsid The RSID to use
-	 * @param dropPrevious Whether a previous table with the name shall be dropped 
-	 * @throws SQLException When something fails
-	 */
-	public EdgeMappingWriter(String url, String tableName, int rsid, boolean dropPrevious) throws IOException {
-		super(url, tableName, "(gid bigint, rid text, rpos real, dist real, geom text)", "VALUES (?, ?, ?, ?, ?)", dropPrevious);
-	}
-
-
-	/**
-	 * @brief Constructor
-	 * 
-	 * Opens the file to write the results to
-	 * @param fileName The path to the file to write the results to
-	 * @param precision The precision to use
 	 * @throws IOException When something fails
 	 */
-	public EdgeMappingWriter(String fileName, int precision) throws IOException {
-		super(fileName, precision);
+	public EdgeMappingWriter(Utils.Format format, String[] inputParts, int precision, 
+			boolean dropPrevious, int rsid) throws IOException {
+		super(format, inputParts, "X-to-road-output", precision, dropPrevious, 
+				"(gid bigint, rid text, rpos real, dist real)");
+		if(format==Utils.Format.FORMAT_POSTGRES) {
+			addGeometryColumn("pos", rsid, "LINESTRING", 2);
+		}
+	}
+
+
+	/** @brief Get the insert statement string
+	 * @param[in] format The used output format
+	 * @param[in] rsid The used projection
+	 * @return The insert statement string
+	 */
+	protected String getInsertStatement(Utils.Format format, int rsid) {
+		if(format==Utils.Format.FORMAT_POSTGRES) {
+			return "VALUES (?, ?, ?, ?, ST_GeomFromText(?, " + rsid + "))";
+		}
+		return "VALUES (?, ?, ?, ?, ?)";
 	}
 
 
 	/**
 	 * Writes the mapping results
 	 * @param nearestEdges The map of edges to objects to write
-	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
-	 * @throws NoSuchAuthorityCodeException When something fails
-	 * @throws FactoryException When something fails
-	 * @throws TransformException When something fails
 	 */
 	public void writeResults(HashMap<DBEdge, Vector<MapResult>> nearestEdges) throws IOException {
 		Vector<DBEdge> edges = new Vector<>(nearestEdges.keySet());
@@ -145,10 +130,10 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 	/**
 	 * @brief Adds a comment to the database
 	 * @param comment The comment to add
-	 * @throws SQLException When something fails
+	 * @throws IOException When something fails
 	 */
 	public void addComment(String comment) throws IOException {
-		if (intoDB()) {
+		if (_allowsComments) {
 			try {
 				String sql = "COMMENT ON TABLE " + _tableName + " IS '" + comment + "';";
 				Statement s = _connection.createStatement();

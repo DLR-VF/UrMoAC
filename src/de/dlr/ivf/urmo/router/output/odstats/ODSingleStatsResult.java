@@ -60,6 +60,9 @@ public class ODSingleStatsResult extends AbstractSingleResult {
 	 * Computes the distance and the travel time
 	 * @param _srcID The id of the origin the represented trip starts at
 	 * @param _destID The id of the destination the represented trip ends at
+	 * @param from The origin of the route
+	 * @param to The destination of the route
+	 * @param dr Routing path
 	 */
 	public ODSingleStatsResult(long srcID, long destID, MapResult from, MapResult to, DijkstraResult dr) {
 		super(srcID, destID, from, to, dr);

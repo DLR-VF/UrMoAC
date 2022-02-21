@@ -21,14 +21,11 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 
 import de.dks.utils.options.OptionsCont;
-import de.dks.utils.options.OptionsIO;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
 import de.dlr.ivf.urmo.router.output.AbstractSingleResult;
@@ -69,10 +66,12 @@ public class OutputBuilder {
 	 * @param fromAggLayer The source aggregation data
 	 * @param toLayer  The destinations
 	 * @param toAggLayer The destination aggregation data
+	 * @param rsid The projection
 	 * @return Built output devices
 	 * @throws IOException When something fails
 	 */
-	public static Vector<Aggregator> buildOutputs(OptionsCont options, Layer fromLayer, Layer fromAggLayer, Layer toLayer, Layer toAggLayer) throws IOException {
+	public static Vector<Aggregator> buildOutputs(OptionsCont options, Layer fromLayer, Layer fromAggLayer, 
+			Layer toLayer, Layer toAggLayer, int rsid) throws IOException {
 		Vector<Aggregator> aggregators = new Vector<>();
 		boolean dropExistingTables = options.getBool("dropprevious");
 		boolean aggAllFrom = options.isSet("from-agg") && options.getString("from-agg").equals("all");
@@ -82,6 +81,7 @@ public class OutputBuilder {
 		if (options.isSet("nm-output")) {
 			ODMeasuresGenerator mgNM = new ODMeasuresGenerator();
 			AbstractResultsWriter<ODSingleResult> writer = buildNMOutput(options.getString("nm-output"), precision, dropExistingTables);
+			writer.createInsertStatement(rsid);
 			Aggregator<ODSingleResult> agg = buildAggregator(mgNM, options.getBool("shortest"), 
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
@@ -89,6 +89,7 @@ public class OutputBuilder {
 		if (options.isSet("ext-nm-output")) {
 			ODExtendedMeasuresGenerator mg = new ODExtendedMeasuresGenerator();
 			AbstractResultsWriter<ODSingleExtendedResult> writer = buildExtNMOutput(options.getString("ext-nm-output"), precision, dropExistingTables);
+			writer.createInsertStatement(rsid);
 			Aggregator<ODSingleExtendedResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
@@ -96,6 +97,7 @@ public class OutputBuilder {
 		if (options.isSet("stat-nm-output")) {
 			ODStatsMeasuresGenerator mg = new ODStatsMeasuresGenerator();
 			AbstractResultsWriter<ODSingleStatsResult> writer = buildStatNMOutput(options.getString("stat-nm-output"), precision, dropExistingTables);
+			writer.createInsertStatement(rsid);
 			Aggregator<ODSingleStatsResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
@@ -103,6 +105,7 @@ public class OutputBuilder {
 		if (options.isSet("interchanges-output")) {
 			InterchangeMeasuresGenerator mg = new InterchangeMeasuresGenerator();
 			AbstractResultsWriter<InterchangeSingleResult> writer = buildInterchangeOutput(options.getString("interchanges-output"), precision, dropExistingTables);
+			writer.createInsertStatement(rsid);
 			Aggregator<InterchangeSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
@@ -110,6 +113,7 @@ public class OutputBuilder {
 		if (options.isSet("edges-output")) {
 			EUMeasuresGenerator mg = new EUMeasuresGenerator();
 			AbstractResultsWriter<EUSingleResult> writer = buildEUOutput(options.getString("edges-output"), precision, dropExistingTables);
+			writer.createInsertStatement(rsid);
 			Aggregator<EUSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
@@ -117,6 +121,7 @@ public class OutputBuilder {
 		if (options.isSet("pt-output")) {
 			PTODMeasuresGenerator mg = new PTODMeasuresGenerator();
 			AbstractResultsWriter<PTODSingleResult> writer = buildPTODOutput(options.getString("pt-output"), precision, dropExistingTables);
+			writer.createInsertStatement(rsid);
 			Aggregator<PTODSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
@@ -127,27 +132,23 @@ public class OutputBuilder {
 	
 	/** @brief Builds a "direct" output
 	 * @param options The options that include the output definition
-	 * @param precision Used floating number precision
 	 * @param rsid Used projection
 	 * @param nearestToEdges Information about the destination mapping
 	 * @return The direct output device
 	 * @throws IOException When something fails
 	 */
-	public static DirectWriter buildDirectOutput(OptionsCont options, int precision, int rsid, HashMap<DBEdge, Vector<MapResult>> nearestToEdges) throws IOException {
+	public static DirectWriter buildDirectOutput(OptionsCont options, int rsid, HashMap<DBEdge, Vector<MapResult>> nearestToEdges) throws IOException {
 		if (!options.isSet("direct-output")) {
 			return null;
 		}
-		String[] r = Utils.checkDefinition(options.getString("direct-output"), "direct-output");
-		DirectWriter dw = null;
-		if (r[1].startsWith("jdbc:postgresql:")) {
-			dw = new DirectWriter(r[1], r[2], r[3], r[4], rsid, nearestToEdges, options.getBool("dropprevious"));
-			if(options.getBool("comment")) {
-				dw.addComment(buildComment(options));
-			}
-		} else if (r[1].startsWith("jdbc:sqlite:")) {
-			dw = new DirectWriter(r[1], r[2], rsid, nearestToEdges, options.getBool("dropprevious"));
-		} else {
-			dw = new DirectWriter(r[1], precision, rsid, nearestToEdges);
+		int precision = options.getInteger("precision");
+		String d = options.getString("direct-output");
+		Utils.Format format = Utils.getFormat(d);
+		String[] inputParts = Utils.getParts(format, d, "direct-output");
+		DirectWriter dw = new DirectWriter(format, inputParts, precision, options.getBool("dropprevious"), rsid, nearestToEdges);
+		dw.createInsertStatement(rsid);
+		if(options.getBool("comment")) {
+			dw.addComment(buildComment(options));
 		}
 		return dw;
 	}
@@ -162,27 +163,21 @@ public class OutputBuilder {
 	 *        Otherwise, only the object ID is written the rest is filled with
 	 *        -1.
 	 * @param d Definition about where to write to
-	 * @param precision Used floating number precision
+	 * @param options The options to retrieve parameter from
 	 * @param nearestEdges The map of objects to road positions
 	 * @param epsg Used projection
-	 * @param dropPrevious Whether already existing database tables shall be removed
 	 * @throws IOException When something fails
 	 */
-	public static void writeEdgeAllocation(String d, int precision, HashMap<DBEdge, Vector<MapResult>> nearestEdges, int epsg, boolean dropPrevious) throws IOException {
-		String[] r = Utils.checkDefinition(d, "X-to-road-output");
-		EdgeMappingWriter emw = null;
-		if (r[1].startsWith("jdbc:postgresql:")) {
-			if(r.length!=5) {
-				throw new IOException("False database definition; should be 'db;<connector_host>;<table>;<user>;<password>'.");
-			}
-			emw = new EdgeMappingWriter(r[1], r[2], r[3], r[4], epsg, dropPrevious);
-		} else if (r[1].startsWith("jdbc:sqlite:")) {
-			if(r.length!=3) {
-				throw new IOException("False database definition; should be 'db;<connector_host>;<table>;<user>;<password>'.");
-			}
-			emw = new EdgeMappingWriter(r[1], r[2], epsg, dropPrevious);
-		} else {
-			emw = new EdgeMappingWriter(r[1], precision);
+	public static void writeEdgeAllocation(String outputName, OptionsCont options, HashMap<DBEdge, Vector<MapResult>> nearestEdges, int epsg) throws IOException {
+		int precision = options.getInteger("precision");
+		boolean dropPrevious = options.getBool("dropprevious");
+		String d = options.getString("origins-to-road-output");
+		Utils.Format format = Utils.getFormat(d);
+		String[] inputParts = Utils.getParts(format, d, "X-to-road-output");
+		EdgeMappingWriter emw = new EdgeMappingWriter(format, inputParts, precision, dropPrevious, epsg);
+		emw.createInsertStatement(epsg);
+		if(options.getBool("comment")) {
+			emw.addComment(buildComment(options));
 		}
 		emw.writeResults(nearestEdges);
 		emw.close();
@@ -212,7 +207,7 @@ public class OutputBuilder {
 	            name = synonyms.elementAt(0);
 	            ps.print(name);
 	            String value = options.getValueAsString(name);
-	            if(value.startsWith("db;")) {
+	            if(value.contains("jdbc:postgresql:")) {
 	            	value = value.substring(0, value.lastIndexOf(';')+1) + "xxx";
 	            }
 	            ps.print(": " + value );
@@ -230,7 +225,6 @@ public class OutputBuilder {
 	 * @brief Brief builds the results processing aggregator
 	 * @param measuresGenerator The measures generator to use
 	 * @param shortest Whether only the shortest connection shall be computed
-	 * @param fromAgg The origins aggregation layer name
 	 * @param aggAllFrom Whether all sources shall be aggregated
 	 * @param aggAllTo Whether all destinations shall be aggregated
 	 * @param fromLayer The origins layer
@@ -275,16 +269,9 @@ public class OutputBuilder {
 	 * @throws IOException When something fails
 	 */
 	private static AbstractResultsWriter<ODSingleResult> buildNMOutput(String d, int precision, boolean dropPrevious) throws IOException {
-		String[] r = Utils.checkDefinition(d, "nm-output");
-		if (r[1].startsWith("jdbc:postgresql:")) {
-			return new ODWriter(r[1], r[2], r[3], r[4], dropPrevious);
-		} else if (r[1].startsWith("jdbc:sqlite:")) {
-			return new ODWriter(r[1], r[2], dropPrevious);
-		} else if (r[0].equals("file") || r[0].equals("csv")) {
-			return new ODWriter(r[1], precision);
-		} else {
-			throw new IOException("The prefix '" + r[0] + "' is not known or does not support outputs.");
-		}
+		Utils.Format format = Utils.getFormat(d);
+		String[] inputParts = Utils.getParts(format, d, "od-output");
+		return new ODWriter(format, inputParts, precision, dropPrevious);
 	}
 	
 
@@ -297,16 +284,9 @@ public class OutputBuilder {
 	 * @throws IOException When something fails
 	 */
 	private static AbstractResultsWriter<ODSingleExtendedResult> buildExtNMOutput(String d, int precision, boolean dropPrevious) throws IOException {
-		String[] r = Utils.checkDefinition(d, "ext-nm-output");
-		if (r[1].startsWith("jdbc:postgresql:")) {
-			return new ODExtendedWriter(r[1], r[2], r[3], r[4], dropPrevious);
-		} else if (r[1].startsWith("jdbc:sqlite:")) {
-			return new ODExtendedWriter(r[1], r[2], dropPrevious);
-		} else if (r[0].equals("file") || r[0].equals("csv")) {
-			return new ODExtendedWriter(r[1], precision);
-		} else {
-			throw new IOException("The prefix '" + r[0] + "' is not known or does not support outputs.");
-		}
+		Utils.Format format = Utils.getFormat(d);
+		String[] inputParts = Utils.getParts(format, d, "ext-od-output");
+		return new ODExtendedWriter(format, inputParts, precision, dropPrevious);
 	}
 	
 
@@ -319,16 +299,9 @@ public class OutputBuilder {
 	 * @throws IOException When something fails
 	 */
 	private static AbstractResultsWriter<ODSingleStatsResult> buildStatNMOutput(String d, int precision, boolean dropPrevious) throws IOException {
-		String[] r = Utils.checkDefinition(d, "stat-nm-output");
-		if (r[1].startsWith("jdbc:postgresql:")) {
-			return new ODStatsWriter(r[1], r[2], r[3], r[4], dropPrevious);
-		} else if (r[1].startsWith("jdbc:sqlite:")) {
-			return new ODStatsWriter(r[1], r[2], dropPrevious);
-		} else if (r[0].equals("file") || r[0].equals("csv")) {
-			return new ODStatsWriter(r[1], precision);
-		} else {
-			throw new IOException("The prefix '" + r[0] + "' is not known or does not support outputs.");
-		}
+		Utils.Format format = Utils.getFormat(d);
+		String[] inputParts = Utils.getParts(format, d, "stat-od-output");
+		return new ODStatsWriter(format, inputParts, precision, dropPrevious);
 	}
 	
 
@@ -341,16 +314,9 @@ public class OutputBuilder {
 	 * @throws IOException When something fails
 	 */
 	private static AbstractResultsWriter<InterchangeSingleResult> buildInterchangeOutput(String d, int precision, boolean dropPrevious) throws IOException {
-		String[] r = Utils.checkDefinition(d, "interchanges-output");
-		if (r[1].startsWith("jdbc:postgresql:")) {
-			return new InterchangeWriter(r[1], r[2], r[3], r[4], dropPrevious);
-		} else if (r[1].startsWith("jdbc:sqlite:")) {
-			return new InterchangeWriter(r[1], r[2], dropPrevious);
-		} else if (r[0].equals("file") || r[0].equals("csv")) {
-			return new InterchangeWriter(r[1], precision);
-		} else {
-			throw new IOException("The prefix '" + r[0] + "' is not known or does not support outputs.");
-		}
+		Utils.Format format = Utils.getFormat(d);
+		String[] inputParts = Utils.getParts(format, d, "interchanges-output");
+		return new InterchangeWriter(format, inputParts, precision, dropPrevious);
 	}
 	
 
@@ -363,16 +329,9 @@ public class OutputBuilder {
 	 * @throws IOException When something fails
 	 */
 	private static AbstractResultsWriter<EUSingleResult> buildEUOutput(String d, int precision, boolean dropPrevious) throws IOException {
-		String[] r = Utils.checkDefinition(d, "edges-output");
-		if (r[1].startsWith("jdbc:postgresql:")) {
-			return new EUWriter(r[1], r[2], r[3], r[4], dropPrevious);
-		} else if (r[1].startsWith("jdbc:sqlite:")) {
-			return new EUWriter(r[1], r[2], dropPrevious);
-		} else if (r[0].equals("file") || r[0].equals("csv")) {
-			return new EUWriter(r[1], precision);
-		} else {
-			throw new IOException("The prefix '" + r[0] + "' is not known or does not support outputs.");
-		}
+		Utils.Format format = Utils.getFormat(d);
+		String[] inputParts = Utils.getParts(format, d, "edges-output");
+		return new EUWriter(format, inputParts, precision, dropPrevious);
 	}
 	
 	
@@ -385,16 +344,9 @@ public class OutputBuilder {
 	 * @throws IOException When something fails
 	 */
 	private static AbstractResultsWriter<PTODSingleResult> buildPTODOutput(String d, int precision, boolean dropPrevious) throws IOException {
-		String[] r = Utils.checkDefinition(d, "pt-output");
-		if (r[1].startsWith("jdbc:postgresql:")) {
-			return new PTODWriter(r[1], r[2], r[3], r[4], dropPrevious);
-		} else if (r[1].startsWith("jdbc:sqlite:")) {
-			return new PTODWriter(r[1], r[2], dropPrevious);
-		} else if (r[0].equals("file") || r[0].equals("csv")) {
-			return new PTODWriter(r[1], precision);
-		} else {
-			throw new IOException("The prefix '" + r[0] + "' is not known or does not support outputs.");
-		}
+		Utils.Format format = Utils.getFormat(d);
+		String[] inputParts = Utils.getParts(format, d, "pt-output");
+		return new PTODWriter(format, inputParts, precision, dropPrevious);
 	}
 	
 }
