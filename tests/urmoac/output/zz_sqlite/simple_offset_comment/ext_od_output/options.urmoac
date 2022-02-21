@@ -1,2 +1,2 @@
---ext-nm-output db;jdbc:sqlite:sqlite.db;test
+--ext-nm-output jdbc:sqlite:sqlite.db;test
 

@@ -1,1 +1,1 @@
---from file;sources.csv --to file;destinations.csv --net file;network.csv --epsg 0 --mode foot --time 0 --nm-output file;od_output.csv --ext-nm-output file;ext_od_output.csv --to-agg file;agg_destinations.csv  
+--from file;sources.csv --to file;destinations.csv --net file;network.csv --epsg 0 --mode foot --time 0 --nm-output od_output.csv --ext-nm-output ext_od_output.csv --to-agg file;agg_destinations.csv  

@@ -7,7 +7,7 @@
    <to-agg>file;agg_destinations.csv</to-agg>
    <epsg>0</epsg>
    <time>0</time>
-   <origins-to-road-output>file;o2r_output.csv</origins-to-road-output>
-   <destinations-to-road-output>file;d2r_output.csv</destinations-to-road-output>
+   <origins-to-road-output>o2r_output.csv</origins-to-road-output>
+   <destinations-to-road-output>d2r_output.csv</destinations-to-road-output>
    <save-config>configuration.xml</save-config>
 </configuration>

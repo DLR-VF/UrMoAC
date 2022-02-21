@@ -1,2 +1,2 @@
---stat-nm-output db;jdbc:sqlite:sqlite.db;test
+--stat-nm-output jdbc:sqlite:sqlite.db;test
 
