@@ -18,10 +18,6 @@ package de.dlr.ivf.urmo.router.shapes;
 
 import java.util.Vector;
 
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.Point;
-
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
 
 /**

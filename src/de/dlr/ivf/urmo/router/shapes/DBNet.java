@@ -25,12 +25,9 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.index.strtree.STRtree;
-
-
 
 import de.dlr.ivf.urmo.router.modes.Modes;
 
