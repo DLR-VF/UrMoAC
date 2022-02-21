@@ -1,0 +1,13 @@
+# tests with plain sqlite output
+simple_offset_plain
+
+# tests with comments
+simple_offset_comment
+
+# plain tests but the table already exists
+simple_offset_existing
+
+# plain tests where table already exists but dropprevious is set
+simple_offset_existing_dropprevious
+
+

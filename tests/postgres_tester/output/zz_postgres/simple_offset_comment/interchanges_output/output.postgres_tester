@@ -1,0 +1,5 @@
+
+done.
+dropping simple_offset_comment.interchanges_output;
+Running UrMoAC with --from file;sources.csv --to file;destinations.csv --net file;network.csv --epsg 0 --mode foot --time 0 --comment --interchanges-output jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_comment.interchanges_output;urmoactests;urmoactests
+Collecting results

@@ -1,0 +1,2 @@
+--pt-output jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_existing_dropprevious.pt_output;urmoactests;urmoactests
+

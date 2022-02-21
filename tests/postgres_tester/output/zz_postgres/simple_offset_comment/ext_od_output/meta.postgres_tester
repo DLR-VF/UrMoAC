@@ -1,0 +1,10 @@
+Generated using UrMoAC with the following options:
+f: file;sources.csv
+t: file;destinations.csv
+n: file;network.csv
+m: foot
+epsg: 0
+time: 0
+ext-nm-output: jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_comment.ext_od_output;urmoactests;xxx
+comment: true
+

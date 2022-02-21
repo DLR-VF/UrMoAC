@@ -1,0 +1,2 @@
+--ext-nm-output jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_comment.ext_od_output;urmoactests;urmoactests
+

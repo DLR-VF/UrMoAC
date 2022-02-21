@@ -1,0 +1,2 @@
+--direct-output jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_comment.direct_output;urmoactests;urmoactests
+

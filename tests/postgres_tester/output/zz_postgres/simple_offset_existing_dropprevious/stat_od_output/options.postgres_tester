@@ -1,0 +1,2 @@
+--stat-nm-output jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_existing_dropprevious.stat_od_output;urmoactests;urmoactests
+
