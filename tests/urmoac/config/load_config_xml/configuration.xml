@@ -5,8 +5,8 @@
   <from-agg>file;agg_sources.csv</from-agg>
   <to-agg>file;agg_destinations.csv</to-agg>
   
-  <origins-to-road-output>file;o2r_output.csv</origins-to-road-output>
-  <destinations-to-road-output>file;d2r_output.csv</destinations-to-road-output>
+  <origins-to-road-output>o2r_output.csv</origins-to-road-output>
+  <destinations-to-road-output>d2r_output.csv</destinations-to-road-output>
 
   <epsg>0</epsg>
   

@@ -7,3 +7,5 @@ save_config_xml
 # saving an xml configuration template
 save_template_xml
 
+# whether loading deprecated input/output definitions works
+load_config_xml_deprecated

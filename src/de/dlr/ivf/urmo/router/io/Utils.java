@@ -84,7 +84,9 @@ public class Utils {
 	public static String[] getParts(Format format, String input, String name) throws IOException {
 		if(input.startsWith("db;") || input.startsWith("file;") || input.startsWith("csv;")
 				|| input.startsWith("shp;") || input.startsWith("gpkg;") || input.startsWith("sumo;")) {
+			String prefix = input.substring(0, input.indexOf(";")+1);
 			input = input.substring(input.indexOf(";")+1);
+			System.err.println("Deprecation warning: the prefix '" + prefix + "' used for option '" + name + "' is no longer needed");
 		}
 		String[] parsed = input.split(";");
 		switch(format) {

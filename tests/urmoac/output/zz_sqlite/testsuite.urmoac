@@ -11,3 +11,5 @@ simple_offset_existing
 simple_offset_existing_dropprevious
 
 
+# tests whether the deprecated file definition works
+deprecated

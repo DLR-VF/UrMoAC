@@ -14,3 +14,7 @@ simple_offset
 
 # routing over more edges between two different positions, no offset from net
 multiple_edges_no_offset
+
+
+# tests whether the deprecated file definition works
+deprecated

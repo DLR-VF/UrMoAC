@@ -171,9 +171,9 @@ public class OutputBuilder {
 	public static void writeEdgeAllocation(String outputName, OptionsCont options, HashMap<DBEdge, Vector<MapResult>> nearestEdges, int epsg) throws IOException {
 		int precision = options.getInteger("precision");
 		boolean dropPrevious = options.getBool("dropprevious");
-		String d = options.getString("origins-to-road-output");
+		String d = options.getString(outputName);
 		Utils.Format format = Utils.getFormat(d);
-		String[] inputParts = Utils.getParts(format, d, "X-to-road-output");
+		String[] inputParts = Utils.getParts(format, d, outputName);
 		EdgeMappingWriter emw = new EdgeMappingWriter(format, inputParts, precision, dropPrevious, epsg);
 		emw.createInsertStatement(epsg);
 		if(options.getBool("comment")) {
