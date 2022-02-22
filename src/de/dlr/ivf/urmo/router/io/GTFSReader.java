@@ -1,10 +1,9 @@
-/**
- * Copyright (c) 2016-2020 DLR Institute of Transport Research
+/*
+ * Copyright (c) 2016-2022 DLR Institute of Transport Research
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
  * http://github.com/DLR-VF/UrMoAC
- * @author: Daniel.Krajzewicz@dlr.de
  * Licensed under the GNU General Public License v3.0
  * 
  * German Aerospace Center (DLR)
