@@ -1,2 +1,2 @@
---from file;sources.csv --to file;destinations.csv --net file;network.csv --epsg 0 --mode bicycle --time 0 --od-connections file;od_connections.csv
+--from sources.csv --to destinations.csv --net network.csv --epsg 0 --mode bicycle --time 0 --od-connections od_connections.csv
 

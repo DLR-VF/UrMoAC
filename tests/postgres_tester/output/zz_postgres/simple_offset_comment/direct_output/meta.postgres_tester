@@ -1,7 +1,7 @@
 Generated using UrMoAC with the following options:
-f: file;sources.csv
-t: file;destinations.csv
-n: file;network.csv
+f: sources.csv
+t: destinations.csv
+n: network.csv
 m: foot
 epsg: 0
 time: 0

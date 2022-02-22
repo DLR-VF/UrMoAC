@@ -11,3 +11,5 @@ simple_offset_existing
 simple_offset_existing_dropprevious
 
 
+# check whether using deprecated source definitions works
+simple_offset_plain_deprecated

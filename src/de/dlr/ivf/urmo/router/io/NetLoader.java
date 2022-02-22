@@ -26,6 +26,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Vector;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -67,40 +68,37 @@ import de.dlr.ivf.urmo.router.shapes.IDGiver;
  * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
  */
 public class NetLoader {
-	/**
-	 * @brief Loads the road network 
+	/** @brief Loads the road network
+	 * @param idGiver Instance supporting running ids 
+	 * @param def Source definition
+	 * @param vmaxAttr The attribute (column) to read the maximum velocity from 
+	 * @param epsg The projection
+	 * @param uModes The modes for which the network shall be loaded
 	 * @return The loaded net
-	 * @throws IOException 
+	 * @throws IOException When something fails 
 	 */
-	public static DBNet loadNet(IDGiver idGiver, String def, String vmax, int epsg, long uModes) throws IOException {
-		String[] r = Utils.checkDefinition(def, "net");
+	public static DBNet loadNet(IDGiver idGiver, String def, String vmaxAttr, int epsg, long uModes) throws IOException {
+		Utils.Format format = Utils.getFormat(def);
+		String[] inputParts = Utils.getParts(format, def, "net");
 		DBNet net = null;
-		if (r[1].startsWith("jdbc:postgresql:")) {
-			try {
-				net = loadNetFromDB(idGiver, r[1], r[2], r[3], r[4], vmax, epsg, uModes);
-			} catch (SQLException | ParseException e) {
-				throw new IOException(e);
-			}
-		} else if (r[0].equals("csv") || r[0].equals("file")) {
-			try {
-				net = loadNetFromCSVFile(idGiver, r[1], uModes);
-			} catch (ParseException | IOException e) {
-				throw new IOException(e);
-			}
-		} else if (r[0].equals("shp")) {
-			try {
-				net = loadNetFromShapefile(idGiver, r[1], epsg, uModes);
-			} catch (MismatchedDimensionException | IOException | FactoryException | TransformException e) {
-				throw new IOException(e);
-			}
-		} else if (r[0].equals("xml")) {
-			try {
-				net = loadNetFromSUMOFile(idGiver, r[1], uModes);
-			} catch (MismatchedDimensionException | IOException | ParserConfigurationException | SAXException e) {
-				throw new IOException(e);
-			}
-		} else {
-			throw new IOException("The prefix '" + r[0] + "' is not known or does not support networks.");
+		switch(format) {
+		case FORMAT_POSTGRES:
+		case FORMAT_SQLITE:
+			net = loadNetFromDB(idGiver, format, inputParts, vmaxAttr, epsg, uModes);
+			break;
+		case FORMAT_CSV:
+			net = loadNetFromCSVFile(idGiver, inputParts[0], uModes);
+			break;
+		case FORMAT_SHAPEFILE:
+			net = loadNetFromShapefile(idGiver, inputParts[0], epsg, uModes);
+			break;
+		case FORMAT_SUMO:
+			net = loadNetFromSUMOFile(idGiver, inputParts[0], uModes);
+			break;
+		case FORMAT_GEOPACKAGE:
+			throw new IOException("Reading 'net' from " + Utils.getFormatMMLName(format) + " is not supported.");
+		default:
+			throw new IOException("Could not recognize the format used for GTFS.");
 		}
 		// add other directions to mode foot
 		if(net!=null) {
@@ -109,48 +107,70 @@ public class NetLoader {
 		return net;
 	}
 
-	private static DBNet loadNetFromDB(IDGiver idGiver, String url, String table, String user, String pw, String vmax, int epsg, long uModes) throws SQLException, ParseException {
-		Connection connection = DriverManager.getConnection(url, user, pw);
-		connection.setAutoCommit(true);
-		connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
-		((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-		String query = "SELECT oid,nodefrom,nodeto,mode_walk,mode_bike,mode_mit,"+vmax+",length,ST_AsBinary(ST_TRANSFORM(the_geom," + epsg + ")) FROM " + table + ";";
-		Statement s = connection.createStatement();
-		ResultSet rs = s.executeQuery(query);
-		WKBReader wkbRead = new WKBReader();
-		DBNet net = new DBNet(idGiver);
-		boolean ok = true;
-		while (rs.next()) {
-			long modes = 0;
-			if(rs.getBoolean("mode_walk")) modes = modes | Modes.getMode("foot").id;
-			if(rs.getBoolean("mode_bike")) modes = modes | Modes.getMode("bicycle").id;
-			if(rs.getBoolean("mode_mit")) modes = modes | Modes.getMode("passenger").id;
-			modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
-			//if(rs.getBoolean("mode_walk") || rs.getBoolean("mode_bike")) modes = modes | Modes.getMode("e-scooter").id;
-			if(modes==0 && ((modes&uModes)==0)) {
-				continue;
+	
+	/** @brief Reads the network from a database
+	 * @param idGiver Instance supporting running ids 
+	 * @param format The source format
+	 * @param inputParts The source definition
+	 * @param vmaxAttr The attribute (column) to read the maximum velocity from 
+	 * @param epsg The projection
+	 * @param uModes The modes for which the network shall be loaded
+	 * @return The loaded net
+	 * @throws IOException When something fails 
+	 */
+	private static DBNet loadNetFromDB(IDGiver idGiver, Utils.Format format, String[] inputParts, String vmax, int epsg, long uModes) throws IOException {
+		try {
+			Connection connection = Utils.getConnection(format, inputParts, "net");
+			connection.setAutoCommit(true);
+			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
+			((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
+			String query = "SELECT oid,nodefrom,nodeto,mode_walk,mode_bike,mode_mit,"+vmax+",length,ST_AsBinary(ST_TRANSFORM(the_geom," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, "net") + ";";
+			Statement s = connection.createStatement();
+			ResultSet rs = s.executeQuery(query);
+			WKBReader wkbRead = new WKBReader();
+			DBNet net = new DBNet(idGiver);
+			boolean ok = true;
+			while (rs.next()) {
+				long modes = 0;
+				if(rs.getBoolean("mode_walk")) modes = modes | Modes.getMode("foot").id;
+				if(rs.getBoolean("mode_bike")) modes = modes | Modes.getMode("bicycle").id;
+				if(rs.getBoolean("mode_mit")) modes = modes | Modes.getMode("passenger").id;
+				modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
+				//if(rs.getBoolean("mode_walk") || rs.getBoolean("mode_bike")) modes = modes | Modes.getMode("e-scooter").id;
+				if(modes==0 && ((modes&uModes)==0)) {
+					continue;
+				}
+				ResultSetMetaData rsmd = rs.getMetaData();
+				//double length = rs.getDouble(rsmd.getColumnCount());
+				Geometry geom = wkbRead.read(rs.getBytes(rsmd.getColumnCount()));
+				// !!! hack - for some reasons, edge geometries are stored as MultiLineStrings in the database 
+				if(geom.getNumGeometries()!=1) {
+					System.err.println("Edge '" + rs.getString("oid") + "' has a multi geometries...");
+				}
+				LineString geom2 = (LineString) geom.getGeometryN(0);
+				Coordinate[] cs = geom2.getCoordinates();
+				DBNode fromNode = net.getNode(rs.getLong("nodefrom"), cs[0]);
+				DBNode toNode = net.getNode(rs.getLong("nodeto"), cs[cs.length - 1]);
+				ok &= net.addEdge(net.getNextID(), rs.getString("oid"), fromNode, toNode, modes, rs.getDouble(vmax) / 3.6, geom2, rs.getDouble("length"));
 			}
-			ResultSetMetaData rsmd = rs.getMetaData();
-			//double length = rs.getDouble(rsmd.getColumnCount());
-			Geometry geom = wkbRead.read(rs.getBytes(rsmd.getColumnCount()));
-			// !!! hack - for some reasons, edge geometries are stored as MultiLineStrings in the database 
-			if(geom.getNumGeometries()!=1) {
-				System.err.println("Edge '" + rs.getString("oid") + "' has a multi geometries...");
-			}
-			LineString geom2 = (LineString) geom.getGeometryN(0);
-			Coordinate[] cs = geom2.getCoordinates();
-			DBNode fromNode = net.getNode(rs.getLong("nodefrom"), cs[0]);
-			DBNode toNode = net.getNode(rs.getLong("nodeto"), cs[cs.length - 1]);
-			ok &= net.addEdge(net.getNextID(), rs.getString("oid"), fromNode, toNode, modes, rs.getDouble(vmax) / 3.6, geom2, rs.getDouble("length"));
+			rs.close();
+			s.close();
+			connection.close();
+			return net;
+		} catch (SQLException | ParseException e) {
+			throw new IOException(e);
 		}
-		rs.close();
-		s.close();
-		connection.close();
-		return net;
 	}
 
 	
-	private static DBNet loadNetFromCSVFile(IDGiver idGiver, String fileName, long uModes) throws ParseException, IOException {
+	/** @brief Reads the network from a CSV file
+	 * @param idGiver Instance supporting running ids 
+	 * @param fileName The file to read the network from
+	 * @param uModes The modes for which the network shall be loaded
+	 * @return The loaded net
+	 * @throws IOException When something fails 
+	 */
+	private static DBNet loadNetFromCSVFile(IDGiver idGiver, String fileName, long uModes) throws IOException {
 		DBNet net = new DBNet(idGiver);
 		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
 		BufferedReader br = new BufferedReader(new FileReader(fileName));
@@ -188,124 +208,173 @@ public class NetLoader {
 	}
 	
 	
-
-	private static DBNet loadNetFromShapefile(IDGiver idGiver, String fileName, int epsg, long uModes) throws IOException, NoSuchAuthorityCodeException, FactoryException, MismatchedDimensionException, TransformException {
-		File file = new File(fileName);
-		if(!file.exists() || !fileName.endsWith(".shp")) {
-		    throw new IOException("Invalid shapefile filepath: " + fileName);
-		}
-		ShapefileDataStore dataStore = new ShapefileDataStore(file.toURL());
-		SimpleFeatureSource featureSource = dataStore.getFeatureSource();
-		SimpleFeatureCollection featureCollection = featureSource.getFeatures();
-
-		SimpleFeatureType schema = featureSource.getSchema();
-		CoordinateReferenceSystem dataCRS = schema.getCoordinateReferenceSystem();
-        CoordinateReferenceSystem worldCRS = CRS.decode("EPSG:" + epsg);
-        boolean lenient = true; // allow for some error due to different datums
-        MathTransform transform = CRS.findMathTransform(dataCRS, worldCRS, lenient);		
-
-		DBNet net = new DBNet(idGiver);
-        
-		SimpleFeatureIterator iterator = featureCollection.features();
-		boolean ok = true;
-		while(iterator.hasNext()) {
-		    SimpleFeature feature = iterator.next();
-			long modes = 0;
-			if((Boolean) feature.getAttribute("mode_walk")) modes = modes | Modes.getMode("foot").id;
-			if((Boolean) feature.getAttribute("mode_bike")) modes = modes | Modes.getMode("bicycle").id;
-			if((Boolean) feature.getAttribute("mode_mit")) modes = modes | Modes.getMode("passenger").id;
-			modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
-			if(modes==0 && ((modes&uModes)==0)) {
-				continue;
+	/** @brief Reads the network from a shapefile
+	 * @param idGiver Instance supporting running ids 
+	 * @param fileName The file to read the network from
+	 * @param epsg The projection
+	 * @param uModes The modes for which the network shall be loaded
+	 * @return The loaded net
+	 * @throws IOException When something fails 
+	 */
+	private static DBNet loadNetFromShapefile(IDGiver idGiver, String fileName, int epsg, long uModes) throws IOException {
+		try {
+			File file = new File(fileName);
+			if(!file.exists() || !fileName.endsWith(".shp")) {
+			    throw new IOException("Invalid shapefile filepath: " + fileName);
 			}
-		    
-		    Geometry g = (Geometry) feature.getAttribute("the_geom");
-		    Geometry geom = JTS.transform(g, transform);
-			if(geom.getNumGeometries()!=1) {
-				System.err.println("Edge '" + (String) feature.getAttribute("oid") + "' has a multi geometries...");
+			ShapefileDataStore dataStore = new ShapefileDataStore(file.toURL());
+			SimpleFeatureSource featureSource = dataStore.getFeatureSource();
+			SimpleFeatureCollection featureCollection = featureSource.getFeatures();
+
+			SimpleFeatureType schema = featureSource.getSchema();
+			CoordinateReferenceSystem dataCRS = schema.getCoordinateReferenceSystem();
+	        CoordinateReferenceSystem worldCRS;
+				worldCRS = CRS.decode("EPSG:" + epsg);
+	        boolean lenient = true; // allow for some error due to different datums
+	        MathTransform transform = CRS.findMathTransform(dataCRS, worldCRS, lenient);		
+
+			DBNet net = new DBNet(idGiver);
+	        
+			SimpleFeatureIterator iterator = featureCollection.features();
+			boolean ok = true;
+			while(iterator.hasNext()) {
+			    SimpleFeature feature = iterator.next();
+				long modes = 0;
+				if((Boolean) feature.getAttribute("mode_walk")) modes = modes | Modes.getMode("foot").id;
+				if((Boolean) feature.getAttribute("mode_bike")) modes = modes | Modes.getMode("bicycle").id;
+				if((Boolean) feature.getAttribute("mode_mit")) modes = modes | Modes.getMode("passenger").id;
+				modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
+				if(modes==0 && ((modes&uModes)==0)) {
+					continue;
+				}
+			    
+			    Geometry g = (Geometry) feature.getAttribute("the_geom");
+			    Geometry geom = JTS.transform(g, transform);
+				if(geom.getNumGeometries()!=1) {
+					System.err.println("Edge '" + (String) feature.getAttribute("oid") + "' has a multi geometries...");
+				}
+				LineString geom2 = (LineString) geom.getGeometryN(0);
+				Coordinate[] cs = geom2.getCoordinates();
+				DBNode fromNode = net.getNode((Integer) feature.getAttribute("nodefrom"), cs[0]);
+				DBNode toNode = net.getNode((Integer) feature.getAttribute("nodeto"), cs[cs.length - 1]);
+				ok &= net.addEdge(net.getNextID(), (String) feature.getAttribute("oid"), fromNode, toNode, modes,
+						(Double) feature.getAttribute("vmax") / 3.6, geom2, (Double) feature.getAttribute("length"));
+			
 			}
-			LineString geom2 = (LineString) geom.getGeometryN(0);
-			Coordinate[] cs = geom2.getCoordinates();
-			DBNode fromNode = net.getNode((Integer) feature.getAttribute("nodefrom"), cs[0]);
-			DBNode toNode = net.getNode((Integer) feature.getAttribute("nodeto"), cs[cs.length - 1]);
-			ok &= net.addEdge(net.getNextID(), (String) feature.getAttribute("oid"), fromNode, toNode, modes,
-					(Double) feature.getAttribute("vmax") / 3.6, geom2, (Double) feature.getAttribute("length"));
-		
+			return net;
+		} catch (FactoryException | MismatchedDimensionException | TransformException e) {
+			throw new IOException(e);
 		}
-		return net;
+	}
+
+	
+	/** @brief Reads the network from a SUMO road network file
+	 * @param idGiver Instance supporting running ids 
+	 * @param fileName The file to read the network from
+	 * @param uModes The modes for which the network shall be loaded
+	 * @return The loaded net
+	 * @throws IOException When something fails 
+	 */
+	private static DBNet loadNetFromSUMOFile(IDGiver idGiver, String fileName, long uModes) throws IOException {
+		try {
+			NetLoader nl = new NetLoader();
+			DBNet net = new DBNet(idGiver);
+			SAXParserFactory factory = SAXParserFactory.newInstance();
+	        SAXParser saxParser = factory.newSAXParser();
+	        SUMONetHandler handler = new SUMONetHandler(net, uModes);
+	        saxParser.parse(fileName, handler);
+	        return net;
+		} catch (ParserConfigurationException | SAXException e) {
+			throw new IOException(e);
+		}
 	}
 
 	
 	
-	private static DBNet loadNetFromSUMOFile(IDGiver idGiver, String fileName, long uModes) throws IOException, ParserConfigurationException, SAXException {
-		NetLoader nl = new NetLoader();
-		DBNet net = new DBNet(idGiver);
-		SAXParserFactory factory = SAXParserFactory.newInstance();
-        SAXParser saxParser = factory.newSAXParser();
-        SUMONetHandler handler = new SUMONetHandler(net, uModes);
-        saxParser.parse(fileName, handler);
-        return net;
-	}
-
-	
-	
+	/** @brief Reads travel times
+	 * @param net The road network
+	 * @param def The source definition
+	 * @param verbose Whether report more
+	 * @return The number of not assigned speed information
+	 * @throws IOException When something fails 
+	 */
 	public static int loadTravelTimes(DBNet net, String def, boolean verbose) throws IOException {
-		String[] r = Utils.checkDefinition(def, "travel times");
+		Utils.Format format = Utils.getFormat(def);
+		String[] inputParts = Utils.getParts(format, def, "net");
 		int numFalse = 0;
-		if (r[1].startsWith("jdbc:postgresql:")) {
-			try {
-				numFalse = loadTravelTimesFromDB(net, r[1], r[2], r[3], r[4], verbose);
-			} catch (SQLException | ParseException e) {
-				throw new IOException(e);
-			}
-		} else if (r[0].equals("csv") || r[0].equals("file")) {
-			try {
-				numFalse = loadTravelTimesFromCSVFile(net, r[1], verbose);
-			} catch (ParseException | IOException e) {
-				throw new IOException(e);
-			}
-		} else {
-			throw new IOException("The prefix '" + r[0] + "' is not known or does not support networks.");
+		switch(format) {
+		case FORMAT_POSTGRES:
+		case FORMAT_SQLITE:
+			numFalse = loadTravelTimesFromDB(net, format, inputParts, verbose);
+			break;
+		case FORMAT_CSV:
+			numFalse = loadTravelTimesFromCSVFile(net, inputParts[0], verbose);
+			break;
+		case FORMAT_SHAPEFILE:
+		case FORMAT_SUMO:
+		case FORMAT_GEOPACKAGE:
+			throw new IOException("Reading 'net' from " + Utils.getFormatMMLName(format) + " is not supported.");
+		default:
+			throw new IOException("Could not recognize the format used for GTFS.");
 		}
 		net.sortSpeedReductions();
 		return numFalse;
 	}
 		
-		
-	private static int loadTravelTimesFromDB(DBNet net, String url, String table, String user, String pw, boolean verbose) throws SQLException, ParseException {
-		int numFalse = 0;
-		int numOk = 0;
-		Connection connection = DriverManager.getConnection(url, user, pw);
-		connection.setAutoCommit(true);
-		connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
-		((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-		String query = "SELECT ibegin,iend,eid,speed FROM " + table + ";";
-		Statement s = connection.createStatement();
-		ResultSet rs = s.executeQuery(query);
-		while (rs.next()) {
-			String eid = rs.getString("eid");
-			DBEdge edge = net.getEdgeByName(eid);
-			if(edge==null) {
-				++numFalse;
-				continue;
+
+	/** @brief Reads travel times from a database
+	 * @param net The road network
+	 * @param format The source format
+	 * @param inputParts The source definition
+	 * @param verbose Whether report more
+	 * @return The number of not assigned speed information
+	 * @throws IOException When something fails 
+	 */
+	private static int loadTravelTimesFromDB(DBNet net, Utils.Format format, String[] inputParts, boolean verbose) throws IOException {
+		try {
+			int numFalse = 0;
+			int numOk = 0;
+			Connection connection = Utils.getConnection(format, inputParts, "travel-times");
+			connection.setAutoCommit(true);
+			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
+			((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
+			String query = "SELECT ibegin,iend,eid,speed FROM " + Utils.getTableName(format, inputParts, "travel-times") + ";";
+			Statement s = connection.createStatement();
+			ResultSet rs = s.executeQuery(query);
+			while (rs.next()) {
+				String eid = rs.getString("eid");
+				DBEdge edge = net.getEdgeByName(eid);
+				if(edge==null) {
+					++numFalse;
+					continue;
+				}
+				++numOk;
+				float ibegin = rs.getFloat("ibegin");
+				float iending = rs.getFloat("iend");
+				float speed = rs.getFloat("speed");
+				edge.addSpeedReduction(ibegin, iending, speed);
 			}
-			++numOk;
-			float ibegin = rs.getFloat("ibegin");
-			float iending = rs.getFloat("iend");
-			float speed = rs.getFloat("speed");
-			edge.addSpeedReduction(ibegin, iending, speed);
+			rs.close();
+			s.close();
+			connection.close();
+			if(verbose) {
+				System.out.println(" " + numFalse + " of " + (numOk+numFalse) + " informations could not been loaded.");
+			}
+			return numFalse;
+		} catch (SQLException e) {
+			throw new IOException(e);
 		}
-		rs.close();
-		s.close();
-		connection.close();
-		if(verbose) {
-			System.out.println(" " + numFalse + " of " + (numOk+numFalse) + " informations could not been loaded.");
-		}
-		return numFalse;
 	}
 
 	
-	private static int loadTravelTimesFromCSVFile(DBNet net, String fileName, boolean verbose) throws ParseException, IOException {
+	/** @brief Reads travel times from a csv file
+	 * @param net The road network
+	 * @param fileName The file to read the travel times from
+	 * @param verbose Whether report more
+	 * @return The number of not assigned speed information
+	 * @throws IOException When something fails 
+	 */
+	private static int loadTravelTimesFromCSVFile(DBNet net, String fileName, boolean verbose) throws IOException {
 		int numFalse = 0;
 		int numOk = 0;
 		BufferedReader br = new BufferedReader(new FileReader(fileName));

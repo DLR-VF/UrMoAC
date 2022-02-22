@@ -1,2 +1,2 @@
---from file;sources.csv --to file;destinations.csv --net file;network.csv --epsg 0 --time 0 --nm-output od_output.csv --ext-nm-output ext_od_output.csv --direct-output direct_output.csv --origins-to-road-output o2r_output.csv --destinations-to-road-output d2r_output.csv 
+--from sources.csv --to destinations.csv --net network.csv --epsg 0 --time 0 --nm-output od_output.csv --ext-nm-output ext_od_output.csv --direct-output direct_output.csv --origins-to-road-output o2r_output.csv --destinations-to-road-output d2r_output.csv 
 

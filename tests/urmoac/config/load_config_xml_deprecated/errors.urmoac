@@ -1,2 +1,7 @@
+Deprecation warning: the prefix 'file;' used for option 'from' is no longer needed
+Deprecation warning: the prefix 'file;' used for option 'from-agg' is no longer needed
+Deprecation warning: the prefix 'file;' used for option 'to' is no longer needed
+Deprecation warning: the prefix 'file;' used for option 'to-agg' is no longer needed
+Deprecation warning: the prefix 'file;' used for option 'net' is no longer needed
 Deprecation warning: the prefix 'file;' used for option 'origins-to-road-output' is no longer needed
 Deprecation warning: the prefix 'file;' used for option 'destinations-to-road-output' is no longer needed
