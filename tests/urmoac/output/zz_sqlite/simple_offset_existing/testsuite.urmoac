@@ -21,3 +21,6 @@ pt_output
 # edges-output tests
 edges_output
 
+# origins-to-road- and destinations-to-road-output
+X2r_output
+
