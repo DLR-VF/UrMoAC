@@ -55,9 +55,7 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 			boolean dropPrevious, int rsid) throws IOException {
 		super(format, inputParts, "X-to-road-output", precision, dropPrevious, 
 				"(gid bigint, rid text, rpos real, dist real)");
-		if(format==Utils.Format.FORMAT_POSTGRES) {
-			addGeometryColumn("pos", rsid, "LINESTRING", 2);
-		}
+		addGeometryColumn("conn", rsid, "LINESTRING", 2);
 	}
 
 
