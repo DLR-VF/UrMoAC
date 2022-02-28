@@ -1,0 +1,26 @@
+simple_offset_comment.o2r_output
+Generated using UrMoAC with the following options:
+f: sources.csv
+t: destinations.csv
+n: network.csv
+m: foot
+epsg: 0
+time: 0
+origins-to-road-output: jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_comment.o2r_output;urmoactests;xxx
+destinations-to-road-output: jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_comment.d2r_output;urmoactests;xxx
+comment: true
+
+----------------------------
+simple_offset_comment.d2r_output
+Generated using UrMoAC with the following options:
+f: sources.csv
+t: destinations.csv
+n: network.csv
+m: foot
+epsg: 0
+time: 0
+origins-to-road-output: jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_comment.o2r_output;urmoactests;xxx
+destinations-to-road-output: jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_comment.d2r_output;urmoactests;xxx
+comment: true
+
+----------------------------

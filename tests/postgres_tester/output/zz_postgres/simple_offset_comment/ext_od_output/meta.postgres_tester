@@ -1,3 +1,4 @@
+simple_offset_comment.ext_od_output
 Generated using UrMoAC with the following options:
 f: sources.csv
 t: destinations.csv
@@ -8,3 +9,4 @@ time: 0
 ext-nm-output: jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_comment.ext_od_output;urmoactests;xxx
 comment: true
 
+----------------------------

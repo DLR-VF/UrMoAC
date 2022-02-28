@@ -1,0 +1,6 @@
+
+done.
+creating simple_offset_existing_dropprevious.o2r_output;
+creating simple_offset_existing_dropprevious.d2r_output;
+Running UrMoAC with --from sources.csv --to destinations.csv --net network.csv --epsg 0 --mode foot --time 0 --dropprevious --origins-to-road-output jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_existing_dropprevious.o2r_output;urmoactests;urmoactests --destinations-to-road-output jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_existing_dropprevious.d2r_output;urmoactests;urmoactests
+Collecting results
