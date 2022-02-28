@@ -44,35 +44,6 @@ public class Utils {
 	}
 	
 	
-	/**
-	 * @brief Parses the definition of the output storage and verfies it
-	 * @param input The definition of an output storage (database / file)
-	 * @param outputName The name of the definition
-	 * @return The split (and verified) definition
-	 * @throws IOException When something fails
-	 */
-	public static String[] checkDefinition(String input, String outputName) throws IOException {
-		String[] r = input.split(";");
-		if (r[0].equals("db")) {
-			boolean ok = false;
-			if(r.length==3 && r[1].indexOf("jdbc:sqlite:")==0) {
-				ok = true;
-			}
-			if(r.length==5 && r[1].indexOf("jdbc:postgresql:")==0) {
-				ok = true;
-			}
-			if(!ok) {
-				throw new IOException("False database definition for '" + outputName + "'\nshould be 'db;<DB_HOST>;<SCHEMA.TABLE>;<USER>;<PASSWORD>'.");
-			}
-		} else {
-			if(r.length!=2) {
-				throw new IOException("False file definition for '" + outputName + "'\nshould be 'file;<FILENAME>'.");
-			}
-		}
-		return r;
-	}
-	
-	
 	/** @brief Checks the input/output definition and returns it split to it's sub-parts
 	 * @param format The recognized format
 	 * @param input The definition of the data source / data destination
