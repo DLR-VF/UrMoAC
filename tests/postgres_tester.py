@@ -48,6 +48,8 @@ subprocess.call(call)
 
 # write generated files
 print ("Collecting results")
+fdo1 = open("postgres_dump.txt", "w")
+fdo2 = open("postgres_meta.txt", "w")
 for j,t in enumerate(argv):
   if j==0:
     continue
@@ -59,23 +61,25 @@ for j,t in enumerate(argv):
   t = t.split(";")
   # get values and write them to a file
   cursor.execute("SELECT * FROM %s;" % t[1])
-  fdo = open("postgres_dump.txt", "w")
+  fdo1.write("%s\n" % t[1])
   for r in cursor.fetchall():
     for i,rv in enumerate(r):
       if i!=0:
-        fdo.write(";")
-      fdo.write("%s" % rv)
-    fdo.write("\n")
-  fdo.close()
+        fdo1.write(";")
+      fdo1.write("%s" % rv)
+    fdo1.write("\n")
+  fdo1.write("----------------------------\n")
   # get comments and write them to a file
   cursor.execute("select obj_description('%s'::regclass);" % t[1])
-  fdo = open("postgres_meta.txt", "w")
+  fdo2.write("%s\n" % t[1])
   for r in cursor.fetchall():
     for i,rv in enumerate(r):
       if i!=0:
-        fdo.write(";")
-      fdo.write("%s" % rv)
-    fdo.write("\n")
-  fdo.close()
+        fdo2.write(";")
+      fdo2.write("%s" % rv)
+    fdo2.write("\n")
+  fdo2.write("----------------------------\n")
+fdo1.close()
+fdo2.close()
   
   
