@@ -31,8 +31,10 @@ public class Utils {
 		FORMAT_POSTGRES,
 		/// @brief SQLite database connection
 		FORMAT_SQLITE,
-		/// @brief csv-files
+		/// @brief csv files
 		FORMAT_CSV,
+		/// @brief csv files with well known text representations
+		FORMAT_WKT,
 		/// @brief shapefilesfiles
 		FORMAT_SHAPEFILE,
 		/// @brief geopackage files
@@ -52,7 +54,7 @@ public class Utils {
 	 * @throws IOException If the definition is wrong
 	 */
 	public static String[] getParts(Format format, String input, String name) throws IOException {
-		if(input.startsWith("db;") || input.startsWith("file;") || input.startsWith("csv;")
+		if(input.startsWith("db;") || input.startsWith("file;") || input.startsWith("csv;") || input.startsWith("wkt;")
 				|| input.startsWith("shp;") || input.startsWith("gpkg;") || input.startsWith("sumo;")) {
 			String prefix = input.substring(0, input.indexOf(";")+1);
 			input = input.substring(input.indexOf(";")+1);
@@ -75,6 +77,7 @@ public class Utils {
 					+ " should be 'jdbc:sqlite:<DB_FILE>;<TABLE>'\n"
 					+ " is '" + input + "'");
 		case FORMAT_CSV:
+		case FORMAT_WKT:
 		case FORMAT_SHAPEFILE:
 		case FORMAT_GEOPACKAGE:
 		case FORMAT_SUMO:
@@ -104,6 +107,8 @@ public class Utils {
 			return "SQLite database";
 		case FORMAT_CSV:
 			return "csv";
+		case FORMAT_WKT:
+			return "wkt";
 		case FORMAT_SHAPEFILE:
 			return "shp";
 		case FORMAT_GEOPACKAGE:
@@ -128,6 +133,8 @@ public class Utils {
 			return Format.FORMAT_SQLITE;
 		} else if(input.startsWith("file;") || input.startsWith("csv;")) {
 			return Format.FORMAT_CSV;
+		} else if(input.startsWith("wkt;")) {
+			return Format.FORMAT_WKT;
 		} else if(input.startsWith("shp;")) {
 			return Format.FORMAT_SHAPEFILE;
 		} else if(input.startsWith("gpkg;")) {
@@ -142,6 +149,8 @@ public class Utils {
 			return Format.FORMAT_SQLITE;
 		} else if(input.endsWith(".csv") || input.endsWith(".txt")) {
 			return Format.FORMAT_CSV;
+		} else if(input.endsWith(".wkt")) {
+			return Format.FORMAT_WKT;
 		} else if(input.endsWith(".shp")) {
 			return Format.FORMAT_SHAPEFILE;
 		} else if(input.endsWith(".gpkg")) {

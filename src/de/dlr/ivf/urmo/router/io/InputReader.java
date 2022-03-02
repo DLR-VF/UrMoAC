@@ -45,6 +45,7 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
+import org.locationtech.jts.io.WKTReader;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.geometry.MismatchedDimensionException;
@@ -158,6 +159,8 @@ public class InputReader {
 			return loadLayerFromDB(base, format, inputParts, filter, varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg);
 		case FORMAT_CSV:
 			return loadLayerFromCSVFile(base, inputParts[0], idGiver, dismissWeight);
+		case FORMAT_WKT:
+			return loadLayerFromWKTFile(base, inputParts[0], idGiver, dismissWeight);
 		case FORMAT_SHAPEFILE:
 			return loadLayerFromShapefile(base, inputParts[0], varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg);
 		case FORMAT_SUMO:
@@ -287,6 +290,51 @@ public class InputReader {
 	
 		
 	/**
+	 * @brief Loads a set of objects from a WKT-file
+	 * 
+	 * @param layerName The name of the layer to generate
+	 * @param fileName The name of the file to read
+	 * @param idGiver A reference to something that supports a running ID
+	 * @param dismissWeight Whether the weight shall be discarded
+	 * @return The generated layer with the read objects
+	 * @throws IOException When something fails
+	 */
+	private static Layer loadLayerFromWKTFile(String layerName, String fileName, IDGiver idGiver, boolean dismissWeight) throws IOException { 
+		try {
+			Layer layer = new Layer(layerName);
+			GeometryFactory gf = new GeometryFactory(new PrecisionModel());
+			BufferedReader br = new BufferedReader(new FileReader(fileName));
+			WKTReader wktReader = new WKTReader();
+			String line = null;
+			boolean dismissWeightReported = false;
+			do {
+				line = br.readLine();
+				if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
+					String[] vals = line.split(";");
+					Geometry geom = wktReader.read(vals[1]);
+					double var = 1;
+					if(vals.length==3) {
+						if(!dismissWeight) {
+							var = Double.parseDouble(vals[2]);
+						} else {
+							if(!dismissWeightReported) {
+								dismissWeightReported = true;
+								System.out.println("Warning: the weight option is not used as no aggregation takes place.");
+							}
+						}
+					}
+					layer.addObject(new LayerObject(idGiver.getNextRunningID(), Long.parseLong(vals[0]), var, geom));
+				}
+		    } while(line!=null);
+			br.close();
+			return layer;
+		} catch (ParseException e) {
+			throw new IOException(e);
+		}
+	}
+	
+		
+	/**
 	 * @brief Loads a set of objects from a shapefile
 	 * 
 	 * @param layerName The name of the layer to generate
@@ -402,6 +450,7 @@ public class InputReader {
 			return loadEntrainmentFromDB(format, inputParts);
 		case FORMAT_CSV:
 			return loadEntrainmentFromCSVFile(inputParts[0]);
+		case FORMAT_WKT:
 		case FORMAT_SHAPEFILE:
 		case FORMAT_GEOPACKAGE:
 		case FORMAT_SUMO:
@@ -481,6 +530,8 @@ public class InputReader {
 			return loadGeometryFromDB(format, inputParts, epsg, what);
 		case FORMAT_CSV:
 			return loadGeometryFromCSVFile(inputParts[0]);
+		case FORMAT_WKT:
+			return loadGeometryFromWKTFile(inputParts[0]);
 		case FORMAT_SHAPEFILE:
 			return loadGeometryFromShapefile(inputParts[0], epsg);
 		case FORMAT_GEOPACKAGE:
@@ -552,6 +603,27 @@ public class InputReader {
 	}
 	
 	
+	/** @brief Loads a geometry from a WKT file
+	 * @param fileName The file to read the geometry from
+	 * @return The loaded geometry
+	 * @throws IOException When something fails
+	 */
+	private static Geometry loadGeometryFromWKTFile(String fileName) throws IOException {
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(fileName));
+			String line = br.readLine();
+			while(line!=null && (line.length()==0 || line.charAt(0)=='#')) {
+				line = br.readLine();
+			}
+			br.close();
+			WKTReader wktReader = new WKTReader();
+			return wktReader.read(line);
+		} catch (ParseException e) {
+			throw new IOException(e);
+		}
+	}
+	
+	
 	/** @brief Loads a geometry from a shape file
 	 * @param fileName The file to read the geometry from
 	 * @param epsg The used projection
@@ -608,6 +680,7 @@ public class InputReader {
 			return loadODConnectionsDB(format, inputParts);
 		case FORMAT_CSV:
 			return loadODConnectionsFromCSVFile(inputParts[0]);
+		case FORMAT_WKT:
 		case FORMAT_SHAPEFILE:
 		case FORMAT_GEOPACKAGE:
 		case FORMAT_SUMO:

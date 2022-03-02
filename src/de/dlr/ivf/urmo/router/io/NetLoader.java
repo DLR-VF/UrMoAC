@@ -44,6 +44,7 @@ import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
+import org.locationtech.jts.io.WKTReader;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.geometry.MismatchedDimensionException;
@@ -87,6 +88,9 @@ public class NetLoader {
 			break;
 		case FORMAT_CSV:
 			net = loadNetFromCSVFile(idGiver, inputParts[0], uModes);
+			break;
+		case FORMAT_WKT:
+			net = loadNetFromWKTFile(idGiver, inputParts[0], uModes);
 			break;
 		case FORMAT_SHAPEFILE:
 			net = loadNetFromShapefile(idGiver, inputParts[0], epsg, uModes);
@@ -207,6 +211,47 @@ public class NetLoader {
 	}
 	
 	
+	/** @brief Reads the network from a WKT file
+	 * @param idGiver Instance supporting running ids 
+	 * @param fileName The file to read the network from
+	 * @param uModes The modes for which the network shall be loaded
+	 * @return The loaded net
+	 * @throws IOException When something fails 
+	 */
+	private static DBNet loadNetFromWKTFile(IDGiver idGiver, String fileName, long uModes) throws IOException {
+		try {
+			DBNet net = new DBNet(idGiver);
+			WKTReader wktReader = new WKTReader();
+			BufferedReader br = new BufferedReader(new FileReader(fileName));
+			String line = null;
+			boolean ok = true;
+			do {
+				line = br.readLine();
+				if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
+					String[] vals = line.split(";");
+					long modes = 0;
+					if("true".equals(vals[3].toLowerCase()) || "1".equals(vals[3])) modes = modes | Modes.getMode("foot").id;
+					if("true".equals(vals[4].toLowerCase()) || "1".equals(vals[4])) modes = modes | Modes.getMode("bicycle").id;
+					if("true".equals(vals[5].toLowerCase()) || "1".equals(vals[5])) modes = modes | Modes.getMode("passenger").id;
+					modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
+					if(modes==0 && ((modes&uModes)==0)) {
+						continue;
+					}
+					LineString geom = (LineString) wktReader.read(vals[8]);
+					Coordinate cs[] = geom.getCoordinates();
+					DBNode fromNode = net.getNode(Long.parseLong(vals[1]), cs[0]);
+					DBNode toNode = net.getNode(Long.parseLong(vals[2]), cs[cs.length - 1]);
+					ok &= net.addEdge(net.getNextID(), vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, geom, Double.parseDouble(vals[7]));
+				}
+		    } while(line!=null);
+			br.close();
+			return net;
+		} catch (ParseException e) {
+			throw new IOException(e);
+		}
+	}
+	
+	
 	/** @brief Reads the network from a shapefile
 	 * @param idGiver Instance supporting running ids 
 	 * @param fileName The file to read the network from
@@ -309,6 +354,7 @@ public class NetLoader {
 		case FORMAT_CSV:
 			numFalse = loadTravelTimesFromCSVFile(net, inputParts[0], verbose);
 			break;
+		case FORMAT_WKT:
 		case FORMAT_SHAPEFILE:
 		case FORMAT_SUMO:
 		case FORMAT_GEOPACKAGE:
