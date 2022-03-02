@@ -7,3 +7,6 @@ od_output
 # checking whether the filter applies to plain od-output (verbose)
 od_output_verbose
 
+# check the see-only first bug
+see_first_only_bug1
+

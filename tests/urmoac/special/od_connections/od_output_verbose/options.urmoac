@@ -1,1 +1,1 @@
- --nm-output od_output.csv -v
+--mode foot --nm-output od_output.csv -v

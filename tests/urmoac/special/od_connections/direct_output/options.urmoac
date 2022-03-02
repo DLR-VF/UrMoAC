@@ -1,1 +1,1 @@
- --direct-output direct_output.csv
+--mode foot --direct-output direct_output.csv

@@ -1,0 +1,5 @@
+#id;fromNode;toNode;foot;bicycle;passenger;speed;length;coords...
+10000;0;1;true;true;true;50;100;-250;0;-150;0
+10005;1;9;true;true;true;50;100;-150;0;150;0
+10009;9;10;true;true;true;50;100;150;0;250;0
+

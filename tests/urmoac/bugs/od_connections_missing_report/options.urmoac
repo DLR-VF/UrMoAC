@@ -1,0 +1,1 @@
+--mode bicycle --nm-output od_output.csv --from sources.csv --to destinations.csv --net network.csv --epsg 0 --time 0 --od-connections od_connections.csv
