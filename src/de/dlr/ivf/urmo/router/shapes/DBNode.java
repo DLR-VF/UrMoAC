@@ -36,7 +36,7 @@ public class DBNode {
 
 
 	/**
-	 * @Constructor
+	 * @brief Constructor
 	 * @param _id The node's id
 	 * @param _pos The node's coordinates
 	 */

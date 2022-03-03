@@ -509,6 +509,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 * @brief Checks whether the needed route weight function parameter are set
 	 * @param options The options container to check
 	 * @param num The number of needed parameters
+	 * @return Whether the needed number of parameters has been defined
 	 */
 	protected boolean checkParameterOptions(OptionsCont options, int num) {
 		for(int i=0; i<num; ++i) {

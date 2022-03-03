@@ -327,7 +327,7 @@ public class DBEdge {
 	/**
 	 * @brief Returns the price to pass this edge
 	 * @param usedMode The used mode of transport
-	 * @param nline The previously used lines
+	 * @param nlines The previously used lines
 	 * @return The price to pass this edge
 	 */
 	public double getPrice(Mode usedMode, Set<String> nlines) {

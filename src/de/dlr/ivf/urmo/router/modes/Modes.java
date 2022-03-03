@@ -73,7 +73,13 @@ public class Modes {
 	}
 
 
-	
+	/** @brief Inserts the definition of a custom defined mode
+	 * @param custom_vmax The mode's maximum velocity
+	 * @param custom_kkc The kilocalories burned when using this mode
+	 * @param custom_co2 The mode's CO2 emissions per kilometer
+	 * @param custom_price The mode's price per kilometer
+	 * @param allowedModes The parts of the road network the mode is allowed at (combination of walk, bike, miv)
+	 */
 	public static void setCustomMode(double custom_vmax, double custom_kkc, double custom_co2, double custom_price, long allowedModes) {
 		Mode custom = getMode("custom");
 		custom.vmax = custom_vmax;
@@ -83,6 +89,7 @@ public class Modes {
 		customAllowedAt = allowedModes;
 	}
 		
+	
 	/**
 	 * @brief Returns an array of the names of all known modes
 	 * @return The names of all known modes
@@ -129,7 +136,6 @@ public class Modes {
 		}
 		return ret;
 	}
-
 
 	
 	/**

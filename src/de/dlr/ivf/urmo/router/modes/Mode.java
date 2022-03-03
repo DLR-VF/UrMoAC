@@ -38,11 +38,14 @@ public class Mode {
 
 
 	/**
-	 * @Constructor
+	 * @brief Constructor
 	 * @param _id This mode's id (must be a power of two result, bitset)
 	 * @param _mml A human readable name of the mode
 	 * @param _vmax This mode's vmax
 	 * @param _maxDist The maximum distance traveled using this mode (unused!!!)
+	 * @param _kkcPerHour The kilocalories consumed per hour when using this mode
+	 * @param _co2PerKm The CO2 emitted per kilometer when using this mode
+	 * @param _pricePerKm The price of this mode per kilometer
 	 */
 	public Mode(long _id, String _mml, double _vmax, double _maxDist, double _kkcPerHour, double _co2PerKm, double _pricePerKm) {
 		id = _id;

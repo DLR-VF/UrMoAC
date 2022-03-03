@@ -161,7 +161,7 @@ public class OutputBuilder {
 	 *        ID, and coordinates of the object and the road position.
 	 *        Otherwise, only the object ID is written the rest is filled with
 	 *        -1.
-	 * @param d Definition about where to write to
+	 * @param outputName The name of the output for error reporting
 	 * @param options The options to retrieve parameter from
 	 * @param nearestEdges The map of objects to road positions
 	 * @param epsg Used projection

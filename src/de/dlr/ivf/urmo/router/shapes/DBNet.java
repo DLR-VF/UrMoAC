@@ -54,17 +54,30 @@ public class DBNet {
 	public PrecisionModel precisionModel = null;
 	/// @brief The used srid
 	public int srid = 0;
+	/// @brief The id supplier to use
 	IDGiver idGiver;
 
 
 	/**
 	 * @brief Constructor
+	 * @param _idGiver The id supplier to use
 	 */
 	public DBNet(IDGiver _idGiver) {
 		idGiver = _idGiver;
 	}
 
 	
+	/** @brief Adds an edge building it
+	 * @param _numID The numerical id of the edge
+	 * @param _id The string id of the edge
+	 * @param _from The starting node
+	 * @param _to The ending node
+	 * @param _modes Allowed modes
+	 * @param _vmax Maximum velocity allowed at this edge
+	 * @param _geom The geometry of the edge
+	 * @param _length The length of the edge
+	 * @return The built edge
+	 */
 	public boolean addEdge(long _numID, String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length) {
 		boolean hadError = false;
 		if(_length<=0) {
@@ -84,6 +97,7 @@ public class DBNet {
 		return !hadError;
 	}
 
+	
 	/**
 	 * @brief Adds an edge to the road network
 	 * @param e The edge to add
@@ -137,7 +151,7 @@ public class DBNet {
 
 	/**
 	 * @brief Returns the named node or builds it if not existing
-	 * @param id The id of the node to return
+	 * @param sid The id of the node to return
 	 * @param pos The node's position
 	 * @return The node
 	 */
@@ -180,6 +194,8 @@ public class DBNet {
 	 * @brief Removes this edge from the network
 	 * 
 	 * The references to this edge are removed from the start/end node.
+	 * 
+	 * @param edge The edge to remove
 	 */
 	public void removeEdge(DBEdge edge) {
 		name2edge.remove(edge.id);
@@ -244,7 +260,7 @@ public class DBNet {
 
 	/**
 	 * @brief Prunes this road network to the named mode !!! not implemented
-	 * @param mode The mode for which edges shall be kept
+	 * @param modes The mode for which edges shall be kept
 	 */
 	public void pruneForModes(long modes) {
 		Vector<DBEdge> toRemove = new Vector<>();
@@ -261,6 +277,7 @@ public class DBNet {
 
 	/**
 	 * @brief Checks which edges are not connected to the major part of the network and removes them
+	 * @param report Whether the removal of edges shall be reported
 	 */
 	public void dismissUnconnectedEdges(boolean report) {
 		Set<DBEdge> seen = new HashSet<>();
@@ -320,7 +337,6 @@ public class DBNet {
 	}
 
 
-
 	/**
 	 * @brief Returns the precision model (for building GIS structures)
 	 * @return The precision model
@@ -340,7 +356,7 @@ public class DBNet {
 
 	
 	/**
-	 * @brief goes through the edges, sorts their speed reductions
+	 * @brief Goes through the edges, sorts their speed reductions by time
 	 */
 	public void sortSpeedReductions() {
 		for(DBEdge e : name2edge.values()) {
@@ -351,7 +367,7 @@ public class DBNet {
 
 	/**
 	 * @brief Extends the network by adding opposite edges for pedestrians
-	 * @param index the next edge id to use
+	 * @param index The next edge id to use
 	 */
 	public void extendDirections() {
 		Vector<DBEdge> newEdges = new Vector<>();

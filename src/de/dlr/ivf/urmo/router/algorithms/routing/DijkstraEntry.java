@@ -48,7 +48,7 @@ public class DijkstraEntry {
 	public double tt;
 	/// @brief The travel time needed to pass this edge
 	public double ttt;
-	// @brief The interchange time at this node
+	/// @brief The interchange time at this node
 	public double interchangeTT;
 	/// @brief Whether the edge was approached using the opposite direction edge
 	public boolean wasOpposite;

@@ -86,6 +86,7 @@ public class GTFSData {
 	 * @param tripID The ID of the trip
 	 * @param stopTimes The stop times to recheck
 	 * @param id2stop The map of ids to stops
+	 * @return The number of errorneous connections
 	 */
 	public int recheckTimesAndInsert(String tripID, Vector<GTFSStopTime> stopTimes, HashMap<String, GTFSStop> id2stop) {
 		Collections.sort(stopTimes, new Comparator<GTFSStopTime>() {

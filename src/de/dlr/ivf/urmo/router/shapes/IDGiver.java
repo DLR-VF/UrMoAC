@@ -21,7 +21,9 @@ package de.dlr.ivf.urmo.router.shapes;
  * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
  */
 public interface IDGiver {
-	/// @brief Returns the next running id
+	/** @brief Returns the next running id
+	 * @return Next free id
+	 */
 	public long getNextRunningID();
 
 }

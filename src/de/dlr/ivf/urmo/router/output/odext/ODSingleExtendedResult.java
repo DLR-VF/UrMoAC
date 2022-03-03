@@ -66,8 +66,8 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Generates an empty entry.
-	 * @param _srcID The id of the origin the represented trip starts at
-	 * @param _destID The id of the destination the represented trip ends at
+	 * @param srcID The id of the origin the represented trip starts at
+	 * @param destID The id of the destination the represented trip ends at
 	 */
 	public ODSingleExtendedResult(long srcID, long destID) {
 		super(srcID, destID);
@@ -78,11 +78,11 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Computes the distance and the travel time
-	 * @param _srcID The id of the origin the represented trip starts at
-	 * @param _destID The id of the destination the represented trip ends at
-	 * @param from The origin of the route
-	 * @param to The destination of the route
-	 * @param dr Routing path
+	 * @param srcID The id of the origin the represented trip starts at
+	 * @param destID The id of the destination the represented trip ends at
+	 * @param from The mapped source
+	 * @param to The mapped destination
+	 * @param dr The path between the source and the destination
 	 */
 	public ODSingleExtendedResult(long srcID, long destID, MapResult from, MapResult to, DijkstraResult dr) {
 		super(srcID, destID, from, to, dr);
@@ -119,6 +119,7 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 	 * @brief Norms the computed measures
 	 * @param numSources The number of sources
 	 * @param sourcesWeight The sum of the sources' weights
+	 * @return The normed result
 	 */
 	@Override
 	public AbstractSingleResult getNormed(int numSources, double sourcesWeight) {

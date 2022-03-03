@@ -35,8 +35,7 @@ public class GTFSConnection {
 	/**
 	 * @brief Constructor
 	 * @param e The edge representation of this connection
-	 * @param _line The pt line that realises this connection
-	 * @param _tripID The id of the pt trip that realises this connection
+	 * @param _trip The id of the pt trip that realises this connection
 	 * @param _departureTime The departure time of the pt vehicle from the starting station
 	 * @param _arrivalTime The arrival time of the pt vehicle at the ending station
 	 */
@@ -48,11 +47,20 @@ public class GTFSConnection {
 		arrivalTime = _arrivalTime;
 	}
 
-	
+
+	/** @brief Returns the travel time
+	 * @param time The current time
+	 * @return The travel time
+	 */
 	public double getTravelTime(double time) {
 		return arrivalTime - time;
 	}
 
+	
+	/** @brief Returns the waiting time
+	 * @param time The current time
+	 * @return The waiting time
+	 */
 	public double getWaitingTime(double time) {
 		return departureTime - time;
 	}

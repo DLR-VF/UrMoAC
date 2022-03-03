@@ -30,8 +30,8 @@ public class GTFSTrip {
 
 	/**
 	 * @brief Constructor
-	 * @param _routeID The id of the route
 	 * @param _tripID The id of the trip
+	 * @param _route The route
 	 */
 	public GTFSTrip(String _tripID, GTFSRoute _route) {
 		route = _route;
