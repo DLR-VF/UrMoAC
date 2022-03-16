@@ -17,6 +17,8 @@ package de.dlr.ivf.urmo.router.shapes;
 
 import java.util.Vector;
 
+import org.locationtech.jts.geom.Geometry;
+
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
 
 /**
@@ -31,26 +33,33 @@ public class Layer {
 	public boolean visible;
 	/// @brief List of objects stored in this layer
 	Vector<EdgeMappable> objects;
+	/// @brief The boundary to clip objects to
+	Geometry envelope;
 
 
 	/**
 	 * @brief Constructor
 	 * @param _name The name of this layer
+	 * @param _envelope The boundary to clip objects to
 	 */
-	public Layer(String _name) {
+	public Layer(String _name, Geometry _envelope) {
 		name = _name;
 		objects = new Vector<>();
 		visible = true;
+		envelope = _envelope;
 	}
 
 
 	/**
 	 * @brief Adds an object to the layer
+	 * 
+	 * If a boundary was given, only objects which are (partially) within it, will be kept 
 	 * @param o The object to add
 	 */
 	public void addObject(LayerObject o) {
-		// !!! update min/max
-		objects.add(o);
+		if(envelope==null || envelope.intersects(o.getGeometry())) {
+			objects.add(o);
+		}
 	}
 
 

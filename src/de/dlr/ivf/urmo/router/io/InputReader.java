@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -51,7 +50,6 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
@@ -69,7 +67,7 @@ import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
 /**
  * @class InputReader
- * @brief Methods for loading sources/destniations, entrainment data, geometries and O/D-connections 
+ * @brief Methods for loading sources/destinations, entrainment data, geometries and O/D-connections 
  * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
  */
 public class InputReader {
@@ -139,6 +137,7 @@ public class InputReader {
 	 * @brief Loads a set of objects (a layer)
 	 * 
 	 * @param options The command line options 
+	 * @param bounds The bounds to clip the read thing to
 	 * @param base The layer/type ("from", "to") of the objects to load
 	 * @param varName Name of the variable field
 	 * @param dismissWeight Whether the weight shall be discarded
@@ -147,7 +146,7 @@ public class InputReader {
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
-	public static Layer loadLayer(OptionsCont options, String base, String varName, boolean dismissWeight, IDGiver idGiver, int epsg) throws IOException {
+	public static Layer loadLayer(OptionsCont options, Geometry bounds, String base, String varName, boolean dismissWeight, IDGiver idGiver, int epsg) throws IOException {
 		String filter = options.isSet(base+".filter") ? options.getString(base + ".filter") : ""; // !!! use something different
 		varName = varName==null ? null : options.getString(varName);
 		String def = options.getString(base);
@@ -156,15 +155,15 @@ public class InputReader {
 		switch(format) {
 		case FORMAT_POSTGRES:
 		case FORMAT_SQLITE:
-			return loadLayerFromDB(base, format, inputParts, filter, varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg);
+			return loadLayerFromDB(base, bounds, format, inputParts, filter, varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg);
 		case FORMAT_CSV:
-			return loadLayerFromCSVFile(base, inputParts[0], idGiver, dismissWeight);
+			return loadLayerFromCSVFile(base, bounds, inputParts[0], idGiver, dismissWeight);
 		case FORMAT_WKT:
-			return loadLayerFromWKTFile(base, inputParts[0], idGiver, dismissWeight);
+			return loadLayerFromWKTFile(base, bounds, inputParts[0], idGiver, dismissWeight);
 		case FORMAT_SHAPEFILE:
-			return loadLayerFromShapefile(base, inputParts[0], varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg);
+			return loadLayerFromShapefile(base, bounds, inputParts[0], varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg);
 		case FORMAT_SUMO:
-			return loadLayerFromSUMOPOIs(base, inputParts[0], idGiver);
+			return loadLayerFromSUMOPOIs(base, bounds, inputParts[0], idGiver);
 		case FORMAT_GEOPACKAGE:
 			throw new IOException("Reading '" + base + "' from " + Utils.getFormatMMLName(format) + " is not supported.");
 		default:
@@ -179,6 +178,7 @@ public class InputReader {
 	 * 
 	 * @param layerName The layer/type ("from", "to") of the objects to load
 	 * @param format The format of the source
+	 * @param bounds The bounds to clip the read thing to
 	 * @param inputParts The definition of the source
 	 * @param filter A WHERE-clause statement (optional, empty string if not used)
 	 * @param varName The name of the attached variable
@@ -189,14 +189,22 @@ public class InputReader {
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
-	private static Layer loadLayerFromDB(String layerName, Utils.Format format, String[] inputParts, String filter, String varName,
+	private static Layer loadLayerFromDB(String layerName, Geometry bounds, Utils.Format format, String[] inputParts, String filter, String varName,
 			String idS, String geomS, IDGiver idGiver, int epsg) throws IOException {
 		try {
 			if (!"".equals(filter)) {
 				filter = " WHERE " + filter;
 			}
+			if (bounds!=null) {
+				if("".equals(filter)) {
+					filter = " WHERE ";
+				} else {
+					filter = filter + " AND ";
+				}
+				filter = filter + "ST_Within(ST_TRANSFORM(" + geomS + ", " + epsg + "), ST_GeomFromText('" + bounds.toText() + "', " + epsg + "))";
+			}
 			Connection connection = Utils.getConnection(format, inputParts, layerName);
-				connection.setAutoCommit(true);
+			connection.setAutoCommit(true);
 			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 			((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
 			String query = "SELECT " + idS + ",";
@@ -208,7 +216,7 @@ public class InputReader {
 			ResultSet rs = s.executeQuery(query);
 
 			WKBReader wkbRead = new WKBReader();
-			Layer layer = new Layer(layerName);
+			Layer layer = new Layer(layerName, bounds);
 			while (rs.next()) {
 				ResultSetMetaData rsmd = rs.getMetaData();
 				int numColumns = rsmd.getColumnCount();
@@ -239,14 +247,15 @@ public class InputReader {
 	 * @brief Loads a set of objects from a CVS-file
 	 * 
 	 * @param layerName The name of the layer to generate
+	 * @param bounds The bounds to clip the read thing to
 	 * @param fileName The name of the file to read
 	 * @param idGiver A reference to something that supports a running ID
 	 * @param dismissWeight Whether the weight shall be discarded
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
-	private static Layer loadLayerFromCSVFile(String layerName, String fileName, IDGiver idGiver, boolean dismissWeight) throws IOException { 
-		Layer layer = new Layer(layerName);
+	private static Layer loadLayerFromCSVFile(String layerName, Geometry bounds, String fileName, IDGiver idGiver, boolean dismissWeight) throws IOException { 
+		Layer layer = new Layer(layerName, bounds);
 		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
 		BufferedReader br = new BufferedReader(new FileReader(fileName));
 		String line = null;
@@ -259,6 +268,9 @@ public class InputReader {
 				int i = 1;
 				for(; i<vals.length-1; i+=2) {
 					geom.add(new Coordinate(Double.parseDouble(vals[i]), Double.parseDouble(vals[i+1])));
+				}
+				if(geom.size()==0) {
+					throw new IOException("Missing geometry for object '" + vals[0] + "' in file '" + fileName + "'.");
 				}
 				Geometry geom2 = null;
 				if(geom.size()==1) {
@@ -293,15 +305,16 @@ public class InputReader {
 	 * @brief Loads a set of objects from a WKT-file
 	 * 
 	 * @param layerName The name of the layer to generate
+	 * @param bounds The bounds to clip the read thing to
 	 * @param fileName The name of the file to read
 	 * @param idGiver A reference to something that supports a running ID
 	 * @param dismissWeight Whether the weight shall be discarded
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
-	private static Layer loadLayerFromWKTFile(String layerName, String fileName, IDGiver idGiver, boolean dismissWeight) throws IOException { 
+	private static Layer loadLayerFromWKTFile(String layerName, Geometry bounds, String fileName, IDGiver idGiver, boolean dismissWeight) throws IOException { 
 		try {
-			Layer layer = new Layer(layerName);
+			Layer layer = new Layer(layerName, bounds);
 			GeometryFactory gf = new GeometryFactory(new PrecisionModel());
 			BufferedReader br = new BufferedReader(new FileReader(fileName));
 			WKTReader wktReader = new WKTReader();
@@ -338,6 +351,7 @@ public class InputReader {
 	 * @brief Loads a set of objects from a shapefile
 	 * 
 	 * @param layerName The name of the layer to generate
+	 * @param bounds The bounds to clip the read thing to
 	 * @param fileName The name of the file to read
 	 * @param varName The name of the attached variable
 	 * @param idS The name of the column to read the IDs from
@@ -347,10 +361,10 @@ public class InputReader {
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
-	private static Layer loadLayerFromShapefile(String layerName, String fileName, String varName,
+	private static Layer loadLayerFromShapefile(String layerName, Geometry bounds, String fileName, String varName,
 			String idS, String geomS, IDGiver idGiver, int epsg) throws IOException { 
 		try {
-			Layer layer = new Layer(layerName);
+			Layer layer = new Layer(layerName, bounds);
 			File file = new File(fileName);
 			if(!file.exists() || !fileName.endsWith(".shp")) {
 			    throw new IOException("Invalid shapefile filepath: " + fileName);
@@ -390,14 +404,15 @@ public class InputReader {
 	 * @brief Loads a set of objects from a SUMO-POI-file
 	 * 
 	 * @param layerName The name of the layer to generate
+	 * @param bounds The bounds to clip the read thing to
 	 * @param fileName The name of the file to read
 	 * @param idGiver A reference to something that supports a running ID
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
-	private static Layer loadLayerFromSUMOPOIs(String layerName, String fileName, IDGiver idGiver) throws IOException {
+	private static Layer loadLayerFromSUMOPOIs(String layerName, Geometry bounds, String fileName, IDGiver idGiver) throws IOException {
 		try {
-			Layer layer = new Layer(layerName);
+			Layer layer = new Layer(layerName, bounds);
 	        SAXParserFactory spf = SAXParserFactory.newInstance();
 	        spf.setNamespaceAware(true);
 	        SAXParser saxParser;
@@ -417,13 +432,14 @@ public class InputReader {
 	 * @brief Loads a set of objects from a Geopackage file
 	 * 
 	 * @param layerName The name of the layer to generate
+	 * @param bounds The bounds to clip the read thing to
 	 * @param fileName The name of the file to read
 	 * @param idGiver A reference to something that supports a running ID
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
-	private static Layer loadLayerFromGPKG(String layerName, String fileName, IDGiver idGiver) throws ParserConfigurationException, SAXException, IOException { 
-		Layer layer = new Layer(layerName);
+	private static Layer loadLayerFromGPKG(String layerName, Geometry bounds, String fileName, IDGiver idGiver) throws ParserConfigurationException, SAXException, IOException { 
+		Layer layer = new Layer(layerName, bounds);
 		GeoPackage geoPackage = new GeoPackage(new File(fileName));
 		GeoPackageReader reader = new GeoPackageReader(fileName, null);
 		GeneralParameterValue[] parameters = new GeneralParameterValue[1];
@@ -677,7 +693,7 @@ public class InputReader {
 		switch(format) {
 		case FORMAT_POSTGRES:
 		case FORMAT_SQLITE:
-			return loadODConnectionsDB(format, inputParts);
+			return loadODConnectionsFromDB(format, inputParts);
 		case FORMAT_CSV:
 			return loadODConnectionsFromCSVFile(inputParts[0]);
 		case FORMAT_WKT:
@@ -697,7 +713,7 @@ public class InputReader {
 	 * @return The loaded od-connections
 	 * @throws IOException When something fails
 	 */
-	private static Vector<DBODRelation> loadODConnectionsDB(Utils.Format format, String[] inputParts) throws IOException {
+	private static Vector<DBODRelation> loadODConnectionsFromDB(Utils.Format format, String[] inputParts) throws IOException {
 		try {
 			Connection connection = Utils.getConnection(format, inputParts, "od-connections");
 			connection.setAutoCommit(true);

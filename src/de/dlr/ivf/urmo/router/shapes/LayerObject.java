@@ -105,5 +105,6 @@ public class LayerObject implements EdgeMappable {
 	public double getAttachedValue() {
 		return attachedVar;
 	}
-
+	
+	
 }

@@ -26,7 +26,9 @@ import java.util.Vector;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.xml.sax.SAXException;
 
 import de.dks.utils.options.Option_Bool;
@@ -322,6 +324,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("shortest", "Searches only one destination per origin.");
 		options.add("requirespt", new Option_Bool());
 		options.setDescription("requirespt", "When set, only information that contains a PT part are stored.");
+		options.add("clip-to-net", new Option_Bool());
+		options.setDescription("clip-to-net", "When set, sources, destinations, and pt is clipped at the network boundaries.");
 		options.add("measure", new Option_String());
 		options.setDescription("measure", "The measure to use during the routing ['tt_mode', 'price_tt', 'interchanges_tt', 'maxinterchanges_tt'].");
 		options.add("measure-param1", new Option_Double());
@@ -606,37 +610,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		if(dismissWeight && !options.isDefault("weight")) {
 			System.out.println("Warning: the weight option is not used as no aggregation takes place.");
 		}
-		// from
-		if (verbose) System.out.println("Reading origin places");
-		Layer fromLayer = InputReader.loadLayer(options, "from", "weight", dismissWeight, this, epsg); 
-		if (verbose) System.out.println(" " + fromLayer.getObjects().size() + " origin places loaded");
-		if (fromLayer.getObjects().size()==0) {
-			hadError = true;
-			return false;
-		}
-		// from aggregation
-		Layer fromAggLayer = null;
-		if (options.isSet("from-agg") && !options.getString("from-agg").equals("all")) {
-			if (verbose) System.out.println("Reading origin aggregation zones");
-			fromAggLayer = InputReader.loadLayer(options, "from-agg", null, true, this, epsg);
-			if (verbose) System.out.println(" " + fromAggLayer.getObjects().size() + " origin aggregation geometries loaded");
-		}
-		// to
-		if (verbose) System.out.println("Reading destination places");
-		Layer toLayer = InputReader.loadLayer(options, "to", "variable", false, this, epsg);
-		if (verbose) System.out.println(" " + toLayer.getObjects().size() + " destination places loaded");
-		if (toLayer.getObjects().size()==0) {
-			hadError = true;
-			return false;
-		}
-		// to aggregation
-		Layer toAggLayer = null;
-		if (options.isSet("to-agg") && !options.getString("to-agg").equals("all")) {
-			if (verbose) System.out.println("Reading sink aggregation zones");
-			toAggLayer = InputReader.loadLayer(options, "to-agg", null, true, this, epsg); 
-			if (verbose) System.out.println(" " + toAggLayer.getObjects().size() + " sink aggregation geometries loaded");
-		}
-		
+
 		// net
 		if (!options.isSet("net")) {
 			throw new IOException("A network must be given.");
@@ -650,11 +624,44 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			net.dismissUnconnectedEdges(false);
 			if (verbose) System.out.println(" " + net.getNumEdges() + " remaining after removing unconnected ones.");
 		}
-		/*
-		if (worker.verbose)
-			System.out.println(" " + net.getNumEdges() + " remaining after prunning");
-		*/
+		Geometry bounds = null;
+		if(options.getBool("clip-to-net")) {
+			bounds = net.getBounds();
+		} else if (options.isSet("pt-boundary")) {
+			bounds = InputReader.loadGeometry(options.getString("pt-boundary"), "pt-boundary", epsg);
+		}
 
+		// from
+		if (verbose) System.out.println("Reading origin places");
+		Layer fromLayer = InputReader.loadLayer(options, bounds, "from", "weight", dismissWeight, this, epsg); 
+		if (verbose) System.out.println(" " + fromLayer.getObjects().size() + " origin places loaded");
+		if (fromLayer.getObjects().size()==0) {
+			hadError = true;
+			return false;
+		}
+		// from aggregation
+		Layer fromAggLayer = null;
+		if (options.isSet("from-agg") && !options.getString("from-agg").equals("all")) {
+			if (verbose) System.out.println("Reading origin aggregation zones");
+			fromAggLayer = InputReader.loadLayer(options, bounds, "from-agg", null, true, this, epsg);
+			if (verbose) System.out.println(" " + fromAggLayer.getObjects().size() + " origin aggregation geometries loaded");
+		}
+		// to
+		if (verbose) System.out.println("Reading destination places");
+		Layer toLayer = InputReader.loadLayer(options, bounds, "to", "variable", false, this, epsg);
+		if (verbose) System.out.println(" " + toLayer.getObjects().size() + " destination places loaded");
+		if (toLayer.getObjects().size()==0) {
+			hadError = true;
+			return false;
+		}
+		// to aggregation
+		Layer toAggLayer = null;
+		if (options.isSet("to-agg") && !options.getString("to-agg").equals("all")) {
+			if (verbose) System.out.println("Reading sink aggregation zones");
+			toAggLayer = InputReader.loadLayer(options, bounds, "to-agg", null, true, this, epsg); 
+			if (verbose) System.out.println(" " + toAggLayer.getObjects().size() + " sink aggregation geometries loaded");
+		}
+		
 		// travel times
 		if (options.isSet("traveltimes")) {
 			if (verbose) System.out.println("Reading the roads' travel times");
@@ -672,10 +679,6 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		// public transport network
 		if (options.isSet("pt")) {
 			if (verbose) System.out.println("Reading the public transport network");
-			Geometry bounds = null;
-			if (options.isSet("pt-boundary")) {
-				bounds = InputReader.loadGeometry(options.getString("pt-boundary"), "pt-boundary", epsg);
-			}
 			gtfs = GTFSReader.load(options, bounds, net, entrainmentMap, epsg, verbose);
 			if (verbose) System.out.println(" loaded");
 		}

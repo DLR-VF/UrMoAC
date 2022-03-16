@@ -1,11 +1,11 @@
-Reading origin places
- 2 origin places loaded
-Reading destination places
- 5 destination places loaded
 Reading the road network
  20 edges loaded (11 nodes)
 Checking for connectivity...
  20 remaining after removing unconnected ones.
+Reading origin places
+ 2 origin places loaded
+Reading destination places
+ 5 destination places loaded
 Reading the explicite O/D connections
  loaded
 Computing access from the origins to the network

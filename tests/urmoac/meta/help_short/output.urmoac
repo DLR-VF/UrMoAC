@@ -64,6 +64,8 @@ Usage:
   --shortest                     Searches only one destination per origin.
   --requirespt                   When set, only information that contains a PT
                                    part are stored.
+  --clip-to-net                  When set, sources, destinations, and pt is
+                                   clipped at the network boundaries.
   --measure                      The measure to use during the routing
                                    ['tt_mode', 'price_tt', 'interchanges_tt',
                                    'maxinterchanges_tt'].

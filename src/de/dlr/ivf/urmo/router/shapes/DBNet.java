@@ -24,6 +24,8 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.index.strtree.STRtree;
@@ -423,4 +425,22 @@ public class DBNet {
 		return name2edge.size();
 	}
 
+	
+	/**
+	 * @brief Returns the bounds of the network
+	 * @todo May be inaccurate due to projection?
+	 * @todo Use a concave polygon?
+	 * @return The bounds of the network
+	 */
+	public Geometry getBounds() {
+		GeometryFactory geometryFactory = new GeometryFactory();
+		Coordinate cs[] = new Coordinate[5];
+		cs[0] = minCorner;
+		cs[1] = new Coordinate(maxCorner.x, minCorner.y);
+		cs[2] = maxCorner;
+		cs[3] = new Coordinate(minCorner.x, maxCorner.y);
+		cs[4] = minCorner;
+		return geometryFactory.createPolygon(cs);
+	}
+	
 }

@@ -33,6 +33,7 @@
    <max-variable-sum></max-variable-sum>
    <shortest></shortest>
    <requirespt></requirespt>
+   <clip-to-net></clip-to-net>
    <measure></measure>
    <measure-param1></measure-param1>
    <measure-param2></measure-param2>
