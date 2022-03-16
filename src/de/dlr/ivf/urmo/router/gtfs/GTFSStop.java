@@ -107,7 +107,7 @@ public class GTFSStop extends DBNode implements EdgeMappable {
 		if (!m.containsKey(route)) {
 			long modes = Modes.getMode("foot").id;
 			if(em.carrier2carried.containsKey("pt"+route.type)) {
-				modes |= Modes.getMode(em.carrier2carried.get("pt"+route.type)).id;
+				modes |= em.carrier2carried.get("pt"+route.type);
 			}
 			double length = this.pos.distance(to.pos);
 			Coordinate coord[] = new Coordinate[2];
