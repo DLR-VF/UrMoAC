@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # =========================================================
-# buildEntrainmentTable.py
+# postgres_tester.py
 # @author Daniel Krajzewicz
-# @date 2018
+# @date 2018-2022
 # @copyright Institut fuer Verkehrsforschung, 
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Executes a test definition for checking 
