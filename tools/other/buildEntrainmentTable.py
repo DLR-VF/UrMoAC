@@ -6,10 +6,22 @@
 # @copyright Institut fuer Verkehrsforschung, 
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Builds an example table that defines entrainment
+#
+# This is a very simple tool to demonstrate how an 
+# entrainment table looks like.
+#
+# In principle, it is outdated a bot as well as entrainment
+# tables may as well be given as csv-files.
 # =========================================================
+
+
+# --- imports ---------------------------------------------
 import sys, psycopg2
 
 
+
+
+# --- functionality ---------------------------------------
 conn = psycopg2.connect("dbname='XXX' user='XXX' host='XXX' password='XXX'")
 cursor = conn.cursor()
 cursor.execute("""CREATE TABLE public.entrainment (
