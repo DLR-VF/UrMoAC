@@ -81,15 +81,18 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 		DijkstraEntry current = toEdgeEntry;
 		String lastPT = null; 
 		Set<String> seenLines = new HashSet<>();
+		// we go backwards through the list
 		do {
 			double ttt = current.prev==null ? current.tt : current.tt - current.prev.tt;
 			if(current.prev==null&&!single) {
+				// compute offset to edge's begin / end if it's the first edge
 				if(current.e==from.edge.opposite) {
 					factor = from.pos / from.edge.length;
 				} else {
 					factor = 1. - from.pos / from.edge.length;
 				}
 			}
+			//
 			DBEdge edge = current.e;
 			e.weightedKCal += edge.getKKC(current.usedMode, ttt) * factor;
 			e.weightedPrice += edge.getPrice(current.usedMode, seenLines) * factor;
@@ -123,10 +126,9 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 				e.lines.add(current.usedMode.mml);
 			}
 			current = current.prev;
-			factor = 1.;
+			factor = 1.; // reset factor for normal (not first / last) edges
 		} while(current!=null);
-		// TODO: recheck
-		if(trips.size()<2) {
+		if(trips.size()<1) {
 			e.weightedAccess = 0;
 			e.weightedEgress = 0;
 		}

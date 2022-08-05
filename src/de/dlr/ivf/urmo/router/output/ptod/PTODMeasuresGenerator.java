@@ -135,7 +135,7 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 			addStep(e, step, dist, tt);
 		}
 		// no access / egress when no pt
-		if(trips.size()<2) {
+		if(trips.size()<1) {
 			e.weightedAccessDistance = 0;
 			e.weightedAccessTravelTime = 0;
 			e.weightedEgressDistance = 0;
