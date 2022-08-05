@@ -147,6 +147,7 @@ public class DBNet {
 		}
 		DBNode n = new DBNode(id, pos);
 		nodes.put(id, n);
+		idGiver.hadExternID(id);
 		return n;
 	}
 

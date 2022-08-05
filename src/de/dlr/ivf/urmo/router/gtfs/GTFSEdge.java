@@ -66,6 +66,9 @@ public class GTFSEdge extends DBEdge {
 	 * @brief Returns the next available connection at this edge
 	 * @param time The time of arrival at this edge/stop
 	 * @return The next connection on this edge
+	 * @todo: Use a binary search here
+	 * @todo: We could dismiss earlier rides when loading
+	 * @todo: While progressing, we could keep track of last seen ride
 	 */
 	public GTFSConnection getConnection(double time) {
 		for (GTFSConnection c : connections) {

@@ -881,6 +881,15 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		return ++runningID;
 	}
 
+
+	
+	/** @brief Informs the id giver about a new id
+	 * @param id An extern id to regard
+	 */
+	public synchronized void hadExternID(long id) {
+		runningID = Math.max(runningID, id+1);
+	}
+
 	
 
 	/** @brief Returns whether an error occurred

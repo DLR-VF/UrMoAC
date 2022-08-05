@@ -26,4 +26,10 @@ public interface IDGiver {
 	 */
 	public long getNextRunningID();
 
+	
+	/** @brief Informs the id giver about a new id
+	 * @param id An extern id to regard
+	 */
+	public void hadExternID(long id);
+
 }

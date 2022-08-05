@@ -117,12 +117,13 @@ public class BoundDijkstra {
 						continue;
 					}
 					usedMode = Modes.selectModeFrom(availableModes);
-					interchangeTT = 0;
+					// @todo: what is an inter-mode interchange time? interchangeTT = 0;
 				}
 				GTFSConnection ptConnection = null;
 				double ttt;
 				if(oe.isGTFSEdge()) {
 					GTFSEdge ge = (GTFSEdge) oe;
+					// @todo: this is not correct, the interchange should be regarded here, not in the ttt computation below
 					ptConnection = ge.getConnection(time + nns.tt);
 					if(ptConnection==null) {
 						ttt = 86400;
@@ -131,7 +132,7 @@ public class BoundDijkstra {
 						if(!ptConnection.trip.equals(prevTrip)) {
 							interchangeTT = ((GTFSStop) nns.n).getInterchangeTime(ptConnection.trip, prevTrip, 0);
 						}
-						ttt = ptConnection.arrivalTime - time + interchangeTT;
+						ttt = ptConnection.arrivalTime - time - nns.tt + interchangeTT;
 					}
 				} else {
 					ttt = oe.getTravelTime(usedMode.vmax, time + nns.tt) + interchangeTT;
@@ -139,7 +140,6 @@ public class BoundDijkstra {
 				}
 				DBNode n = oe.getToNode();
 				double distance = nns.distance + oe.getLength();
-				//double ttt = oe.getTravelTime("", usedMode.vmax, time + nns.tt) + interchangeTT;
 				tt = nns.tt + ttt;
 				DijkstraEntry oldValue = ret.getPriorNodeInfo(n, availableModes);
 				DijkstraEntry newValue = new DijkstraEntry(measure, nns, n, oe, availableModes, usedMode, distance, tt, ptConnection, ttt, interchangeTT, false);
