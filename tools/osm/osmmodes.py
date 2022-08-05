@@ -6,8 +6,6 @@
 # @copyright Institut fuer Verkehrsforschung, 
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Defines modes of transport for the OSM importer
-# Call with
-#  osmdb_buildWays <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD>
 # =========================================================
   
 FOOT = 1

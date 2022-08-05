@@ -10,10 +10,6 @@
 
 
 # --- imports ---------------------------------------------
-import os, string, sys
-import datetime
-from optparse import OptionParser
-from xml.sax import saxutils, make_parser, handler
 import psycopg2
 
 
@@ -22,7 +18,6 @@ class OSMDB:
     """ @class OSMDB
     @brief A connection to a database representation of an OSM area
     """
-
   
     # --- constructors ------------------------------------
     def __init__(self, schema, dbprefix, conn, cursor):
