@@ -7,165 +7,287 @@
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Imports a given GTFS data set
 # =========================================================
+
+
+# --- imported modules ------------------------------------
+from enum import IntEnum
 import psycopg2, sys, os.path, io
+import gtfs_defs
 
 
-def myValSplit(line):
-  vals = line.split(",")
-  nVals = []
-  hadQuotes = False
-  for v in vals:
-    #v2 = v.strip()
-    v2 = v
-    if hadQuotes:
-      nVals[-1] = nVals[-1] + "," + v2
-      if len(v2)>0 and v2[-1]=='"':
+"""! @brief A map from GTFS data types to Postgres datatypes"""
+gtfs2postgres = {
+    gtfs_defs.FieldType.COLOR : "text",
+    gtfs_defs.FieldType.CURRENCY_CODE : "text",
+    gtfs_defs.FieldType.CURRENCY_AMOUNT : "text",
+    gtfs_defs.FieldType.DATE : "text",
+    gtfs_defs.FieldType.EMAIL : "text",
+    gtfs_defs.FieldType.ENUM : "integer",
+    gtfs_defs.FieldType.ID : "text",
+    gtfs_defs.FieldType.LANGUAGE_CODE : "text",
+    gtfs_defs.FieldType.LATITUDE : "real",
+    gtfs_defs.FieldType.LONGITUDE : "real",
+    gtfs_defs.FieldType.FLOAT : "real",
+    gtfs_defs.FieldType.INTEGER : "integer",
+    gtfs_defs.FieldType.PHONE_NUMBER : "text",
+    gtfs_defs.FieldType.TIME : "text",
+    gtfs_defs.FieldType.TEXT : "text",
+    gtfs_defs.FieldType.TIMEZONE : "text",
+    gtfs_defs.FieldType.URL : "text"
+}
+
+
+
+class GTFSImporter:
+    """! @brief A class for importing GTFS data into a database"""
+
+    def __init__(self, srcFolder, dbDef):
+        """! @brief Initialises the importer
+        @param self The class instance
+        @param srcFolder The folder to read data from
+        @param dbDef The definition of the database to write the data to
+        """
+        self._srcFolder = srcFolder
+        (self._host, self._db, self._schema, self._tablePrefix, self._user, self._password) = dbDef.split(";")
+        # connect to db
+        self._conn = psycopg2.connect("host='%s' dbname='%s' user='%s' password='%s'" % (self._host, self._db, self._user, self._password))
+        self._cursor = self._conn.cursor()
+
+        
+    def dropTables(self):
+        """! @brief Drops existing database tables
+        @param self The class instance
+        """
+        print ("Removing old tables")
+        for td in gtfs_defs.tableDefinitions:
+            self._cursor.execute("DROP TABLE IF EXISTS %s.%s_%s;" % (self._schema, self._tablePrefix, td))
+        self._conn.commit()
+
+
+    def buildTables(self):
+        """! @brief Builds new database tables
+        @param self The class instance
+        """
+        print ("Building tables")
+        for td in gtfs_defs.tableDefinitions:
+            call = "CREATE TABLE %s.%s_%s ( " % (self._schema, self._tablePrefix, td)
+            for ie,e in enumerate(gtfs_defs.tableDefinitions[td]):
+                if ie>0:
+                    call = call + ", "
+                call = call + "%s %s" % (e[0], gtfs2postgres[e[1]])
+            call = call + " );"
+            self._cursor.execute(call)
+        self._conn.commit()
+        self._cursor.execute("SELECT AddGeometryColumn('%s', '%s_stops', 'pos', 4326, 'POINT', 2);" % (self._schema, self._tablePrefix))
+        self._conn.commit()
+
+
+    def _valSplit(self, line):
+        """! @brief Splits a given GTFS line taking into account quotes
+        @param self The class instance
+        @param line The line of a GTFS file to split
+        """
+        vals = line.split(",")
+        nVals = []
         hadQuotes = False
-        nVals[-1] = nVals[-1][:-1]
-      continue
-    if len(v2)>0 and v2[0]=='"': 
-      hadQuotes = True
-      v2 = v2[1:]
-      if v2[-1]=='"':
-        v2 = v2[:-1]
-        hadQuotes = False
-    nVals.append(v2)
-  return nVals
+        for v in vals:
+            v2 = v
+            if hadQuotes: # had a quote before?
+                # then append current entry to the last one
+                nVals[-1] = nVals[-1] + "," + v2
+                if len(v2)>0 and v2[-1]=='"': # ends with a quote?
+                    # move to next entry
+                    hadQuotes = False
+                    # remove the quote
+                    nVals[-1] = nVals[-1][:-1]
+                continue
+            if len(v2)>0 and v2[0]=='"': # starts with a quote?
+                # mark as having a quote, remove quote
+                hadQuotes = True
+                v2 = v2[1:]
+                if v2[-1]=='"': # ends with a quote?
+                    # remove quote, plain element
+                    v2 = v2[:-1]
+                    hadQuotes = False
+            nVals.append(v2)
+        return nVals
+
+
+    def _getColumnsToWrite(self, fileType, l):
+        """! @brief Determines which fields shall be imported 
+        @param self The class instance
+        @param fileType The fileType type to read and import
+        @param l The header line
+        """
+        origNames = l.strip().split(",")
+        for i,n in enumerate(origNames):
+            origNames[i] = n.replace('"', '').strip()
+        columns = []
+        srcIndices = []
+        for n in gtfs_defs.tableDefinitions[fileType]:
+            if n[0] not in origNames:
+                if n[2]==gtfs_defs.Presence.REQUIRED:
+                    print (" Required column '%s' is missing. Aborting..." % (n[0]))
+                    return False
+            else:
+                columns.append(n)
+                srcIndices.append(origNames.index(n[0]))
+        return columns, srcIndices
   
 
-def readImportTable(conn, cursor, tableName, fileName, posNames, realNames, intNames):
-  print ("Processing " + fileName)
-  fd = io.open(fileName, 'r', encoding='utf8')
-  first = True
-  num = 0
-  for l in fd:
-    if first:
-      names = l.strip().split(",")
-      namesDB = ", ".join(names)
-      placeHolders = ", ".join(["%s"]*len(names))
-      if len(posNames)!=0:
-        placeHolders = placeHolders + ", ST_GeomFromText('POINT(%s %s)', 4326)"
-        namesDB = namesDB + ", pos" 
-      first = False
-      continue
-    
-    vals = myValSplit(l.strip())
-    pos = []
-    for i,n in enumerate(names):
-      n = n.replace('"', '')
-      if n in posNames:
-        pos.append(float(vals[i]))
-      if n in realNames:
-        if len(vals[i])!=0:
-          vals[i] = float(vals[i])
-        elif n=="min_transfer_time":
-          vals[i] = 0
-      if n in intNames:
-        if len(vals[i])!=0:
-          vals[i] = int(vals[i])
-        else:
-          vals[i] = -1
-    if len(posNames)!=0:
-      vals.append(pos[1])
-      vals.append(pos[0])
-    cursor.execute("INSERT INTO "+tableName+"("+namesDB+") VALUES ("+placeHolders+");", vals)
-    num += 1
-    if num>10000:
-      conn.commit()
-      num = 0
-  conn.commit()
-
-# parse command line parameter
-if len(sys.argv)<3:
-  print ("importGTFS.py <INPUT_FOLDER> <TARGET_DB_DEFINITION>")
-  print ("  where <TARGET_DB_DEFINITION> is <HOST>;<DB>;<SCHEMA>;<TABLE_PREFIX>;<USER>;<PASSWD>")
-  sys.exit()
-# - input folder and files
-inputFolder = sys.argv[1]
-if not os.path.exists(inputFolder):
-  print ("The folder '" + inputFolder + "' to import GTFS from does not exist.")
-  sys.exit()
-error = False
-for f in ["agency", "calendar", "calendar_dates", "routes", "stop_times", "stops", "trips"]:
-  fn = os.path.join(inputFolder, f+".txt")
-  if not os.path.exists(fn):
-    print ("The mandatory file '" + fn + "' to import GTFS from does not exist.")
-    error = True
-if error:
-  sys.exit()
-# - output db
-if len(sys.argv[2].split(";"))<6:
-  print ("Missing values in target database definition; should be: <HOST>;<DB>;<SCHEMA>;TABLE_PREFIX>;<USER>;<PASSWD>")
-  sys.exit()
-(host, dbName, schema, tableName, user, password) = sys.argv[2].split(";")
-
-# connect to db
-conn = psycopg2.connect("host='%s' dbname='%s' user='%s' password='%s'" % (host, dbName, user, password))
-cursor = conn.cursor()
-
-# build tables
-cursor.execute("""SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = '%s' AND table_name = '%s_agency');""" % (schema, tableName))
-if cursor.fetchall()[0][0]:
-  print ("Removing old tables")
-  cursor.execute("""DROP TABLE IF EXISTS %s.%s_agency;""" % (schema, tableName))
-  cursor.execute("""DROP TABLE IF EXISTS %s.%s_calendar;""" % (schema, tableName))
-  cursor.execute("""DROP TABLE IF EXISTS %s.%s_calendar_dates;""" % (schema, tableName))
-  cursor.execute("""DROP TABLE IF EXISTS %s.%s_routes;""" % (schema, tableName))
-  cursor.execute("""DROP TABLE IF EXISTS %s.%s_stop_times;""" % (schema, tableName))
-  cursor.execute("""DROP TABLE IF EXISTS %s.%s_stops;""" % (schema, tableName))
-  cursor.execute("""DROP TABLE IF EXISTS %s.%s_transfers;""" % (schema, tableName))
-  cursor.execute("""DROP TABLE IF EXISTS %s.%s_trips;""" % (schema, tableName))
-  conn.commit()
-  pass
-print ("Building tables")
-cursor.execute("""CREATE TABLE %s.%s_transfers ( from_stop_id text, to_stop_id text, transfer_type smallint, min_transfer_time real, from_trip_id text, to_trip_id text, from_route_id text, to_route_id text );""" % (schema, tableName))
-cursor.execute("""CREATE TABLE %s.%s_stops ( stop_id text, stop_code text, stop_name text, stop_desc text, stop_lat real, stop_lon real, location_type smallint, parent_station text );""" % (schema, tableName))
-cursor.execute("""CREATE TABLE %s.%s_agency ( agency_id text, agency_name text, agency_url text, agency_timezone text, agency_lang varchar(2), agency_phone text );""" % (schema, tableName))
-cursor.execute("""CREATE TABLE %s.%s_calendar ( service_id text, monday smallint, tuesday smallint, wednesday smallint, thursday smallint, friday smallint, saturday smallint, sunday smallint, start_date integer,end_date integer );""" % (schema, tableName))
-cursor.execute("""CREATE TABLE %s.%s_calendar_dates ( service_id text, date integer, exception_type smallint );""" % (schema, tableName))
-cursor.execute("""CREATE TABLE %s.%s_routes ( route_id text, agency_id text, route_short_name text, route_long_name text, route_desc text, route_type smallint, route_url text, route_color text, route_text_color text );""" % (schema, tableName))
-cursor.execute("""CREATE TABLE %s.%s_stop_times ( trip_id integer, arrival_time text, departure_time text, stop_id text, stop_sequence smallint, stop_headsign text, pickup_type smallint, drop_off_type smallint, shape_dist_traveled text);""" % (schema, tableName))
-cursor.execute("""CREATE TABLE %s.%s_trips ( route_id text, service_id text, trip_id integer, trip_headsign text, trip_short_name text, direction_id text, block_id text, shape_id text );""" % (schema, tableName))
-conn.commit()
-cursor.execute("""SELECT AddGeometryColumn('%s', '%s_stops', 'pos', 4326, 'POINT', 2);""" % (schema, tableName))
-conn.commit()
-
-# importing data
-print ("Importing data")
-if os.path.exists(os.path.join(inputFolder, "transfers.txt")):
-  readImportTable(conn, cursor, "%s.%s_transfers" % (schema, tableName), os.path.join(inputFolder, "transfers.txt"), [], ["min_transfer_time"], ["transfer_type"])
-readImportTable(conn, cursor, "%s.%s_stops" % (schema, tableName), os.path.join(inputFolder, "stops.txt"), ["stop_lat", "stop_lon"], ["stop_lat", "stop_lon"], ["location_type"])
-readImportTable(conn, cursor, "%s.%s_trips" % (schema, tableName), os.path.join(inputFolder, "trips.txt"), [], [], ["trip_id"])# ["direction_id"])
-readImportTable(conn, cursor, "%s.%s_agency" % (schema, tableName), os.path.join(inputFolder, "agency.txt"), [], [], [])
-readImportTable(conn, cursor, "%s.%s_calendar" % (schema, tableName), os.path.join(inputFolder, "calendar.txt"), [], [], ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "start_date", "end_date"])
-readImportTable(conn, cursor, "%s.%s_calendar_dates" % (schema, tableName), os.path.join(inputFolder, "calendar_dates.txt"), [], [], ["date", "exception_type"])
-readImportTable(conn, cursor, "%s.%s_routes" % (schema, tableName), os.path.join(inputFolder, "routes.txt"), [], [], ["route_type"])
-readImportTable(conn, cursor, "%s.%s_stop_times" % (schema, tableName), os.path.join(inputFolder, "stop_times.txt"), [], [], ["pickup_type", "drop_off_type", "stop_sequence", "trip_id"])
-cursor.execute("""CREATE INDEX ON %s.%s_stop_times (trip_id);"""  % (schema, tableName) )
-conn.commit()
-
-# extending stops by lines
-print ("Extending stops by lines")
-route2line = {}
-cursor.execute("SELECT route_id,route_short_name from %s.%s_routes;" % (schema, tableName))
-for t in cursor.fetchall():
-  route2line[t[0]] = t[1]
-trip2route = {}
-cursor.execute("SELECT trip_id,route_id from %s.%s_trips;" % (schema, tableName))
-for t in cursor.fetchall():
-  trip2route[t[0]] = t[1]
-stop2lines = {}
-cursor.execute("SELECT trip_id,stop_id from %s.%s_stop_times;" % (schema, tableName))
-for t in cursor.fetchall():
-  routeID = trip2route[t[0]]
-  line = route2line[routeID]
-  if t[1] not in stop2lines:
-    stop2lines[t[1]] = set()
-  stop2lines[t[1]].add(line)
-cursor.execute("ALTER TABLE %s.%s_stops ADD lines text" % (schema, tableName))
-conn.commit()
-for s in stop2lines:
-  cursor.execute("UPDATE %s.%s_stops SET lines='%s' WHERE stop_id='%s';"  % (schema, tableName, ",".join(stop2lines[s]), s))
-conn.commit()
+    def _importTable(self, fileType):
+        """! @brief Reads a single GTFS file and writes its contents into a table
+        @param self The class instance
+        @param fileType The fileType type to read and import
+        """
+        fileName = self._srcFolder + fileType + ".txt"
+        print (" Processing " + fileName)
+        fd = io.open(fileName, 'r', encoding='utf-8-sig')
+        first = True
+        num = 0
+        # go throught the file
+        for l in fd:
+            if first: # first element (header)?
+                # collect known fields
+                columns, srcIndices = self._getColumnsToWrite(fileType, l)
+                # build the insertion string
+                hasPosition = False
+                newNames = []
+                for n in columns:
+                    newNames.append(n[0])
+                    if n[1]==gtfs_defs.FieldType.LATITUDE or n[1]==gtfs_defs.FieldType.LONGITUDE:
+                        hasPosition = True
+                namesDB = ", ".join(newNames)
+                placeHolders = ", ".join(["%s"]*len(newNames))
+                if hasPosition:
+                    placeHolders = placeHolders + ", ST_GeomFromText('POINT(%s %s)', 4326)"
+                    namesDB = namesDB + ", pos" 
+                # skipt to first entry
+                first = False
+                continue
+       
+            # process entries
+            vals = self._valSplit(l.strip())
+            newVals = []
+            pos = [0, 0]
+            for ic, c in enumerate(columns):
+                i = srcIndices[ic]
+                if c[1]==gtfs_defs.FieldType.INTEGER or c[1]==gtfs_defs.FieldType.ENUM:
+                    if len(vals[i])!=0:
+                        newVals.append(int(vals[i]))
+                    else:
+                        newVals.append(-1)
+                elif c[1]==gtfs_defs.FieldType.FLOAT or c[1]==gtfs_defs.FieldType.LATITUDE or c[1]==gtfs_defs.FieldType.LONGITUDE:
+                    if len(vals[i])!=0:
+                        newVals.append(float(vals[i]))
+                    elif c[0]=="min_transfer_time":
+                        newVals.append(0)
+                    else:
+                        newVals.append(-1)
+                    if hasPosition and c[1]==gtfs_defs.FieldType.LATITUDE:
+                        pos[1] = newVals[-1]
+                    if hasPosition and c[1]==gtfs_defs.FieldType.LONGITUDE:
+                        pos[0] = newVals[-1]
+                else:
+                    newVals.append(vals[i])
+            # append a given position
+            if hasPosition: newVals.extend(pos)
+            # insert into db
+            call = "INSERT INTO %s.%s_%s (%s) VALUES (%s);" % (self._schema, self._tablePrefix, fileType, namesDB, placeHolders)
+            self._cursor.execute(call, newVals)
+            num += 1
+            # commit if collected enough
+            if num>10000:
+                self._conn.commit()
+                num = 0
+        # commit
+        self._conn.commit()
 
 
+    def importFiles(self):
+        print ("Importing data")
+        for td in gtfs_defs.tableDefinitions:
+            # skip non-existing, optional files
+            if td in gtfs_defs.optionalTables and not os.path.exists(os.path.join(self._srcFolder, td+".txt")):
+                print ("The non-mandatory file '%s' is missing." % td+".txt. Ignoring.")
+                continue
+            self._importTable(td)
+        self._cursor.execute("CREATE INDEX ON %s.%s_stop_times (trip_id);"  % (self._schema, self._tablePrefix) )
+        self._conn.commit()
+
+
+    def addLinesToStops(self):
+        """! @brief Adds line information to stops
+        @param self The class instance
+        @todo Move to a GTFS-maniplating class?
+        """
+        print ("Extending stops by lines")
+        route2line = {}
+        self._cursor.execute("SELECT route_id,route_short_name from %s.%s_routes;" % (self._schema, self._tableName))
+        for t in self._cursor.fetchall():
+            route2line[t[0]] = t[1]
+        trip2route = {}
+        self._cursor.execute("SELECT trip_id,route_id from %s.%s_trips;" % (self._schema, self._tableName))
+        for t in self._cursor.fetchall():
+            trip2route[t[0]] = t[1]
+        stop2lines = {}
+        self._cursor.execute("SELECT trip_id,stop_id from %s.%s_stop_times;" % (self._schema, self._tableName))
+        for t in self._cursor.fetchall():
+            routeID = trip2route[t[0]]
+            line = route2line[routeID]
+            if t[1] not in stop2lines:
+                stop2lines[t[1]] = set()
+            stop2lines[t[1]].add(line)
+        self._cursor.execute("ALTER TABLE %s.%s_stops ADD lines text" % (self._schema, self._tableName))
+        self._conn.commit()
+        for s in stop2lines:
+            self._cursor.execute("UPDATE %s.%s_stops SET lines='%s' WHERE stop_id='%s';"  % (self._schema, self._tableName, ",".join(stop2lines[s]), s))
+        self._conn.commit()
+
+
+
+
+def main(argv):
+    """ @brief Main method
+    """
+    # check and parse command line parameter and input files
+    if len(argv)<3:
+        print ("importGTFS.py <INPUT_FOLDER> <TARGET_DB_DEFINITION>")
+        print ("  where <TARGET_DB_DEFINITION> is <HOST>;<DB>;<SCHEMA>;<TABLE_PREFIX>;<USER>;<PASSWD>")
+        sys.exit()
+    # - input folder
+    inputFolder = argv[1]
+    if not os.path.exists(inputFolder):
+        print ("The folder '" + inputFolder + "' to import GTFS from does not exist.")
+        sys.exit()
+    # - input files
+    error = False
+    for f in ["agency", "calendar", "calendar_dates", "routes", "stop_times", "stops", "trips"]:
+        fn = os.path.join(inputFolder, f+".txt")
+        if not os.path.exists(fn):
+            print ("The mandatory file '" + fn + "' to import GTFS from does not exist.")
+            error = True
+    if error:
+        sys.exit()
+    # - output db
+    if len(argv[2].split(";"))<6:
+        print ("Missing values in target database definition; should be: <HOST>;<DB>;<SCHEMA>;TABLE_PREFIX>;<USER>;<PASSWD>")
+        sys.exit()
+        
+    # build the importer
+    importer = GTFSImporter(argv[1], argv[2])
+    # drop existing tables
+    importer.dropTables()
+    # build new tables
+    importer.buildTables()
+    # import data
+    importer.importFiles()
+    # extend stops by lines
+    importer.addLinesToStops()
+
+
+
+# -- main check
+if __name__ == '__main__':
+  main(sys.argv)
+  
