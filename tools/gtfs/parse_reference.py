@@ -76,7 +76,8 @@ def parseTable(info, fdo, optional):
     tabName = tabName.replace(".txt", "")
     fdo.write("    \"" + tabName + "\" : [\n")
     n = info.next_sibling.next_sibling
-    if n.contents[1].contents[0]=="Optional":
+    #print (">%s<" % n.contents[1].contents[0])
+    if n.contents[1].contents[0]=="Optional" or n.contents[1].contents[0]=="Conditionally Required":
         optional.append(tabName)
     n = n.next_sibling # primary key
     while type(n)!=bs4.element.Tag or n.contents[0].name!='div':
@@ -183,7 +184,8 @@ def main(argv):
                 parseTable(nextSibling, fdo, optional)
         nextSibling = nextSibling.next_sibling
     fdo.write("\n}\n\n\n")
-    fdo.write("optionalTables = [ \"%s\" ]\n\n" % ", ".join(optional))
+    optional = ['"' + o + '"' for o in optional]
+    fdo.write("optionalTables = [ %s ]\n\n" % ", ".join(optional))
     fdo.close()
 
 

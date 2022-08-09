@@ -256,5 +256,5 @@ tableDefinitions = {
 }
 
 
-optionalTables = [ "fare_attributes, fare_products, fare_leg_rules, fare_transfer_rules, areas, stop_areas, shapes, frequencies, transfers, pathways, translations, feed_info, attributions" ]
+optionalTables = [ "calendar", "calendar_dates", "fare_attributes", "fare_rules", "fare_products", "fare_leg_rules", "fare_transfer_rules", "areas", "stop_areas", "shapes", "frequencies", "transfers", "pathways", "levels", "translations", "feed_info", "attributions" ]
 

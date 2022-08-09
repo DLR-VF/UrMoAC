@@ -64,24 +64,6 @@ class GTFSImporter:
         self._conn.commit()
 
 
-    def buildTables(self):
-        """! @brief Builds new database tables
-        @param self The class instance
-        """
-        print ("Building tables")
-        for td in gtfs_defs.tableDefinitions:
-            call = "CREATE TABLE %s.%s_%s ( " % (self._schema, self._tablePrefix, td)
-            for ie,e in enumerate(gtfs_defs.tableDefinitions[td]):
-                if ie>0:
-                    call = call + ", "
-                call = call + "%s %s" % (e[0], gtfs2postgres[e[1]])
-            call = call + " );"
-            self._cursor.execute(call)
-        self._conn.commit()
-        self._cursor.execute("SELECT AddGeometryColumn('%s', '%s_stops', 'pos', 4326, 'POINT', 2);" % (self._schema, self._tablePrefix))
-        self._conn.commit()
-
-
     def _valSplit(self, line):
         """! @brief Splits a given GTFS line taking into account quotes
         @param self The class instance
@@ -139,12 +121,14 @@ class GTFSImporter:
         """! @brief Reads a single GTFS file and writes its contents into a table
         @param self The class instance
         @param fileType The fileType type to read and import
+        @see https://www.geeksforgeeks.org/python-psycopg2-insert-multiple-rows-with-one-query/
         """
         fileName = self._srcFolder + fileType + ".txt"
         print (" Processing " + fileName)
         fd = io.open(fileName, 'r', encoding='utf-8-sig')
         first = True
         num = 0
+        entries = []
         # go throught the file
         for l in fd:
             if first: # first element (header)?
@@ -153,15 +137,27 @@ class GTFSImporter:
                 # build the insertion string
                 hasPosition = False
                 newNames = []
-                for n in columns:
-                    newNames.append(n[0])
-                    if n[1]==gtfs_defs.FieldType.LATITUDE or n[1]==gtfs_defs.FieldType.LONGITUDE:
+                for e in columns:
+                    newNames.append(e[0])
+                    if e[1]==gtfs_defs.FieldType.LATITUDE or e[1]==gtfs_defs.FieldType.LONGITUDE:
                         hasPosition = True
                 namesDB = ", ".join(newNames)
                 placeHolders = ", ".join(["%s"]*len(newNames))
                 if hasPosition:
                     placeHolders = placeHolders + ", ST_GeomFromText('POINT(%s %s)', 4326)"
                     namesDB = namesDB + ", pos" 
+                placeHolders = "(" + placeHolders + ")"
+                # build the table
+                call = "CREATE TABLE %s.%s_%s ( " % (self._schema, self._tablePrefix, fileType)
+                for ie,e in enumerate(columns):
+                    if ie>0: call = call + ", "
+                    call = call + "%s %s" % (e[0], gtfs2postgres[e[1]])
+                call = call + " );"
+                self._cursor.execute(call)
+                self._conn.commit()
+                if hasPosition:
+                    self._cursor.execute("SELECT AddGeometryColumn('%s', '%s_%s', 'pos', 4326, 'POINT', 2);" % (self._schema, self._tablePrefix, fileType))
+                    self._conn.commit()
                 # skipt to first entry
                 first = False
                 continue
@@ -192,15 +188,19 @@ class GTFSImporter:
                     newVals.append(vals[i])
             # append a given position
             if hasPosition: newVals.extend(pos)
-            # insert into db
-            call = "INSERT INTO %s.%s_%s (%s) VALUES (%s);" % (self._schema, self._tablePrefix, fileType, namesDB, placeHolders)
-            self._cursor.execute(call, newVals)
+            entries.append(list(newVals))
             num += 1
             # commit if collected enough
             if num>10000:
+                # insert into db
+                args = ','.join(self._cursor.mogrify(placeHolders, i).decode('utf-8') for i in entries)
+                self._cursor.execute("INSERT INTO %s.%s_%s (%s) VALUES " % (self._schema, self._tablePrefix, fileType, namesDB) + (args))
                 self._conn.commit()
+                entries.clear()
                 num = 0
         # commit
+        args = ','.join(self._cursor.mogrify(placeHolders, i).decode('utf-8') for i in entries)
+        self._cursor.execute("INSERT INTO %s.%s_%s (%s) VALUES " % (self._schema, self._tablePrefix, fileType, namesDB) + (args))
         self._conn.commit()
 
 
@@ -209,8 +209,11 @@ class GTFSImporter:
         for td in gtfs_defs.tableDefinitions:
             # skip non-existing, optional files
             if td in gtfs_defs.optionalTables and not os.path.exists(os.path.join(self._srcFolder, td+".txt")):
-                print ("The non-mandatory file '%s' is missing." % td+".txt. Ignoring.")
+                print (" The non-mandatory file '%s.txt' is missing.txt. Ignoring." % td)
                 continue
+            if not os.path.exists(os.path.join(self._srcFolder, td+".txt")):
+                print (" Mandatory file '%s.txt' is missing. Aborting"% td)
+                sys.exit()
             self._importTable(td)
         self._cursor.execute("CREATE INDEX ON %s.%s_stop_times (trip_id);"  % (self._schema, self._tablePrefix) )
         self._conn.commit()
@@ -223,25 +226,25 @@ class GTFSImporter:
         """
         print ("Extending stops by lines")
         route2line = {}
-        self._cursor.execute("SELECT route_id,route_short_name from %s.%s_routes;" % (self._schema, self._tableName))
+        self._cursor.execute("SELECT route_id,route_short_name from %s.%s_routes;" % (self._schema, self._tablePrefix))
         for t in self._cursor.fetchall():
             route2line[t[0]] = t[1]
         trip2route = {}
-        self._cursor.execute("SELECT trip_id,route_id from %s.%s_trips;" % (self._schema, self._tableName))
+        self._cursor.execute("SELECT trip_id,route_id from %s.%s_trips;" % (self._schema, self._tablePrefix))
         for t in self._cursor.fetchall():
             trip2route[t[0]] = t[1]
         stop2lines = {}
-        self._cursor.execute("SELECT trip_id,stop_id from %s.%s_stop_times;" % (self._schema, self._tableName))
+        self._cursor.execute("SELECT trip_id,stop_id from %s.%s_stop_times;" % (self._schema, self._tablePrefix))
         for t in self._cursor.fetchall():
             routeID = trip2route[t[0]]
             line = route2line[routeID]
             if t[1] not in stop2lines:
                 stop2lines[t[1]] = set()
             stop2lines[t[1]].add(line)
-        self._cursor.execute("ALTER TABLE %s.%s_stops ADD lines text" % (self._schema, self._tableName))
+        self._cursor.execute("ALTER TABLE %s.%s_stops ADD lines text" % (self._schema, self._tablePrefix))
         self._conn.commit()
         for s in stop2lines:
-            self._cursor.execute("UPDATE %s.%s_stops SET lines='%s' WHERE stop_id='%s';"  % (self._schema, self._tableName, ",".join(stop2lines[s]), s))
+            self._cursor.execute("UPDATE %s.%s_stops SET lines='%s' WHERE stop_id='%s';"  % (self._schema, self._tablePrefix, ",".join(stop2lines[s]), s))
         self._conn.commit()
 
 
@@ -278,8 +281,6 @@ def main(argv):
     importer = GTFSImporter(argv[1], argv[2])
     # drop existing tables
     importer.dropTables()
-    # build new tables
-    importer.buildTables()
     # import data
     importer.importFiles()
     # extend stops by lines
