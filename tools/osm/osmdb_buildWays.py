@@ -587,9 +587,9 @@ def main(argv):
 
                 unconsumed = params.getUnconsumed(["source:lit", "note:name", "postal_code", "name:ru", "created_by", "old_name", "trail_visibility", "source:maxspeed", "source"])
                 if len(unconsumed)>0: 
-                    fdo1.write("%s:%s\n" % (hID, str(unconsumed)))
+                    fdo1.write(u"%s:%s\n" % (hID, str(unconsumed)))
                 if len(params.errorneous)>0:
-                    fdo2.write("%s:%s\n" % (hID, str(params.errorneous)))
+                    fdo2.write(u"%s:%s\n" % (hID, str(params.errorneous)))
 
             if len(storedRoads)>10000:
                 commitRoads(db.conn, db.cursor, schema, prefix)

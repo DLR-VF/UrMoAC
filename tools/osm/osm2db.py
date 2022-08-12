@@ -166,9 +166,9 @@ class OSMReader(handler.ContentHandler):
         self.stats["rel_attrs"] = self.stats["rel_attrs"] + rtagsNum
         if len(self.nodes)+len(self.ways)+len(self.relations)>0:
             self.conn.commit() 
-        self.nodes.clear() 
-        self.ways.clear()
-        self.relations.clear()
+        self.nodes = []
+        self.ways = []
+        self.relations = []
     
 
 
