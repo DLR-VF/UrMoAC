@@ -236,7 +236,7 @@ class OSMExtractor:
         args = ','.join(cursor.mogrify("(%s, %s, ST_GeomFromText(%s, 4326), ST_Centroid(ST_ConvexHull(ST_GeomFromText(%s, 4326))))", i).decode('utf-8') for i in entries)
         cursor.execute("INSERT INTO %s.%s(gid, type, shape, centroid) VALUES " % (schema, name) + (args))
         conn.commit()
-        entries = []
+        del entries[:]
         
 
     def _addItem(self, entries, item, conn, cursor, schema, name):
