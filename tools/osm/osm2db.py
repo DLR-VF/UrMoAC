@@ -16,111 +16,11 @@ import os, string, sys
 import datetime
 from xml.sax import saxutils, make_parser, handler
 import psycopg2
+import osm
 
 
 
-# --- class definitions -----------------------------------
-# --- OSMNode
-class OSMNode:
-    """ @class OSMNode
-    @brief The representation of an OSM node
-    """
-    
-    def __init__(self, id, lat, lon):
-        """ @brief Initialises the node
-        @param self The class instance
-        @param id The ID of the node
-        @param lat The latitude of the node
-        @param lat The longitude of the node
-        """
-        self.id = id
-        self.refNum = 0
-        self.lat = lat
-        self.lon = lon
-        self.tags = {}
-
-
-    def addTag(self, k, v):
-        """ @brief Adds an attribute to the node
-        @param self The class instance
-        @param k The attribute's key
-        @param v The attribute's value
-        """
-        self.tags[k] = v
-    
-
-
-# --- OSMWay
-class OSMWay:
-    """ @class OSMWay
-    @brief The representation of an OSM way
-    """
-    
-    def __init__(self, id):
-        """ @brief Initialises the node
-        @param self The class instance
-        @param id The ID of the node
-        """
-        self.id = id
-        self.tags = {}
-        self.refs = []
-
-
-    def addNodeID(self, nID):
-        """ @brief Adds a node (a vertex) to the way
-        @param self The class instance
-        @param nID The ID of the node to add
-        """
-        self.refs.append(nID)
-
-
-    def addTag(self, k, v):
-        """ @brief Adds an attribute to the way
-        @param self The class instance
-        @param k The attribute's key
-        @param v The attribute's value
-        """
-        self.tags[k] = v
-
-
-    
-# --- OSMRel
-class OSMRel:
-    """ @class OSMWay
-    @brief The representation of an OSM relation
-    """
-
-    def __init__(self, id):
-        """ @brief Initialises the relation
-        @param self The class instance
-        @param id The ID of the relation
-        """
-        self.id = id
-        self.tags = {}
-        self.members = []
-        
-        
-    def addMember(self, mID, mType, mRole):
-        """ @brief Adds amember to the relation
-        @param self The class instance
-        @param mID The ID of the member
-        @param mType The type (node / way / relation) of the member
-        @param mRole The role of the member
-        """
-        self.members.append([mID, mType, mRole])
-        
-        
-    def addTag(self, k, v):
-        """ @brief Adds an attribute to the relation
-        @param self The class instance
-        @param k The attribute's key
-        @param v The attribute's value
-        """
-        self.tags[k] = v
-    
-    
-
-# --- OSMRel
+# --- OSMReader
 class OSMReader(handler.ContentHandler):
     """ @class OSMReader
     @brief A reader that parses an OSM XML file and writes it to a database
@@ -141,9 +41,9 @@ class OSMReader(handler.ContentHandler):
         self.cursor = cursor
         self.last = None
         self.elements = []
-        self.nodes = {}
-        self.ways = {}
-        self.relations = {}
+        self.nodes = []
+        self.ways = []
+        self.relations = []
         self.stats = {"nodes":0, "ways":0, "node_attrs":0, "way_attrs":0, "rels":0, "relMembers":0, "rel_attrs":0}
   
   
@@ -158,21 +58,21 @@ class OSMReader(handler.ContentHandler):
             pass
         elif name=="node":
             id = int(attrs["id"])
-            n = OSMNode(id, float(attrs["lat"]), float(attrs["lon"]))
-            self.nodes[id] = n
+            n = osm.OSMNode(id, [float(attrs["lon"]), float(attrs["lat"])])
+            self.nodes.append(n)
             self.last = n
         elif name=="way":
             id = int(attrs["id"])
-            e = OSMWay(id)
-            self.ways[id] = e
+            e = osm.OSMWay(id)
+            self.ways.append(e)
             self.last = e
         elif name=="nd":
             n = int(attrs["ref"])
             self.last.addNodeID(n)
         elif name=="relation":
             id = int(attrs["id"])
-            r = OSMRel(id)
-            self.relations[id] = r
+            r = osm.OSMRelation(id)
+            self.relations.append(r)
             self.last = r
         elif name=="member":
             n = int(attrs["ref"])
@@ -206,27 +106,56 @@ class OSMReader(handler.ContentHandler):
         wtagsNum = 0
         rtagsNum = 0
         relMembers = 0
+        # nodes
+        nodeEntries = []
+        nodeTagEntries = []
         for n in self.nodes:
-            node = self.nodes[n]
-            self.cursor.execute("INSERT INTO "+self.fname+"_node(id, pos) VALUES (%s, ST_GeomFromText('POINT(%s %s)', 4326))", (node.id, node.lon, node.lat))
-            for k in node.tags:
-                self.cursor.execute("INSERT INTO "+self.fname+"_ntag(id, k, v) VALUES (%s, %s, %s)", (node.id, k, node.tags[k]))
+            nodeEntries.append((n.id, n.pos[0], n.pos[1]))
+            for k in n.tags:
+                nodeTagEntries.append((n.id, k, n.tags[k]))
                 ntagsNum = ntagsNum + 1
+        if len(nodeEntries)>0:
+            args = ','.join(self.cursor.mogrify("(%s, ST_GeomFromText('POINT(%s %s)', 4326))", i).decode('utf-8') for i in nodeEntries)
+            self.cursor.execute("INSERT INTO %s_node(id, pos) VALUES " % (self.fname) + (args))
+        if len(nodeTagEntries)>0:
+            args = ','.join(self.cursor.mogrify("(%s, %s, %s)", i).decode('utf-8') for i in nodeTagEntries)
+            self.cursor.execute("INSERT INTO %s_ntag(id, k, v) VALUES " % (self.fname) + (args))
+        # ways
+        wayEntries = []
+        wayTagEntries = []
         for w in self.ways:
-            way = self.ways[w]
-            self.cursor.execute("INSERT INTO "+self.fname+"_way(id, refs) VALUES (%s, %s);", (way.id, way.refs))
-            for k in way.tags:
-                self.cursor.execute("INSERT INTO "+self.fname+"_wtag(id, k, v) VALUES (%s, %s, %s);", (way.id, k, way.tags[k]))
+            wayEntries.append((w.id, w.refs))
+            for k in w.tags:
+                wayTagEntries.append((w.id, k, w.tags[k]))
                 wtagsNum = wtagsNum + 1
+        if len(wayEntries)>0:
+            args = ','.join(self.cursor.mogrify("(%s, %s)", i).decode('utf-8') for i in wayEntries)
+            self.cursor.execute("INSERT INTO %s_way(id, refs) VALUES " % (self.fname) + (args))
+        if len(wayTagEntries)>0:
+            args = ','.join(self.cursor.mogrify("(%s, %s, %s)", i).decode('utf-8') for i in wayTagEntries)
+            self.cursor.execute("INSERT INTO %s_wtag(id, k, v) VALUES " % (self.fname) + (args))
+        # relations
+        relEntries = []
+        relTagEntries = []
+        relMemberEntries = []
         for r in self.relations:
-            rel = self.relations[r]
-            self.cursor.execute("INSERT INTO "+self.fname+"_rel(id) VALUES (%s);", (rel.id,))
-            for k in rel.tags:
-                self.cursor.execute("INSERT INTO "+self.fname+"_rtag(id, k, v) VALUES (%s, %s, %s);", (rel.id, k, rel.tags[k]))
+            relEntries.append((r.id,))
+            for k in r.tags:
+                relTagEntries.append((r.id, k, r.tags[k]))
                 rtagsNum = rtagsNum + 1
-            for idx,m in enumerate(rel.members):
-                self.cursor.execute("INSERT INTO "+self.fname+"_member(rid, elemID, type, role, idx) VALUES (%s, %s, %s, %s, %s);", (rel.id, m[0], m[1], m[2], idx))
+            for idx,m in enumerate(r.members):
+                relMemberEntries.append((r.id, m[0], m[1], m[2], idx))
                 relMembers = relMembers + 1
+        if len(relEntries)>0:
+            args = ','.join(self.cursor.mogrify("(%s)", i).decode('utf-8') for i in relEntries)
+            self.cursor.execute("INSERT INTO %s_rel(id) VALUES " % (self.fname) + (args))
+        if len(relTagEntries)>0:
+            args = ','.join(self.cursor.mogrify("(%s, %s, %s)", i).decode('utf-8') for i in relTagEntries)
+            self.cursor.execute("INSERT INTO %s_rtag(id, k, v) VALUES " % (self.fname) + (args))
+        if len(relMemberEntries)>0:
+            args = ','.join(self.cursor.mogrify("(%s, %s, %s, %s, %s)", i).decode('utf-8') for i in relMemberEntries)
+            self.cursor.execute("INSERT INTO %s_member(rid, elemID, type, role, idx) VALUES " % (self.fname) + (args))
+        #
         print (" %s nodes (%s keys), %s ways (%s keys), and %s relations (%s keys, %s members)" % (len(self.nodes), ntagsNum, len(self.ways), wtagsNum, len(self.relations), rtagsNum, relMembers))
         self.stats["nodes"] = self.stats["nodes"] + len(self.nodes)
         self.stats["ways"] = self.stats["ways"] + len(self.ways)
@@ -280,33 +209,15 @@ def main(argv):
     cursor.execute("CREATE TABLE %s.%s_rel (id bigint PRIMARY KEY);" % (schema, prefix))
     cursor.execute("SELECT AddGeometryColumn('%s', '%s_node', 'pos', 4326, 'POINT', 2, true);" % (schema, prefix))
     # --- tags
-    cursor.execute("""CREATE TABLE %s.%s_ntag (
-        id bigint REFERENCES %s.%s_node (id),
-        k text,        
-        v text        
-    );""" % (schema, prefix, schema, prefix))
-    cursor.execute("""CREATE INDEX ON %s.%s_ntag (id);""" % (schema, prefix))
-    cursor.execute("""CREATE TABLE %s.%s_wtag (
-        id bigint REFERENCES %s.%s_way (id),
-        k text,        
-        v text        
-    );""" % (schema, prefix, schema, prefix))
-    cursor.execute("""CREATE INDEX ON %s.%s_wtag (id);""" % (schema, prefix))
-    cursor.execute("""CREATE TABLE %s.%s_rtag (
-        id bigint REFERENCES %s.%s_rel (id),
-        k text,        
-        v text        
-    );""" % (schema, prefix, schema, prefix))
-    cursor.execute("""CREATE INDEX ON %s.%s_rtag (id);""" % (schema, prefix))
-    cursor.execute("""CREATE TABLE %s.%s_member (
-        rid bigint REFERENCES %s.%s_rel (id),
-        elemID bigint,
-        type text,        
-        role text,        
-        idx integer        
-    );""" % (schema, prefix, schema, prefix))
-    cursor.execute("""CREATE INDEX ON %s.%s_member (rid);""" % (schema, prefix))
-    cursor.execute("""CREATE INDEX ON %s.%s_member (elemID);""" % (schema, prefix))
+    cursor.execute("CREATE TABLE %s.%s_ntag ( id bigint REFERENCES %s.%s_node (id), k text, v text );" % (schema, prefix, schema, prefix))
+    cursor.execute("CREATE INDEX ON %s.%s_ntag (id);" % (schema, prefix))
+    cursor.execute("CREATE TABLE %s.%s_wtag ( id bigint REFERENCES %s.%s_way (id), k text, v text );" % (schema, prefix, schema, prefix))
+    cursor.execute("CREATE INDEX ON %s.%s_wtag (id);" % (schema, prefix))
+    cursor.execute("CREATE TABLE %s.%s_rtag ( id bigint REFERENCES %s.%s_rel (id), k text, v text );" % (schema, prefix, schema, prefix))
+    cursor.execute("CREATE INDEX ON %s.%s_rtag (id);" % (schema, prefix))
+    cursor.execute("CREATE TABLE %s.%s_member ( rid bigint REFERENCES %s.%s_rel (id), elemID bigint, type text, role text, idx integer );" % (schema, prefix, schema, prefix))
+    cursor.execute("CREATE INDEX ON %s.%s_member (rid);" % (schema, prefix))
+    cursor.execute("CREATE INDEX ON %s.%s_member (elemID);" % (schema, prefix))
     conn.commit()
 
     # parsing the document and adding contents to the db
@@ -333,4 +244,4 @@ def main(argv):
 
 # -- main check
 if __name__ == '__main__':
-  main(sys.argv)
+    main(sys.argv)
