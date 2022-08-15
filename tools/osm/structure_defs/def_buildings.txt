@@ -5,4 +5,7 @@ building=*
 building=*
 
 [rel]
+<outline>
+<outer>
+<inner>
 building=*

@@ -55,6 +55,7 @@ class OSMExtractor:
         """
         # definitions of what to load
         self._defs = { "node": [], "way": [], "rel": [] }
+        self._roles = set()
         # ids of matching objects
         self._objectIDs = { "node": [], "way": [], "rel": [] }
         # matching objects with geometries
@@ -74,6 +75,10 @@ class OSMExtractor:
             elif l[0]=='[':
                 # parse subtype
                 subtype = l[1:l.find(']')].strip()
+                continue
+            elif l[0]=='<':
+                # parse roles
+                self._roles.add(l[1:l.find('>')].strip())
                 continue
             # parse definition
             self._defs[subtype].append(l.strip())
@@ -143,14 +148,13 @@ class OSMExtractor:
 
    
     
-    def collectObjectGeometries(self, conn, cursor, schema, prefix, roles=None):
+    def collectObjectGeometries(self, conn, cursor, schema, prefix):
         """! @brief Collects all needed geometry information 
         @param self The class instance
         @param conn The database connection to use
         @param cursor The database cursor to use 
         @param schema The database sceham to use
         @param prefix The OSM database prefix to use
-        @param roles If given, only roles included in this list are loaded
         @todo Make database connection an attribute of the class
         """
         missingRELids = list(self._objectIDs["rel"])
@@ -175,7 +179,7 @@ class OSMExtractor:
                     relation = osm.OSMRelation(rid)
                     area.addRelation(relation)
                 role = r[3]
-                if roles and role not in roles:
+                if len(self._roles)>0 and role not in self._roles:
                     continue
                 iid = int(r[1])
                 relation.addMember(iid, r[2], r[3])
@@ -257,6 +261,9 @@ class OSMExtractor:
         points = []
         npolys = []
         for p in geom[2]:
+            if len(p)<4:
+                print ("Too short geometry for %s %s" % (geom[1], geom[0]))
+                return
             npolys.append("(" + ",".join(p) + ")")
             points.extend(p)
         geom[2] = "MULTIPOLYGON((%s))" % ",".join(npolys)

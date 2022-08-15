@@ -217,16 +217,17 @@ class OSMRelation(OSMElement):
         for ic,c in enumerate(combinations):
             lastElement = c[-1][-1]
             added = 0
-            for next in roleItems[lastElement[0]].possibleFollowers:
-                if next[0] in seen[ic]:
-                    continue
-                # could be a valid continuation
-                combi = copy.deepcopy(c)
-                combi[-1].append(next)
-                newCombinations.append(combi)
-                newSeen.append(set(seen[ic]))
-                newSeen[-1].add(next[0])
-                added += 1
+            if len(lastElement)!=0:
+                for next in roleItems[lastElement[0]].possibleFollowers:
+                    if next[0] in seen[ic]:
+                        continue
+                    # could be a valid continuation
+                    combi = copy.deepcopy(c)
+                    combi[-1].append(next)
+                    newCombinations.append(combi)
+                    newSeen.append(set(seen[ic]))
+                    newSeen[-1].add(next[0])
+                    added += 1
             if added!=0:
                 continue
             # we could not find a continuation - maybe a new polygon should be started
@@ -257,6 +258,10 @@ class OSMRelation(OSMElement):
             combinations.append([[e]])
             seen.append(set())
             seen[-1].add(e[0])
+        if len(combinations)==0:
+            combinations.append([[[0, 0]]])
+            seen.append(set())
+            seen[-1].add(0)
         while True:
             combinations, seen = self._extendCombinations(roleItems, combinations, seen)
             if len(combinations)==0:
@@ -266,7 +271,7 @@ class OSMRelation(OSMElement):
         return combinations
         
     
-    def _checkPolygonValidities(self, roleItems, combinations, closeIfNeeded):
+    def _checkPolygonValidities(self, id, roleItems, combinations, closeIfNeeded):
         """ @brief Builds polygons and checks their validities
         @param self The class instance
         @param roleItems The list of the parts of a relation
@@ -277,11 +282,11 @@ class OSMRelation(OSMElement):
         ngeomss = []
         for q,combi in enumerate(combinations):
             valid = True
-            mirrorNext = False
-            lastGeom = None
             seen = set()
             ngeoms = []
             for poly in combi:
+                mirrorNext = False
+                lastGeom = None
                 ngeom = []
                 # build the polygon and check whether the items are valid continuations
                 for i,w1 in enumerate(poly):
@@ -377,7 +382,7 @@ class OSMRelation(OSMElement):
             else:
                 self._computePossibleConsecutions(roles[role])
                 combinations = self._computeCombinations(roles[role])
-            ngeomss, valids = self._checkPolygonValidities(roles[role], combinations, closeIfNeeded)
+            ngeomss, valids = self._checkPolygonValidities(self.id, roles[role], combinations, closeIfNeeded)
             # check
             if True not in valids:
                 print ("Invalid geometry in relation %s" % self.id)
