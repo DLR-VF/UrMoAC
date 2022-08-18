@@ -1,0 +1,18 @@
+[node]
+amenity~college & name!~Volksschule & name!~^VS & name!~Grundschule
+amenity=school & name!~Volksschule & name!~^VS & name!~Grundschule
+amenity~university & name!~Volksschule & name!~^VS & name!~Grundschule
+
+[way]
+amenity~college & name!~Volksschule & name!~^VS & name!~Grundschule
+amenity=school & name!~Volksschule & name!~^VS & name!~Grundschule
+amenity~university & name!~Volksschule & name!~^VS & name!~Grundschule
+
+[rel]
+<outline>
+<outer>
+<inner>
+amenity~college & name!~Volksschule & name!~^VS & name!~Grundschule
+amenity=school & name!~Volksschule & name!~^VS & name!~Grundschule
+amenity~university & name!~Volksschule & name!~^VS & name!~Grundschule
+

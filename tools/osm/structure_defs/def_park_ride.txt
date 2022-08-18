@@ -1,0 +1,10 @@
+[node]
+park_ride=* & park_ride!=no
+
+[way]
+park_ride=* & park_ride!=no
+
+[rel]
+park_ride=* & park_ride!=no
+
+
