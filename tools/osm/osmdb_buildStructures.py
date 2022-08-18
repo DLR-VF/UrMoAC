@@ -85,7 +85,7 @@ class OSMExtractor:
         return self._defs
     
 
-    def _getObjects(self, conn, cursor, schema, prefix, subtype, k, v):
+    def _getObjects(self, conn, cursor, schema, prefix, subtype, op, k, v):
         """! @brief Returns the IDs of the objects in the given OSM table that match the given definitions 
         @param self The class instance
         @param conn The database connection to use
@@ -102,8 +102,9 @@ class OSMExtractor:
             cursor.execute("SELECT id FROM %s.%s_%s" % (schema, prefix, subtype))
         elif v=='*': # fetch all with a matching key
             cursor.execute("SELECT id FROM %s.%s_%s WHERE k='%s'" % (schema, prefix, subtype2tag[subtype], k))
-        else: # fetch all with a key/value pair
-            cursor.execute("SELECT id FROM %s.%s_%s WHERE k='%s' AND v='%s'" % (schema, prefix, subtype2tag[subtype], k, v))
+        else: 
+            # fetch all with a key/value pair
+            cursor.execute("SELECT id FROM %s.%s_%s WHERE k='%s' AND v%s'%s'" % (schema, prefix, subtype2tag[subtype], k, op, v))
         conn.commit()
         for r in cursor.fetchall():
             ret.add(int(r[0]))
@@ -127,25 +128,34 @@ class OSMExtractor:
         """
         for subtype in ["node", "way", "rel"]:
             print (" ... for %s" % subtype)
-            for d in self._defs[subtype]:
+            for definition in self._defs[subtype]:
                 # get objects
-                ds = d.split("&")
-                for d in ds:
-                    if d=="*":
+                subdefs = definition.split("&")
+                collected = None
+                for sd in subdefs:
+                    sd = sd.strip()
+                    if sd=="*":
+                        oss = self._getObjects(conn, cursor, schema, prefix, subtype, "*", "*", "*")
                         k = "*"
                         v = "*"
                     else:
-                        k,v = d.split("=")
-                    oss = self._getObjects(conn, cursor, schema, prefix, subtype, k, v)
-                    if len(self._objectIDs[subtype])==0:
-                        self._objectIDs[subtype] = oss
+                        for op in ["!=", "!~", "=", "~"]:
+                            if sd.find(op)>=0:
+                                k,v = sd.split(op)
+                                oss = self._getObjects(conn, cursor, schema, prefix, subtype, op, k, v)
+                                break
+                    if collected!=None:
+                        collected = collected.intersection(oss)
                     else:
-                        self._objectIDs[subtype] = self._objectIDs[subtype].union(oss) 
+                        collected = oss
+                if len(self._objectIDs[subtype])==0:
+                    self._objectIDs[subtype] = collected
+                else:
+                    self._objectIDs[subtype] = self._objectIDs[subtype].union(collected) 
             print (" ... %s found" % len(self._objectIDs[subtype]))
             # !!! make this optional
             #for o in self._objectIDs[subtype]:
             #  print ("%s %s" % (subtype, o))
-
    
     
     def collectObjectGeometries(self, conn, cursor, schema, prefix):
@@ -184,16 +194,21 @@ class OSMExtractor:
                 iid = int(r[1])
                 relation.addMember(iid, r[2], r[3])
                 if r[2]=="rel" or r[2]=="relation":
-                    if iid==int(r[0]) or iid in seenRELs:
+                    if iid==int(r[0]):
                         print ("Self-referencing relation %s" % r[0])
                         continue
-                    missingRELids.append(iid)
+                    if iid not in seenRELs:
+                        missingRELids.append(iid)
+                    if True and iid in self._objectIDs["rel"]:
+                        self._objectIDs["rel"].remove(iid)
                 elif r[2]=="way":
                     missingWAYids.add(iid)
-                    # !!! delete from self._objectIDs["way"]
+                    if True and iid in self._objectIDs["way"]:
+                        self._objectIDs["way"].remove(iid)
                 elif r[2]=="node":
                     missingNODEids.add(iid)
-                    # !!! delete from self._objectIDs["node"]
+                    if True and iid in self._objectIDs["node"]:
+                        self._objectIDs["node"].remove(iid)
                 else:
                     print ("Check type '%s'" % r[2])
         # collect ways
@@ -207,7 +222,9 @@ class OSMExtractor:
             for r in cursor.fetchall():
                 area.addWay(osm.OSMWay(int(r[0]), r[1]))
                 npoints.append(r[1])
-                # !!! delete from self._objectIDs["node"]
+                for nID in r[1]:
+                    if True and nID in self._objectIDs["node"]:
+                        self._objectIDs["node"].remove(nID)
         missingNODEids = set.union(*npoints)    
         # collect nodes
         print (" ... for nodes")

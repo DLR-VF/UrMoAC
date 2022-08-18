@@ -109,7 +109,7 @@ class OSMWay(OSMElement):
         @param self The class instance
         @param nodesMap The nodes storage
         """
-        self.geom = list([])
+        self.geom = []
         ok = True
         for r in self.refs:
             if r not in nodesMap:
@@ -145,7 +145,7 @@ class PolygonPart():
         """
         self.type = type
         self.geom = list(geom)
-        self.possibleFollowers = list([])
+        self.possibleFollowers = []
     
     
     def __repr__(self):
@@ -372,10 +372,16 @@ class OSMRelation(OSMElement):
                     ok = False
                     continue
                 ok = r.buildGeometry(area)
+                if len(r.geom)==0:
+                    print ("Broken geometry of relation %s in relation %s" % (m[0], self.id))
+                    ok = False
+                    continue
                 roles[m[2]].append(PolygonPart(GeometryType.MULTIPOLYGON, dict(r.geom)))
         # build roles geometries
         self.geom = {}
         for role in roles:
+            if len(roles[role])==0: # may occur if an element is missing
+                continue
             self.geom[role] = []
             if len(roles[role])<2:
                 combinations = [[[[0, 0]]]]
