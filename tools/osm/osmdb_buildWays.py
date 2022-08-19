@@ -569,8 +569,10 @@ def main(argv):
                         # store the road
                         if modesF!=0:
                             addRoad(upperType, "f%s#%s" % (hID, index), nodeIDs[0], nodeIDs[-1], htype, modesF, numLanes, vmax, nodeIDs, sidewalk, cycleway, surface, lit, name, ",".join(hGeom))
+                            num += 1
                         if modesB!=0:
                             addRoad(upperType, "b%s#%s" % (hID, index), nodeIDs[-1], nodeIDs[0], htype, modesB, numLanes, vmax, reversed(nodeIDs), sidewalk, cycleway, surface, lit, name, ",".join(reversed(hGeom)))
+                            num += 1
                         hGeom = []
                         hGeom.append("%s %s" % (p[0], p[1]))
                         nodeIDs = []
