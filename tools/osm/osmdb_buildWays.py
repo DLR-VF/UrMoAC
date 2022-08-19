@@ -482,7 +482,6 @@ def main(argv):
             hID = h[0]
             if hID in seen:
                 continue
-            seen.add(hID)
             htype = h[1]+"_"+h[2]
             #if htype=="highway_proposed": htype="highway_residential"
             #if htype=="highway_construction": htype="highway_residential"
@@ -491,6 +490,7 @@ def main(argv):
                     unrecognized[htype] = 0
                 unrecognized[htype] = unrecognized[htype] + 1
             else:
+                seen.add(hID)
                 hDef = db.getWay(hID)
                 for n in hDef[0][1]:
                     if n in nodes:
