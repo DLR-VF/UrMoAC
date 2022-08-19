@@ -322,21 +322,21 @@ def getVMax(defaultSpeed, params):
     maxspeed = params.get("maxspeed")
     if maxspeed==None: return defaultSpeed
     v = maxspeed.lower()
-    if v.find("km/h")>=0: v = int(v[:v.find("km/h")].strip()) / 3.6
-    elif v.find("kmh")>=0: v = int(v[:v.find("kmh")].strip()) / 3.6
-    elif v.find("mph")>=0: v = int(v[:v.find("mph")].strip()) / 3.6 * 1.609344
-    elif v=="signals": return defaultSpeed
-    elif v=="none": v = 300.
-    elif v=="no": v = 300.
-    elif v=="walk": v = 5.
-    elif v=="DE:rural": v = 100.
-    elif v=="DE:urban": v = 50.
-    elif v=="DE:living_street": v = 10.
-    else:
-        try: v = float(v)
-        except:
-            params.markBad("maxspeed") 
-            v = defaultSpeed
+    try:
+        if v.find("km/h")>=0: v = int(v[:v.find("km/h")].strip()) / 3.6
+        elif v.find("kmh")>=0: v = int(v[:v.find("kmh")].strip()) / 3.6
+        elif v.find("mph")>=0: v = int(v[:v.find("mph")].strip()) / 3.6 * 1.609344
+        elif v=="signals": return defaultSpeed
+        elif v=="none": v = 300.
+        elif v=="no": v = 300.
+        elif v=="walk": v = 5.
+        elif v=="DE:rural": v = 100.
+        elif v=="DE:urban": v = 50.
+        elif v=="DE:living_street": v = 10.
+        else: v = float(v)
+    except:
+        params.markBad("maxspeed") 
+        v = defaultSpeed
     params.consume("maxspeed")
     return v
 
