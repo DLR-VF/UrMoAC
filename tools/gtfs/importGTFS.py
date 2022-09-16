@@ -163,7 +163,10 @@ class GTFSImporter:
                 continue
        
             # process entries
+            if l.strip()=="":
+                continue
             vals = self._valSplit(l.strip())
+            vals = [v.strip() for v in vals]
             newVals = []
             pos = [0, 0]
             for ic, c in enumerate(columns):
@@ -191,20 +194,27 @@ class GTFSImporter:
             entries.append(list(newVals))
             num += 1
             # commit if collected enough
-            if num>10000:
+            if num%10000==0 and num!=0:
                 # insert into db
                 args = ','.join(self._cursor.mogrify(placeHolders, i).decode('utf-8') for i in entries)
                 self._cursor.execute("INSERT INTO %s.%s_%s (%s) VALUES " % (self._schema, self._tablePrefix, fileType, namesDB) + (args))
                 self._conn.commit()
                 entries.clear()
-                num = 0
         # commit
-        args = ','.join(self._cursor.mogrify(placeHolders, i).decode('utf-8') for i in entries)
-        self._cursor.execute("INSERT INTO %s.%s_%s (%s) VALUES " % (self._schema, self._tablePrefix, fileType, namesDB) + (args))
-        self._conn.commit()
+        if len(entries)!=0:
+            args = ','.join(self._cursor.mogrify(placeHolders, i).decode('utf-8') for i in entries)
+            self._cursor.execute("INSERT INTO %s.%s_%s (%s) VALUES " % (self._schema, self._tablePrefix, fileType, namesDB) + (args))
+            self._conn.commit()
+        if num==0:
+            print ("  No data found! Table %s.%s_%s will be deleted." % (self._schema, self._tablePrefix, fileType))
+            self._cursor.execute("DROP TABLE IF EXISTS %s.%s_%s;" % (self._schema, self._tablePrefix, fileType))
+            self._conn.commit()
 
 
     def importFiles(self):
+        """! @brief Goes through the tables and imports existing ones
+        @param self The class instance
+        """
         print ("Importing data")
         for td in gtfs_defs.tableDefinitions:
             # skip non-existing, optional files
@@ -222,7 +232,7 @@ class GTFSImporter:
     def addLinesToStops(self):
         """! @brief Adds line information to stops
         @param self The class instance
-        @todo Move to a GTFS-maniplating class?
+        @todo Move to a GTFS-manipulating class?
         """
         print ("Extending stops by lines")
         route2line = {}
