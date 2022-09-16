@@ -222,7 +222,6 @@ public class DBNet {
 			tree.insert(e.getGeometry().getEnvelopeInternal(), e);
 		}
 		return tree;
-
 	}
 
 
