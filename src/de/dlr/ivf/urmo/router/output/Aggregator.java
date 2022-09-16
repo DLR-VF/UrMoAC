@@ -18,9 +18,16 @@ package de.dlr.ivf.urmo.router.output;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.index.strtree.STRtree;
+
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
+import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.Layer;
 import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
@@ -151,12 +158,23 @@ public class Aggregator<T extends AbstractSingleResult> {
 	 * @return The number of origins/destination that could not be assigned to an aggregation area
 	 */
 	private int buildAggregationMapping(Layer orig, Layer origAgg, HashMap<Long, Long> into) {
+		// build temporary tree
+		STRtree tree = new STRtree();
+		for (EdgeMappable e : origAgg.getObjects()) {
+			tree.insert(e.getGeometry().getEnvelopeInternal(), e);
+		}
+		// build look-up
 		int missing = 0;
 		for (EdgeMappable em : orig.getObjects()) {
 			long destID = -1;
-			for (EdgeMappable aggEM : origAgg.getObjects()) {
-				if (aggEM.getGeometry().contains(em.getPoint())) {
-					destID = aggEM.getOuterID();
+			Point p = em.getPoint();
+			double viewDist = .1;
+			Envelope env = new Envelope(new Coordinate(p.getX()-viewDist, p.getY()-viewDist), new Coordinate(p.getX()+viewDist, p.getY()+viewDist));
+			List objs = tree.query(env);
+			for(Object o : objs) {
+				EdgeMappable aggArea = (EdgeMappable) o;
+				if (aggArea.getGeometry().contains(em.getPoint())) {
+					destID = aggArea.getOuterID();
 					break;
 				}
 			}
