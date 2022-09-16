@@ -165,11 +165,22 @@ public class GTFSReader {
 			int failed = 0;
 			// connect stops to network
 			if(verbose) System.out.println(" ... connecting stops ...");
+			HashMap<DBEdge, DBEdge> seenOpposite = new HashMap<DBEdge, DBEdge>();
 			for (DBEdge e : edge2stops.keySet()) {
-				Vector<MapResult> edgeStops = edge2stops.get(e);
 				if (e == null) {
-					failed += edgeStops.size();
+					failed += edge2stops.get(e).size();
 					continue;
+				}
+				// we have to add 
+				if(seenOpposite.containsKey(e)) {
+					continue;
+				}
+				Vector<MapResult> edgeStops = new Vector<MapResult>(edge2stops.get(e));
+				if(e.opposite!=null&&edge2stops.containsKey(e.opposite)) {
+					for(MapResult stop : edge2stops.get(e.opposite)) {
+						MapResult mr = new MapResult(stop.em, stop.edge, stop.dist, e.length-stop.pos);
+						edgeStops.add(mr);
+					}
 				}
 				// sort stops along edge
 				Collections.sort(edgeStops, new Comparator<MapResult>() {
@@ -197,7 +208,11 @@ public class GTFSReader {
 				LineString lastGeom = e.getGeometry();
 				DBEdge opp = e.opposite;
 				double seen = 0;
-				LineString lastOppGeom = e.opposite==null ? null : e.opposite.getGeometry();
+				LineString lastOppGeom = null;
+				if(e.opposite!=null) {
+					lastOppGeom = e.opposite.getGeometry();
+					seenOpposite.put(e.opposite, e);
+				}
 				for(Vector<MapResult> mrv : stopClusters) {
 					LineString geom;
 					double stopEdgePos = mrv.lastElement().pos;
@@ -207,7 +222,7 @@ public class GTFSReader {
 					DBNode intermediateNode = net.getNode(net.getNextID(), pos);
 					// build this side access
 					geom = GeomHelper.getGeomUntilDistance(lastGeom, stopEdgePos-seen);
-					if(!net.addEdge(net.getNextID(), e.id+"-stop@"+stopEdgePos, e.from, intermediateNode, e.modes, e.vmax, geom, geom.getLength())) {
+					if(!net.addEdge(net.getNextID(), e.id+"-"+stopID, e.from, intermediateNode, e.modes, e.vmax, geom, geom.getLength())) {
 						throw new ParseException("Could not allocate edge '" + e.id+"-"+stopID+ "'");
 					}
 					lastGeom = GeomHelper.getGeomBehindDistance(lastGeom, stopEdgePos-seen);
@@ -236,13 +251,13 @@ public class GTFSReader {
 						edgeCoords[0] = new Coordinate(intermediateNode.pos);
 						edgeCoords[1] = new Coordinate(stop.pos);
 						geom = new LineString(edgeCoords, e.geom.getPrecisionModel(), e.geom.getSRID());
-						if(!net.addEdge(net.getNextID(), "on-"+stop.mid, intermediateNode, stop, accessModes, 50, geom, stopDist)) {
+						if(!net.addEdge(net.getNextID(), "on-"+stop.mid, intermediateNode, stop, accessModes, 50, geom, Math.max(stopDist, 0.1))) {
 							throw new ParseException("Could not allocate edge '" + "on-"+stop.mid + "'");
 						}
 						edgeCoords[0] = new Coordinate(stop.pos);
 						edgeCoords[1] = new Coordinate(intermediateNode.pos);
 						geom = new LineString(edgeCoords, e.geom.getPrecisionModel(), e.geom.getSRID());
-						if(!net.addEdge(net.getNextID(), "off-"+stop.mid, stop, intermediateNode, accessModes, 50, geom, stopDist)) {
+						if(!net.addEdge(net.getNextID(), "off-"+stop.mid, stop, intermediateNode, accessModes, 50, geom, Math.max(stopDist, 0.1))) {
 							throw new ParseException("Could not allocate edge '" + "off-"+stop.mid + "'");
 						}
 					}
