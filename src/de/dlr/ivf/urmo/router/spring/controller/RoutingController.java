@@ -12,13 +12,13 @@ import java.util.concurrent.ForkJoinPool;
 public class RoutingController {
 
     @GetMapping("/route-request")
-    public String handle(@RequestParam(value = "lon1") double lon1, @RequestParam(value = "lat1") double lat1, @RequestParam(value = "lon2") double lon2, @RequestParam(value = "lat2") double lat2){
+    public DeferredResult<String> handle(@RequestParam(value = "lon1") double lon1, @RequestParam(value = "lat1") double lat1, @RequestParam(value = "lon2") double lon2, @RequestParam(value = "lat2") double lat2){
 
-        //DeferredResult<UrMoAcResultResponse> result = new DeferredResult<>();
+        DeferredResult<String> result = new DeferredResult<>();
 
-        //ForkJoinPool.commonPool().submit(() -> result.setResult(new UrMoAcResultResponse("bus", -1)));
+        ForkJoinPool.commonPool().submit(() -> result.setResult("nicely done in the end!"));
 
-        return "nicely done";
+        return result;
     }
 
 }
