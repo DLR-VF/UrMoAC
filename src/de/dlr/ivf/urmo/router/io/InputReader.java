@@ -210,13 +210,7 @@ public class InputReader {
 	
 	/**
 	 * @brief Loads a set of objects from file
-	 * 
-	 * @param url The url of the database
-	 * @param table The table to read from
-	 * @param user The user name for connecting to the database
-	 * @param pw The user's password
-	 * @param filter A WHERE-clause statement (optional, empty string if not used)
-	 * @param varName The name of the attached variable
+	 *
 	 * @param layerName The name of the layer to generate
 	 * @param idGiver A reference to something that supports a running ID
 	 * @return The generated layer with the read objects

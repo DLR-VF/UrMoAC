@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-public class PipedWriter implements Runnable{
+public class UrmoPipedWriter implements Runnable{
 
 
     private AtomicInteger registered_result = new AtomicInteger(0);
@@ -29,7 +29,7 @@ public class PipedWriter implements Runnable{
 
     private RingBuffer<WritableResultEvent> ring_buffer;
 
-    public PipedWriter(String url, String user, String pw, String table_name){
+    public UrmoPipedWriter(String url, String user, String pw, String table_name){
         super();
 
 

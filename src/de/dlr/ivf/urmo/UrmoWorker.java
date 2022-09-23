@@ -8,14 +8,14 @@ import de.dlr.ivf.urmo.router.algorithms.routing.BoundDijkstra;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_TT_Modes;
 import de.dlr.ivf.urmo.router.io.InputReader;
-import de.dlr.ivf.urmo.router.io.PipedWriter;
+import de.dlr.ivf.urmo.router.io.UrmoPipedWriter;
 import de.dlr.ivf.urmo.router.output.DijkstraResultsProcessor;
 import de.dlr.ivf.urmo.router.output.odext.ODExtendedMeasuresGenerator;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
-import de.dlr.ivf.urmo.router.shapes.IDGiver;
 import de.dlr.ivf.urmo.router.shapes.Layer;
 import org.apache.commons.cli.CommandLine;
 import java.io.IOException;
+
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 
 public class UrmoWorker implements Runnable{
 
-    private final PipedWriter writer;
+    private final UrmoPipedWriter writer;
     private final Supplier<Integer> taz_supplier;
     private final String name;
     private final NearestEdgeFinder edge_finder;
@@ -44,7 +44,7 @@ public class UrmoWorker implements Runnable{
     private final int time;
     private final long initMode;
 
-    public UrmoWorker(String name, PipedWriter writer, Supplier<Integer> taz_supplier, NearestEdgeFinder edge_finder,
+    public UrmoWorker(String name, UrmoPipedWriter writer, Supplier<Integer> taz_supplier, NearestEdgeFinder edge_finder,
                       CommandLine options, int epsg, IntraTazComputer idGiver,
                       int _time, long _initMode, long _modes, int _boundNumber, double _boundTT,
                       double _boundDist, double _boundVar, boolean _shortestOnly){
@@ -77,8 +77,8 @@ public class UrmoWorker implements Runnable{
 
         int calculated_taz_count = 0;
 
-        Layer fromLayer = null;
-
+        Layer fromLayer;
+        Layer toLayer;
         ODExtendedMeasuresGenerator measurements_generator = new ODExtendedMeasuresGenerator();
 
         System.out.println(name+" is initializing R-Tree...");
@@ -91,14 +91,15 @@ public class UrmoWorker implements Runnable{
             try {
 
                 System.out.println(this.name+" loading next layer for TAZ: "+taz);
-                fromLayer = InputReader.loadLayerWithFilter(options, "from", null, this.idGiver, epsg, "wq_gid = "+taz.toString() +" AND geocode_key = 'GEOCODES_2017'");
+                fromLayer = InputReader.loadLayerWithFilter(options, "from", null, this.idGiver, epsg, "taz_id_tztable = "+taz);
+                toLayer = InputReader.loadLayerWithFilter(options, "to", null, this.idGiver, epsg, "taz_id_tztable = "+taz);
 
                 System.out.println("Computing access from the origins to the network for taz: "+taz);
 
                 edge_finder.setSource(fromLayer.getObjects());
 
                 Map<DBEdge, Vector<MapResult>> nearestFromEdges = this.edge_finder.getNearestEdges(true, fromLayer.getObjects());
-                Map<DBEdge, Vector<MapResult>> nearestToEdges = nearestFromEdges; //this.edge_finder.getNearestEdges(true, fromLayer.getObjects());
+                Map<DBEdge, Vector<MapResult>> nearestToEdges = this.edge_finder.getNearestEdges(true, toLayer.getObjects());
 
                 int time = ((Long) options.getParsedOptionValue("time")).intValue();
 

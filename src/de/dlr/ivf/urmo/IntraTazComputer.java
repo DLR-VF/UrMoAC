@@ -2,7 +2,6 @@ package de.dlr.ivf.urmo;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.NearestEdgeFinder;
 import de.dlr.ivf.urmo.router.io.NetLoader;
-import de.dlr.ivf.urmo.router.io.PipedWriter;
 import de.dlr.ivf.urmo.router.io.Utils;
 import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;
@@ -10,7 +9,7 @@ import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.IDGiver;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
-
+import de.dlr.ivf.urmo.router.io.UrmoPipedWriter;
 import java.io.IOException;
 import java.sql.*;
 import java.time.Duration;
@@ -96,7 +95,7 @@ public class IntraTazComputer implements IDGiver {
         boolean shortestOnly = isShortest();
 
         //set up and start the results writer
-        PipedWriter writer = initWriter(options);
+        UrmoPipedWriter writer = initWriter(options);
         Thread writer_thread = new Thread(writer);
         writer_thread.start();
 
@@ -183,7 +182,7 @@ public class IntraTazComputer implements IDGiver {
         return 0;
     }
 
-    private PipedWriter initWriter(CommandLine options) {
+    private UrmoPipedWriter initWriter(CommandLine options) {
 
         try {
             String[] r = Utils.checkDefinition(options.getOptionValue("ext-nm-output", ""), "ext-nm-output");
@@ -191,7 +190,7 @@ public class IntraTazComputer implements IDGiver {
             if(!r[0].equals("db"))
                 throw new RuntimeException("This version only supports extended output to database...");
 
-            PipedWriter writer = new PipedWriter(r[1],r[3],r[4],r[2]);
+            UrmoPipedWriter writer = new UrmoPipedWriter(r[1],r[3],r[4],r[2]);
             writer.init(options.hasOption("dropprevious"), 1<<19);
 
             return writer;
