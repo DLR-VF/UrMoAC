@@ -12,11 +12,10 @@ import java.util.concurrent.ForkJoinPool;
 public class RoutingController {
 
     @GetMapping("/route-request")
-    public DeferredResult<String> handle(@RequestParam(value = "lon1") double lon1, @RequestParam(value = "lat1") double lat1, @RequestParam(value = "lon2") double lon2, @RequestParam(value = "lat2") double lat2){
+    public DeferredResult<UrMoAcResultResponse> handle(@RequestParam(value = "lon1") double lon1, @RequestParam(value = "lat1") double lat1, @RequestParam(value = "lon2") double lon2, @RequestParam(value = "lat2") double lat2){
 
-        DeferredResult<String> result = new DeferredResult<>();
-
-        ForkJoinPool.commonPool().submit(() -> result.setResult("nicely done in the end!"));
+        DeferredResult<UrMoAcResultResponse> result = new DeferredResult<>();
+        ForkJoinPool.commonPool().submit(() -> result.setResult(new UrMoAcResultResponse("ferry", 1000,100, 10)));
 
         return result;
     }
