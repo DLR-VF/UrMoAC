@@ -21,6 +21,7 @@ from geom_helper import *
 
 
 # --- class definitions -----------------------------------
+# --- OSMElement
 class OSMElement:
     """ @class OSMElement
     @brief The base class for nodes, ways, and relations with an ID an tags
@@ -33,6 +34,7 @@ class OSMElement:
         """
         self.id = id
         self.tags = {}
+        self._ok = True
 
 
     def addTag(self, k, v):
@@ -42,6 +44,7 @@ class OSMElement:
         @param v The attribute's value
         """
         self.tags[k] = v
+
 
 
 
@@ -63,20 +66,19 @@ class OSMNode(OSMElement):
 
 
     def getDescriptionWithPolygons(self):
-        """ @brief Returns a description for inserting the object as a polygon
+        """ @brief Returns a description for inserting the object as a multipolygon and geomtrycollection
         @param self The class instance
+        @return A tuple of id, type, polygons, and WKT representation
         """
-        pxm = self.pos[0]-.0001
-        pym = self.pos[1]-.0001
-        pxp = self.pos[0]+.0001
-        pyp = self.pos[1]+.0001
-        poly = []
-        poly.append("%s %s" % (pxm, pym))
-        poly.append("%s %s" % (pxp, pym))
-        poly.append("%s %s" % (pxp, pyp))
-        poly.append("%s %s" % (pxm, pyp))
-        poly.append("%s %s" % (pxm, pym))
-        return [self.id, "node", [poly]]
+        return [self.id, "node", [], "POINT(%s %s)" % (self.pos[0], self.pos[1])]
+
+
+    def getGeometryType(self):
+        """ @brief Returns the type of this element (here: always GeometryType.POINT)
+        @param self The class instance
+        @return GeometryType.POINT
+        """
+        return GeometryType.POINT
 
 
 
@@ -104,55 +106,47 @@ class OSMWay(OSMElement):
         self.refs.append(nID)
         
         
-    def buildGeometry(self, nodesMap):
+    def buildGeometry(self, area):
         """ @brief Builds the geometry
         @param self The class instance
-        @param nodesMap The nodes storage
+        @param area The area to get information from
         """
+        if self._ok and self.geom!=None:
+            return True
         self.geom = []
-        ok = True
         for r in self.refs:
-            if r not in nodesMap:
+            if r not in area._nodes:
                 print ("Missing node %s while building way %s." % (r, self.id))
-                ok = False
+                self._ok = False
                 continue
-            self.geom.append(nodesMap[r].pos)
-        if not ok: self.geom.clear()
-        return ok
+            self.geom.append(area._nodes[r].pos)
+        if not self._ok:
+            self.geom = None
+        return self._ok
         
 
     def getDescriptionWithPolygons(self):
-        """ @brief Returns a description for inserting the object as a polygon
+        """ @brief Returns a description for inserting the object as a multipolygon and geomtrycollection
         @param self The class instance
+        @return A tuple of id, type, polygons, and WKT representation
         """
-        poly = []
-        poly = ["%s %s" % (p[0], p[1]) for p in self.geom]
-        if poly[0]!=poly[-1]: poly.append(poly[0])
-        return [self.id, "way", [poly]]
+        if self.geom[0]==self.geom[-1]:
+            p = ",".join(["%s %s" % (p[0], p[1]) for p in self.geom])
+            return [self.id, "way", [[self.geom]], "POLYGON((" + p + "))"]
+        return [self.id, "way", None, "LINESTRING(" + ",".join(["%s %s" % (p[0], p[1]) for p in self.geom]) + ")"]
 
+
+    def getGeometryType(self):
+        """ @brief Returns the type of this element
+        @param self The class instance
+        @return GeometryType.POLYGON if the way is closed, otherwise GeometryType.LINESTRING
+        """
+        if self.geom[0]==self.geom[-1]:
+            return GeometryType.POLYGON
+        return GeometryType.LINESTRING
+    
     
 
-# --- OSMRelation
-class PolygonPart():
-    """ @class PolygonPart
-    @brief A helper class used when computing linestring combinations
-    """
-    
-    def __init__(self, type, geom):
-        """ @brief Constructor
-        @param type The geometry type
-        @param geom The geometry
-        """
-        self.type = type
-        self.geom = list(geom)
-        self.possibleFollowers = []
-    
-    
-    def __repr__(self):
-        """ @brief Returns the string representation
-        @return The string representation of this instance
-        """
-        return "<PolygonPart %s %s %s>" % (self.type, self.geom, self.possibleFollowers)
     
 
     
@@ -192,9 +186,17 @@ class OSMRelation(OSMElement):
         @param self The class instance
         @param roleItems The list of the parts of a relation
         """
+        # initialise consecution list
+        for i in roleItems:
+            i.possibleFollowers = []
+        # fill consecution list
         for i,w1 in enumerate(roleItems):
+            if w1.getGeometryType()!=GeometryType.LINESTRING:
+                continue
             for j,w2 in enumerate(roleItems):
                 if i==j: continue
+                if w2.getGeometryType()!=GeometryType.LINESTRING:
+                    continue
                 if w1.geom[-1]==w2.geom[0]: # ok, plain continuation
                     w1.possibleFollowers.append([j, 0])
                 if w1.geom[-1]==w2.geom[-1]: # second would have to be mirrored
@@ -203,7 +205,48 @@ class OSMRelation(OSMElement):
                     w1.possibleFollowers.append([j, 2])
                 if w1.geom[0]==w2.geom[-1]: # both have to be mirrored
                     w1.possibleFollowers.append([j, 3])        
-        
+
+
+    def _joinUnambiguous(self, roleItems):
+        changed = True
+        while changed:
+            changed = False
+            # initialise list of referenced items
+            # those referenced by one only are unambiguous
+            referencedBy = [[] for i in range(0, len(roleItems))]
+            for i,w1 in enumerate(roleItems):
+                for r in w1.possibleFollowers:
+                    referencedBy[r[0]].append([i, r[1]])
+            newRoleItems = list(roleItems)
+            for i,w1 in enumerate(newRoleItems):
+                if len(referencedBy[i])<1 or len(referencedBy[i])>2:
+                    continue
+                if len(referencedBy[i])==2:
+                    if referencedBy[i][0][0]!=referencedBy[i][1][0] or ((referencedBy[i][0][1]!=0 or referencedBy[i][1][1]!=3) and (referencedBy[i][0][1]!=3 and referencedBy[i][1][1]!=0)):
+                        continue
+                referrer = referencedBy[i][0][0]
+                # ok, I assume this should not happen - that an item is an 
+                # unambiguous follower of the referrer but can be the follower
+                # of two other ones...
+                if len(roleItems[referrer].possibleFollowers)!=1 and (len(roleItems[referrer].possibleFollowers)!=2 or roleItems[referrer].possibleFollowers[0][0]!=roleItems[referrer].possibleFollowers[1][0]):
+                    continue
+                # umpf, we skip some mirroring possibilities; they have to be solved later
+                mirror = referencedBy[i][0][1]
+                if mirror==2 or mirror==3:
+                    continue
+                # extend the referrer by this item
+                geom = w1.geom
+                if mirror==1:
+                    geom = list(reversed(geom))
+                newRoleItems[referrer].geom.extend(geom[1:])
+                del newRoleItems[i]
+                changed = True
+                break
+            if changed:
+                self._computePossibleConsecutions(newRoleItems)
+                roleItems = newRoleItems
+        return newRoleItems
+                
 
     def _extendCombinations(self, roleItems, combinations, seen):
         """ @brief Extends the given combinations by next possible items
@@ -263,6 +306,9 @@ class OSMRelation(OSMElement):
             seen.append(set())
             seen[-1].add(0)
         while True:
+            if len(combinations)>100000:
+                print ("Maximum number of combinations reached when processing relation %s!" % self.id)
+                break
             combinations, seen = self._extendCombinations(roleItems, combinations, seen)
             if len(combinations)==0:
                 break # invalid (no combinations were found)
@@ -306,14 +352,12 @@ class OSMRelation(OSMElement):
                     else:
                         ngeom.extend(geom)
                     lastGeom = geom
-
                 # check whether the polygon is closed
                 if ngeom[0]!=ngeom[-1]:
                     if closeIfNeeded:
                         ngeom.append(ngeom[0])
                     else:
                         valid = False
-                
                 # check whether the polygon does not contain crossing boundaries
                 for q1 in range(1, len(ngeom)):
                     p11 = ngeom[q1-1]
@@ -333,16 +377,50 @@ class OSMRelation(OSMElement):
             ngeomss.append(ngeoms)
         return ngeomss, valids
 
+    
+    def _computeCliques(self, items):
+        """ @brief Divides the given list of elements into cliques
         
+        A clique contains only items which reference other
+        @param self The class instance
+        @param items The list of items
+        """
+        cliques = []
+        for i,item in enumerate(items):
+            item.clique = i
+            cliques.append(set())
+            cliques[-1].add(item)
+        changed = True
+        while changed:
+            changed = False
+            for ic,c in enumerate(cliques):
+                for i in c:
+                    for f in i.possibleFollowers:
+                        ic2 = items[f[0]].clique
+                        if ic2==ic:
+                            continue
+                        for i2 in cliques[ic2]:
+                            c.add(i2)
+                            i2.clique = ic
+                        cliques[ic2] = set()
+                        items[f[0]].clique = ic
+                        changed = True
+                    if changed: break
+        return cliques
+    
         
     def buildGeometry(self, area):
         """ @brief Builds the geometry
         @param self The class instance
         @param area The objects storage
         """
-        ok = True
+        #print ("%s %s" % (self.id, self.geom))
+        if self._ok and self.geom!=None:
+            return True
+        
         # build roles
-        roles = {}
+        roles = {} # !!! could be a direct member
+        #print (self.members)
         for m in self.members:
             if m[2] not in roles:
                 roles[m[2]] = []
@@ -353,75 +431,145 @@ class OSMRelation(OSMElement):
                 n = area.getNode(m[0])
                 if not n:
                     print ("Missing node %s in relation %s" % (m[0], self.id))
-                    ok = False
+                    self._ok = False
                     continue
-                roles[m[2]].append(PolygonPart(GeometryType.POINT, n.pos))
+                #roles[m[2]].append(PolygonPart(GeometryType.POINT, n.pos))
+                roles[m[2]].append(n)
             elif m[1]=="way":
                 w = area.getWay(m[0])
                 if not w:
                     print ("Missing way %s in relation %s" % (m[0], self.id))
-                    ok = False
+                    self._ok = False
                     closeIfNeeded = True
                     continue
-                ok = w.buildGeometry(area._nodes)
-                roles[m[2]].append(PolygonPart(GeometryType.LINESTRING, list(w.geom))) # well, we append it even if it's not ok!?
+                self._ok &= w.buildGeometry(area)
+                #roles[m[2]].append(PolygonPart(GeometryType.LINESTRING, list(w.geom))) # well, we append it even if it's not ok!?
+                if self._ok:
+                    roles[m[2]].append(w) # well, we append it even if it's not ok!?
             elif m[1]=="relation" or m[1]=="rel":
                 r = area.getRelation(m[0])
                 if not r:
                     print ("Missing relation %s in relation %s" % (m[0], self.id))
-                    ok = False
+                    self._ok = False
                     continue
-                ok = r.buildGeometry(area)
-                if len(r.geom)==0:
+                self._ok &= r.buildGeometry(area)
+                if not self._ok:
                     print ("Broken geometry of relation %s in relation %s" % (m[0], self.id))
-                    ok = False
+                    self._ok = False
                     continue
-                roles[m[2]].append(PolygonPart(GeometryType.MULTIPOLYGON, dict(r.geom)))
+                roles[m[2]].append(r)
+        if not self._ok:
+            return False
         # build roles geometries
         self.geom = {}
         for role in roles:
             if len(roles[role])==0: # may occur if an element is missing
                 continue
             self.geom[role] = []
-            if len(roles[role])<2:
-                combinations = [[[[0, 0]]]]
-            else:
-                self._computePossibleConsecutions(roles[role])
-                combinations = self._computeCombinations(roles[role])
-            ngeomss, valids = self._checkPolygonValidities(self.id, roles[role], combinations, closeIfNeeded)
-            # check
-            if True not in valids:
-                print ("Invalid geometry in relation %s" % self.id)
-                continue
-            polys = ngeomss[valids.index(True)]
-            for poly in polys:
-                asign = signed_area(poly)
-                if (asign>0 and role=="inner") or (asign<0 and role=="outer"):
-                    poly.reverse()
-                self.geom[role].append(poly)
-        return ok
+            # add all elements that do not need any continuations (are a closed polygon or point)
+            leftItems = []
+            for r in roles[role]:
+                if r.getGeometryType()==GeometryType.POINT:
+                    self.geom[role].append(r)
+                elif r.getGeometryType()==GeometryType.POLYGON:
+                    asign = signed_area(r.geom)
+                    if (asign>0 and role=="inner") or (asign<0 and role=="outer"):
+                        r.geom.reverse()
+                    self.geom[role].append(r)
+                elif r.getGeometryType()==GeometryType.GEOMETRYCOLLECTION:
+                    self.geom[role].append(r)
+                else:
+                    leftItems.append(r)
+            # check continuations for complex items
+            if len(leftItems)>0:
+                self._computePossibleConsecutions(leftItems)
+                leftItems = self._joinUnambiguous(leftItems)
+                self._computePossibleConsecutions(leftItems)
+                #print ("leftItems: %s" % leftItems)
+                cliques = self._computeCliques(leftItems)
+                #print ("cliques: %s" % cliques)
+                for c in cliques:
+                    if len(c)==0:
+                        continue
+                    entries = list(c)
+                    self._computePossibleConsecutions(entries)
+                    #print (entries)
+                    combinations = self._computeCombinations(entries)
+                    ngeomss, valids = self._checkPolygonValidities(self.id, entries, combinations, closeIfNeeded)
+                    # check whether we could successfully combine items
+                    if True not in valids:
+                        #print ("Here")
+                        # ok, we could not determine meaningful element combinations
+                        # simply add the items
+                        for item in leftItems:
+                            self.geom[role].append(item)
+                        continue
+                    # build a new item
+                    polys = ngeomss[valids.index(True)]
+                    for poly in polys:
+                        asign = signed_area(poly)
+                        if (asign>0 and role=="inner") or (asign<0 and role=="outer"):
+                            poly.reverse()
+                        self.geom[role].append(OSMWay(-1, [], poly))
+        return self._ok
         
 
-    def getDescriptionWithPolygons(self):
-        """ @brief Returns a description for inserting the object as a polygon
+    def getGeometryType(self):
+        """ @brief Returns the type of this element (here: always GeometryType.GEOMETRYCOLLECTION)
         @param self The class instance
+        @return GeometryType.GEOMETRYCOLLECTION
         """
+        return GeometryType.GEOMETRYCOLLECTION
+
+
+    def getDescriptionWithPolygons(self):
+        """ @brief Returns a description for inserting the object as a multipolygon and geomtrycollection
+        @param self The class instance
+        @return A tuple of id, type, polygons, and WKT representation
+        """
+        ret = []
         polys = []
-        if not self.geom:
-            print ("Missing geometry in relation %s" % self.id)
-            return [self.id, "rel", []]
-        if "outer" in self.geom and len(self.geom["outer"])!=0:
-            poly = ["%s %s" % (p[0], p[1]) for p in self.geom["outer"][0]]
-            if poly[0]!=poly[-1]: poly.append(poly[0])
-            polys.append(poly)
+        seen = set()
+        if "outer" in self.geom:
+            for o in self.geom["outer"]:
+                id, type, outerpolys, outer = o.getDescriptionWithPolygons()
+                if not outer.startswith("POLYGON"):
+                    continue
+                if signed_area(outerpolys[0][0])<0: outerpolys[0][0].reverse()
+                seen.add(o)
+                if "inner" in self.geom:
+                    inners = []
+                    for i in self.geom["inner"]:
+                        if i in seen:
+                            continue
+                        if i.getGeometryType()!=GeometryType.LINESTRING and i.getGeometryType()!=GeometryType.POLYGON:
+                            continue
+                        id, type, innerpolys, inner = i.getDescriptionWithPolygons()
+                        if not inner.startswith("POLYGON"):
+                            continue
+                        if polygon_in_polygon(innerpolys[0][0], outerpolys[0][0]):
+                            if signed_area(innerpolys[0][0])>0: innerpolys[0][0].reverse()
+                            #inner = inner[inner.find("(")+1:-1]
+                            inners.append(innerpolys[0][0])
+                            seen.add(i)
+                    if len(inners)!=0:
+                        outerpolys[0].extend(inners) #outer = outer[:-1] + "," + ",".join(inners) + ")"
+                    #print (outerpolys)
+                    polys.append(outerpolys[0])
+                else:
+                    polys.append(outerpolys[0])
+                ret.append(outer)
         for r in self.geom:
-            if r=="outer":
-                continue
-            for ppoly in self.geom[r]:
-                poly = ["%s %s" % (p[0], p[1]) for p in ppoly]
-                if poly[0]!=poly[-1]: poly.append(poly[0])
-                polys.append(poly)
-        return [self.id, "rel", polys]
+            for g in self.geom[r]:
+                if g in seen:
+                    continue
+                id, type, npolys, geom2 = g.getDescriptionWithPolygons()
+                if npolys!=None: polys.extend(npolys)
+                if geom2.startswith("GEOMETRYCOLLECTION"):
+                    geom2 = geom2[geom2.find("(")+1:-1]
+                ret.append(geom2)
+        ret = ",".join(ret)
+        return [self.id, "rel", polys, ret]
 
 
     
@@ -500,10 +648,15 @@ class OSMArea:
         """ @brief Builds geometries for ways and releations
         @param self The class instance
         """
+        fw = 0
         for w in self._ways:
-            self._ways[w].buildGeometry(self._nodes)
+            if not self._ways[w].buildGeometry(self):
+                fw += 1
+        fr = 0
         for r in self._relations:
-            self._relations[r].buildGeometry(self)
+            if not self._relations[r].buildGeometry(self):
+                fr += 1
+        return fw,fr
 
 
 

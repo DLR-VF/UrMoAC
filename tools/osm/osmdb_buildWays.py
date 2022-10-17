@@ -551,13 +551,23 @@ def main(argv):
                 params.consume("highway")
                 params.consume("railway")
                 #
-                hDef = db.getWay(hID)
-                hNodes = db.getNodes_preserveOrder(hDef[0][1])
+                hDef = db.getWay(hID)[0]
+                hNodes = db.getNodes_preserveOrder(hDef[1])
+                
+                # we may have to split the road to avoid loops
+                b = 0
+                e = 1
+                splits = [False]*len(hDef[1])
+                while e<len(hDef[1]):
+                  if hDef[1][e] in hDef[1][b:e]:
+                    splits[e-1] = True
+                    b = e
+                  e = e + 1
+                
                 index = 0
                 ni = 0
                 hGeom = []
                 nodeIDs = []
-
                 while ni!=len(hNodes):
                     n = hNodes[ni]
                     p = parsePOINT2XY(n[1])
@@ -565,7 +575,7 @@ def main(argv):
                     hGeom.append("%s %s" % (p[0], p[1]))
                     if n[0] not in nodes:
                         print ("Critical error: way %s has a node %s not seen before; all nodes: %s" % (hID, n[0], n))
-                    if nodes[n[0]]>1 and ni>0:
+                    if (nodes[n[0]]>1 or splits[ni]) and ni>0:
                         # store the road
                         if modesF!=0:
                             addRoad(upperType, "f%s#%s" % (hID, index), nodeIDs[0], nodeIDs[-1], htype, modesF, numLanes, vmax, nodeIDs, sidewalk, cycleway, surface, lit, name, ",".join(hGeom))

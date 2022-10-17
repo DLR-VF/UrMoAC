@@ -27,6 +27,7 @@ script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join(script_dir, '..', 'helper')
 sys.path.append(mymodule_dir)
 from wkt import *
+from geom_helper import *
 
 
 
@@ -98,6 +99,11 @@ class OSMExtractor:
         @todo Make database connection an attribute of the class
         """
         ret = set()
+        """
+        if subtype=="rel":
+            ret.add(14183452)
+        return ret
+        """
         if k=="*": # fetch all
             cursor.execute("SELECT id FROM %s.%s_%s" % (schema, prefix, subtype))
         elif v=='*': # fetch all with a matching key
@@ -109,11 +115,6 @@ class OSMExtractor:
         for r in cursor.fetchall():
             ret.add(int(r[0]))
         # !!! add option for extracting (a) certain structure/s by id
-        """
-        ret = set()
-        if subtype=="rel":
-            ret.add(1929493)
-        """
         return ret
 
 
@@ -158,7 +159,7 @@ class OSMExtractor:
             #  print ("%s %s" % (subtype, o))
    
     
-    def collectObjectGeometries(self, conn, cursor, schema, prefix):
+    def collectReferencedObjects(self, conn, cursor, schema, prefix):
         """! @brief Collects all needed geometry information 
         @param self The class instance
         @param conn The database connection to use
@@ -167,6 +168,10 @@ class OSMExtractor:
         @param prefix The OSM database prefix to use
         @todo Make database connection an attribute of the class
         """
+        def divide_chunks(l, n):
+            for i in range(0, len(l), n):
+                yield l[i:i + n]
+        
         missingRELids = list(self._objectIDs["rel"])
         missingWAYids = set(self._objectIDs["way"])
         missingNODEids = set(self._objectIDs["node"])
@@ -177,66 +182,71 @@ class OSMExtractor:
         rel2items = {}
         print (" ... for relations")
         while len(missingRELids)!=0:
-            idstr = ",".join([str(id) for id in missingRELids])
-            cursor.execute("SELECT rid,elemid,type,role FROM %s.%s_member WHERE rid in (%s) ORDER BY rid,role,idx" % (schema, prefix, idstr))
-            conn.commit()
-            missingRELids = []
-            for r in cursor.fetchall():
-                # close the currently processed relation if a new starts
-                rid = int(r[0])
-                relation = area.getRelation(rid)
-                if not relation:
-                    relation = osm.OSMRelation(rid)
-                    area.addRelation(relation)
-                role = r[3]
-                if len(self._roles)>0 and role not in self._roles:
-                    continue
-                iid = int(r[1])
-                relation.addMember(iid, r[2], r[3])
-                if r[2]=="rel" or r[2]=="relation":
-                    if iid==int(r[0]):
-                        print ("Self-referencing relation %s" % r[0])
-                        continue
-                    if iid not in seenRELs:
-                        missingRELids.append(iid)
-                    if True and iid in self._objectIDs["rel"]:
-                        self._objectIDs["rel"].remove(iid)
-                elif r[2]=="way":
-                    missingWAYids.add(iid)
-                    if True and iid in self._objectIDs["way"]:
-                        self._objectIDs["way"].remove(iid)
-                elif r[2]=="node":
-                    missingNODEids.add(iid)
-                    if True and iid in self._objectIDs["node"]:
-                        self._objectIDs["node"].remove(iid)
-                else:
-                    print ("Check type '%s'" % r[2])
+            missingRELidsN = set()
+            for mRELids in divide_chunks(missingRELids, 10000):
+                idstr = ",".join([str(id) for id in mRELids])
+                cursor.execute("SELECT rid,elemid,type,role FROM %s.%s_member WHERE rid in (%s) ORDER BY rid,role,idx" % (schema, prefix, idstr))
+                conn.commit()
+                for r in cursor.fetchall():
+                    # close the currently processed relation if a new starts
+                    rid = int(r[0])
+                    relation = area.getRelation(rid)
+                    if not relation:
+                        relation = osm.OSMRelation(rid)
+                        area.addRelation(relation)
+                    role = r[3]
+                    #if len(self._roles)>0 and role not in self._roles:
+                    #    continue
+                    iid = int(r[1])
+                    relation.addMember(iid, r[2], r[3])
+                    if r[2]=="rel" or r[2]=="relation":
+                        if iid==int(r[0]):
+                            print ("Self-referencing relation %s" % r[0])
+                            continue
+                        if iid not in seenRELs:
+                            missingRELidsN.add(iid)
+                        if True and iid in self._objectIDs["rel"]:
+                            self._objectIDs["rel"].remove(iid)
+                    elif r[2]=="way":
+                        missingWAYids.add(iid)
+                        if True and iid in self._objectIDs["way"]:
+                            self._objectIDs["way"].remove(iid)
+                    elif r[2]=="node":
+                        missingNODEids.add(iid)
+                        if True and iid in self._objectIDs["node"]:
+                            self._objectIDs["node"].remove(iid)
+                    else:
+                        print ("Check type '%s'" % r[2])
+            missingRELids = list(missingRELidsN)
         # collect ways
         print (" ... for ways")
         # https://stackoverflow.com/questions/30773911/union-of-multiple-sets-in-python
         npoints = [missingNODEids]
         if len(missingWAYids)!=0:
-            idstr = ",".join([str(id) for id in missingWAYids])
-            cursor.execute("SELECT id,refs FROM %s.%s_way WHERE id in (%s)" % (schema, prefix, idstr))
-            conn.commit()
-            for r in cursor.fetchall():
-                area.addWay(osm.OSMWay(int(r[0]), r[1]))
-                npoints.append(r[1])
-                for nID in r[1]:
-                    if True and nID in self._objectIDs["node"]:
-                        self._objectIDs["node"].remove(nID)
+            for mWAYids in divide_chunks(list(missingWAYids), 10000):
+                idstr = ",".join([str(id) for id in mWAYids])
+                cursor.execute("SELECT id,refs FROM %s.%s_way WHERE id in (%s)" % (schema, prefix, idstr))
+                conn.commit()
+                for r in cursor.fetchall():
+                    area.addWay(osm.OSMWay(int(r[0]), r[1]))
+                    npoints.append(r[1])
+                    for nID in r[1]:
+                        if True and nID in self._objectIDs["node"]:
+                            self._objectIDs["node"].remove(nID)
         missingNODEids = set.union(*npoints)    
         # collect nodes
         print (" ... for nodes")
         if len(missingNODEids)!=0:
-            idstr = ",".join([str(id) for id in missingNODEids])
-            cursor.execute("SELECT id,ST_AsText(pos) FROM %s.%s_node WHERE id in (%s)" % (schema, prefix, idstr))
-            conn.commit()
-            for r in cursor.fetchall():
-                area.addNode(osm.OSMNode(int(r[0]), parsePOINT2XY(r[1])))
-
-        # build geometries
-        area.buildGeometries()
+            for mNODEids in divide_chunks(list(missingNODEids), 10000):
+                idstr = ",".join([str(id) for id in mNODEids])
+                cursor.execute("SELECT id,ST_AsText(pos) FROM %s.%s_node WHERE id in (%s)" % (schema, prefix, idstr))
+                conn.commit()
+                for r in cursor.fetchall():
+                    area.addNode(osm.OSMNode(int(r[0]), parsePOINT2XY(r[1])))
+        # clear - no longer used
+        missingNODEids = []
+        missingWAYids = []
+        missingRELids = []
         return area
 
 
@@ -254,8 +264,8 @@ class OSMExtractor:
             return
         if len(entries)==0:
             return
-        args = ','.join(cursor.mogrify("(%s, %s, ST_GeomFromText(%s, 4326), ST_Centroid(ST_ConvexHull(ST_GeomFromText(%s, 4326))))", i).decode('utf-8') for i in entries)
-        cursor.execute("INSERT INTO %s.%s(gid, type, shape, centroid) VALUES " % (schema, name) + (args))
+        args = ','.join(cursor.mogrify("(%s, %s, ST_GeomFromText(%s, 4326), ST_GeomFromText(%s, 4326), ST_Centroid(ST_ConvexHull(ST_GeomFromText(%s, 4326))))", i).decode('utf-8') for i in entries)
+        cursor.execute("INSERT INTO %s.%s(gid, type, polygon, geom_collection, centroid) VALUES " % (schema, name) + (args))
         conn.commit()
         del entries[:]
         
@@ -271,21 +281,38 @@ class OSMExtractor:
         @param name The name of the database table
         @todo Make database connection an attribute of the class
         """
-        geom = item.getDescriptionWithPolygons()
-        if len(geom[2])==0:
+        id, type, polys, geom = item.getDescriptionWithPolygons()
+        if len(geom)==0:
             print ("Missing geometry for %s %s" % (geom[1], geom[0]))
             return
-        points = []
-        npolys = []
-        for p in geom[2]:
-            if len(p)<4:
-                print ("Too short geometry for %s %s" % (geom[1], geom[0]))
-                return
-            npolys.append("(" + ",".join(p) + ")")
-            points.extend(p)
-        geom[2] = "MULTIPOLYGON((%s))" % ",".join(npolys)
-        geom.append("MULTIPOINT(%s)" % ",".join(points))
-        entries.append(geom)
+        geom = "GEOMETRYCOLLECTION(" + geom + ")"
+        centroid = geom
+        if polys!=None and len(polys)!=0:
+            # remove polygons within other
+            toRemove = []
+            for i,p1 in enumerate(polys):
+                for j,p2 in enumerate(polys):
+                    if i==j: continue
+                    if polygon_in_polygon(p1[0], p2[0]): toRemove.append(i)
+                    if polygon_in_polygon(p2[0], p1[0]): toRemove.append(j)
+            npolys = []
+            for i,p in enumerate(polys):
+                if i in toRemove: continue
+                npolys.append(p)
+            polys = npolys
+            #
+            npolys = []
+            for poly in polys:
+                npoly = []
+                for polypart in poly:
+                    npolypart = "(" + ",".join(["%s %s" % (p[0], p[1]) for p in polypart]) + ")"
+                    npoly.append(npolypart)
+                npolys.append("(" + ",".join(npoly) + ")")
+            polys = "MULTIPOLYGON(" + ",".join(npolys) + ")"
+            centroid = polys
+        else:
+            polys = "MULTIPOLYGON EMPTY"
+        entries.append([id, type, polys, geom, centroid])
         self._checkCommit(False, entries, conn, cursor, schema, name)
 
 
@@ -300,14 +327,20 @@ class OSMExtractor:
         @todo Make database connection an attribute of the class
         """
         geometries = []
+        fr = 0
+        for rID in self._objectIDs["rel"]:
+            if area._relations[rID].buildGeometry(area):
+                self._addItem(geometries, area._relations[rID], conn, cursor, schema, name)
+            else: fr += 1
+        fw = 0
+        for wID in self._objectIDs["way"]:
+            if area._ways[wID].buildGeometry(area):
+                self._addItem(geometries, area._ways[wID], conn, cursor, schema, name)
+            else: fw += 1
         for nID in self._objectIDs["node"]:
             self._addItem(geometries, area._nodes[nID], conn, cursor, schema, name)
-        for wID in self._objectIDs["way"]:
-            self._addItem(geometries, area._ways[wID], conn, cursor, schema, name)
-        for rID in self._objectIDs["rel"]:
-            self._addItem(geometries, area._relations[rID], conn, cursor, schema, name)
         self._checkCommit(True, geometries, conn, cursor, schema, name)
-        return len(self._objectIDs["node"])+len(self._objectIDs["way"])+len(self._objectIDs["rel"])
+        return len(self._objectIDs["node"])+len(self._objectIDs["way"])+len(self._objectIDs["rel"]), fw, fr
 
 
 
@@ -326,8 +359,8 @@ def main(argv):
     extractor.loadDefinitions(sys.argv[2])
     print ("Determining object IDs")
     extractor.loadObjectIDs(conn, cursor, schema, prefix)
-    print ("Determining object geometries")
-    area = extractor.collectObjectGeometries(conn, cursor, schema, prefix)
+    print ("Collecting object geometries")
+    area = extractor.collectReferencedObjects(conn, cursor, schema, prefix)
 
     # -- write extracted objects
     # --- open connection
@@ -340,17 +373,20 @@ def main(argv):
     cursor2.execute("DROP TABLE IF EXISTS %s.%s" % (schema, name))
     cursor2.execute("CREATE TABLE %s.%s ( gid bigint, type varchar(4) );" % (schema, name))
     cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'centroid', 4326, 'POINT', 2);" % (schema, name))
-    cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'shape', 4326, 'MULTIPOLYGON', 2);" % (schema, name))
+    cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'polygon', 4326, 'MULTIPOLYGON', 2);" % (schema, name))
+    cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'geom_collection', 4326, 'GEOMETRYCOLLECTION', 2);" % (schema, name))
     conn2.commit()
     # --- insert objects
-    print ("Storing objects")
-    num = extractor.storeObjects(area, conn2, cursor2, schema, name)
+    print ("Building and storing objects")
+    num, fw, fr = extractor.storeObjects(area, conn2, cursor2, schema, name)
 
     # --- finish
     t2 = datetime.datetime.now()
     dt = t2-t1
     print ("Built %s objects" % num)
     print (" in %s" % dt)
+    if fw>0: print (" %s ways could not be build" % fw)
+    if fr>0: print (" %s reletions could not be build" % fr)
 
 
 # -- main check
