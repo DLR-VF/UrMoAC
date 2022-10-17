@@ -1,0 +1,10 @@
+[node]
+landuse~commercial
+
+[way]
+landuse~commercial
+
+[rel]
+landuse~commercial
+
+

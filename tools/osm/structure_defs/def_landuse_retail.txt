@@ -1,0 +1,10 @@
+[node]
+landuse~retail
+
+[way]
+landuse~retail
+
+[rel]
+landuse~retail
+
+

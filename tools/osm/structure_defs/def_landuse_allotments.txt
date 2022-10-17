@@ -1,0 +1,10 @@
+[node]
+landuse~allotments
+
+[way]
+landuse~allotments
+
+[rel]
+landuse~allotments
+
+

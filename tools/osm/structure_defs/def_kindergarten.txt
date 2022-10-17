@@ -1,0 +1,12 @@
+[node]
+amenity=kindergarten
+
+[way]
+amenity=kindergarten
+
+[rel]
+<outline>
+<outer>
+<inner>
+amenity=kindergarten
+    

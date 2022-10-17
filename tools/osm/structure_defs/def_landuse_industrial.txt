@@ -1,0 +1,9 @@
+[node]
+landuse~industrial
+
+[way]
+landuse~industrial
+
+[rel]
+landuse~industrial
+
