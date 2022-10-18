@@ -115,7 +115,7 @@ public class NetLoader {
 	 * @param idGiver Instance supporting running ids 
 	 * @param format The source format
 	 * @param inputParts The source definition
-	 * @param vmaxAttr The attribute (column) to read the maximum velocity from 
+	 * @param vmax The attribute (column) to read the maximum velocity from
 	 * @param epsg The projection
 	 * @param uModes The modes for which the network shall be loaded
 	 * @return The loaded net
@@ -173,7 +173,7 @@ public class NetLoader {
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromCSVFile(IDGiver idGiver, String fileName, long uModes) throws IOException {
+	public static DBNet loadNetFromCSVFile(IDGiver idGiver, String fileName, long uModes) throws IOException {
 		DBNet net = new DBNet(idGiver);
 		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
 		BufferedReader br = new BufferedReader(new FileReader(fileName));
@@ -184,9 +184,9 @@ public class NetLoader {
 			if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
 				String[] vals = line.split(";");
 				long modes = 0;
-				if("true".equals(vals[3].toLowerCase()) || "1".equals(vals[3])) modes = modes | Modes.getMode("foot").id;
-				if("true".equals(vals[4].toLowerCase()) || "1".equals(vals[4])) modes = modes | Modes.getMode("bicycle").id;
-				if("true".equals(vals[5].toLowerCase()) || "1".equals(vals[5])) modes = modes | Modes.getMode("passenger").id;
+				if("t".equals(vals[3].toLowerCase()) || "true".equals(vals[3].toLowerCase()) || "1".equals(vals[3])) modes = modes | Modes.getMode("foot").id;
+				if("t".equals(vals[4].toLowerCase()) || "true".equals(vals[4].toLowerCase()) || "1".equals(vals[4])) modes = modes | Modes.getMode("bicycle").id;
+				if("t".equals(vals[5].toLowerCase()) || "true".equals(vals[5].toLowerCase()) || "1".equals(vals[5])) modes = modes | Modes.getMode("passenger").id;
 				modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
 				if(modes==0 && ((modes&uModes)==0)) {
 					continue;

@@ -28,6 +28,7 @@ import org.locationtech.jts.index.strtree.STRtree;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.GeomHelper;
+import org.sqlite.core.DB;
 
 /**
  * @class NearestEdgeFinder
@@ -39,6 +40,7 @@ import de.dlr.ivf.urmo.router.shapes.GeomHelper;
 public class NearestEdgeFinder {
 	/// @brief The network to use
 	private DBNet net;
+
 	/// @brief The list of objects to allocate in the network
 	private Vector<EdgeMappable> source;
 	/// @brief The transport modes to use
@@ -79,6 +81,15 @@ public class NearestEdgeFinder {
 		id2edge = _net.getID2EdgeForMode(modes);
 	}
 
+	public NearestEdgeFinder(DBNet _net, long _modes) {
+		net = _net;
+		modes = _modes;
+		found = null;
+		minDist = -1;
+		tree = _net.getModedSpatialIndex(modes);
+		id2edge = _net.getID2EdgeForMode(modes);
+	}
+
 
 	/**
 	 * @brief Builds and returns the mapping of objects to edges
@@ -88,62 +99,76 @@ public class NearestEdgeFinder {
 	public HashMap<DBEdge, Vector<MapResult>> getNearestEdges(boolean addToEdge) {
 		HashMap<DBEdge, Vector<MapResult>> ret = new HashMap<>();
 		for (EdgeMappable c : source) {
-			Point p = c.getPoint();
-			minDist = -1;
-			minDir = 0;
-			found = null;
-			float viewDist = 10;
-			while ((found == null && viewDist < Math.max(net.size.x, net.size.y)) || viewDist / 2. < minDist) {
-				Envelope env = new Envelope(new Coordinate(p.getX()-viewDist, p.getY()-viewDist), new Coordinate(p.getX()+viewDist, p.getY()+viewDist));
-				List objs = tree.query(env);
-				for(Object o : objs) {
-					DBEdge e = (DBEdge) o;
-					if (!e.allowsAny(modes)) {
-						continue;
-					}
-					double dist = p.distance(e.geom);
-					if (minDist < 0 || (minDist > dist && Math.abs(minDist-dist)>=.1)) {
-						minDist = dist;
-						minDir = getDirectionToPoint(e, p);
-						found = e;
-					} else if (Math.abs(minDist-dist)<.1) {
-						// get the current edge's direction (at minimum distance)
-						int dir = getDirectionToPoint(e, p);
-						if(dir==DIRECTION_RIGHT) {
-							// ok, the point is on the right side of this one
-							if(minDir!=DIRECTION_RIGHT || e.id.compareTo(found.id) > 0) {
-								// use this one either if the point was on the false side of the initially found one
-								// or sort by id
-								minDist = dist;
-								minDir = dir;
-								found = e;
-							}
-						} else if(minDir==DIRECTION_LEFT && e.id.compareTo(found.id) > 0) {
-							// the point is on the left; sort by id if the initially found was on the left side, too
+
+			MapResult found = getNearestEdge(c);
+
+			if(found!=null) {
+				DBEdge foundEdge = found.edge;
+				if (addToEdge) {
+					foundEdge.addMappedObject(c);
+				}
+				// properly computed, yet
+				Vector <MapResult> mapResults = ret.get(foundEdge);
+				if(mapResults == null){
+					mapResults = new Vector<>();
+					ret.put(foundEdge,mapResults);
+				}
+				mapResults.add(found);
+			}
+		}
+		return ret;
+	}
+
+	private MapResult getNearestEdge(EdgeMappable source){
+
+		float viewDist = 10;
+		Point p = source.getPoint();
+
+		while ((found == null && viewDist < Math.max(net.size.x, net.size.y)) || viewDist / 2. < minDist) {
+			Envelope env = new Envelope(new Coordinate(p.getX()-viewDist, p.getY()-viewDist), new Coordinate(p.getX()+viewDist, p.getY()+viewDist));
+			List objs = tree.query(env);
+			for(Object o : objs) {
+				DBEdge e = (DBEdge) o;
+				if (!e.allowsAny(modes)) {
+					continue;
+				}
+				double dist = p.distance(e.geom);
+				if (minDist < 0 || (minDist > dist && Math.abs(minDist-dist)>=.1)) {
+					minDist = dist;
+					minDir = getDirectionToPoint(e, p);
+					found = e;
+				} else if (Math.abs(minDist-dist)<.1) {
+					// get the current edge's direction (at minimum distance)
+					int dir = getDirectionToPoint(e, p);
+					if(dir==DIRECTION_RIGHT) {
+						// ok, the point is on the right side of this one
+						if(minDir!=DIRECTION_RIGHT || e.id.compareTo(found.id) > 0) {
+							// use this one either if the point was on the false side of the initially found one
+							// or sort by id
 							minDist = dist;
 							minDir = dir;
 							found = e;
 						}
+					} else if(minDir==DIRECTION_LEFT && e.id.compareTo(found.id) > 0) {
+						// the point is on the left; sort by id if the initially found was on the left side, too
+						minDist = dist;
+						minDir = dir;
+						found = e;
 					}
 				}
-				viewDist = viewDist * 2;
 			}
-			//
-			if(found!=null) {
-				Coordinate coord = new Coordinate(p.getX(), p.getY(), 0);
-				double posAtEdge = GeomHelper.getDistanceOnLineString(found, coord, p);
-				if (addToEdge) {
-					found.addMappedObject(c);
-				}
-				// properly computed, yet
-				if (!ret.containsKey(found)) {
-					ret.put(found, new Vector<>());
-				}
-				Vector<MapResult> ress = ret.get(found);
-				ress.add(new MapResult(c, found, minDist, posAtEdge));
-			}
+			viewDist = viewDist * 2;
 		}
-		return ret;
+
+		MapResult mapResult = null;
+
+		if(found!=null) {
+			Coordinate coord = new Coordinate(p.getX(), p.getY(), 0);
+			double posAtEdge = GeomHelper.getDistanceOnLineString(found, coord, p);
+
+			mapResult = new MapResult(source, found, minDist, posAtEdge);
+		}
+		return mapResult;
 	}
 
 
