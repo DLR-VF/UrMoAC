@@ -121,7 +121,7 @@ public class GTFSReader {
 		try {
 			GeometryFactory gf = new GeometryFactory(new PrecisionModel());
 			Connection connection = Utils.getConnection(format, inputParts, "pt");
-				connection.setAutoCommit(true);
+			connection.setAutoCommit(true);
 			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 			((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
 
@@ -325,26 +325,28 @@ public class GTFSReader {
 				}
 				rs.close();
 				s.close();
-				query = "SELECT service_id,date,exception_type FROM " + tablePrefix + "_calendar_dates;";
-				s = connection.createStatement();
-				rs = s.executeQuery(query);
-				while (rs.next()) {
-					int dateCI = parseDate(rs.getString("date"));
-					if(dateCI!=dateI) {
-						continue;
+				if(Utils.tableExists(connection, tablePrefix + "_calendar_dates")) {
+					query = "SELECT service_id,date,exception_type FROM " + tablePrefix + "_calendar_dates;";
+					s = connection.createStatement();
+					rs = s.executeQuery(query);
+					while (rs.next()) {
+						int dateCI = parseDate(rs.getString("date"));
+						if(dateCI!=dateI) {
+							continue;
+						}
+						int et = rs.getInt("exception_type"); 
+						String service_id = rs.getString("service_id"); 
+						if(et==1) {
+							services.add(service_id);
+						} else if(et==2) {
+							services.remove(service_id);
+						} else {
+							throw new ParseException("Unkonwn exception type in " + tablePrefix + "_calendar_dates.");
+						}
 					}
-					int et = rs.getInt("exception_type"); 
-					String service_id = rs.getString("service_id"); 
-					if(et==1) {
-						services.add(service_id);
-					} else if(et==2) {
-						services.remove(service_id);
-					} else {
-						throw new ParseException("Unkonwn exception type in " + tablePrefix + "_calendar_dates.");
-					}
+					rs.close();
+					s.close();
 				}
-				rs.close();
-				s.close();
 			}
 			
 			// read trips and stop times
