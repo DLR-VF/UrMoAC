@@ -18,7 +18,9 @@ package de.dlr.ivf.urmo.router.io;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 /** @class Utils
  * @brief Some helper methods for output building
@@ -215,6 +217,23 @@ public class Utils {
 	}
 	
 	
+	/** @brief Returns whether the defined table exists
+	 * @param connection The connection to the database
+	 * @param table The name of the table, including the schema
+	 * @return Whether the defined table exists
+	 * @throws SQLException If something fails
+	 */
+	public static boolean tableExists(Connection connection, String table) throws SQLException {
+		int dot = table.indexOf('.');
+		String query = "SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname = '" + table.substring(0, dot) + "' AND tablename = '" + table.substring(dot+1) + "');";
+		Statement s = connection.createStatement();
+		ResultSet rs = s.executeQuery(query);
+		rs.next();
+		boolean ret = rs.getBoolean(1);
+		rs.close();
+		s.close();
+		return ret;
+	}
 	
 
 }
