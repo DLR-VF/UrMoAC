@@ -21,6 +21,7 @@ class GeometryType(IntEnum):
   MULTILINE = 2
   POLYGON = 3
   MULTIPOLYGON = 4
+  GEOMETRYCOLLECTION = 5
 
 
 # --- class definitions -----------------------------------

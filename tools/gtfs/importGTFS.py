@@ -235,14 +235,17 @@ class GTFSImporter:
         @todo Move to a GTFS-manipulating class?
         """
         print ("Extending stops by lines")
+        print (" ...retrieving routes")
         route2line = {}
         self._cursor.execute("SELECT route_id,route_short_name from %s.%s_routes;" % (self._schema, self._tablePrefix))
         for t in self._cursor.fetchall():
             route2line[t[0]] = t[1]
+        print (" ...retrieving trips")
         trip2route = {}
         self._cursor.execute("SELECT trip_id,route_id from %s.%s_trips;" % (self._schema, self._tablePrefix))
         for t in self._cursor.fetchall():
             trip2route[t[0]] = t[1]
+        print (" ...retrieving stop times")
         stop2lines = {}
         self._cursor.execute("SELECT trip_id,stop_id from %s.%s_stop_times;" % (self._schema, self._tablePrefix))
         for t in self._cursor.fetchall():
@@ -251,11 +254,15 @@ class GTFSImporter:
             if t[1] not in stop2lines:
                 stop2lines[t[1]] = set()
             stop2lines[t[1]].add(line)
+        print (" ...extending stops")
         self._cursor.execute("ALTER TABLE %s.%s_stops ADD lines text" % (self._schema, self._tablePrefix))
         self._conn.commit()
-        for s in stop2lines:
+        for n,s in enumerate(stop2lines):
             self._cursor.execute("UPDATE %s.%s_stops SET lines='%s' WHERE stop_id='%s';"  % (self._schema, self._tablePrefix, ",".join(stop2lines[s]), s))
-        self._conn.commit()
+            if n%10000==0:
+                self._conn.commit()
+        if n%10000!=0:
+            self._conn.commit()
 
 
 
@@ -275,7 +282,7 @@ def main(argv):
         sys.exit()
     # - input files
     error = False
-    for f in ["agency", "calendar", "calendar_dates", "routes", "stop_times", "stops", "trips"]:
+    for f in ["agency", "calendar", "routes", "stop_times", "stops", "trips"]:
         fn = os.path.join(inputFolder, f+".txt")
         if not os.path.exists(fn):
             print ("The mandatory file '" + fn + "' to import GTFS from does not exist.")

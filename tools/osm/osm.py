@@ -508,7 +508,7 @@ class OSMRelation(OSMElement):
                     polys = ngeomss[valids.index(True)]
                     for poly in polys:
                         asign = signed_area(poly)
-                        if (asign>0 and role=="inner") or (asign<0 and role=="outer"):
+                        if asign<0:
                             poly.reverse()
                         self.geom[role].append(OSMWay(-1, [], poly))
         return self._ok
