@@ -9,3 +9,20 @@ Daniel Krajzewicz, Dirk Heinrichs and Rita Cyganski (2017) [_Intermodal Contour 
 
 Please visit the <a href="https://github.com/DLR-VF/UrMoAC/wiki/index">wiki</a> for further information.
 
+## Build
+
+You can build a shaded JAR file to execute UrMoAC. 
+UrMoAC contains the external library optionslib (see libs directory). 
+
+To build the JAR file correctly you need to add the optionslib to your local Maven repositories using the following command:
+
+```shell
+mvn install:install-file -Dfile=libs/optionslib-1.2.jar -DgroupId=de.dks.utils.options -DartifactId=optionslib -Dversion=1.2 -Dpackaging=jar        
+```
+
+After that, you can build the final JAR using:
+```shell
+mvn clean package
+```
+
+After finishing the build process, you will see a target directory in your project directory that contains the shaded JAR file.
