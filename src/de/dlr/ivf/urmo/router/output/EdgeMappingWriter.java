@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2016-2022 DLR Institute of Transport Research
+ * Copyright (c) 2016-2023 DLR Institute of Transport Research
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
- * http://github.com/DLR-VF/UrMoAC
- * Licensed under the GNU General Public License v3.0
+ * https://github.com/DLR-VF/UrMoAC
+ * Licensed under the Eclipse Public License 2.0
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
@@ -26,9 +26,6 @@ import java.util.Vector;
 
 import org.locationtech.jts.operation.buffer.validate.DistanceToPointFinder;
 import org.locationtech.jts.operation.buffer.validate.PointPairDistance;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.NoSuchAuthorityCodeException;
-import org.opengis.referencing.operation.TransformException;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.io.Utils;

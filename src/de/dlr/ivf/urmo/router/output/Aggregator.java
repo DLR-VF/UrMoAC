@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2016-2022 DLR Institute of Transport Research
+ * Copyright (c) 2016-2023 DLR Institute of Transport Research
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
- * http://github.com/DLR-VF/UrMoAC
- * Licensed under the GNU General Public License v3.0
+ * https://github.com/DLR-VF/UrMoAC
+ * Licensed under the Eclipse Public License 2.0
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
@@ -27,7 +27,6 @@ import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.index.strtree.STRtree;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
-import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.Layer;
 import de.dlr.ivf.urmo.router.shapes.LayerObject;
 

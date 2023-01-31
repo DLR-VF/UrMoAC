@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2016-2022 DLR Institute of Transport Research
+ * Copyright (c) 2016-2023 DLR Institute of Transport Research
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
- * http://github.com/DLR-VF/UrMoAC
- * Licensed under the GNU General Public License v3.0
+ * https://github.com/DLR-VF/UrMoAC
+ * Licensed under the Eclipse Public License 2.0
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
@@ -20,12 +20,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Vector;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -49,7 +47,6 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
