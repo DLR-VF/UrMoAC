@@ -33,24 +33,24 @@ nav:
         - Outline: Methods.md
         - Mapping to network: MappingToNet.md
     - ChangeLog: ChangeLog.md
-    - Legal: 
-        - Main: Legal.md
-        - License (GPL v3.0): https://github.com/DLR-VF/UrMoAC/blob/master/LICENSE
-        - Disclaimer: Disclaimer.md
+    - Links: Links.md
+    - Publications: Publications.md
     - Developer Docs: 
         - Overview: DeveloperDocs.md
         - Testing UrMoAC: DeveloperTests.md
         - Creating a static documentation: DeveloperStaticDocumentation.md
         - How To Release: DeveloperHowToRelease.md
         - Todo: Todo.md
-    - Publications: Bibliography.md
-    - Projects: Projects.md
+    - Legal: 
+        - Main: Legal.md
+        - License (EPL v2.0): https://github.com/DLR-VF/UrMoAC/blob/master/LICENSE.md
+        - Disclaimer: Disclaimer.md
 
 markdown_extensions:
     - admonition
     - sane_lists
   
-copyright: "&copy; Copyright 2018-2021 German Aerospace Center, Institute of Transport Research, all rights reserved."
+copyright: "&copy; Copyright 2018&ndash;2023 German Aerospace Center, Institute of Transport Research, all rights reserved."
 
 plugins:
     - search

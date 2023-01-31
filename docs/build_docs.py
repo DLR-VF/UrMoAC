@@ -18,7 +18,6 @@ def remove_readonly(func, path, _):
     func(path)
 
 
-os.chdir("docs")
 try:
     shutil.rmtree("UrMoAC.wiki", onerror=remove_readonly)
 except OSError as e:
