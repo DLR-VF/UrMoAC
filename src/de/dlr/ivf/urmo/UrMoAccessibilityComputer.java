@@ -377,7 +377,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("dropprevious", new Option_Bool());
 		options.setDescription("dropprevious", "When set, previous output with the same name is replaced.");
 		options.add("precision", new Option_Integer(2));
-		options.setDescription("precision", "Defines the number of positions after the decimal point.");
+		options.setDescription("precision", "Defines the number of digits after the decimal point.");
+		options.add("comment", new Option_Bool());
+		options.setDescription("comment", "Adds a comment with the used options into generated output dbs.");
 		
 		options.beginSection("Process Options");
 		options.add("threads", new Option_Integer(1));
@@ -387,11 +389,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("save-config", new Option_String());
 		options.setDescription("save-config", "Saves the set options as a configuration file.");
 		options.add("save-template", new Option_String());
-		options.setDescription("save-template", "Saves a template to add options to.");
+		options.setDescription("save-template", "Saves a configuration template to add options to.");
 		options.add("help", '?', new Option_Bool());
 		options.setDescription("help", "Prints the help screen.");
-		options.add("comment", new Option_Bool());
-		options.setDescription("comment", "Adds a comment with the used options into generated output dbs.");
 
 		// parse options
 		try {

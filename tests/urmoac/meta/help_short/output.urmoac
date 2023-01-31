@@ -101,14 +101,15 @@ Usage:
                                    destinations and the network.
   --dropprevious                 When set, previous output with the same name is
                                    replaced.
-  --precision                    Defines the number of positions after the
-                                   decimal point.
+  --precision                    Defines the number of digits after the decimal
+                                   point.
+  --comment                      Adds a comment with the used options into
+                                   generated output dbs.
  Process Options
   --threads                      The number of threads to use.
   -v, --verbose                  Prints what is being done.
   --save-config                  Saves the set options as a configuration file.
-  --save-template                Saves a template to add options to.
+  --save-template                Saves a configuration template to add options
+                                   to.
   -?, --help                     Prints the help screen.
-  --comment                      Adds a comment with the used options into
-                                   generated output dbs.
 

@@ -57,10 +57,10 @@
    <destinations-to-road-output></destinations-to-road-output>
    <dropprevious></dropprevious>
    <precision></precision>
+   <comment></comment>
    <threads></threads>
    <verbose></verbose>
    <save-config></save-config>
    <save-template></save-template>
    <help></help>
-   <comment></comment>
 </configuration>
