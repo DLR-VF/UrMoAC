@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 # =========================================================
 # osm2db.py
+# This file is part of the "UrMoAC" accessibility tool
+# https://github.com/DLR-VF/UrMoAC
+# Licensed under the Eclipse Public License 2.0
+#
+# Copyright (c) 2016-2023 DLR Institute of Transport Research
+# All rights reserved.
+# 
 # @author Daniel Krajzewicz, Simon Nieland
 # @date 01.04.2016
 # @copyright Institut fuer Verkehrsforschung, 

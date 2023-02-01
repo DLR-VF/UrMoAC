@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # =========================================================
 # osmdb_BuildWays.py
+# 
 # @author Daniel Krajzewicz, Simon Nieland
 # @date 01.04.2016
 # @copyright Institut fuer Verkehrsforschung, 
@@ -8,6 +9,13 @@
 # @brief Imports an OSM-file into the database
 # Call with
 #  osmdb_buildWays <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD>
+#
+# This file is part of the "UrMoAC" accessibility tool
+# https://github.com/DLR-VF/UrMoAC
+# Licensed under the Eclipse Public License 2.0
+#
+# Copyright (c) 2016-2023 DLR Institute of Transport Research
+# All rights reserved.
 # =========================================================
 
 

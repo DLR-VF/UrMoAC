@@ -1,11 +1,19 @@
 #!/usr/bin/env python
 # =========================================================
 # colormap.py
+#
 # @author Daniel Krajzewicz
 # @date 28.11.2020
 # @copyright Institut fuer Verkehrsforschung, 
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief A simple method for defining own colormaps
+#
+# This file is part of the "UrMoAC" accessibility tool
+# https://github.com/DLR-VF/UrMoAC
+# Licensed under the Eclipse Public License 2.0
+#
+# Copyright (c) 2020-2023 DLR Institute of Transport Research
+# All rights reserved.
 # =========================================================
 def toHex(val):
     """Converts the given value (0-255) into its hexadecimal representation"""

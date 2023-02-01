@@ -1,11 +1,19 @@
 #!/usr/bin/env python
 # =========================================================
 # simplemaps.py
+#
 # @author Daniel Krajzewicz
 # @date 28.11.2020
 # @copyright Institut fuer Verkehrsforschung, 
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Methods for generating maps and histograms
+#
+# This file is part of the "UrMoAC" accessibility tool
+# https://github.com/DLR-VF/UrMoAC
+# Licensed under the Eclipse Public License 2.0
+#
+# Copyright (c) 2020-2023 DLR Institute of Transport Research
+# All rights reserved.
 # =========================================================
 def addToSimpleMap(tMap, tAttr):
   if tAttr not in tMap:

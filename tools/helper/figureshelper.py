@@ -1,11 +1,19 @@
 #!/usr/bin/env python
 # =========================================================
 # figureshelper.py
+#
 # @author Daniel Krajzewicz
 # @date 21.03.2017
 # @copyright Institut fuer Verkehrsforschung, 
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Some methods to consolidate common matplotlib actions
+#
+# This file is part of the "UrMoAC" accessibility tool
+# https://github.com/DLR-VF/UrMoAC
+# Licensed under the Eclipse Public License 2.0
+#
+# Copyright (c) 2017-2023 DLR Institute of Transport Research
+# All rights reserved.
 # =========================================================
 import os
 from pylab import *

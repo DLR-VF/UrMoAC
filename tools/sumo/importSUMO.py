@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 # =========================================================
 # importSUMO.py
+# This file is part of the "UrMoAC" accessibility tool
+# https://github.com/DLR-VF/UrMoAC
+# Licensed under the Eclipse Public License 2.0
+#
+# Copyright (c) 2019-2023 DLR Institute of Transport Research
+# All rights reserved.
+# 
 # @author Daniel Krajzewicz
 # @date 20.12.2019
 # @copyright Institut fuer Verkehrsforschung, 

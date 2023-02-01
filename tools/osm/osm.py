@@ -1,11 +1,19 @@
 #!/usr/bin/env python
 # =========================================================
 # osm2db.py
+# 
 # @author Daniel Krajzewicz, Simon Nieland
 # @date 01.04.2016
 # @copyright Institut fuer Verkehrsforschung, 
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief OSM data model
+#
+# This file is part of the "UrMoAC" accessibility tool
+# https://github.com/DLR-VF/UrMoAC
+# Licensed under the Eclipse Public License 2.0
+#
+# Copyright (c) 2016-2023 DLR Institute of Transport Research
+# All rights reserved.
 # =========================================================
 
 
@@ -414,10 +422,8 @@ class OSMRelation(OSMElement):
         @param self The class instance
         @param area The objects storage
         """
-        #print ("%s %s" % (self.id, self.geom))
         if self._ok and self.geom!=None:
             return True
-        
         # build roles
         roles = {} # !!! could be a direct member
         #print (self.members)
@@ -433,7 +439,6 @@ class OSMRelation(OSMElement):
                     print ("Missing node %s in relation %s" % (m[0], self.id))
                     self._ok = False
                     continue
-                #roles[m[2]].append(PolygonPart(GeometryType.POINT, n.pos))
                 roles[m[2]].append(n)
             elif m[1]=="way":
                 w = area.getWay(m[0])
@@ -443,7 +448,6 @@ class OSMRelation(OSMElement):
                     closeIfNeeded = True
                     continue
                 self._ok &= w.buildGeometry(area)
-                #roles[m[2]].append(PolygonPart(GeometryType.LINESTRING, list(w.geom))) # well, we append it even if it's not ok!?
                 if self._ok:
                     roles[m[2]].append(w) # well, we append it even if it's not ok!?
             elif m[1]=="relation" or m[1]=="rel":
@@ -485,20 +489,16 @@ class OSMRelation(OSMElement):
                 self._computePossibleConsecutions(leftItems)
                 leftItems = self._joinUnambiguous(leftItems)
                 self._computePossibleConsecutions(leftItems)
-                #print ("leftItems: %s" % leftItems)
                 cliques = self._computeCliques(leftItems)
-                #print ("cliques: %s" % cliques)
                 for c in cliques:
                     if len(c)==0:
                         continue
                     entries = list(c)
                     self._computePossibleConsecutions(entries)
-                    #print (entries)
                     combinations = self._computeCombinations(entries)
                     ngeomss, valids = self._checkPolygonValidities(self.id, entries, combinations, closeIfNeeded)
                     # check whether we could successfully combine items
                     if True not in valids:
-                        #print ("Here")
                         # ok, we could not determine meaningful element combinations
                         # simply add the items
                         for item in leftItems:
@@ -549,12 +549,10 @@ class OSMRelation(OSMElement):
                             continue
                         if polygon_in_polygon(innerpolys[0][0], outerpolys[0][0]):
                             if signed_area(innerpolys[0][0])>0: innerpolys[0][0].reverse()
-                            #inner = inner[inner.find("(")+1:-1]
                             inners.append(innerpolys[0][0])
                             seen.add(i)
                     if len(inners)!=0:
-                        outerpolys[0].extend(inners) #outer = outer[:-1] + "," + ",".join(inners) + ")"
-                    #print (outerpolys)
+                        outerpolys[0].extend(inners)
                     polys.append(outerpolys[0])
                 else:
                     polys.append(outerpolys[0])

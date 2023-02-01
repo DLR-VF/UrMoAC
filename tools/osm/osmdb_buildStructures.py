@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # =========================================================
 # osmdb_getStructures.py
+# 
 # @author Daniel Krajzewicz
 # @author Simon Nieland
 # @date 14.08.2019
@@ -13,6 +14,13 @@
 #  <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD>  
 # and <OUTPUT_TABLE> is defined as:
 #  <HOST>;<DB>;<SCHEMA>.<NAME>;<USER>;<PASSWD>  
+#
+# This file is part of the "UrMoAC" accessibility tool
+# https://github.com/DLR-VF/UrMoAC
+# Licensed under the Eclipse Public License 2.0
+#
+# Copyright (c) 2019-2023 DLR Institute of Transport Research
+# All rights reserved.
 # =========================================================
 
 
@@ -101,7 +109,7 @@ class OSMExtractor:
         ret = set()
         """
         if subtype=="rel":
-            ret.add(14183452)
+            ret.add(11071436)
         return ret
         """
         if k=="*": # fetch all
@@ -288,6 +296,7 @@ class OSMExtractor:
         geom = "GEOMETRYCOLLECTION(" + geom + ")"
         centroid = geom
         if polys!=None and len(polys)!=0:
+            
             # remove polygons within other
             toRemove = []
             for i,p1 in enumerate(polys):

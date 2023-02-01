@@ -1,11 +1,19 @@
 #!/usr/bin/env python
 # =========================================================
 # osmmodes.py
+# 
 # @author Daniel Krajzewicz, Simon Nieland
 # @date 01.04.2016
 # @copyright Institut fuer Verkehrsforschung, 
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Defines modes of transport for the OSM importer
+#
+# This file is part of the "UrMoAC" accessibility tool
+# https://github.com/DLR-VF/UrMoAC
+# Licensed under the Eclipse Public License 2.0
+#
+# Copyright (c) 2016-2023 DLR Institute of Transport Research
+# All rights reserved.
 # =========================================================
   
 FOOT = 1

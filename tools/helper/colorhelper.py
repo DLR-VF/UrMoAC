@@ -1,11 +1,19 @@
 #!/usr/bin/env python
 # =========================================================
 # colorhelper.py
+#
 # @author Daniel Krajzewicz
 # @date 27.05.2015
 # @copyright Institut fuer Verkehrsforschung, 
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Some helpers for dealing with (matplotlib) colors
+#
+# This file is part of the "UrMoAC" accessibility tool
+# https://github.com/DLR-VF/UrMoAC
+# Licensed under the Eclipse Public License 2.0
+#
+# Copyright (c) 2015-2023 DLR Institute of Transport Research
+# All rights reserved.
 # =========================================================
 from pylab import *
 

@@ -1,11 +1,19 @@
 #!/usr/bin/env python
 # =========================================================
 # importGTFS.py
+#
 # @author Daniel Krajzewicz
 # @date 01.04.2016
 # @copyright Institut fuer Verkehrsforschung, 
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Imports a given GTFS data set
+#
+# This file is part of the "UrMoAC" accessibility tool
+# https://github.com/DLR-VF/UrMoAC
+# Licensed under the Eclipse Public License 2.0
+#
+# Copyright (c) 2016-2023 DLR Institute of Transport Research
+# All rights reserved.
 # =========================================================
 
 

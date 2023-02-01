@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # =========================================================
 # buildEntrainmentTable.py
+# 
 # @author Daniel Krajzewicz
 # @date 2018
 # @copyright Institut fuer Verkehrsforschung, 
@@ -12,6 +13,13 @@
 #
 # In principle, it is outdated a bot as well as entrainment
 # tables may as well be given as csv-files.
+#
+# This file is part of the "UrMoAC" accessibility tool
+# https://github.com/DLR-VF/UrMoAC
+# Licensed under the Eclipse Public License 2.0
+#
+# Copyright (c) 2018-2023 DLR Institute of Transport Research
+# All rights reserved.
 # =========================================================
 
 
