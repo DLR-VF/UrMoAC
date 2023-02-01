@@ -18,6 +18,7 @@ package de.dlr.ivf.urmo.router.gtfs;
 import java.util.HashMap;
 
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Point;
@@ -78,6 +79,15 @@ public class GTFSStop extends DBNode implements EdgeMappable {
 	}
 
 
+	/**
+	 * @brief Returns the envelope of this thing
+	 * @return The bounding box
+	 */
+	public Envelope getEnvelope() {
+		return point.getEnvelopeInternal();
+	}
+	
+	
 	/**
 	 * @brief Returns the stop's geometry
 	 * @return The stop's geometry (position only)

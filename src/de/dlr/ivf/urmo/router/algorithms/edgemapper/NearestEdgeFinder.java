@@ -21,8 +21,11 @@ import java.util.Vector;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.index.strtree.ItemBoundable;
+import org.locationtech.jts.index.strtree.ItemDistance;
 import org.locationtech.jts.index.strtree.STRtree;
 
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
@@ -37,27 +40,17 @@ import de.dlr.ivf.urmo.router.shapes.GeomHelper;
  *         Transport Research
  */
 public class NearestEdgeFinder {
-	/// @brief The network to use
-	private DBNet net;
 	/// @brief The list of objects to allocate in the network
 	private Vector<EdgeMappable> source;
 	/// @brief The transport modes to use
 	private long modes;
 	/// @brief A spatial index
 	private STRtree tree = null;
-	/// @brief The (resulting after being built) map of object ids to edges
-	private HashMap<Integer, DBEdge> id2edge = new HashMap<>();
+	/// @brief The resulting geometry factory
+	GeometryFactory geometryFactory = null;
 
-	/// @brief Temporary found edge
-	private DBEdge found;
-	/// @brief Temporary minimum distance
-	private double minDist;
-	/// @brief Temporary minimum direction
-	private int minDir;
-	
 	// @brief Enum for points being on the right side of the road
 	private static final int DIRECTION_RIGHT = 1;
-	
 	// @brief Enum for points being on the left side of the road
 	private static final int DIRECTION_LEFT = -1;
 	
@@ -71,12 +64,9 @@ public class NearestEdgeFinder {
 	 */
 	public NearestEdgeFinder(Vector<EdgeMappable> _source, DBNet _net, long _modes) {
 		source = _source;
-		net = _net;
 		modes = _modes;
-		found = null;
-		minDist = -1;
 		tree = _net.getModedSpatialIndex(modes);
-		id2edge = _net.getID2EdgeForMode(modes);
+		geometryFactory = _net.getGeometryFactory();
 	}
 
 
@@ -86,47 +76,57 @@ public class NearestEdgeFinder {
 	 * @return The map of objects to edges
 	 */
 	public HashMap<DBEdge, Vector<MapResult>> getNearestEdges(boolean addToEdge) {
+		ItemDistance itemDist = new ItemDistance() {
+		    @Override
+		    public double distance(ItemBoundable i1, ItemBoundable i2) {
+		        DBEdge e = (DBEdge) i1.getItem();
+		        EdgeMappable em = (EdgeMappable) i2.getItem();
+		        return e.getGeometry().distance(em.getPoint());
+		    }
+		};
 		HashMap<DBEdge, Vector<MapResult>> ret = new HashMap<>();
+		// go through the locations
 		for (EdgeMappable c : source) {
+			// get the next edge envelope
+			DBEdge found = (DBEdge) tree.nearestNeighbour(c.getEnvelope(), c, itemDist);
+			if(found==null) {
+				continue; // add error message
+			}
 			Point p = c.getPoint();
-			minDist = -1;
-			minDir = 0;
-			found = null;
-			float viewDist = 10;
-			while ((found == null && viewDist < Math.max(net.size.x, net.size.y)) || viewDist / 2. < minDist) {
-				Envelope env = new Envelope(new Coordinate(p.getX()-viewDist, p.getY()-viewDist), new Coordinate(p.getX()+viewDist, p.getY()+viewDist));
-				List objs = tree.query(env);
-				for(Object o : objs) {
-					DBEdge e = (DBEdge) o;
-					if (!e.allowsAny(modes)) {
-						continue;
-					}
-					double dist = p.distance(e.geom);
-					if (minDist < 0 || (minDist > dist && Math.abs(minDist-dist)>=.1)) {
-						minDist = dist;
-						minDir = getDirectionToPoint(e, p);
-						found = e;
-					} else if (Math.abs(minDist-dist)<.1) {
-						// get the current edge's direction (at minimum distance)
-						int dir = getDirectionToPoint(e, p);
-						if(dir==DIRECTION_RIGHT) {
-							// ok, the point is on the right side of this one
-							if(minDir!=DIRECTION_RIGHT || e.id.compareTo(found.id) > 0) {
-								// use this one either if the point was on the false side of the initially found one
-								// or sort by id
-								minDist = dist;
-								minDir = dir;
-								found = e;
-							}
-						} else if(minDir==DIRECTION_LEFT && e.id.compareTo(found.id) > 0) {
-							// the point is on the left; sort by id if the initially found was on the left side, too
-							minDist = dist;
-							minDir = dir;
-							found = e;
-						}
-					}
+			double minDist = p.distance(found.geom);
+			int minDir = getDirectionToPoint(found, p);
+			// we now have to check all edges within an envelope that covers
+			// the circle with the found distance
+			double cdist = minDist * 1.415; // sqrt(2)
+			Envelope env = new Envelope(new Coordinate(p.getX()-cdist, p.getY()-cdist), new Coordinate(p.getX()+cdist, p.getY()+cdist));
+			@SuppressWarnings("rawtypes")
+			List objs = tree.query(env);
+			for(Object o : objs) {
+				DBEdge e = (DBEdge) o;
+				// get the distance
+				double dist = p.distance(e.geom);
+				if(dist>minDist+.1) {
+					// currently seen is further away than the initial
+					continue;
 				}
-				viewDist = viewDist * 2;
+				// get the current edge's direction (at minimum distance)
+				int dir = getDirectionToPoint(e, p);
+				if(dir==DIRECTION_RIGHT) {
+					// ok, the point is on the right side of this one
+					if(minDir!=DIRECTION_RIGHT || dist<minDist || e.id.compareTo(found.id) > 0) {
+						// use this one either if the point was on the false side of the initially found 
+						// one or sort by distance or id
+						minDist = dist;
+						minDir = dir;
+						found = e;
+					}
+				} else if(minDir==DIRECTION_LEFT && (dist<minDist || e.id.compareTo(found.id) > 0)) {
+					// the point is on the left and the previous one, too;
+					// sort by distance or id
+					minDist = dist;
+					minDir = dir;
+					found = e;
+				}
 			}
 			//
 			if(found!=null) {
@@ -150,23 +150,6 @@ public class NearestEdgeFinder {
 	// -----------------------------------------------------------------------
 	// helper methods
 	// -----------------------------------------------------------------------
-	/**
-	 * @brief Returns a hashmap of object information
-	 * @param mapping A map of edges to mapped object vectors
-	 * @return A map of objects to mapping information
-	 */
-	public static HashMap<EdgeMappable, MapResult> results2edgeSet(HashMap<DBEdge, Vector<MapResult>> mapping) {
-		HashMap<EdgeMappable, MapResult> r = new HashMap<>();
-		for (DBEdge e : mapping.keySet()) {
-			Vector<MapResult> objects = mapping.get(e);
-			for (MapResult mr : objects) {
-				r.put(mr.em, mr);
-			}
-		}
-		return r;
-	}
-
-
 	/** 
 	 * @brief Returns the direction (left/right) into which the opivot oint lies in respect to the edge
 	 * @param e The edge
@@ -181,7 +164,7 @@ public class NearestEdgeFinder {
 		for(int i=0; i<numPoints-1; ++i) {
 			coord[0] = tcoord[i];
 			coord[1] = tcoord[i+1];
-			LineString ls = new LineString(coord, e.geom.getPrecisionModel(), e.geom.getSRID());
+			LineString ls = geometryFactory.createLineString(coord);
 			double dist = p.distance(ls);
 			if(minDist<0 || minDist>dist) {
 				minDist = dist;

@@ -15,6 +15,7 @@
  */
 package de.dlr.ivf.urmo.router.shapes;
 
+import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 
@@ -98,6 +99,15 @@ public class LayerObject implements EdgeMappable {
 	}
 
 
+	/**
+	 * @brief Returns the envelope of this thing
+	 * @return The bounding box
+	 */
+	public Envelope getEnvelope() {
+		return geom.getEnvelopeInternal();
+	}
+	
+	
 	/**
 	 * @brief Returns the object's attached value
 	 * @return The object's attached value

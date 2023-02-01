@@ -56,6 +56,8 @@ public class DBNet {
 	public PrecisionModel precisionModel = null;
 	/// @brief The used srid
 	public int srid = 0;
+	/// @brief The resulting geometry factory
+	GeometryFactory geometryFactory = null;
 	/// @brief The id supplier to use
 	IDGiver idGiver;
 
@@ -121,8 +123,12 @@ public class DBNet {
 			size.y = maxCorner.y - minCorner.y;
 		}
 		tree.insert(e.getGeometry().getEnvelopeInternal(), e);
-		precisionModel = e.geom.getPrecisionModel();
-		srid = e.geom.getSRID();
+		// store geometry settings
+		if(precisionModel==null) {
+			precisionModel = e.geom.getPrecisionModel();
+			srid = e.geom.getSRID();
+			geometryFactory = new GeometryFactory(precisionModel, srid);
+		}
 	}
 
 
@@ -354,6 +360,14 @@ public class DBNet {
 	 */
 	public int getSRID() {
 		return srid;
+	}
+	
+	
+	/** @brief Returns the geometry factory
+	 * @return the geometry factory
+	 */
+	public GeometryFactory getGeometryFactory() {
+		return geometryFactory;
 	}
 
 	
