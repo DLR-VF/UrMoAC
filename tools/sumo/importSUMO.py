@@ -1,12 +1,6 @@
 #!/usr/bin/env python
 # =========================================================
 # importSUMO.py
-# This file is part of the "UrMoAC" accessibility tool
-# https://github.com/DLR-VF/UrMoAC
-# Licensed under the Eclipse Public License 2.0
-#
-# Copyright (c) 2019-2023 DLR Institute of Transport Research
-# All rights reserved.
 # 
 # @author Daniel Krajzewicz
 # @date 20.12.2019
@@ -15,6 +9,13 @@
 # @brief Imports a SUMO road network
 # Call with
 #  sumo_import <HOST>;<DB>;<SCHEMA>.<TABLENAME>;<USER>;<PASSWD> <SUMO_NET>
+#
+# This file is part of the "UrMoAC" accessibility tool
+# https://github.com/DLR-VF/UrMoAC
+# Licensed under the Eclipse Public License 2.0
+#
+# Copyright (c) 2019-2023 DLR Institute of Transport Research
+# All rights reserved.
 # =========================================================
 
 import os, string, sys
