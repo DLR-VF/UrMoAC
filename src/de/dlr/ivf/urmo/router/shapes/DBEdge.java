@@ -171,7 +171,7 @@ public class DBEdge {
 
 	/**
 	 * @brief Returns this edge's geometry
-	 * @return This edge's geomatry
+	 * @return This edge's geometry
 	 */
 	public LineString getGeometry() {
 		return geom;
