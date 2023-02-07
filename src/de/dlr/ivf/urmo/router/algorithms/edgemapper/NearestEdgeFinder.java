@@ -125,26 +125,28 @@ public class NearestEdgeFinder {
 		 * @param mappable The mappable to process
 		 */
 		private void processMappable(EdgeMappable mappable) {
-			// get the next edge envelope
-			DBEdge found = (DBEdge) tree.nearestNeighbour(mappable.getEnvelope(), mappable, itemDist);
-			if(found==null) {
+			// get the next nearest edges
+			Object nearest[] = tree.nearestNeighbour(mappable.getEnvelope(), mappable, itemDist, 4);
+			if(nearest.length==0) {
 				return; // add error message
 			}
 			Point p = mappable.getPoint();
-			double minDist = p.distance(found.geom);
-			int minDir = parent.getDirectionToPoint(found, p);
-			// we now have to check all edges within an envelope that covers
-			// the circle with the found distance
-			double cdist = minDist * 1.415; // slightly more than sqrt(2)
-			Envelope env = new Envelope(new Coordinate(p.getX()-cdist, p.getY()-cdist), new Coordinate(p.getX()+cdist, p.getY()+cdist));
-			@SuppressWarnings("rawtypes")
-			List objs = tree.query(env);
-			for(Object o : objs) {
+			double minDist = 0;
+			int minDir = 0;
+			DBEdge found = null;
+			for(Object o : nearest) {
 				DBEdge e = (DBEdge) o;
 				// get the distance
 				double dist = p.distance(e.geom);
+				if(found==null||dist<minDist) {
+					found = e;
+					minDist = dist;
+					minDir = parent.getDirectionToPoint(e, p);
+					continue;
+				}
 				if(dist>minDist) {
 					// currently seen is further away than the initial
+					// and we already had one
 					continue;
 				}
 				// get the current edge's direction (at minimum distance)

@@ -103,6 +103,8 @@ public class NetLoader {
 		// add other directions to mode foot
 		if(net!=null) {
 			net.extendDirections();
+		} else {
+			System.err.println("The network could not be loaded");
 		}
 		return net;
 	}
@@ -156,7 +158,7 @@ public class NetLoader {
 			rs.close();
 			s.close();
 			connection.close();
-			return net;
+			return ok ? net : null;
 		} catch (SQLException | ParseException e) {
 			throw new IOException(e);
 		}
@@ -204,7 +206,7 @@ public class NetLoader {
 			}
 	    } while(line!=null);
 		br.close();
-		return net;
+		return ok ? net : null;
 	}
 	
 	
@@ -242,7 +244,7 @@ public class NetLoader {
 				}
 		    } while(line!=null);
 			br.close();
-			return net;
+			return ok ? net : null;
 		} catch (ParseException e) {
 			throw new IOException(e);
 		}
@@ -302,7 +304,7 @@ public class NetLoader {
 						(Double) feature.getAttribute("vmax") / 3.6, geom2, (Double) feature.getAttribute("length"));
 			
 			}
-			return net;
+			return ok ? net : null;
 		} catch (FactoryException | MismatchedDimensionException | TransformException e) {
 			throw new IOException(e);
 		}
