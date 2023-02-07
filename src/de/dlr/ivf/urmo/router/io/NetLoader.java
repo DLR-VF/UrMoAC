@@ -318,7 +318,6 @@ public class NetLoader {
 	 */
 	private static DBNet loadNetFromSUMOFile(IDGiver idGiver, String fileName, long uModes) throws IOException {
 		try {
-			NetLoader nl = new NetLoader();
 			DBNet net = new DBNet(idGiver);
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 	        SAXParser saxParser = factory.newSAXParser();
