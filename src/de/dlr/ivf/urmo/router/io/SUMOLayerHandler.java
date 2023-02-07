@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 DLR Institute of Transport Research
+ * Copyright (c) 2021-2023 DLR Institute of Transport Research
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
