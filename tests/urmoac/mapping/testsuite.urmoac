@@ -10,3 +10,7 @@ one_unidir_road_offsets
 # simple allocation along a bidirectional single road with different offsets
 one_bidir_road_offsets
 
+
+
+# bounding box issue (bounding box nearer than nearest edge)
+bounding_box
