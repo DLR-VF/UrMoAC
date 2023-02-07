@@ -705,6 +705,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		}
 
 		// -------- build outputs
+		@SuppressWarnings("rawtypes")
 		Vector<Aggregator> aggregators = OutputBuilder.buildOutputs(options, fromLayer, fromAggLayer, toLayer, toAggLayer, epsg);
 		DirectWriter dw = OutputBuilder.buildDirectOutput(options, epsg, nearestToEdges);
 		time = options.getInteger("time");

@@ -69,6 +69,7 @@ public class OutputBuilder {
 	 * @return Built output devices
 	 * @throws IOException When something fails
 	 */
+	@SuppressWarnings("rawtypes")
 	public static Vector<Aggregator> buildOutputs(OptionsCont options, Layer fromLayer, Layer fromAggLayer, 
 			Layer toLayer, Layer toAggLayer, int rsid) throws IOException {
 		Vector<Aggregator> aggregators = new Vector<>();
@@ -235,10 +236,12 @@ public class OutputBuilder {
 	 * @return The built aggregator
 	 * @throws IOException When something fails
 	 */
+	@SuppressWarnings("rawtypes")
 	private static <T extends AbstractSingleResult> Aggregator<T> buildAggregator(MeasurementGenerator measuresGenerator,
 			boolean shortest, boolean aggAllFrom, boolean aggAllTo, 
 			Layer fromLayer, Layer fromAggLayer, Layer toLayer, Layer toAggLayer,
 			AbstractResultsWriter<T> writer, String comment) throws IOException {
+		@SuppressWarnings("unchecked")
 		Aggregator<T> agg = new Aggregator<T>(measuresGenerator, fromLayer, shortest);
 		if (fromAggLayer != null) {
 			agg.setOriginAggregation(fromLayer, fromAggLayer);

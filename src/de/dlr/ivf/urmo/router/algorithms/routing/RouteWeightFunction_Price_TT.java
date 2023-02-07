@@ -61,6 +61,7 @@ public class RouteWeightFunction_Price_TT extends AbstractRouteWeightFunction {
 	 * @param current The current path element
 	 * @return A map with build measures
 	 */
+	@SuppressWarnings("unchecked")
 	public HashMap<String, Object> buildMeasures(DijkstraEntry prev, DijkstraEntry current) {
 		HashMap<String, Object> ret = new HashMap<>();
 		HashSet<String> lines = new HashSet<String>();
