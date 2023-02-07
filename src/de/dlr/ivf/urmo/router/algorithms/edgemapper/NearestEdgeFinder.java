@@ -16,6 +16,7 @@
 package de.dlr.ivf.urmo.router.algorithms.edgemapper;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
@@ -42,6 +43,11 @@ import de.dlr.ivf.urmo.router.shapes.GeomHelper;
 public class NearestEdgeFinder {
 	/// @brief The list of objects to allocate in the network
 	private Vector<EdgeMappable> source;
+	/// @brief Pointer to the next mappable to process
+	Iterator<EdgeMappable> nextMappablePointer;
+	/// @brief The results set
+	HashMap<DBEdge, Vector<MapResult>> ret = new HashMap<>();
+
 	/// @brief The transport modes to use
 	private long modes;
 	/// @brief A spatial index
@@ -55,49 +61,81 @@ public class NearestEdgeFinder {
 	private static final int DIRECTION_LEFT = -1;
 	
 
-
-	/**
-	 * @brief Constructor
-	 * @param _source The list of objects to allocate in the network
-	 * @param _net The network to use
-	 * @param _modes Bitset of usable transport modes
+	
+	// -----------------------------------------------------------------------
+	// ComputingThread
+	// -----------------------------------------------------------------------
+	/** @class ComputingThread
+	 * 
+	 * A thread which polls for new sources, computes the accessibility and
+	 * writes the results before asking for the next one
 	 */
-	public NearestEdgeFinder(Vector<EdgeMappable> _source, DBNet _net, long _modes) {
-		source = _source;
-		modes = _modes;
-		tree = _net.getModedSpatialIndex(modes);
-		geometryFactory = _net.getGeometryFactory();
-	}
+	private static class ComputingThread implements Runnable {
+		/// @brief The parent to get information from
+		NearestEdgeFinder parent;
+		/// @brief The spatial index of edges
+		STRtree tree;
+		/// @brief A distance computation class
+		ItemDistance itemDist;
+		/// @brief Whether the mappable should be added to the according edge
+		boolean addToEdge;
+		
+		
+		/**
+		 * @brief Constructor
+		 * @param _parent The parent to get information from
+		 * @param _tree The spatial index to use to find edges
+		 * @param _addToEdge Whether the mappables should be added to the according edges
+		 */
+		public ComputingThread(NearestEdgeFinder _parent, STRtree _tree, boolean _addToEdge) {
+			super();
+			parent = _parent;
+			tree = _tree;
+			addToEdge = _addToEdge;
+			itemDist = new ItemDistance() {
+			    @Override
+			    public double distance(ItemBoundable i1, ItemBoundable i2) {
+			        DBEdge e = (DBEdge) i1.getItem();
+			        EdgeMappable em = (EdgeMappable) i2.getItem();
+			        return e.getGeometry().distance(em.getPoint());
+			    }
+			};
+		}
+		
+		
+		/**
+		 * @brief Performs the computation
+		 * 
+		 * Iterates over mappables, determines the nearest edge.
+		 */
+		public void run() {
+			EdgeMappable c = null;
+			do {
+				c = parent.getNextMappable();
+				if(c==null) {
+					continue;
+				}
+				processMappable(c);
+			} while(c!=null);
+		}
 
 
-	/**
-	 * @brief Builds and returns the mapping of objects to edges
-	 * @param addToEdge if set, the objects will be added to the respectively found edges
-	 * @return The map of objects to edges
-	 */
-	public HashMap<DBEdge, Vector<MapResult>> getNearestEdges(boolean addToEdge) {
-		ItemDistance itemDist = new ItemDistance() {
-		    @Override
-		    public double distance(ItemBoundable i1, ItemBoundable i2) {
-		        DBEdge e = (DBEdge) i1.getItem();
-		        EdgeMappable em = (EdgeMappable) i2.getItem();
-		        return e.getGeometry().distance(em.getPoint());
-		    }
-		};
-		HashMap<DBEdge, Vector<MapResult>> ret = new HashMap<>();
-		// go through the locations
-		for (EdgeMappable c : source) {
+		/** 
+		 * @brief Determines the edge the mappable is allocated at
+		 * @param mappable The mappable to process
+		 */
+		private void processMappable(EdgeMappable mappable) {
 			// get the next edge envelope
-			DBEdge found = (DBEdge) tree.nearestNeighbour(c.getEnvelope(), c, itemDist);
+			DBEdge found = (DBEdge) tree.nearestNeighbour(mappable.getEnvelope(), mappable, itemDist);
 			if(found==null) {
-				continue; // add error message
+				return; // add error message
 			}
-			Point p = c.getPoint();
+			Point p = mappable.getPoint();
 			double minDist = p.distance(found.geom);
-			int minDir = getDirectionToPoint(found, p);
+			int minDir = parent.getDirectionToPoint(found, p);
 			// we now have to check all edges within an envelope that covers
 			// the circle with the found distance
-			double cdist = minDist * 1.415; // sqrt(2)
+			double cdist = minDist * 1.415; // slightly more than sqrt(2)
 			Envelope env = new Envelope(new Coordinate(p.getX()-cdist, p.getY()-cdist), new Coordinate(p.getX()+cdist, p.getY()+cdist));
 			@SuppressWarnings("rawtypes")
 			List objs = tree.query(env);
@@ -105,12 +143,12 @@ public class NearestEdgeFinder {
 				DBEdge e = (DBEdge) o;
 				// get the distance
 				double dist = p.distance(e.geom);
-				if(dist>minDist+.1) {
+				if(dist>minDist) {
 					// currently seen is further away than the initial
 					continue;
 				}
 				// get the current edge's direction (at minimum distance)
-				int dir = getDirectionToPoint(e, p);
+				int dir = parent.getDirectionToPoint(e, p);
 				if(dir==DIRECTION_RIGHT) {
 					// ok, the point is on the right side of this one
 					if(minDir!=DIRECTION_RIGHT || dist<minDist || e.id.compareTo(found.id) > 0) {
@@ -133,14 +171,82 @@ public class NearestEdgeFinder {
 				Coordinate coord = new Coordinate(p.getX(), p.getY(), 0);
 				double posAtEdge = GeomHelper.getDistanceOnLineString(found, coord, p);
 				if (addToEdge) {
-					found.addMappedObject(c);
+					found.addMappedObject(mappable);
 				}
-				// properly computed, yet
-				if (!ret.containsKey(found)) {
-					ret.put(found, new Vector<>());
-				}
-				Vector<MapResult> ress = ret.get(found);
-				ress.add(new MapResult(c, found, minDist, posAtEdge));
+				parent.addResult(new MapResult(mappable, found, minDist, posAtEdge));
+			}
+		}
+	}
+	
+	
+	
+	// -----------------------------------------------------------------------
+	// NearestEdgeFinde
+	// -----------------------------------------------------------------------
+	/**
+	 * @brief Constructor
+	 * @param _source The list of objects to allocate in the network
+	 * @param _net The network to use
+	 * @param _modes Bitset of usable transport modes
+	 */
+	public NearestEdgeFinder(Vector<EdgeMappable> _source, DBNet _net, long _modes) {
+		source = _source;
+		modes = _modes;
+		tree = _net.getModedSpatialIndex(modes);
+		geometryFactory = _net.getGeometryFactory();
+	}
+
+
+	/**
+	 * @brief Adds the found mapping result to the results set
+	 * @param mapResult The computed mapping result
+	 */
+	public synchronized void addResult(MapResult mapResult) {
+		DBEdge found = mapResult.edge;
+		if (!ret.containsKey(found)) {
+			ret.put(found, new Vector<>());
+		}
+		Vector<MapResult> ress = ret.get(found);
+		ress.add(mapResult);
+	}
+
+
+	/**
+	 * @brief Returns the next mappable to process
+	 * @return The next mappable to process
+	 */
+	public synchronized EdgeMappable getNextMappable() {
+		EdgeMappable nextMappable = null;
+		while(nextMappable==null) {
+			if(!nextMappablePointer.hasNext()) {
+				return null;
+			}
+			nextMappable = nextMappablePointer.next();
+		}
+		return nextMappable;
+	}
+
+
+	/**
+	 * @brief Builds and returns the mapping of objects to edges
+	 * @param addToEdge if set, the objects will be added to the respectively found edges
+	 * @return The map of objects to edges
+	 */
+	public HashMap<DBEdge, Vector<MapResult>> getNearestEdges(boolean addToEdge, int numThreads) {
+		// start threads
+		nextMappablePointer = source.iterator();
+		Vector<Thread> threads = new Vector<>();
+		for (int i=0; i<numThreads; ++i) {
+			Thread t = new Thread(new ComputingThread(this, tree, addToEdge));
+			threads.add(t);
+	        t.start();
+		}
+		// close threads
+		for(Thread t : threads) {
+			try {
+				t.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
 		}
 		return ret;

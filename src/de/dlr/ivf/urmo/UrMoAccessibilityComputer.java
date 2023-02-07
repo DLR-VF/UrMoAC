@@ -677,7 +677,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		// public transport network
 		if (options.isSet("pt")) {
 			if (verbose) System.out.println("Reading the public transport network");
-			gtfs = GTFSReader.load(options, bounds, net, entrainmentMap, epsg, verbose);
+			gtfs = GTFSReader.load(options, bounds, net, entrainmentMap, epsg, options.getInteger("threads"), verbose);
 			if (verbose) System.out.println(" loaded");
 		}
 
@@ -693,13 +693,13 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		// compute nearest edges
 		if (verbose) System.out.println("Computing access from the origins to the network");
 		NearestEdgeFinder nef1 = new NearestEdgeFinder(fromLayer.getObjects(), net, initMode);
-		nearestFromEdges = nef1.getNearestEdges(false);
+		nearestFromEdges = nef1.getNearestEdges(false, options.getInteger("threads"));
 		if (options.isSet("origins-to-road-output")) {
 			OutputBuilder.writeEdgeAllocation("origins-to-road-output", options, nearestFromEdges, epsg);
 		}
 		if (verbose) System.out.println("Computing egress from the network to the destinations");
 		NearestEdgeFinder nef2 = new NearestEdgeFinder(toLayer.getObjects(), net, initMode);
-		nearestToEdges = nef2.getNearestEdges(true);
+		nearestToEdges = nef2.getNearestEdges(true, options.getInteger("threads"));
 		if (options.isSet("destinations-to-road-output")) {
 			OutputBuilder.writeEdgeAllocation("destinations-to-road-output", options, nearestToEdges, epsg);
 		}

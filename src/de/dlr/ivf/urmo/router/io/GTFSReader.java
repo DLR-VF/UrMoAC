@@ -74,11 +74,12 @@ public class GTFSReader {
 	 * @param net The used network
 	 * @param entrainmentMap The used entrainment map
 	 * @param epsg The used projection
+	 * @param numThreads The number of threads to use when mapping positions to edges
 	 * @param verbose Whether additional information shall be printed
 	 * @return The loaded GTFS data
 	 * @throws IOException When something fails
 	 */
-	public static GTFSData load(OptionsCont options, Geometry bounds, DBNet net, EntrainmentMap entrainmentMap, int epsg, boolean verbose) throws IOException {
+	public static GTFSData load(OptionsCont options, Geometry bounds, DBNet net, EntrainmentMap entrainmentMap, int epsg, int numThreads, boolean verbose) throws IOException {
 		if(!options.isSet("date")) {
 			throw new IOException("A date must be given when using GTFS.");
 		}
@@ -89,7 +90,7 @@ public class GTFSReader {
 		switch(format) {
 		case FORMAT_POSTGRES:
 		case FORMAT_SQLITE:
-			return loadGTFSFromDB(format, inputParts, allowedCarrier, options.getString("date"), bounds, net, entrainmentMap, epsg, verbose);
+			return loadGTFSFromDB(format, inputParts, allowedCarrier, options.getString("date"), bounds, net, entrainmentMap, epsg, numThreads, verbose);
 		case FORMAT_CSV:
 			return loadGTFSFromFile(inputParts[0], allowedCarrier, options.getString("date"), bounds, net, entrainmentMap, epsg, verbose);
 		case FORMAT_SHAPEFILE:
@@ -116,7 +117,7 @@ public class GTFSReader {
 	 * @throws IOException When something fails
 	 */
 	private static GTFSData loadGTFSFromDB(Utils.Format format, String[] inputParts, Vector<Integer> allowedCarrier, String date, 
-			Geometry bounds, DBNet net, EntrainmentMap entrainmentMap, int epsg, boolean verbose) throws IOException {
+			Geometry bounds, DBNet net, EntrainmentMap entrainmentMap, int epsg, int numThreads, boolean verbose) throws IOException {
 		try {
 			GeometryFactory gf = new GeometryFactory(new PrecisionModel());
 			Connection connection = Utils.getConnection(format, inputParts, "pt");
@@ -160,7 +161,7 @@ public class GTFSReader {
 			// map stops to edges
 			long accessModes = Modes.getMode("foot").id|Modes.getMode("bicycle").id;
 			NearestEdgeFinder nef = new NearestEdgeFinder(stopsV, net, accessModes);
-			HashMap<DBEdge, Vector<MapResult>> edge2stops = nef.getNearestEdges(false);
+			HashMap<DBEdge, Vector<MapResult>> edge2stops = nef.getNearestEdges(false, numThreads);
 			int failed = 0;
 			// connect stops to network
 			if(verbose) System.out.println(" ... connecting stops ...");

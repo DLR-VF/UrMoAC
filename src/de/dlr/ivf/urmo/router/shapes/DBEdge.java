@@ -238,7 +238,7 @@ public class DBEdge {
 	 * @brief Adds a new objects to this edge
 	 * @param em The object to add
 	 */
-	public void addMappedObject(EdgeMappable em) {
+	public synchronized void addMappedObject(EdgeMappable em) {
 		if(objects==null) {
 			objects = new HashSet<>();
 		}

@@ -166,10 +166,7 @@ public class Aggregator<T extends AbstractSingleResult> {
 		int missing = 0;
 		for (EdgeMappable em : orig.getObjects()) {
 			long destID = -1;
-			Point p = em.getPoint();
-			double viewDist = .1;
-			Envelope env = new Envelope(new Coordinate(p.getX()-viewDist, p.getY()-viewDist), new Coordinate(p.getX()+viewDist, p.getY()+viewDist));
-			List objs = tree.query(env);
+			List objs = tree.query(em.getEnvelope());
 			for(Object o : objs) {
 				EdgeMappable aggArea = (EdgeMappable) o;
 				if (aggArea.getGeometry().contains(em.getPoint())) {
