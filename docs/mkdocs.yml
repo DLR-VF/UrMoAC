@@ -43,7 +43,7 @@ nav:
         - Todo: Todo.md
     - Legal: 
         - Main: Legal.md
-        - License (EPL v2.0): https://github.com/DLR-VF/UrMoAC/blob/master/LICENSE.md
+        - License (EPL v2.0): LICENSE.md
         - Disclaimer: Disclaimer.md
 
 markdown_extensions:
