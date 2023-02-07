@@ -185,21 +185,6 @@ public class DBNet {
 
 
 	/**
-	 * @brief Returns the named edge (by id)
-	 * @param id The id of the edge
-	 * @return The edge (if known, otherwise null)
-	 */
-	public DBEdge getEdgeByID(int id) {
-		for (DBEdge e : name2edge.values()) {
-			if (e.numID == id) {
-				return e;
-			}
-		}
-		return null;
-	}
-
-	
-	/**
 	 * @brief Removes this edge from the network
 	 * 
 	 * The references to this edge are removed from the start/end node.

@@ -79,7 +79,9 @@ public class NearestEdgeFinder {
 		ItemDistance itemDist;
 		/// @brief Whether the mappable should be added to the according edge
 		boolean addToEdge;
-		
+		/// @brief The transport modes to use
+		private long modes;
+
 		
 		/**
 		 * @brief Constructor
@@ -87,11 +89,12 @@ public class NearestEdgeFinder {
 		 * @param _tree The spatial index to use to find edges
 		 * @param _addToEdge Whether the mappables should be added to the according edges
 		 */
-		public ComputingThread(NearestEdgeFinder _parent, STRtree _tree, boolean _addToEdge) {
+		public ComputingThread(NearestEdgeFinder _parent, STRtree _tree, boolean _addToEdge, long _modes) {
 			super();
 			parent = _parent;
 			tree = _tree;
 			addToEdge = _addToEdge;
+			modes = _modes;
 			itemDist = new ItemDistance() {
 			    @Override
 			    public double distance(ItemBoundable i1, ItemBoundable i2) {
@@ -126,46 +129,35 @@ public class NearestEdgeFinder {
 		 */
 		private void processMappable(EdgeMappable mappable) {
 			// get the next nearest edges
-			Object nearest[] = tree.nearestNeighbour(mappable.getEnvelope(), mappable, itemDist, 4);
-			if(nearest.length==0) {
+			DBEdge found = (DBEdge) tree.nearestNeighbour(mappable.getEnvelope(), mappable, itemDist);
+			if(found==null) {
 				return; // add error message
 			}
+			// check opposite
 			Point p = mappable.getPoint();
-			double minDist = 0;
-			int minDir = 0;
-			DBEdge found = null;
-			for(Object o : nearest) {
-				DBEdge e = (DBEdge) o;
-				// get the distance
-				double dist = p.distance(e.geom);
-				if(found==null||dist<minDist) {
-					found = e;
-					minDist = dist;
-					minDir = parent.getDirectionToPoint(e, p);
-					continue;
-				}
-				if(dist>minDist) {
-					// currently seen is further away than the initial
-					// and we already had one
-					continue;
-				}
-				// get the current edge's direction (at minimum distance)
-				int dir = parent.getDirectionToPoint(e, p);
-				if(dir==DIRECTION_RIGHT) {
-					// ok, the point is on the right side of this one
-					if(minDir!=DIRECTION_RIGHT || dist<minDist || e.id.compareTo(found.id) > 0) {
-						// use this one either if the point was on the false side of the initially found 
-						// one or sort by distance or id
+			double minDist = p.distance(found.geom);
+			if(found.opposite!=null&&found.opposite.allowsAny(modes)/*&&!found.opposite.id.startsWith("opp_")*/) { // !!!
+				double dist = p.distance(found.opposite.geom);
+				if(dist==minDist) {
+					int minDir = parent.getDirectionToPoint(found, p);
+					// get the current edge's direction (at minimum distance)
+					int dir = parent.getDirectionToPoint(found.opposite, p);
+					if(dir==DIRECTION_RIGHT) {
+						// ok, the point is on the right side of this one
+						if(minDir!=DIRECTION_RIGHT || dist<minDist || found.opposite.id.compareTo(found.id) > 0) {
+							// use this one either if the point was on the false side of the initially found 
+							// one or sort by distance or id
+							minDist = dist;
+							minDir = dir;
+							found = found.opposite;
+						}
+					} else if(minDir==DIRECTION_LEFT && (dist<minDist || found.opposite.id.compareTo(found.id) > 0)) {
+						// the point is on the left and the previous one, too;
+						// sort by distance or id
 						minDist = dist;
 						minDir = dir;
-						found = e;
+						found = found.opposite;
 					}
-				} else if(minDir==DIRECTION_LEFT && (dist<minDist || e.id.compareTo(found.id) > 0)) {
-					// the point is on the left and the previous one, too;
-					// sort by distance or id
-					minDist = dist;
-					minDir = dir;
-					found = e;
 				}
 			}
 			//
@@ -239,7 +231,7 @@ public class NearestEdgeFinder {
 		nextMappablePointer = source.iterator();
 		Vector<Thread> threads = new Vector<>();
 		for (int i=0; i<numThreads; ++i) {
-			Thread t = new Thread(new ComputingThread(this, tree, addToEdge));
+			Thread t = new Thread(new ComputingThread(this, tree, addToEdge, modes));
 			threads.add(t);
 	        t.start();
 		}
