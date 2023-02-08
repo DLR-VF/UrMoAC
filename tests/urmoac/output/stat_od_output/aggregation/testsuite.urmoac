@@ -1,0 +1,35 @@
+# no aggregation
+no_aggregation
+
+
+
+# aggregate origins by areas
+orig_areas__dests_no
+
+# aggregate origins by areas, destinations by areas
+orig_areas__dests_areas
+
+# aggregate origins by areas, all destinations
+orig_areas__dests_all
+
+
+
+# aggregate all origins
+orig_all__dests_no
+
+# aggregate all origins, destinations by areas
+orig_all__dests_areas
+
+# aggregate all origins, all destinations
+orig_all__dests_all
+
+
+
+
+# aggregate destinations by areas
+orig_no__dests_areas
+
+# aggregate all destinations
+orig_no__dests_all
+
+
