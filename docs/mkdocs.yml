@@ -29,9 +29,9 @@ nav:
         - Tutorial List: Tutorials.md
         - Computing the accessibility to the next public transport halt: TutorialNextPTHalt.md
         - Using QGIS to visualise UrMoAC results: TutorialQGISVisualisation.md
-    - Methods: 
-        - Outline: Methods.md
-        - Mapping to network: MappingToNet.md
+#    - Methods: 
+#        - Outline: Methods.md
+#        - Mapping to network: MappingToNet.md
     - ChangeLog: ChangeLog.md
     - Links: Links.md
     - Publications: Publications.md
