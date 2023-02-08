@@ -16,5 +16,11 @@ simple_offset
 multiple_edges_no_offset
 
 
+
+# aggregation tests, based on extended mapping/one_bidir_road_offsets
+aggregation
+
+
+
 # tests whether the deprecated file definition works
 deprecated
