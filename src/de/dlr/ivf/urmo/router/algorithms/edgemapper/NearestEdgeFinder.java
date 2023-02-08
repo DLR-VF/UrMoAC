@@ -138,7 +138,7 @@ public class NearestEdgeFinder {
 			double minDist = p.distance(found.geom);
 			if(found.opposite!=null&&found.opposite.allowsAny(modes)/*&&!found.opposite.id.startsWith("opp_")*/) { // !!!
 				double dist = p.distance(found.opposite.geom);
-				if(dist==minDist) {
+				if(dist-minDist<.1) {
 					int minDir = parent.getDirectionToPoint(found, p);
 					// get the current edge's direction (at minimum distance)
 					int dir = parent.getDirectionToPoint(found.opposite, p);
