@@ -62,43 +62,25 @@ public class SUMOLayerHandler extends DefaultHandler {
 	@Override
 	public void startElement(String uri, String localName, String qName, Attributes attributes) {
 		if(localName.equals("poi")) {
-			String id = null;
-			String xS = null;
-			String yS = null;
-			for(int i=0; i<attributes.getLength(); ++i) {
-				if(attributes.getLocalName(i).equals("id")) {
-					id = attributes.getValue(i);
-				}
-				if(attributes.getLocalName(i).equals("x")) {
-					xS = attributes.getValue(i);
-				}
-				if(attributes.getLocalName(i).equals("y")) {
-					yS = attributes.getValue(i);
-				}
-			}
+			String id = attributes.getValue("id");
+			String xS = attributes.getValue("x");
+			String yS = attributes.getValue("y");
 			Geometry geom2 = _gf.createPoint(new Coordinate(Double.parseDouble(xS), Double.parseDouble(yS)));
 			// @todo use string ids?
 			_layer.addObject(new LayerObject(_idGiver.getNextRunningID(), Long.parseLong(id), 1, geom2));
 		}
 		if(localName.equals("poly")) {
-			String id = null;
+			String id = attributes.getValue("id");
 			Vector<Coordinate> geom = new Vector<>();
-			for(int i=0; i<attributes.getLength(); ++i) {
-				if(attributes.getLocalName(i).equals("id")) {
-					id = attributes.getValue(i);
-				}
-				if(attributes.getLocalName(i).equals("shape")) {
-					String shape = attributes.getValue(i);
-					StringTokenizer st = new StringTokenizer(shape);
-					while(st.hasMoreTokens()) {
-						String pos = st.nextToken();
-						String[] r = pos.split(",");
-						geom.add(new Coordinate(Double.parseDouble(r[0]), Double.parseDouble(r[1])));
-					}
-					if(geom.get(0)!=geom.get(geom.size()-1)) {
-						geom.add(geom.get(0));
-					}
-				}
+			String shape = attributes.getValue("shape");
+			StringTokenizer st = new StringTokenizer(shape);
+			while(st.hasMoreTokens()) {
+				String pos = st.nextToken();
+				String[] r = pos.split(",");
+				geom.add(new Coordinate(Double.parseDouble(r[0]), Double.parseDouble(r[1])));
+			}
+			if(geom.get(0)!=geom.get(geom.size()-1)) {
+				geom.add(geom.get(0));
 			}
 			Coordinate[] arr = new Coordinate[geom.size()];
 			Geometry geom2 = _gf.createPolygon(geom.toArray(arr));

@@ -96,13 +96,9 @@ public class SUMONetHandler extends DefaultHandler {
 	@Override
 	public void startElement(String uri, String localName, String qName, Attributes attributes) {
 		if(qName.equals("location")) {
-			for(int i=0; i<attributes.getLength(); ++i) {
-				if(attributes.getLocalName(i).equals("netOffset")) {
-					String o = attributes.getValue(i);
-					String split[] = o.split(",");
-					_offset = new Coordinate(Double.parseDouble(split[0]), Double.parseDouble(split[1]));
-				}
-			}			
+			String o = attributes.getValue("netOffset");
+			String split[] = o.split(",");
+			_offset = new Coordinate(Double.parseDouble(split[0]), Double.parseDouble(split[1]));
 		}
 		if(qName.equals("edge")) {
 			_laneShapes = new Vector<>();
@@ -110,46 +106,19 @@ public class SUMONetHandler extends DefaultHandler {
 			_disallowed = new Vector<>();
 			_maxLaneSpeed = 0;
 			_laneLengths = 0;
-			_id = null;
-			_from = null;
-			_to = null;
-			_shape = null;
-			_type = null;
-			for(int i=0; i<attributes.getLength(); ++i) {
-				if(attributes.getLocalName(i).equals("id")) {
-					_id = attributes.getValue(i);
-				}
-				if(attributes.getLocalName(i).equals("from")) {
-					_from = attributes.getValue(i);
-				}
-				if(attributes.getLocalName(i).equals("to")) {
-					_to = attributes.getValue(i);
-				}
-				if(attributes.getLocalName(i).equals("shape")) {
-					_shape = attributes.getValue(i);
-				}
-				if(attributes.getLocalName(i).equals("type")) {
-					_type = attributes.getValue(i);
-				}
-			}
+			_id = attributes.getValue("id");
+			_from = attributes.getValue("from");
+			_to = attributes.getValue("to");
+			_shape = attributes.getValue("shape");
+			_type = attributes.getValue("type");
 		}
 		if(qName.equals("lane")) {
 			for(int i=0; i<attributes.getLength(); ++i) {
-				if(attributes.getLocalName(i).equals("speed")) {
-					_maxLaneSpeed = Math.max(_maxLaneSpeed,  Double.parseDouble(attributes.getValue(i)));
-				}
-				if(attributes.getLocalName(i).equals("length")) {
-					_laneLengths += Double.parseDouble(attributes.getValue(i));
-				}
-				if(attributes.getLocalName(i).equals("shape")) {
-					_laneShapes.add(attributes.getValue(i));
-				}
-				if(attributes.getLocalName(i).equals("allowed")) {
-					_allowed.add(attributes.getValue(i));
-				}
-				if(attributes.getLocalName(i).equals("disallowed")) {
-					_disallowed.add(attributes.getValue(i));
-				}
+				_maxLaneSpeed = Math.max(_maxLaneSpeed,  Double.parseDouble(attributes.getValue("speed")));
+				_laneLengths += Double.parseDouble(attributes.getValue("length"));
+				_laneShapes.add(attributes.getValue("shape"));
+				_allowed.add(attributes.getValue("allowed"));
+				_disallowed.add(attributes.getValue("disallowed"));
 			}
 			// make sure that the allowed/disallowed information is given for each lane
 			if(_allowed.size()<_laneShapes.size()) {
