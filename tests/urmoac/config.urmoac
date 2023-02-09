@@ -12,6 +12,11 @@ copy_test_path:sources.wkt
 copy_test_path:destinations.wkt
 copy_test_path:agg_sources.wkt
 copy_test_path:agg_destinations.wkt
+copy_test_path:network.net.xml
+copy_test_path:sources.poi.xml
+copy_test_path:destinations.poi.xml
+copy_test_path:agg_sources.poi.xml
+copy_test_path:agg_destinations.poi.xml
 copy_test_path:sqlite.db
 
 [collate_file]

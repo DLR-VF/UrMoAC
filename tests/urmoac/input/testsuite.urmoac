@@ -4,3 +4,6 @@ csv
 # reading wkt-files
 wkt
 
+# reading SUMO-files
+sumo 
+
