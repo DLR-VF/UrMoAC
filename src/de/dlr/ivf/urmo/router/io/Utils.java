@@ -157,7 +157,7 @@ public class Utils {
 			return Format.FORMAT_SHAPEFILE;
 		} else if(input.endsWith(".gpkg")) {
 			return Format.FORMAT_GEOPACKAGE;
-		} else if(input.endsWith(".net.xml") || input.endsWith(".poi.xml")) {
+		} else if(input.endsWith(".net.xml") || input.endsWith(".poi.xml") || input.endsWith(".dump.xml")) {
 			return Format.FORMAT_SUMO;
 		}   
 		
