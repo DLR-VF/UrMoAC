@@ -31,21 +31,20 @@ import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
 /** @class SUMOLayerHandler
  * @brief Parses a SUMO-POI-file reading it as objects
- * @author dkrajzew
+ * @author Daniel Krajzewicz (c) 2021 German Aerospace Center, Institute of Transport Research
  */
-class SUMOLayerHandler extends DefaultHandler {
+public class SUMOLayerHandler extends DefaultHandler {
 	/// @brief The layer to fill
-	Layer _layer;
-	
+	private Layer _layer;
 	/// @brief The object to get internal IDs from
-	IDGiver _idGiver;
-	
+	private IDGiver _idGiver;
 	/// @brief The geometry factory to use
-	GeometryFactory _gf;
+	private GeometryFactory _gf;
 
 	
 	/** @brief Constructor
 	 * @param layer The layer to add the read objects to
+	 * @param idGiver Object that supports (running) IDs
 	 */
 	public SUMOLayerHandler(Layer layer, IDGiver idGiver) {
 		_layer = layer;
@@ -53,13 +52,20 @@ class SUMOLayerHandler extends DefaultHandler {
 		_gf = new GeometryFactory(new PrecisionModel());
 	}
 
+	
+	/** @brief Called when an element starts
+	 * @param uri The element's URI
+	 * @param localName The element's local name
+	 * @param qName The element's qualified name
+	 * @param attributes The element's attributes
+	 */
 	@Override
 	public void startElement(String uri, String localName, String qName, Attributes attributes) {
 		if(localName.equals("poi")) {
 			String id = null;
 			String xS = null;
 			String yS = null;
-			for(int i=0; i<attributes.getLength()&&(id==null||xS==null||yS==null); ++i) {
+			for(int i=0; i<attributes.getLength(); ++i) {
 				if(attributes.getLocalName(i).equals("id")) {
 					id = attributes.getValue(i);
 				}
@@ -69,15 +75,15 @@ class SUMOLayerHandler extends DefaultHandler {
 				if(attributes.getLocalName(i).equals("y")) {
 					yS = attributes.getValue(i);
 				}
-				Geometry geom2 = _gf.createPoint(new Coordinate(Double.parseDouble(xS), Double.parseDouble(yS)));
-				// @todo use string ids?
-				_layer.addObject(new LayerObject(Long.parseLong(id), Long.parseLong(id), 1, geom2));
 			}
+			Geometry geom2 = _gf.createPoint(new Coordinate(Double.parseDouble(xS), Double.parseDouble(yS)));
+			// @todo use string ids?
+			_layer.addObject(new LayerObject(_idGiver.getNextRunningID(), Long.parseLong(id), 1, geom2));
 		}
-		if(localName.equals("polygon")) {
+		if(localName.equals("poly")) {
 			String id = null;
 			Vector<Coordinate> geom = new Vector<>();
-			for(int i=0; i<attributes.getLength()&&(id==null); ++i) {
+			for(int i=0; i<attributes.getLength(); ++i) {
 				if(attributes.getLocalName(i).equals("id")) {
 					id = attributes.getValue(i);
 				}
@@ -89,12 +95,15 @@ class SUMOLayerHandler extends DefaultHandler {
 						String[] r = pos.split(",");
 						geom.add(new Coordinate(Double.parseDouble(r[0]), Double.parseDouble(r[1])));
 					}
+					if(geom.get(0)!=geom.get(geom.size()-1)) {
+						geom.add(geom.get(0));
+					}
 				}
-				Coordinate[] arr = new Coordinate[geom.size()];
-				Geometry geom2 = _gf.createPolygon(geom.toArray(arr));
-				// @todo use string ids?
-				_layer.addObject(new LayerObject(Long.parseLong(id), Long.parseLong(id), 1, geom2));
 			}
+			Coordinate[] arr = new Coordinate[geom.size()];
+			Geometry geom2 = _gf.createPolygon(geom.toArray(arr));
+			// @todo use string ids?
+			_layer.addObject(new LayerObject(_idGiver.getNextRunningID(), Long.parseLong(id), 1, geom2));
 		}
 	}
 
