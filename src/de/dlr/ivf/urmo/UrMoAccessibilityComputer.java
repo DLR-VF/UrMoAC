@@ -615,11 +615,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		}
 		if (verbose) System.out.println("Reading the road network");
 		DBNet net = NetLoader.loadNet(this, options.getString("net"), options.getString("net.vmax"), epsg, modes);
-		if(net==null) {
-			return false;
-		}
 		if (verbose) System.out.println(" " + net.getNumEdges() + " edges loaded (" + net.getNodes().size() + " nodes)");
-		net.pruneForModes(modes); // TODO (implement, add message)
+		net.pruneForModes(modes);
 		if(!options.getBool("subnets")) {
 			if (verbose) System.out.println("Checking for connectivity...");
 			net.dismissUnconnectedEdges(false);

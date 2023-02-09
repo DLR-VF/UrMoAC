@@ -24,6 +24,8 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -152,23 +154,33 @@ public class InputReader {
 		String def = options.getString(base);
 		Utils.Format format = Utils.getFormat(def);
 		String[] inputParts = Utils.getParts(format, def, base);
+		Layer layer = null;
 		switch(format) {
 		case FORMAT_POSTGRES:
 		case FORMAT_SQLITE:
-			return loadLayerFromDB(base, bounds, format, inputParts, filter, varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg);
+			layer = loadLayerFromDB(base, bounds, format, inputParts, filter, varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg);
+			break;
 		case FORMAT_CSV:
-			return loadLayerFromCSVFile(base, bounds, inputParts[0], idGiver, dismissWeight);
+			layer = loadLayerFromCSVFile(base, bounds, inputParts[0], idGiver, dismissWeight);
+			break;
 		case FORMAT_WKT:
-			return loadLayerFromWKTFile(base, bounds, inputParts[0], idGiver, dismissWeight);
+			layer = loadLayerFromWKTFile(base, bounds, inputParts[0], idGiver, dismissWeight);
+			break;
 		case FORMAT_SHAPEFILE:
-			return loadLayerFromShapefile(base, bounds, inputParts[0], varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg);
+			layer = loadLayerFromShapefile(base, bounds, inputParts[0], varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg);
+			break;
 		case FORMAT_SUMO:
-			return loadLayerFromSUMOPOIs(base, bounds, inputParts[0], idGiver);
+			layer = loadLayerFromSUMOPOIs(base, bounds, inputParts[0], idGiver);
+			break;
 		case FORMAT_GEOPACKAGE:
 			throw new IOException("Reading '" + base + "' from " + Utils.getFormatMMLName(format) + " is not supported.");
 		default:
 			throw new IOException("Could not recognize the format used for '" + base + "'.");
 		}
+		if(layer==null) {
+			throw new IOException("Objects could not be loaded.");
+		}
+		return layer;
 	}
 	
 	
@@ -191,6 +203,8 @@ public class InputReader {
 	 */
 	private static Layer loadLayerFromDB(String layerName, Geometry bounds, Utils.Format format, String[] inputParts, String filter, String varName,
 			String idS, String geomS, IDGiver idGiver, int epsg) throws IOException {
+		Set<Long> seen = new HashSet<Long>();
+		boolean ok = true;
 		try {
 			if (!"".equals(filter)) {
 				filter = " WHERE " + filter;
@@ -230,13 +244,20 @@ public class InputReader {
 				if(varName!=null && !"".equals(varName)) {
 					var = rs.getDouble(numColumns-1);
 				}
-				LayerObject o = new LayerObject(idGiver.getNextRunningID(), rs.getLong(idS), var, geom);
+				long id = rs.getLong(idS);
+				LayerObject o = new LayerObject(idGiver.getNextRunningID(), id, var, geom);
 				layer.addObject(o);
+				// check for duplicates
+				if(seen.contains(id)) {
+					System.err.println("Duplicate object '" + id + "' occured.");
+					ok = false;
+				}
+				seen.add(id);
 			}
 			rs.close();
 			s.close();
 			connection.close();
-			return layer;
+			return ok ? layer : null;
 		} catch (SQLException | ParseException e) {
 			throw new IOException(e);
 		}
@@ -260,17 +281,39 @@ public class InputReader {
 		BufferedReader br = new BufferedReader(new FileReader(fileName));
 		String line = null;
 		boolean dismissWeightReported = false;
+		Set<Long> seen = new HashSet<Long>();
+		boolean ok = true;
 		do {
 			line = br.readLine();
 			if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
 				String[] vals = line.split(";");
+				Long id = 0l;
+				try {
+					id = Long.parseLong(vals[0]);
+				} catch(NumberFormatException e) {
+					System.err.println("Could not parse object id '" + vals[0] + "' to long.");
+					ok = false;
+					continue;
+				}
 				Vector<Coordinate> geom = new Vector<>();
 				int i = 1;
+				boolean hadError = false; 
 				for(; i<vals.length-1; i+=2) {
-					geom.add(new Coordinate(Double.parseDouble(vals[i]), Double.parseDouble(vals[i+1])));
+					try {
+						geom.add(new Coordinate(Double.parseDouble(vals[i]), Double.parseDouble(vals[i+1])));
+					} catch(NumberFormatException e) {
+						System.err.println("Broken geometry in object '" + id + "'.");
+						ok = false;
+						hadError = true; 
+						continue;
+					}
 				}
 				if(geom.size()==0) {
-					throw new IOException("Missing geometry for object '" + vals[0] + "' in file '" + fileName + "'.");
+					if(!hadError) {
+						System.err.println("Missing geometry for object '" + id + "'.");
+					}
+					ok = false;
+					continue;
 				}
 				Geometry geom2 = null;
 				if(geom.size()==1) {
@@ -285,7 +328,13 @@ public class InputReader {
 				double var = 1;
 				if(i<vals.length) {
 					if(!dismissWeight) {
-						var = Double.parseDouble(vals[i]);
+						try {
+							var = Double.parseDouble(vals[i]);
+						} catch(NumberFormatException e) {
+							System.err.println("Could not parse object's '" + id + "' variable to double.");
+							ok = false;
+							continue;
+						}
 					} else {
 						if(!dismissWeightReported) {
 							dismissWeightReported = true;
@@ -293,11 +342,17 @@ public class InputReader {
 						}
 					}
 				}
-				layer.addObject(new LayerObject(idGiver.getNextRunningID(), Long.parseLong(vals[0]), var, geom2));
+				layer.addObject(new LayerObject(idGiver.getNextRunningID(), id, var, geom2));
+				// check for duplicates
+				if(seen.contains(id)) {
+					System.err.println("Duplicate object '" + id + "' occured.");
+					ok = false;
+				}
+				seen.add(id);
 			}
 	    } while(line!=null);
 		br.close();
-		return layer;
+		return ok ? layer : null;
 	}
 	
 		
@@ -313,9 +368,9 @@ public class InputReader {
 	 * @throws IOException When something fails
 	 */
 	private static Layer loadLayerFromWKTFile(String layerName, Geometry bounds, String fileName, IDGiver idGiver, boolean dismissWeight) throws IOException { 
-		try {
+		Set<Long> seen = new HashSet<Long>();
+		boolean ok = true;
 			Layer layer = new Layer(layerName, bounds);
-			GeometryFactory gf = new GeometryFactory(new PrecisionModel());
 			BufferedReader br = new BufferedReader(new FileReader(fileName));
 			WKTReader wktReader = new WKTReader();
 			String line = null;
@@ -324,11 +379,32 @@ public class InputReader {
 				line = br.readLine();
 				if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
 					String[] vals = line.split(";");
-					Geometry geom = wktReader.read(vals[1]);
+					Long id = 0l;
+					try {
+						id = Long.parseLong(vals[0]);
+					} catch(NumberFormatException e) {
+						System.err.println("Could not parse object id '" + vals[0] + "' to long.");
+						ok = false;
+						continue;
+					}
+					Geometry geom = null;
+					try {
+						geom = wktReader.read(vals[1]);
+					} catch (ParseException e) {
+						System.err.println("Broken geometry in object '" + id + "'.");
+						ok = false;
+						continue;
+					}
 					double var = 1;
 					if(vals.length==3) {
 						if(!dismissWeight) {
-							var = Double.parseDouble(vals[2]);
+							try {
+								var = Double.parseDouble(vals[2]);
+							} catch(NumberFormatException e) {
+								System.err.println("Could not parse object's '" + id + "' variable to double.");
+								ok = false;
+								continue;
+							}
 						} else {
 							if(!dismissWeightReported) {
 								dismissWeightReported = true;
@@ -336,14 +412,17 @@ public class InputReader {
 							}
 						}
 					}
-					layer.addObject(new LayerObject(idGiver.getNextRunningID(), Long.parseLong(vals[0]), var, geom));
+					layer.addObject(new LayerObject(idGiver.getNextRunningID(), id, var, geom));
+					// check for duplicates
+					if(seen.contains(id)) {
+						System.err.println("Duplicate object '" + id + "' occured.");
+						ok = false;
+					}
+					seen.add(id);
 				}
 		    } while(line!=null);
 			br.close();
-			return layer;
-		} catch (ParseException e) {
-			throw new IOException(e);
-		}
+			return ok ? layer : null;
 	}
 	
 		
@@ -363,13 +442,15 @@ public class InputReader {
 	 */
 	private static Layer loadLayerFromShapefile(String layerName, Geometry bounds, String fileName, String varName,
 			String idS, String geomS, IDGiver idGiver, int epsg) throws IOException { 
+		Set<Long> seen = new HashSet<Long>();
+		boolean ok = true;
 		try {
 			Layer layer = new Layer(layerName, bounds);
 			File file = new File(fileName);
 			if(!file.exists() || !fileName.endsWith(".shp")) {
 			    throw new IOException("Invalid shapefile filepath: " + fileName);
 			}
-			ShapefileDataStore dataStore = new ShapefileDataStore(file.toURL());
+			ShapefileDataStore dataStore = new ShapefileDataStore(file.toURI().toURL());
 			SimpleFeatureSource featureSource = dataStore.getFeatureSource();
 			SimpleFeatureCollection featureCollection = featureSource.getFeatures();
 
@@ -392,8 +473,14 @@ public class InputReader {
 				}
 				LayerObject o = new LayerObject(idGiver.getNextRunningID(), id, var, geom);
 				layer.addObject(o);
+				// check for duplicates
+				if(seen.contains((long) id)) {
+					System.err.println("Duplicate object '" + id + "' occured.");
+					ok = false;
+				}
+				seen.add((long) id);
 			}
-			return layer;
+			return ok ? layer : null;
 		} catch (FactoryException | MismatchedDimensionException | TransformException e) {
 			throw new IOException(e);
 		}
@@ -426,25 +513,6 @@ public class InputReader {
 		}
 	}
 	
-	
-	
-	/**
-	 * @brief Loads a set of objects from a Geopackage file
-	 * 
-	 * @param layerName The name of the layer to generate
-	 * @param bounds The bounds to clip the read thing to
-	 * @param fileName The name of the file to read
-	 * @param idGiver A reference to something that supports a running ID
-	 * @return The generated layer with the read objects
-	 * @throws IOException When something fails
-	 */
-	private static Layer loadLayerFromGPKG(String layerName, Geometry bounds, String fileName, IDGiver idGiver) throws ParserConfigurationException, SAXException, IOException { 
-		Layer layer = new Layer(layerName, bounds);
-		GeoPackage geoPackage = new GeoPackage(new File(fileName));
-		GeoPackageReader reader = new GeoPackageReader(fileName, null);
-		GeneralParameterValue[] parameters = new GeneralParameterValue[1];
-        return layer;
-	}
 	
 	
 	
@@ -607,7 +675,7 @@ public class InputReader {
 		br.close();
 		String[] vals = line.split(";");
 		if((vals.length % 2)!=0) {
-			throw new IOException("odd number for coordinates");
+			throw new IOException("Could not load geometry from '" + fileName + "': odd number for coordinates.");
 		}
 		Coordinate[] coords = new Coordinate[(int) (vals.length/2)];
 		int j = 0;
@@ -652,7 +720,7 @@ public class InputReader {
 			if(!file.exists() || !fileName.endsWith(".shp")) {
 			    throw new IOException("Invalid shapefile filepath: " + fileName);
 			}
-			ShapefileDataStore dataStore = new ShapefileDataStore(file.toURL());
+			ShapefileDataStore dataStore = new ShapefileDataStore(file.toURI().toURL());
 			SimpleFeatureSource featureSource = dataStore.getFeatureSource();
 			SimpleFeatureCollection featureCollection = featureSource.getFeatures();
 
@@ -748,7 +816,11 @@ public class InputReader {
 			line = br.readLine();
 			if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
 				String[] vals = line.split(";");
-				ret.add(new DBODRelation(Long.parseLong(vals[0]), Long.parseLong(vals[1]), 1.));
+				try {
+					ret.add(new DBODRelation(Long.parseLong(vals[0]), Long.parseLong(vals[1]), 1.));
+				} catch(NumberFormatException e) {
+					System.err.println("Broken o/d relation in '" + fileName + "': " + line + ".");
+				}
 			}
 	    } while(line!=null);
 		br.close();

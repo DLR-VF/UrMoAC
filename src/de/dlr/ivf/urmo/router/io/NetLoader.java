@@ -100,12 +100,11 @@ public class NetLoader {
 		default:
 			throw new IOException("Could not recognize the format used for GTFS.");
 		}
-		// add other directions to mode foot
-		if(net!=null) {
-			net.extendDirections();
-		} else {
-			System.err.println("The network could not be loaded");
+		if(net==null) {
+			throw new IOException("The network could not be loaded");
 		}
+		// add other directions to mode foot
+		net.extendDirections();
 		return net;
 	}
 

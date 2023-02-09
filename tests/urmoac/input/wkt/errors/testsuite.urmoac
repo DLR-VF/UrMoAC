@@ -1,0 +1,27 @@
+# origins/destinations as points, ids are used twice
+point_duplicate_id
+
+# origins/destinations as points, missing id
+point_missing_id
+
+# origins/destinations as points, broken id
+point_broken_id
+
+# origins/destinations as points, geometry broken
+point_broken_geometry
+
+
+
+# origins/destinations as polygons, ids are used twice
+polygons_duplicate_id
+
+# origins/destinations as points, missing id
+polygons_missing_id
+
+# origins/destinations as points, broken id
+polygons_broken_id
+
+# origins/destinations as points, geometry broken
+polygons_broken_geometry
+
+
