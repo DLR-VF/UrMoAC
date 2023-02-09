@@ -352,9 +352,11 @@ public class NetLoader {
 		case FORMAT_CSV:
 			numFalse = loadTravelTimesFromCSVFile(net, inputParts[0], verbose);
 			break;
+		case FORMAT_SUMO:
+			numFalse = loadTravelTimesFromSUMOFile(net, inputParts[0], verbose);
+			break;
 		case FORMAT_WKT:
 		case FORMAT_SHAPEFILE:
-		case FORMAT_SUMO:
 		case FORMAT_GEOPACKAGE:
 			throw new IOException("Reading 'net' from " + Utils.getFormatMMLName(format) + " is not supported.");
 		default:
@@ -440,6 +442,26 @@ public class NetLoader {
 			System.out.println(" " + numFalse + " of " + (numOk+numFalse) + " informations could not been loaded.");
 		}
 		return numFalse;
+	}
+
+	
+	/** @brief Reads travel times from a SUMO file
+	 * @param net The road network
+	 * @param fileName The file to read the travel times from
+	 * @param verbose Whether report more
+	 * @return The number of not assigned speed information
+	 * @throws IOException When something fails 
+	 */
+	private static int loadTravelTimesFromSUMOFile(DBNet net, String fileName, boolean verbose) throws IOException {
+		try {
+			SAXParserFactory factory = SAXParserFactory.newInstance();
+	        SAXParser saxParser = factory.newSAXParser();
+	        SUMOEdgeDumpHandler handler = new SUMOEdgeDumpHandler(net);
+	        saxParser.parse(fileName, handler);
+	        return handler.getNumFalse();
+		} catch (ParserConfigurationException | SAXException e) {
+			throw new IOException(e);
+		}
 	}
 
 	
