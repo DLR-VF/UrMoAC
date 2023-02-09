@@ -264,7 +264,7 @@ public class NetLoader {
 			if(!file.exists() || !fileName.endsWith(".shp")) {
 			    throw new IOException("Invalid shapefile filepath: " + fileName);
 			}
-			ShapefileDataStore dataStore = new ShapefileDataStore(file.toURL());
+			ShapefileDataStore dataStore = new ShapefileDataStore(file.toURI().toURL());
 			SimpleFeatureSource featureSource = dataStore.getFeatureSource();
 			SimpleFeatureCollection featureCollection = featureSource.getFeatures();
 
@@ -289,11 +289,12 @@ public class NetLoader {
 				if(modes==0 && ((modes&uModes)==0)) {
 					continue;
 				}
-			    
 			    Geometry g = (Geometry) feature.getAttribute("the_geom");
 			    Geometry geom = JTS.transform(g, transform);
 				if(geom.getNumGeometries()!=1) {
-					System.err.println("Edge '" + (String) feature.getAttribute("oid") + "' has a multi geometries...");
+					System.err.println("Edge '" + (String) feature.getAttribute("oid") + "' has a multiple geometries...");
+					ok = false;
+					continue;
 				}
 				LineString geom2 = (LineString) geom.getGeometryN(0);
 				Coordinate[] cs = geom2.getCoordinates();
