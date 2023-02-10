@@ -27,7 +27,6 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.index.strtree.STRtree;
 
 import de.dlr.ivf.urmo.router.modes.Modes;
@@ -50,10 +49,6 @@ public class DBNet {
 	public Coordinate maxCorner = null;
 	/// @brief The network's size
 	public Coordinate size = new Coordinate(0, 0);
-	/// @brief The used precision model
-	public PrecisionModel precisionModel = null;
-	/// @brief The used srid
-	public int srid = 0;
 	/// @brief The resulting geometry factory
 	GeometryFactory geometryFactory = null;
 	/// @brief The id supplier to use
@@ -121,10 +116,8 @@ public class DBNet {
 			size.y = maxCorner.y - minCorner.y;
 		}
 		// store geometry settings
-		if(precisionModel==null) {
-			precisionModel = e.geom.getPrecisionModel();
-			srid = e.geom.getSRID();
-			geometryFactory = new GeometryFactory(precisionModel, srid);
+		if(geometryFactory==null) {
+			geometryFactory = e.geom.getFactory();
 		}
 	}
 
@@ -214,23 +207,6 @@ public class DBNet {
 
 
 	/**
-	 * @brief Returns the map of edges that allow the given modes
-	 * @param modes The used modes
-	 * @return The edge that allow this transport mode !!! check usage
-	 */
-	public HashMap<Integer, DBEdge> getID2EdgeForMode(long modes) {
-		HashMap<Integer, DBEdge> ret = new HashMap<>();
-		for (DBEdge e : name2edge.values()) {
-			if (!e.allowsAny(modes)) {
-				continue;
-			}
-			ret.put((int) e.numID, e);
-		}
-		return ret;
-	}
-
-
-	/**
 	 * @brief Returns the nodes of this road network
 	 * @return This road network's nodes
 	 */
@@ -245,23 +221,6 @@ public class DBNet {
 	 */
 	public long getNextID() {
 		return idGiver.getNextRunningID();
-	}
-
-
-	/**
-	 * @brief Prunes this road network to the named mode !!! not implemented
-	 * @param modes The mode for which edges shall be kept
-	 */
-	public void pruneForModes(long modes) {
-		Vector<DBEdge> toRemove = new Vector<>();
-		for(DBEdge e : name2edge.values()) {
-			if(!e.allows(modes)) {
-				toRemove.add(e);
-			}
-		}
-		for(DBEdge e : toRemove) {
-			removeEdge(e);
-		}
 	}
 
 
@@ -326,24 +285,6 @@ public class DBNet {
 			}
 		}
 
-	}
-
-
-	/**
-	 * @brief Returns the precision model (for building GIS structures)
-	 * @return The precision model
-	 */
-	public PrecisionModel getPrecisionModel() {
-		return precisionModel;
-	}
-
-
-	/**
-	 * @brief Returns the SRID (projection, for building GIS structures)
-	 * @return The SRID
-	 */
-	public int getSRID() {
-		return srid;
 	}
 	
 	
