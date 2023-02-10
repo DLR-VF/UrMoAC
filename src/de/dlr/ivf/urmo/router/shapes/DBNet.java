@@ -50,8 +50,6 @@ public class DBNet {
 	public Coordinate maxCorner = null;
 	/// @brief The network's size
 	public Coordinate size = new Coordinate(0, 0);
-	/// @brief A spatial index for speeding up some computations
-	public STRtree tree = new STRtree();
 	/// @brief The used precision model
 	public PrecisionModel precisionModel = null;
 	/// @brief The used srid
@@ -122,7 +120,6 @@ public class DBNet {
 			size.x = maxCorner.x - minCorner.x;
 			size.y = maxCorner.y - minCorner.y;
 		}
-		tree.insert(e.getGeometry().getEnvelopeInternal(), e);
 		// store geometry settings
 		if(precisionModel==null) {
 			precisionModel = e.geom.getPrecisionModel();
@@ -275,6 +272,8 @@ public class DBNet {
 	public void dismissUnconnectedEdges(boolean report) {
 		Set<DBEdge> seen = new HashSet<>();
 		Set<Set<DBEdge>> clusters = new HashSet<>();
+		// go through edges, build clusters with connected ones
+		// currently, we assume networks are connected disregarding the direction information
 		for (DBEdge e : name2edge.values()) {
 			if (seen.contains(e)) {
 				continue;
@@ -294,14 +293,14 @@ public class DBNet {
 			}
 			clusters.add(cluster);
 		}
-		//
+		// write clusters if wanted
 		FileWriter fileWriter = null;
 		Set<DBEdge> major = null;
 		try {
 			if(report) {
 				fileWriter = new FileWriter("subnets.txt");
-				fileWriter.append("" + clusters.size() + " subnets found:" + "\n");
-				System.out.println("" + clusters.size() + " subnets found:");
+				fileWriter.append(clusters.size() + " subnets found:" + "\n");
+				System.out.println(clusters.size() + " subnets found:");
 			}
 			for (Set<DBEdge> c : clusters) {
 				if (major == null || major.size() < c.size()) {
@@ -317,7 +316,7 @@ public class DBNet {
 			}
 		} catch(IOException e) {
 		}
-
+		// remove edges from all clusters but the major one
 		for (Set<DBEdge> c : clusters) {
 			if (c == major) {
 				continue;
