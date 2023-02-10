@@ -174,6 +174,8 @@ public class NetLoader {
 	private static DBNet loadNetFromCSVFile(IDGiver idGiver, String fileName, long uModes) throws IOException {
 		DBNet net = new DBNet(idGiver);
 		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
+		// https://stackoverflow.com/questions/1388602/do-i-need-to-close-both-filereader-and-bufferedreader
+		@SuppressWarnings("resource")
 		BufferedReader br = new BufferedReader(new FileReader(fileName));
 		String line = null;
 		boolean ok = true;
