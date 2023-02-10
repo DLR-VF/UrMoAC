@@ -53,9 +53,9 @@ public class NearestEdgeFinder {
 	/// @brief The resulting geometry factory
 	GeometryFactory geometryFactory = null;
 
-	// @brief Enum for points being on the right side of the road
+	// @brief Constant for points being on the right side of the road
 	private static final int DIRECTION_RIGHT = 1;
-	// @brief Enum for points being on the left side of the road
+	// @brief Constant for points being on the left side of the road
 	private static final int DIRECTION_LEFT = -1;
 	
 
@@ -249,9 +249,10 @@ public class NearestEdgeFinder {
 	// helper methods
 	// -----------------------------------------------------------------------
 	/** 
-	 * @brief Returns the direction (left/right) into which the opivot oint lies in respect to the edge
+	 * @brief Returns the direction (left/right) into which the point lies in respect to the edge
 	 * @param e The edge
-	 * @return The direction of the opivot point
+	 * @param p The point
+	 * @return The direction of the pivot point
 	 */
 	private int getDirectionToPoint(DBEdge e, Point p) {
 		double minDist = -1;
