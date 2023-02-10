@@ -80,17 +80,4 @@ public class Layer {
 		return objects;
 	}
 
-
-	/**
-	 * @brief Builds and returns the list of ids of allo objects stored in this layer
-	 * @return List of stored obnjects' ids
-	 */
-	public Vector<String> getObjectIDs() {
-		Vector<String> ids = new Vector<>();
-		for (EdgeMappable o : objects) {
-			ids.add(String.valueOf(o.getOuterID()));
-		}
-		return ids;
-	}
-
 }
