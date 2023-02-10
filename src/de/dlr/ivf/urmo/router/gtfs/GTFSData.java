@@ -108,7 +108,7 @@ public class GTFSData {
 			if(stop!=null && lastStop!=null) {
 				GTFSTrip trip = trips.get(tripID);
 				GTFSRoute route = trip.route;
-				GTFSEdge e = lastStop.getEdgeTo(stop, net.getNextID(), route, entrainmentMap, net.getPrecisionModel(), net.getSRID());
+				GTFSEdge e = lastStop.getEdgeTo(stop, net.getNextID(), route, entrainmentMap, net);
 				ptedges.add(e);
 				GTFSConnection c = new GTFSConnection(e, trip, lastStopTime.departureTime, stopTime.arrivalTime);
 				connections.add(c);

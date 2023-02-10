@@ -40,11 +40,12 @@ nav:
         - Testing UrMoAC: DeveloperTests.md
         - Creating a static documentation: DeveloperStaticDocumentation.md
         - How To Release: DeveloperHowToRelease.md
-        - Todo: Todo.md
+#        - Todo: Todo.md
     - Legal: 
         - Main: Legal.md
         - License (EPL v2.0): LICENSE.md
         - Disclaimer: Disclaimer.md
+        - Impressum: Impressum.md
 
 markdown_extensions:
     - admonition

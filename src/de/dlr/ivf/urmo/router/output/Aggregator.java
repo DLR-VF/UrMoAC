@@ -21,9 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Envelope;
-import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.index.strtree.STRtree;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
@@ -166,6 +163,7 @@ public class Aggregator<T extends AbstractSingleResult> {
 		int missing = 0;
 		for (EdgeMappable em : orig.getObjects()) {
 			long destID = -1;
+			@SuppressWarnings("rawtypes")
 			List objs = tree.query(em.getEnvelope());
 			for(Object o : objs) {
 				EdgeMappable aggArea = (EdgeMappable) o;
@@ -238,6 +236,7 @@ public class Aggregator<T extends AbstractSingleResult> {
 			for (Long srcID : measurements.keySet()) {
 				HashMap<Long, T> dests = measurements.get(srcID);
 				for (Long destID : dests.keySet()) {
+					@SuppressWarnings("unchecked")
 					T normed = (T) dests.get(destID).getNormed(1, 1);
 					write(normed);
 				}
@@ -249,7 +248,6 @@ public class Aggregator<T extends AbstractSingleResult> {
 			HashMap<Long, Double> weights = new HashMap<>();
 			HashMap<Long, Integer> nums = new HashMap<>();
 			for (EdgeMappable o : sources) {
-				long oSrc = o.getOuterID();
 				long aSrc = getMappedSrcID(o.getOuterID());
 				if(!weights.containsKey(aSrc)) {
 					weights.put(aSrc, 0.);
@@ -262,6 +260,7 @@ public class Aggregator<T extends AbstractSingleResult> {
 				// build normed results
 				HashMap<Long, T> dests = measurements.get(srcID);
 				for (Long destID : dests.keySet()) {
+					@SuppressWarnings("unchecked")
 					T normed = (T) dests.get(destID).getNormed(nums.get(srcID), weights.get(srcID));
 					write(normed);
 				}

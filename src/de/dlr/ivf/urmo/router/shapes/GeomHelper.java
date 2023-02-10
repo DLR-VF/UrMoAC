@@ -66,7 +66,7 @@ public class GeomHelper {
 			ncoord[i] = tcoord[i];
 		}
 		ncoord[i1] = getPointAtDistance(ls, distance);
-	    return new LineString(ncoord, ls.getPrecisionModel(), ls.getSRID());
+	    return ls.getFactory().createLineString(ncoord);
 	}
 
 
@@ -91,7 +91,7 @@ public class GeomHelper {
 		for(int i=1; i1<numPoints; ++i, ++i1) {
 			ncoord[i] = tcoord[i1];
 		}
-	    return new LineString(ncoord, ls.getPrecisionModel(), ls.getSRID());
+	    return ls.getFactory().createLineString(ncoord);
 	}
 
 	
@@ -205,7 +205,7 @@ public class GeomHelper {
 		for(int i=0; i<numPoints-1; ++i) {
 			coord[0] = tcoord[i];
 			coord[1] = tcoord[i+1];
-			LineString ls = new LineString(coord, e.geom.getPrecisionModel(), e.geom.getSRID());
+			LineString ls = e.geom.getFactory().createLineString(coord);
 			double dist = opivot.distance(ls);
 			if(minDist<0 || minDist>dist) {
 				minDist = dist;

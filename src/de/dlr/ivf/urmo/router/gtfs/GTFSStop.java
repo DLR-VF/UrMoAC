@@ -22,11 +22,11 @@ import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.PrecisionModel;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
 import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
 import de.dlr.ivf.urmo.router.modes.Modes;
+import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.DBNode;
 
 /**
@@ -105,11 +105,10 @@ public class GTFSStop extends DBNode implements EdgeMappable {
 	 * @param nextID A running id
 	 * @param route The route that realises this connection
 	 * @param em The enttrainment map
-	 * @param pm The used preicision model
-	 * @param srid The used projection
+	 * @param net The network, needed for obtaining the geometry factory
 	 * @return The built or already available edge
 	 */
-	public GTFSEdge getEdgeTo(GTFSStop to, long nextID, GTFSRoute route, EntrainmentMap em, PrecisionModel pm, int srid) {
+	public GTFSEdge getEdgeTo(GTFSStop to, long nextID, GTFSRoute route, EntrainmentMap em, DBNet net) {
 		if (!connections.containsKey(to)) {
 			connections.put(to, new HashMap<GTFSRoute, GTFSEdge>());
 		}
@@ -123,7 +122,7 @@ public class GTFSStop extends DBNode implements EdgeMappable {
 			Coordinate coord[] = new Coordinate[2];
 			coord[0] = point.getCoordinate();
 			coord[1] = to.point.getCoordinate();
-			LineString ls = new LineString(coord, pm, srid);
+			LineString ls = net.getGeometryFactory().createLineString(coord);
 			GTFSEdge e = new GTFSEdge(nextID, this.mid + "_to_" + to.mid + "_using_" + route.nameS, this, to, modes, 80, ls, length, route);
 			m.put(route, e);
 			return e;

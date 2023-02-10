@@ -250,13 +250,13 @@ public class GTFSReader {
 						Coordinate[] edgeCoords = new Coordinate[2];
 						edgeCoords[0] = new Coordinate(intermediateNode.pos);
 						edgeCoords[1] = new Coordinate(stop.pos);
-						geom = new LineString(edgeCoords, e.geom.getPrecisionModel(), e.geom.getSRID());
+						geom = e.geom.getFactory().createLineString(edgeCoords);
 						if(!net.addEdge(net.getNextID(), "on-"+stop.mid, intermediateNode, stop, accessModes, 50, geom, Math.max(stopDist, 0.1))) {
 							throw new ParseException("Could not allocate edge '" + "on-"+stop.mid + "'");
 						}
 						edgeCoords[0] = new Coordinate(stop.pos);
 						edgeCoords[1] = new Coordinate(intermediateNode.pos);
-						geom = new LineString(edgeCoords, e.geom.getPrecisionModel(), e.geom.getSRID());
+						geom = e.geom.getFactory().createLineString(edgeCoords);
 						if(!net.addEdge(net.getNextID(), "off-"+stop.mid, stop, intermediateNode, accessModes, 50, geom, Math.max(stopDist, 0.1))) {
 							throw new ParseException("Could not allocate edge '" + "off-"+stop.mid + "'");
 						}
@@ -446,15 +446,10 @@ public class GTFSReader {
 					if(rs.getInt("transfer_type")!=2) {
 						continue;
 					}
-					try {
-						String s1 = rs.getString("from_trip_id");
-						String s2 = rs.getString("to_trip_id");
-						GTFSTrip t1 = trips.get(Integer.parseInt(s1));
-						GTFSTrip t2 = trips.get(Integer.parseInt(s2)); // !!! todo: times are given on per-trip, not per-route base
-						if(t1!=null&&t2!=null) {
-							stop.setInterchangeTime(t1, t2, (double) rs.getInt("min_transfer_time"));
-						}
-					} catch(NumberFormatException e) {
+					GTFSTrip t1 = trips.get(rs.getString("from_trip_id"));
+					GTFSTrip t2 = trips.get(rs.getString("to_trip_id"));
+					if(t1!=null&&t2!=null) {
+						stop.setInterchangeTime(t1, t2, (double) rs.getInt("min_transfer_time"));
 					}
 				}
 				rs.close();

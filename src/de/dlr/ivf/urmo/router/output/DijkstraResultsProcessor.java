@@ -35,6 +35,7 @@ public class DijkstraResultsProcessor {
 	/// @brief A mapping from an edge to allocated destinations
 	HashMap<DBEdge, Vector<MapResult>> nearestToEdges;
 	/// @brief The aggregators to use
+	@SuppressWarnings("rawtypes")
 	public Vector<Aggregator> aggs;
 	/// @brief The results comparator to use
 	public AbstractSingleResultComparator_TT comparator = new AbstractSingleResultComparator_TT();
@@ -52,7 +53,7 @@ public class DijkstraResultsProcessor {
 	 * @param _nearestFromEdges A mapping from an edge to allocated sources
 	 * @param _nearestToEdges A mapping from an edge to allocated destinations
 	 */
-	public DijkstraResultsProcessor(int _beginTime, DirectWriter dw, Vector<Aggregator> _aggs,
+	public DijkstraResultsProcessor(int _beginTime, DirectWriter dw, @SuppressWarnings("rawtypes") Vector<Aggregator> _aggs,
 			HashMap<DBEdge, Vector<MapResult>> _nearestFromEdges, HashMap<DBEdge, Vector<MapResult>> _nearestToEdges) {
 		aggs = _aggs;
 		nearestFromEdges = _nearestFromEdges;
@@ -70,12 +71,13 @@ public class DijkstraResultsProcessor {
 	 * @param singleDestination If >0 only this destination shall be regarded
 	 * @throws IOException When something fails
 	 */
+	@SuppressWarnings("unchecked")
 	public void process(MapResult mr, DijkstraResult dr, boolean needsPT, long singleDestination) throws IOException {
 		if(directWriter!=null) {
 			directWriter.writeResult(dr, mr, needsPT, singleDestination);
 		}
 		// multiple sources and multiple destinations
-		for(Aggregator agg : aggs) {
+		for(@SuppressWarnings("rawtypes") Aggregator agg : aggs) {
 			Vector<AbstractSingleResult> results = new Vector<>();
 			for(DBEdge destEdge : dr.edgeMap.keySet()) {
 				DijkstraEntry toEdgeEntry = dr.getEdgeInfo(destEdge);
@@ -126,7 +128,7 @@ public class DijkstraResultsProcessor {
 		if(directWriter!=null) {
 			directWriter.close();
 		}
-		for(Aggregator agg : aggs) {
+		for(@SuppressWarnings("rawtypes") Aggregator agg : aggs) {
 			agg.finish();
 		}
 	}
