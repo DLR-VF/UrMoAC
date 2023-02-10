@@ -42,9 +42,9 @@ public class NearestEdgeFinder {
 	/// @brief The list of objects to allocate in the network
 	private Vector<EdgeMappable> source;
 	/// @brief Pointer to the next mappable to process
-	Iterator<EdgeMappable> nextMappablePointer;
+	private Iterator<EdgeMappable> nextMappablePointer;
 	/// @brief The results set
-	HashMap<DBEdge, Vector<MapResult>> ret = new HashMap<>();
+	private HashMap<DBEdge, Vector<MapResult>> ret = new HashMap<>();
 
 	/// @brief The transport modes to use
 	private long modes;
