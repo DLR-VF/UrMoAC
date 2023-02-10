@@ -137,8 +137,7 @@ public class NetLoader {
 				if(rs.getBoolean("mode_bike")) modes = modes | Modes.getMode("bicycle").id;
 				if(rs.getBoolean("mode_mit")) modes = modes | Modes.getMode("passenger").id;
 				modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
-				//if(rs.getBoolean("mode_walk") || rs.getBoolean("mode_bike")) modes = modes | Modes.getMode("e-scooter").id;
-				if(modes==0 && ((modes&uModes)==0)) {
+				if(modes==0 || ((modes&uModes)==0)) {
 					continue;
 				}
 				ResultSetMetaData rsmd = rs.getMetaData();
@@ -188,7 +187,7 @@ public class NetLoader {
 				if("true".equals(vals[4].toLowerCase()) || "1".equals(vals[4])) modes = modes | Modes.getMode("bicycle").id;
 				if("true".equals(vals[5].toLowerCase()) || "1".equals(vals[5])) modes = modes | Modes.getMode("passenger").id;
 				modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
-				if(modes==0 && ((modes&uModes)==0)) {
+				if(modes==0 || ((modes&uModes)==0)) {
 					continue;
 				}
 				int num = vals.length - 8;
@@ -234,7 +233,7 @@ public class NetLoader {
 					if("true".equals(vals[4].toLowerCase()) || "1".equals(vals[4])) modes = modes | Modes.getMode("bicycle").id;
 					if("true".equals(vals[5].toLowerCase()) || "1".equals(vals[5])) modes = modes | Modes.getMode("passenger").id;
 					modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
-					if(modes==0 && ((modes&uModes)==0)) {
+					if(modes==0 || ((modes&uModes)==0)) {
 						continue;
 					}
 					LineString geom = (LineString) wktReader.read(vals[8]);
@@ -288,7 +287,7 @@ public class NetLoader {
 				if((Boolean) feature.getAttribute("mode_bike")) modes = modes | Modes.getMode("bicycle").id;
 				if((Boolean) feature.getAttribute("mode_mit")) modes = modes | Modes.getMode("passenger").id;
 				modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
-				if(modes==0 && ((modes&uModes)==0)) {
+				if(modes==0 || ((modes&uModes)==0)) {
 					continue;
 				}
 			    Geometry g = (Geometry) feature.getAttribute("the_geom");

@@ -143,7 +143,7 @@ public class SUMONetHandler extends DefaultHandler {
 				double length = _laneLengths / (double) _laneShapes.size();
 				long modes = getModes();
 				modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
-				if(modes==0 && ((modes&_uModes)==0)) {
+				if(modes==0 || ((modes&_uModes)==0)) {
 					return;
 				}
 				LineString geom2 = getShape();
