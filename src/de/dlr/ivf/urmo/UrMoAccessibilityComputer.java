@@ -44,7 +44,6 @@ import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_ExpIntercha
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_MaxInterchange_TT;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_Price_TT;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_TT_Modes;
-import de.dlr.ivf.urmo.router.gtfs.GTFSData;
 import de.dlr.ivf.urmo.router.io.GTFSReader;
 import de.dlr.ivf.urmo.router.io.InputReader;
 import de.dlr.ivf.urmo.router.io.NetLoader;
@@ -80,35 +79,33 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	/// @brief A running id for the loaded objects
 	private long runningID = 0;
 	/// @brief A mapping from an edge to allocated sources
-	HashMap<DBEdge, Vector<MapResult>> nearestFromEdges;
+	private HashMap<DBEdge, Vector<MapResult>> nearestFromEdges;
 	/// @brief A mapping from an edge to allocated destinations
-	HashMap<DBEdge, Vector<MapResult>> nearestToEdges;
-	/// @brief The public transport system info
-	GTFSData gtfs = null;
+	private HashMap<DBEdge, Vector<MapResult>> nearestToEdges;
 	/// @brief A point to the currently processed source edge
-	Iterator<DBEdge> nextEdgePointer = null;
+	private Iterator<DBEdge> nextEdgePointer = null;
 	/// @brief A counter for seen edges for reporting purposes
-	long seenEdges = 0;
+	private long seenEdges = 0;
 	/// @brief Whether this runs in verbose mode
-	boolean verbose = false;
+	private boolean verbose = false;
 	/// @brief The route weight computation function
-	AbstractRouteWeightFunction measure = null; // TODO: add documentation on github
+	private AbstractRouteWeightFunction measure = null; // TODO: add documentation on github
 	/// @brief The results processor
-	DijkstraResultsProcessor resultsProcessor = null;
+	private DijkstraResultsProcessor resultsProcessor = null;
 	/// @brief Starting time of computation
-	int time = -1;
+	private int time = -1;
 	/// @brief Allowed modes
-	long modes = -1;
+	private long modes = -1;
 	/// @brief Initial mode
-	long initMode = -1;
+	private long initMode = -1;
 	/// @brief list of connections to process
-	Vector<DBODRelation> connections = null;
+	private Vector<DBODRelation> connections = null;
 	/// @brief A point to the currently processed connection
-	Iterator<DBODRelation> nextConnectionPointer = null;
+	private Iterator<DBODRelation> nextConnectionPointer = null;
 	/// @brief A counter for seen connections for reporting purposes
-	long seenODs = 0;
+	private long seenODs = 0;
 	/// @brief Whether an error occurred
-	boolean hadError = false;
+	private boolean hadError = false;
 
 	
 	
@@ -677,7 +674,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		// public transport network
 		if (options.isSet("pt")) {
 			if (verbose) System.out.println("Reading the public transport network");
-			gtfs = GTFSReader.load(options, bounds, net, entrainmentMap, epsg, options.getInteger("threads"), verbose);
+			GTFSReader.load(options, bounds, net, entrainmentMap, epsg, options.getInteger("threads"), verbose);
 			if (verbose) System.out.println(" loaded");
 		}
 
@@ -698,7 +695,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			OutputBuilder.writeEdgeAllocation("origins-to-road-output", options, nearestFromEdges, epsg);
 		}
 		if (verbose) System.out.println("Computing egress from the network to the destinations");
-		NearestEdgeFinder nef2 = new NearestEdgeFinder(toLayer.getObjects(), net, initMode);
+		NearestEdgeFinder nef2 = new NearestEdgeFinder(toLayer.getObjects(), net, modes);
 		nearestToEdges = nef2.getNearestEdges(true, options.getInteger("threads"));
 		if (options.isSet("destinations-to-road-output")) {
 			OutputBuilder.writeEdgeAllocation("destinations-to-road-output", options, nearestToEdges, epsg);
