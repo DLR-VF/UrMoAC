@@ -233,26 +233,41 @@ public class Aggregator<T extends AbstractSingleResult> {
 	 * @throws IOException When something fails
 	 */
 	public void finish() throws IOException {
-		Vector<EdgeMappable> sources = fromLayer.getObjects();
-		for (Long srcID : measurements.keySet()) {
-			// compute number of sources in this layer
-			double weightSources = 0;
-			int numSources = 0;
-			for (EdgeMappable o : sources) {
-				long cSrc = getMappedSrcID(o.getOuterID());
-				if(cSrc==srcID) {
-					weightSources += ((LayerObject) o).getAttachedValue();
-					++numSources;
+		// check if only destinations are aggregated
+		if(origin2aggMap==null && !sumOrigins) {
+			for (Long srcID : measurements.keySet()) {
+				HashMap<Long, T> dests = measurements.get(srcID);
+				for (Long destID : dests.keySet()) {
+					T normed = (T) dests.get(destID).getNormed(1, 1);
+					write(normed);
 				}
 			}
-			// build normed results
-			HashMap<Long, T> dests = measurements.get(srcID);
-			for (Long destID : dests.keySet()) {
-				T normed = (T) dests.get(destID).getNormed(numSources, weightSources);
-				write(normed);
-			}
-//			flush();
 		}
+		// otherwise
+		if(origin2aggMap!=null || sumOrigins) {
+			Vector<EdgeMappable> sources = fromLayer.getObjects();
+			HashMap<Long, Double> weights = new HashMap<>();
+			HashMap<Long, Integer> nums = new HashMap<>();
+			for (EdgeMappable o : sources) {
+				long oSrc = o.getOuterID();
+				long aSrc = getMappedSrcID(o.getOuterID());
+				if(!weights.containsKey(aSrc)) {
+					weights.put(aSrc, 0.);
+					nums.put(aSrc, 0);
+				}
+				weights.put(aSrc, weights.get(aSrc) + ((LayerObject) o).getAttachedValue());
+				nums.put(aSrc, nums.get(aSrc) + 1);
+			}
+			for (Long srcID : measurements.keySet()) {
+				// build normed results
+				HashMap<Long, T> dests = measurements.get(srcID);
+				for (Long destID : dests.keySet()) {
+					T normed = (T) dests.get(destID).getNormed(nums.get(srcID), weights.get(srcID));
+					write(normed);
+				}
+			}
+		}
+		//
 		for (AbstractResultsWriter<T> bw : writers) {
 			bw.close();
 		}
