@@ -8,16 +8,17 @@ repo_url: https://github.com/DLR-VF/UrMoAC.git
 edit_uri: ""
 
 theme:
-    name: material
+    name: readthedocs
     highlightjs: true
     hljs_languages:
         - yaml
-    palette:
-        primary: light green
-        
+
 nav:
     - Home: index.md
     - Installation: Installation.md
+    - ChangeLog: ChangeLog.md
+    - Links: Links.md
+    - Publications: Publications.md
     - Usage: 
         - Basics: Usage.md
         - Options: Options.md
@@ -32,9 +33,6 @@ nav:
 #    - Methods: 
 #        - Outline: Methods.md
 #        - Mapping to network: MappingToNet.md
-    - ChangeLog: ChangeLog.md
-    - Links: Links.md
-    - Publications: Publications.md
     - Developer Docs: 
         - Overview: DeveloperDocs.md
         - Testing UrMoAC: DeveloperTests.md
