@@ -283,7 +283,7 @@ public class OutputBuilder {
 
 	
 	/**
-	 * @brief Builds an ODSingleResult-output
+	 * @brief Builds an ODWriter (an ODSingleResult-output)
 	 * @param d The output storage definition
 	 * @param precision The precision to use when writing to a file
 	 * @param dropPrevious Whether a prior database shall be dropped
@@ -298,7 +298,7 @@ public class OutputBuilder {
 	
 
 	/**
-	 * @brief Builds an ODSingleExtendedResult-output
+	 * @brief Builds an ODExtendedWriter (an ODSingleExtendedResult-output)
 	 * @param d The output storage definition
 	 * @param precision The precision to use when writing to a file
 	 * @param dropPrevious Whether a prior database shall be dropped
@@ -313,7 +313,7 @@ public class OutputBuilder {
 	
 
 	/**
-	 * @brief Builds an ODSingleStatsResult-output
+	 * @brief Builds an ODStatsWriter (an ODSingleStatsResult-output)
 	 * @param d The output storage definition
 	 * @param precision The precision to use when writing to a file
 	 * @param dropPrevious Whether a prior database shall be dropped
@@ -328,7 +328,7 @@ public class OutputBuilder {
 	
 
 	/**
-	 * @brief Builds a InterchangeSingleResult-output
+	 * @brief Builds an InterchangeWriter (an InterchangeSingleResult-output)
 	 * @param d The output storage definition
 	 * @param precision The precision to use when writing to a file
 	 * @param dropPrevious Whether a prior database shall be dropped
@@ -343,7 +343,7 @@ public class OutputBuilder {
 	
 
 	/**
-	 * @brief Builds a EUSingleResult-output
+	 * @brief Builds an EUWriter (an EUSingleResult-output)
 	 * @param d The output storage definition
 	 * @param precision The precision to use when writing to a file
 	 * @param dropPrevious Whether a prior database shall be dropped
@@ -358,7 +358,7 @@ public class OutputBuilder {
 	
 	
 	/**
-	 * @brief Builds a PTODSingleResult-output
+	 * @brief Builds a PTODWriter (a PTODSingleResult-output)
 	 * @param d The output storage definition
 	 * @param precision The precision to use when writing to a file
 	 * @param dropPrevious Whether a prior database shall be dropped
