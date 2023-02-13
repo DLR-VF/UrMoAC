@@ -49,7 +49,7 @@ Usage:
                                    aggregation areas' geometries.
   --net.vmax                     Defines the column name of networks's vmax
                                    attribute.
-  --subnets                      When set, unconnected network parts are not
+  --keep-subnets                 When set, unconnected network parts are not
                                    removed.
  Weighting Options
   -W, --weight                   An optional weighting attribute for the
@@ -95,10 +95,11 @@ Usage:
   -e, --edges-output             Defines the edges output.
   --pt-output                    Defines the public transport output.
   -d, --direct-output            Defines the direct output.
-  --origins-to-road-output       Defines output of the mapping between sources
-                                   and the network.
-  --destinations-to-road-output  Defines output of the mapping between
+  --origins-to-road-output       Defines the output of the mapping between
+                                   sources and the network.
+  --destinations-to-road-output  Defines the output of the mapping between
                                    destinations and the network.
+  --subnets-output               Defines the output of subnets.
   --dropprevious                 When set, previous output with the same name is
                                    replaced.
   --precision                    Defines the number of digits after the decimal
@@ -108,6 +109,7 @@ Usage:
  Process Options
   --threads                      The number of threads to use.
   -v, --verbose                  Prints what is being done.
+  --subnets-summary              Prints a summary on found subnets.
   --save-config                  Saves the set options as a configuration file.
   --save-template                Saves a configuration template to add options
                                    to.

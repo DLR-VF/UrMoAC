@@ -297,8 +297,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("to-agg.geom", "Defines the column name of the destination aggregation areas' geometries.");
 		options.add("net.vmax", new Option_String("vmax"));
 		options.setDescription("net.vmax", "Defines the column name of networks's vmax attribute.");
-		options.add("subnets", new Option_Bool());
-		options.setDescription("subnets", "When set, unconnected network parts are not removed.");
+		options.add("keep-subnets", new Option_Bool());
+		options.setDescription("keep-subnets", "When set, unconnected network parts are not removed.");
 		
 		options.beginSection("Weighting Options");
 		options.add("weight", 'W', new Option_String(""));
@@ -366,9 +366,11 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("direct-output", 'd', new Option_String());
 		options.setDescription("direct-output", "Defines the direct output.");
 		options.add("origins-to-road-output", new Option_String());
-		options.setDescription("origins-to-road-output", "Defines output of the mapping between sources and the network.");
+		options.setDescription("origins-to-road-output", "Defines the output of the mapping between sources and the network.");
 		options.add("destinations-to-road-output", new Option_String());
-		options.setDescription("destinations-to-road-output", "Defines output of the mapping between destinations and the network.");
+		options.setDescription("destinations-to-road-output", "Defines the output of the mapping between destinations and the network.");
+		options.add("subnets-output", new Option_String());
+		options.setDescription("subnets-output", "Defines the output of subnets.");
 		options.add("dropprevious", new Option_Bool());
 		options.setDescription("dropprevious", "When set, previous output with the same name is replaced.");
 		options.add("precision", new Option_Integer(2));
@@ -381,6 +383,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("threads", "The number of threads to use.");
 		options.add("verbose", 'v', new Option_Bool());
 		options.setDescription("verbose", "Prints what is being done.");
+		options.add("subnets-summary", new Option_Bool());
+		options.setDescription("subnets-summary", "Prints a summary on found subnets.");
 		options.add("save-config", new Option_String());
 		options.setDescription("save-config", "Saves the set options as a configuration file.");
 		options.add("save-template", new Option_String());
@@ -613,9 +617,12 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		if (verbose) System.out.println("Reading the road network");
 		DBNet net = NetLoader.loadNet(this, options.getString("net"), options.getString("net.vmax"), epsg, modes);
 		if (verbose) System.out.println(" " + net.getNumEdges() + " edges loaded (" + net.getNodes().size() + " nodes)");
-		if(!options.getBool("subnets")) {
+		if(!options.getBool("keep-subnets")) {
 			if (verbose) System.out.println("Checking for connectivity...");
-			net.dismissUnconnectedEdges(false);
+			Set<Set<DBEdge>> clusters = net.dismissUnconnectedEdges(options.getBool("subnets-summary"));
+			if (options.isSet("subnets-output")) {
+				OutputBuilder.writeSubnets("subnets-output", options, clusters);
+			}
 			if (verbose) System.out.println(" " + net.getNumEdges() + " remaining after removing unconnected ones.");
 		}
 		Geometry bounds = null;

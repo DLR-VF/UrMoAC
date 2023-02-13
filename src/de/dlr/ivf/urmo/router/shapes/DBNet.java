@@ -15,8 +15,6 @@
  */
 package de.dlr.ivf.urmo.router.shapes;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,15 +42,13 @@ public class DBNet {
 	/// @brief Map of node names (if using strings) to nodes
 	private HashMap<String, Long> name2nodeID = new HashMap<String, Long>();
 	/// @brief The network's minimum coordinates (left top)
-	public Coordinate minCorner = null;
+	private Coordinate minCorner = null;
 	/// @brief The network's maximum coordinates (right bottom)
-	public Coordinate maxCorner = null;
-	/// @brief The network's size
-	public Coordinate size = new Coordinate(0, 0);
+	private Coordinate maxCorner = null;
 	/// @brief The resulting geometry factory
-	GeometryFactory geometryFactory = null;
+	private GeometryFactory geometryFactory = null;
 	/// @brief The id supplier to use
-	IDGiver idGiver;
+	private IDGiver idGiver;
 
 
 	/**
@@ -112,8 +108,6 @@ public class DBNet {
 			minCorner.y = Math.min(minCorner.y, c.y);
 			maxCorner.x = Math.max(maxCorner.x, c.x);
 			maxCorner.y = Math.max(maxCorner.y, c.y);
-			size.x = maxCorner.x - minCorner.x;
-			size.y = maxCorner.y - minCorner.y;
 		}
 		// store geometry settings
 		if(geometryFactory==null) {
@@ -228,7 +222,51 @@ public class DBNet {
 	 * @brief Checks which edges are not connected to the major part of the network and removes them
 	 * @param report Whether the removal of edges shall be reported
 	 */
-	public void dismissUnconnectedEdges(boolean report) {
+	public Set<Set<DBEdge>> dismissUnconnectedEdges(boolean report) {
+		HashMap<DBEdge, Set<DBEdge>> edge2cluster = new HashMap<>();
+		Set<Set<DBEdge>> clusters = new HashSet<>();
+		for (DBEdge e : name2edge.values()) {
+			if (edge2cluster.containsKey(e)) {
+				// skip, it has already been visited
+				continue;
+			}
+			// go through connected edges (outgoing at each node only)
+			// build a list of edges to process
+			Vector<DBEdge> next = new Vector<>();
+			next.add(e);
+			Set<DBEdge> currCluster = new HashSet<>();
+			while (!next.isEmpty()) {
+				// get next edge to process from the list
+				DBEdge e2 = next.get(next.size() - 1);
+				next.remove(next.size() - 1);
+				if(edge2cluster.containsKey(e2)) {
+					continue;
+				}
+				if(edge2cluster.containsKey(e2)) {
+					// ok, it already belongs to a cluster - join both and proceed
+					Set<DBEdge> prevCluster = edge2cluster.get(e2);
+					prevCluster.addAll(currCluster);
+					// update information for already set edges
+					for(DBEdge e3 : currCluster) {
+						edge2cluster.put(e3, prevCluster);
+					}
+					currCluster = prevCluster;
+				} else {
+					// add to current cluster
+					currCluster.add(e2);
+					edge2cluster.put(e2, currCluster);
+				}
+				next.addAll(e2.getToNode().getOutgoing());
+			}
+			if(!clusters.contains(currCluster)) {
+				clusters.add(currCluster);
+			}
+		}
+			
+			
+		
+		
+		/*
 		Set<DBEdge> seen = new HashSet<>();
 		Set<Set<DBEdge>> clusters = new HashSet<>();
 		// go through edges, build clusters with connected ones
@@ -252,28 +290,31 @@ public class DBNet {
 			}
 			clusters.add(cluster);
 		}
-		// write clusters if wanted
-		FileWriter fileWriter = null;
+		*/
+		// determine major cluster
 		Set<DBEdge> major = null;
-		try {
+		for (Set<DBEdge> c : clusters) {
+			if (major == null || major.size() < c.size()) {
+				major = c;
+			}
+		}
+		// report (or not)
+		if(clusters.size()!=1) {
+			String msg = "Warning: the network is not connected.";
+			if(!report) {
+				msg += " Use --subnets-summary for further information.";
+			}
+			System.out.println(msg);
 			if(report) {
-				fileWriter = new FileWriter("subnets.txt");
-				fileWriter.append(clusters.size() + " subnets found:" + "\n");
-				System.out.println(clusters.size() + " subnets found:");
-			}
-			for (Set<DBEdge> c : clusters) {
-				if (major == null || major.size() < c.size()) {
-					major = c;
-				}
-				if(report) {
-					fileWriter.append(" subnet with " + c.size() + " edges\n");
-					System.out.println(" subnet with " + c.size() + " edges");
+				System.out.println(" Major cluster has " + major.size() + " edges.");
+				System.out.println(" Further clusters:");
+				for (Set<DBEdge> c : clusters) {
+					if(c==major) {
+						continue;
+					}
+					System.out.println("  cluster with " + c.size() + " edges.");
 				}
 			}
-			if(fileWriter!=null) {
-				fileWriter.close();
-			}
-		} catch(IOException e) {
 		}
 		// remove edges from all clusters but the major one
 		for (Set<DBEdge> c : clusters) {
@@ -284,7 +325,7 @@ public class DBNet {
 				removeEdge(e2);
 			}
 		}
-
+		return clusters;
 	}
 	
 	
@@ -372,7 +413,6 @@ public class DBNet {
 	 * @return The bounds of the network
 	 */
 	public Geometry getBounds() {
-		GeometryFactory geometryFactory = new GeometryFactory();
 		Coordinate cs[] = new Coordinate[5];
 		cs[0] = minCorner;
 		cs[1] = new Coordinate(maxCorner.x, minCorner.y);

@@ -3,3 +3,6 @@ od_connections
 
 # checking weights
 weights
+
+# evaluation of network connectivity
+subnets

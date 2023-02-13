@@ -17,6 +17,21 @@ copy_test_path:sources.poi.xml
 copy_test_path:destinations.poi.xml
 copy_test_path:agg_sources.poi.xml
 copy_test_path:agg_destinations.poi.xml
+copy_test_path:network.dbf
+copy_test_path:network.shp
+copy_test_path:network.shx
+copy_test_path:sources.dbf
+copy_test_path:sources.shp
+copy_test_path:sources.shx
+copy_test_path:destinations.dbf
+copy_test_path:destinations.shp
+copy_test_path:destinations.shx
+copy_test_path:agg_sources.dbf
+copy_test_path:agg_sources.shp
+copy_test_path:agg_sources.shx
+copy_test_path:agg_destinations.dbf
+copy_test_path:agg_destinations.shp
+copy_test_path:agg_destinations.shx
 copy_test_path:sqlite.db
 
 [collate_file]
@@ -29,6 +44,7 @@ edges_output:edges_output.csv
 interchanges_output:interchanges_output.csv
 pt_output:pt_output.csv
 direct_output:direct_output.csv
+subnets_output:subnets_output.csv
 configuration:configuration.xml
 template:template.xml
 sqlite:sqlite.db

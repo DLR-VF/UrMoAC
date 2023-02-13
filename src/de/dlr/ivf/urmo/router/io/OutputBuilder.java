@@ -22,6 +22,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.Vector;
 
 import de.dks.utils.options.OptionsCont;
@@ -32,6 +33,7 @@ import de.dlr.ivf.urmo.router.output.Aggregator;
 import de.dlr.ivf.urmo.router.output.DirectWriter;
 import de.dlr.ivf.urmo.router.output.EdgeMappingWriter;
 import de.dlr.ivf.urmo.router.output.MeasurementGenerator;
+import de.dlr.ivf.urmo.router.output.NetClusterWriter;
 import de.dlr.ivf.urmo.router.output.edge_use.EUMeasuresGenerator;
 import de.dlr.ivf.urmo.router.output.edge_use.EUSingleResult;
 import de.dlr.ivf.urmo.router.output.edge_use.EUWriter;
@@ -157,12 +159,7 @@ public class OutputBuilder {
 	/**
 	 * @brief Writes the connections from objects to the road network
 	 * 
-	 *        Runs through the given objects. If the object is connected to the
-	 *        road network, the written line contains the object's ID, the edge
-	 *        ID, and coordinates of the object and the road position.
-	 *        Otherwise, only the object ID is written the rest is filled with
-	 *        -1.
-	 * @param outputName The name of the output for error reporting
+	 * @param outputName The name of the output
 	 * @param options The options to retrieve parameter from
 	 * @param nearestEdges The map of objects to road positions
 	 * @param epsg Used projection
@@ -180,6 +177,29 @@ public class OutputBuilder {
 			emw.addComment(buildComment(options));
 		}
 		emw.writeResults(nearestEdges);
+		emw.close();
+	}
+
+
+	/**
+	 * @brief Writes information about subnets
+	 *
+	 * @param outputName The name of the output
+	 * @param options The options to retrieve parameter from
+	 * @param clusters The edge clusters to report
+	 * @throws IOException When something fails
+	 */
+	public static void writeSubnets(String outputName, OptionsCont options, Set<Set<DBEdge>> clusters) throws IOException {
+		boolean dropPrevious = options.getBool("dropprevious");
+		String d = options.getString(outputName);
+		Utils.Format format = Utils.getFormat(d);
+		String[] inputParts = Utils.getParts(format, d, outputName);
+		NetClusterWriter emw = new NetClusterWriter(format, inputParts, dropPrevious);
+		emw.createInsertStatement(0);
+		if(options.getBool("comment")) {
+			emw.addComment(buildComment(options));
+		}
+		emw.writeClusters(clusters);
 		emw.close();
 	}
 
