@@ -44,7 +44,7 @@ import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_ExpIntercha
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_MaxInterchange_TT;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_Price_TT;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_TT_Modes;
-import de.dlr.ivf.urmo.router.io.GTFSReader;
+import de.dlr.ivf.urmo.router.io.GTFSLoader;
 import de.dlr.ivf.urmo.router.io.InputReader;
 import de.dlr.ivf.urmo.router.io.NetLoader;
 import de.dlr.ivf.urmo.router.io.OutputBuilder;
@@ -680,7 +680,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		// public transport network
 		if (options.isSet("pt")) {
 			if (verbose) System.out.println("Reading the public transport network");
-			GTFSReader.load(options, bounds, net, entrainmentMap, epsg, options.getInteger("threads"), verbose);
+			GTFSLoader.load(options, bounds, net, entrainmentMap, epsg, options.getInteger("threads"), verbose);
 			if (verbose) System.out.println(" loaded");
 		}
 

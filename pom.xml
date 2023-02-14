@@ -104,6 +104,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+        </dependency>
+        <dependency>
             <groupId>de.dks.utils.options</groupId>
             <artifactId>optionslib</artifactId>
             <version>1.2</version>
@@ -140,6 +144,14 @@
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-data</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-epsg-extension</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-epsg-hsql</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
@@ -193,6 +205,11 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>com.opencsv</groupId>
+                <artifactId>opencsv</artifactId>
+                <version>5.7.1</version>
+            </dependency>
+            <dependency>
                 <groupId>commons-pool</groupId>
                 <artifactId>commons-pool</artifactId>
                 <version>1.5.4</version>
@@ -241,6 +258,16 @@
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-data</artifactId>
                 <version>20.5</version>
+            </dependency>
+            <dependency>
+                <groupId>org.geotools</groupId>
+                <artifactId>gt-epsg-hsql</artifactId>
+                <version>25.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.geotools</groupId>
+                <artifactId>gt-epsg-extension</artifactId>
+                <version>25.2</version>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
