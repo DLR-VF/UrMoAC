@@ -282,71 +282,72 @@ public class InputReader {
 		boolean ok = true;
 		do {
 			line = br.readLine();
-			if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
-				String[] vals = line.split(";");
-				Long id = 0l;
+			if(line==null || line.length()==0 || line.charAt(0)=='#') {
+				continue;
+			}
+			String[] vals = line.split(";");
+			Long id = 0l;
+			try {
+				id = Long.parseLong(vals[0]);
+			} catch(NumberFormatException e) {
+				System.err.println("Could not parse object id '" + vals[0] + "' to long.");
+				ok = false;
+				continue;
+			}
+			Vector<Coordinate> geom = new Vector<>();
+			int i = 1;
+			boolean hadError = false; 
+			for(; i<vals.length-1; i+=2) {
 				try {
-					id = Long.parseLong(vals[0]);
+					geom.add(new Coordinate(Double.parseDouble(vals[i]), Double.parseDouble(vals[i+1])));
 				} catch(NumberFormatException e) {
-					System.err.println("Could not parse object id '" + vals[0] + "' to long.");
+					System.err.println("Broken geometry in object '" + id + "'.");
 					ok = false;
+					hadError = true; 
 					continue;
 				}
-				Vector<Coordinate> geom = new Vector<>();
-				int i = 1;
-				boolean hadError = false; 
-				for(; i<vals.length-1; i+=2) {
+			}
+			if(geom.size()==0) {
+				if(!hadError) {
+					System.err.println("Missing geometry for object '" + id + "'.");
+				}
+				ok = false;
+				continue;
+			}
+			Geometry geom2 = null;
+			if(geom.size()==1) {
+				geom2 = gf.createPoint(geom.get(0));
+			} else {
+				if(!geom.get(0).equals(geom.get(geom.size()-1))) {
+					geom.add(geom.get(0));
+				}
+				Coordinate[] arr = new Coordinate[geom.size()];
+				geom2 = gf.createPolygon(geom.toArray(arr));
+			}
+			double var = 1;
+			if(i<vals.length) {
+				if(!dismissWeight) {
 					try {
-						geom.add(new Coordinate(Double.parseDouble(vals[i]), Double.parseDouble(vals[i+1])));
+						var = Double.parseDouble(vals[i]);
 					} catch(NumberFormatException e) {
-						System.err.println("Broken geometry in object '" + id + "'.");
+						System.err.println("Could not parse object's '" + id + "' variable to double.");
 						ok = false;
-						hadError = true; 
 						continue;
 					}
-				}
-				if(geom.size()==0) {
-					if(!hadError) {
-						System.err.println("Missing geometry for object '" + id + "'.");
-					}
-					ok = false;
-					continue;
-				}
-				Geometry geom2 = null;
-				if(geom.size()==1) {
-					geom2 = gf.createPoint(geom.get(0));
 				} else {
-					if(!geom.get(0).equals(geom.get(geom.size()-1))) {
-						geom.add(geom.get(0));
-					}
-					Coordinate[] arr = new Coordinate[geom.size()];
-					geom2 = gf.createPolygon(geom.toArray(arr));
-				}
-				double var = 1;
-				if(i<vals.length) {
-					if(!dismissWeight) {
-						try {
-							var = Double.parseDouble(vals[i]);
-						} catch(NumberFormatException e) {
-							System.err.println("Could not parse object's '" + id + "' variable to double.");
-							ok = false;
-							continue;
-						}
-					} else {
-						if(!dismissWeightReported) {
-							dismissWeightReported = true;
-							System.out.println("Warning: the weight option is not used as no aggregation takes place.");
-						}
+					if(!dismissWeightReported) {
+						dismissWeightReported = true;
+						System.out.println("Warning: the weight option is not used as no aggregation takes place.");
 					}
 				}
-				layer.addObject(new LayerObject(idGiver.getNextRunningID(), id, var, geom2));
-				// check for duplicates
-				if(seen.contains(id)) {
-					System.err.println("Duplicate object '" + id + "' occured.");
-					ok = false;
-				}
-				seen.add(id);
 			}
+			layer.addObject(new LayerObject(idGiver.getNextRunningID(), id, var, geom2));
+			// check for duplicates
+			if(seen.contains(id)) {
+				System.err.println("Duplicate object '" + id + "' occured.");
+				ok = false;
+			}
+			seen.add(id);
 	    } while(line!=null);
 		br.close();
 		return ok ? layer : null;
@@ -374,49 +375,50 @@ public class InputReader {
 			boolean dismissWeightReported = false;
 			do {
 				line = br.readLine();
-				if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
-					String[] vals = line.split(";");
-					Long id = 0l;
-					try {
-						id = Long.parseLong(vals[0]);
-					} catch(NumberFormatException e) {
-						System.err.println("Could not parse object id '" + vals[0] + "' to long.");
-						ok = false;
-						continue;
-					}
-					Geometry geom = null;
-					try {
-						geom = wktReader.read(vals[1]);
-					} catch (ParseException e) {
-						System.err.println("Broken geometry in object '" + id + "'.");
-						ok = false;
-						continue;
-					}
-					double var = 1;
-					if(vals.length==3) {
-						if(!dismissWeight) {
-							try {
-								var = Double.parseDouble(vals[2]);
-							} catch(NumberFormatException e) {
-								System.err.println("Could not parse object's '" + id + "' variable to double.");
-								ok = false;
-								continue;
-							}
-						} else {
-							if(!dismissWeightReported) {
-								dismissWeightReported = true;
-								System.out.println("Warning: the weight option is not used as no aggregation takes place.");
-							}
+				if(line==null || line.length()==0 || line.charAt(0)=='#') {
+					continue;
+				}
+				String[] vals = line.split(";");
+				Long id = 0l;
+				try {
+					id = Long.parseLong(vals[0]);
+				} catch(NumberFormatException e) {
+					System.err.println("Could not parse object id '" + vals[0] + "' to long.");
+					ok = false;
+					continue;
+				}
+				Geometry geom = null;
+				try {
+					geom = wktReader.read(vals[1]);
+				} catch (ParseException e) {
+					System.err.println("Broken geometry in object '" + id + "'.");
+					ok = false;
+					continue;
+				}
+				double var = 1;
+				if(vals.length==3) {
+					if(!dismissWeight) {
+						try {
+							var = Double.parseDouble(vals[2]);
+						} catch(NumberFormatException e) {
+							System.err.println("Could not parse object's '" + id + "' variable to double.");
+							ok = false;
+							continue;
+						}
+					} else {
+						if(!dismissWeightReported) {
+							dismissWeightReported = true;
+							System.out.println("Warning: the weight option is not used as no aggregation takes place.");
 						}
 					}
-					layer.addObject(new LayerObject(idGiver.getNextRunningID(), id, var, geom));
-					// check for duplicates
-					if(seen.contains(id)) {
-						System.err.println("Duplicate object '" + id + "' occured.");
-						ok = false;
-					}
-					seen.add(id);
 				}
+				layer.addObject(new LayerObject(idGiver.getNextRunningID(), id, var, geom));
+				// check for duplicates
+				if(seen.contains(id)) {
+					System.err.println("Duplicate object '" + id + "' occured.");
+					ok = false;
+				}
+				seen.add(id);
 		    } while(line!=null);
 			br.close();
 			return ok ? layer : null;
@@ -581,10 +583,11 @@ public class InputReader {
 		String line = null;
 		do {
 			line = br.readLine();
-			if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
-				String[] vals = line.split(";");
-				em.add(vals[0]+vals[1], Modes.getMode(vals[2]).id);
+			if(line==null || line.length()==0 || line.charAt(0)=='#') {
+				continue;
 			}
+			String[] vals = line.split(";");
+			em.add(vals[0]+vals[1], Modes.getMode(vals[2]).id);
 	    } while(line!=null);
 		br.close();
 		return em;
@@ -811,13 +814,14 @@ public class InputReader {
 		String line = null;
 		do {
 			line = br.readLine();
-			if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
-				String[] vals = line.split(";");
-				try {
-					ret.add(new DBODRelation(Long.parseLong(vals[0]), Long.parseLong(vals[1]), 1.));
-				} catch(NumberFormatException e) {
-					System.err.println("Broken o/d relation in '" + fileName + "': " + line + ".");
-				}
+			if(line==null || line.length()==0 || line.charAt(0)=='#') {
+				continue;
+			}
+			String[] vals = line.split(";");
+			try {
+				ret.add(new DBODRelation(Long.parseLong(vals[0]), Long.parseLong(vals[1]), 1.));
+			} catch(NumberFormatException e) {
+				System.err.println("Broken o/d relation in '" + fileName + "': " + line + ".");
 			}
 	    } while(line!=null);
 		br.close();

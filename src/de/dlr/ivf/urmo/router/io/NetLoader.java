@@ -180,30 +180,31 @@ public class NetLoader {
 		boolean ok = true;
 		do {
 			line = br.readLine();
-			if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
-				String[] vals = line.split(";");
-				long modes = 0;
-				if("true".equals(vals[3].toLowerCase()) || "1".equals(vals[3])) modes = modes | Modes.getMode("foot").id;
-				if("true".equals(vals[4].toLowerCase()) || "1".equals(vals[4])) modes = modes | Modes.getMode("bicycle").id;
-				if("true".equals(vals[5].toLowerCase()) || "1".equals(vals[5])) modes = modes | Modes.getMode("passenger").id;
-				modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
-				if(modes==0 || ((modes&uModes)==0)) {
-					continue;
-				}
-				int num = vals.length - 8;
-				if((num % 2)!=0) {
-					throw new IOException("odd number for coordinates");
-				}
-				Coordinate[] coords = new Coordinate[(int) num/2];
-				int j = 0;
-				for(int i=8; i<vals.length; i+=2, ++j ) {
-					coords[j] = new Coordinate(Double.parseDouble(vals[i]), Double.parseDouble(vals[i+1]));
-				}
-				DBNode fromNode = net.getNode(Long.parseLong(vals[1]), coords[0]);
-				DBNode toNode = net.getNode(Long.parseLong(vals[2]), coords[coords.length - 1]);
-				LineString ls = gf.createLineString(coords);
-				ok &= net.addEdge(net.getNextID(), vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, ls, Double.parseDouble(vals[7]));
+			if(line==null || line.length()==0 || line.charAt(0)=='#') {
+				continue;
 			}
+			String[] vals = line.split(";");
+			long modes = 0;
+			if("true".equals(vals[3].toLowerCase()) || "1".equals(vals[3])) modes = modes | Modes.getMode("foot").id;
+			if("true".equals(vals[4].toLowerCase()) || "1".equals(vals[4])) modes = modes | Modes.getMode("bicycle").id;
+			if("true".equals(vals[5].toLowerCase()) || "1".equals(vals[5])) modes = modes | Modes.getMode("passenger").id;
+			modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
+			if(modes==0 || ((modes&uModes)==0)) {
+				continue;
+			}
+			int num = vals.length - 8;
+			if((num % 2)!=0) {
+				throw new IOException("odd number for coordinates");
+			}
+			Coordinate[] coords = new Coordinate[(int) num/2];
+			int j = 0;
+			for(int i=8; i<vals.length; i+=2, ++j ) {
+				coords[j] = new Coordinate(Double.parseDouble(vals[i]), Double.parseDouble(vals[i+1]));
+			}
+			DBNode fromNode = net.getNode(Long.parseLong(vals[1]), coords[0]);
+			DBNode toNode = net.getNode(Long.parseLong(vals[2]), coords[coords.length - 1]);
+			LineString ls = gf.createLineString(coords);
+			ok &= net.addEdge(net.getNextID(), vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, ls, Double.parseDouble(vals[7]));
 	    } while(line!=null);
 		br.close();
 		return ok ? net : null;
@@ -226,22 +227,23 @@ public class NetLoader {
 			boolean ok = true;
 			do {
 				line = br.readLine();
-				if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
-					String[] vals = line.split(";");
-					long modes = 0;
-					if("true".equals(vals[3].toLowerCase()) || "1".equals(vals[3])) modes = modes | Modes.getMode("foot").id;
-					if("true".equals(vals[4].toLowerCase()) || "1".equals(vals[4])) modes = modes | Modes.getMode("bicycle").id;
-					if("true".equals(vals[5].toLowerCase()) || "1".equals(vals[5])) modes = modes | Modes.getMode("passenger").id;
-					modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
-					if(modes==0 || ((modes&uModes)==0)) {
-						continue;
-					}
-					LineString geom = (LineString) wktReader.read(vals[8]);
-					Coordinate cs[] = geom.getCoordinates();
-					DBNode fromNode = net.getNode(Long.parseLong(vals[1]), cs[0]);
-					DBNode toNode = net.getNode(Long.parseLong(vals[2]), cs[cs.length - 1]);
-					ok &= net.addEdge(net.getNextID(), vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, geom, Double.parseDouble(vals[7]));
+				if(line==null || line.length()==0 || line.charAt(0)=='#') {
+					continue;
 				}
+				String[] vals = line.split(";");
+				long modes = 0;
+				if("true".equals(vals[3].toLowerCase()) || "1".equals(vals[3])) modes = modes | Modes.getMode("foot").id;
+				if("true".equals(vals[4].toLowerCase()) || "1".equals(vals[4])) modes = modes | Modes.getMode("bicycle").id;
+				if("true".equals(vals[5].toLowerCase()) || "1".equals(vals[5])) modes = modes | Modes.getMode("passenger").id;
+				modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
+				if(modes==0 || ((modes&uModes)==0)) {
+					continue;
+				}
+				LineString geom = (LineString) wktReader.read(vals[8]);
+				Coordinate cs[] = geom.getCoordinates();
+				DBNode fromNode = net.getNode(Long.parseLong(vals[1]), cs[0]);
+				DBNode toNode = net.getNode(Long.parseLong(vals[2]), cs[cs.length - 1]);
+				ok &= net.addEdge(net.getNextID(), vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, geom, Double.parseDouble(vals[7]));
 		    } while(line!=null);
 			br.close();
 			return ok ? net : null;
@@ -271,8 +273,7 @@ public class NetLoader {
 
 			SimpleFeatureType schema = featureSource.getSchema();
 			CoordinateReferenceSystem dataCRS = schema.getCoordinateReferenceSystem();
-	        CoordinateReferenceSystem worldCRS;
-				worldCRS = CRS.decode("EPSG:" + epsg);
+	        CoordinateReferenceSystem worldCRS = CRS.decode("EPSG:" + epsg);
 	        boolean lenient = true; // allow for some error due to different datums
 	        MathTransform transform = CRS.findMathTransform(dataCRS, worldCRS, lenient);		
 
@@ -427,16 +428,17 @@ public class NetLoader {
 		String line = null;
 		do {
 			line = br.readLine();
-			if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
-				String[] vals = line.split(";");
-				DBEdge edge = net.getEdgeByName(vals[0]);
-				if(edge==null) {
-					++numFalse;
-					continue;
-				}
-				++numOk;
-				edge.addSpeedReduction(Float.parseFloat(vals[1]), Float.parseFloat(vals[2]), Float.parseFloat(vals[3]));
+			if(line==null || line.length()==0 || line.charAt(0)=='#') {
+				continue;
 			}
+			String[] vals = line.split(";");
+			DBEdge edge = net.getEdgeByName(vals[0]);
+			if(edge==null) {
+				++numFalse;
+				continue;
+			}
+			++numOk;
+			edge.addSpeedReduction(Float.parseFloat(vals[1]), Float.parseFloat(vals[2]), Float.parseFloat(vals[3]));
 	    } while(line!=null);
 		br.close();
 		if(verbose) {
