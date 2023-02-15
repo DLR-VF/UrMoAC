@@ -17,7 +17,9 @@ package de.dlr.ivf.urmo.router.output;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Comparator;
 import java.util.Set;
+import java.util.Vector;
 
 import de.dlr.ivf.urmo.router.io.Utils;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
@@ -63,23 +65,29 @@ public class NetClusterWriter extends BasicCombinedWriter {
 	 * @throws IOException When something fails
 	 */
 	public synchronized void writeClusters(Set<Set<DBEdge>> clusters) throws IOException {
-		// determine major cluster
-		Set<DBEdge> major = null;
-		for (Set<DBEdge> c : clusters) {
-			if (major == null || major.size() < c.size()) {
-				major = c;
+		// convert to a sorted vector of sorted edge vectors 
+		Vector<Vector<DBEdge>> vClusters = new Vector<>();
+		for (Set<DBEdge> cluster : clusters) {
+			Vector<DBEdge> v = new Vector<>();
+			for (DBEdge e : cluster) {
+				v.add(e);
 			}
+			v.sort(new Comparator<DBEdge>() { public int compare(DBEdge e1, DBEdge e2) { return e1.id.compareTo(e2.id); } });
+			vClusters.add(v);
 		}
-		//
+		vClusters.sort(new Comparator<Vector<DBEdge>>() {
+		    public int compare(Vector<DBEdge> v1, Vector<DBEdge> v2) {
+		        if(v1.size()==v2.size()) { return ((DBEdge) (v1.get(0))).id.compareTo(((DBEdge) v2.get(0)).id); }
+		    	return v1.size()<v2.size() ? 1 : -1;
+		    }
+		});
+		// write
 		int clusterID = 0;
-		writeCluster(major, clusterID);
-		for(Set<DBEdge> cluster : clusters) {
-			if(cluster==major) {
-				continue;
-			}
-			++clusterID;
+		for(Vector<DBEdge> cluster : vClusters) {
 			writeCluster(cluster, clusterID);
+			++clusterID;
 		}
+		// close writing to the database
 		if (intoDB()) {
 			try {
 				_ps.executeBatch();
@@ -97,7 +105,7 @@ public class NetClusterWriter extends BasicCombinedWriter {
 	 * @param id The id of the cluster
 	 * @throws IOException When something fails
 	 */
-	private synchronized void writeCluster(Set<DBEdge> cluster, int id) throws IOException {
+	private synchronized void writeCluster(Vector<DBEdge> cluster, int id) throws IOException {
 		for(DBEdge e : cluster) {
 			if (intoDB()) {
 				try {
