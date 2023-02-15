@@ -1,0 +1,32 @@
+# connected
+connected
+
+# connected, with reporting
+connected_report
+
+# connected, with reporting, subnets are kept
+connected_subnets_report
+
+
+# the middle is completely missing
+middle_missing
+
+# the middle is completely missing, with reporting
+middle_missing_report
+
+# the middle is completely missing, with reporting, subnets are kept
+middle_missing_subnets_report
+
+
+# the middle does not allow bicycling
+middle_no_bike
+
+# the middle does not allow bicycling, with reporting
+middle_no_bike_report
+
+# the middle does not allow bicycling, with reporting, subnets are kept
+middle_no_bike_subnets_report
+
+
+
+
