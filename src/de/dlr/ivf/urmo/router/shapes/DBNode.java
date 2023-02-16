@@ -98,6 +98,14 @@ public class DBNode {
 	public void removeOutgoing(DBEdge e) {
 		outgoing.remove(e);
 	}
+	
+	
+	/** @brief Returns the coordinate
+	 * @return The coordinate
+	 */
+	public Coordinate getCoordinate() {
+		return pos;
+	}
 
 	
 }
