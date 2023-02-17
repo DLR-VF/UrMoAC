@@ -451,6 +451,9 @@ class OSMRelation(OSMElement):
                 if self._ok:
                     roles[m[2]].append(w) # well, we append it even if it's not ok!?
             elif m[1]=="relation" or m[1]=="rel":
+                if self.id==m[0]:
+                    print ("Skipping self-referencing relation in %s" % self.id)
+                    continue
                 r = area.getRelation(m[0])
                 if not r:
                     print ("Missing relation %s in relation %s" % (m[0], self.id))

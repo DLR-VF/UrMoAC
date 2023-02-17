@@ -62,13 +62,15 @@ class OSMExtractor:
         """! @brief Constructor
         @param self The class instance
         """
+        # ids of matching objects
+        self._objectIDs = { "node": [], "way": [], "rel": [] }
         # definitions of what to load
         self._defs = { "node": [], "way": [], "rel": [] }
         self._roles = set()
-        # ids of matching objects
-        self._objectIDs = { "node": [], "way": [], "rel": [] }
         # matching objects with geometries
         self._objectGeoms = { "node": {}, "way": {}, "rel": {} }
+        # seen IDs for removing duplicate IDs
+        self._idMapping = { "node": {}, "way": {}, "rel": {} }
     
 
     def loadDefinitions(self, fileName):
@@ -165,6 +167,26 @@ class OSMExtractor:
             # !!! make this optional
             #for o in self._objectIDs[subtype]:
             #  print ("%s %s" % (subtype, o))
+        # scan for duplicates
+        print ("Scanning for duplicates")
+        nextAvailable = 0
+        seenIDs = set()
+        for subtype in ["node", "way", "rel"]:
+            for id in self._objectIDs[subtype]:
+                if id not in seenIDs:
+                    seenIDs.add(id)
+                    continue
+                pid = id
+                while True:
+                    id = nextAvailable
+                    nextAvailable += 1
+                    if id not in seenIDs:
+                        seenIDs.add(id)
+                        self._idMapping[subtype][id] = pid
+                        print (" Found duplicate id '%s'. Renaming %s to '%s'." % (pid, subtype, id))
+                        break
+   
+   
    
     
     def collectReferencedObjects(self, conn, cursor, schema, prefix):
@@ -293,10 +315,11 @@ class OSMExtractor:
         if len(geom)==0:
             print ("Missing geometry for %s %s" % (geom[1], geom[0]))
             return
+        if id in self._idMapping[type]:
+            id = self._idMapping[type][id]
         geom = "GEOMETRYCOLLECTION(" + geom + ")"
         centroid = geom
         if polys!=None and len(polys)!=0:
-            
             # remove polygons within other
             toRemove = []
             for i,p1 in enumerate(polys):
@@ -352,6 +375,15 @@ class OSMExtractor:
         return len(self._objectIDs["node"])+len(self._objectIDs["way"])+len(self._objectIDs["rel"]), fw, fr
 
 
+    def saveMappingIfExists(self, filename):
+        """Saves the mapping of duplicate IDs to new ones if existing"""
+        if len(self._idMapping)==0:
+            return
+        with open(filename, "w") as fd:
+            for type in self._idMapping:
+                for id in self._idMapping[type]:
+                    fd.write("%s;%s;%s\n" % (type, self._idMapping[type][id], id))
+
 
 # --- main method -----------------------------------------
 def main(argv):       
@@ -388,14 +420,15 @@ def main(argv):
     # --- insert objects
     print ("Building and storing objects")
     num, fw, fr = extractor.storeObjects(area, conn2, cursor2, schema, name)
-
+    # --- write mapping of duplicate ids
+    extractor.saveMappingIfExists(name + "_mapping.txt")
     # --- finish
     t2 = datetime.datetime.now()
     dt = t2-t1
     print ("Built %s objects" % num)
     print (" in %s" % dt)
     if fw>0: print (" %s ways could not be build" % fw)
-    if fr>0: print (" %s reletions could not be build" % fr)
+    if fr>0: print (" %s relations could not be build" % fr)
 
 
 # -- main check
