@@ -15,3 +15,6 @@ mkdocs:
   configuration: docs/mkdocs4readthedocs.yml
   fail_on_warning: false
   
+python:
+  install:
+    - requirements: docs/requirements.txt
