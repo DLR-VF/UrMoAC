@@ -2,7 +2,7 @@ site_name: UrMoAC
 site_url: https://github.com/DLR-VF/UrMoAC/wiki
 site_description: Urban Mobility Accessibility Calculator
 site_author: DLR/VF
-docs_dir: ./UrMoAC.wiki
+docs_dir: ./mkdocs
 
 repo_url: https://github.com/DLR-VF/UrMoAC.git
 edit_uri: ""
