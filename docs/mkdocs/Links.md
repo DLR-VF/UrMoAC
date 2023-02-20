@@ -4,8 +4,7 @@
 * [github repository](https://github.com/DLR-VF/UrMoAC)
 * [issue tracker](https://github.com/DLR-VF/UrMoAC/issues)
 * [discussions](https://github.com/DLR-VF/UrMoAC/discussions)
-* built user documentation
-* built code documentation
+* [built user documentation](https://urmoac.readthedocs.io/)
 
 ## Input Data
 

@@ -71,7 +71,7 @@ For this purpose, [osmdb_buildStructures.py](https://github.com/DLR-VF/UrMoAC/bl
 ```
 [<OSM_DATATYPE>]
 <FILTER>
-&hellip;
+...
 <FILTER>
 ```
 

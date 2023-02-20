@@ -26,7 +26,7 @@ Please note that this documentation describes the github-version (master branch)
 
 **When using it, you should cite it as:**
 
-Krajzewicz, Daniel und Heinrichs, Dirk und Cyganski, Rita (2017) [_Intermodal Contour Accessibility Measures Computation Using the &lsquo;UrMo Accessibility Computer&rsquo;_](https://elib.dlr.de/118235/). International Journal On Advances in Systems and Measurements, 10 (3&4), pp. 111&ndash;123. IARIA.
+[1] Krajzewicz, Daniel und Heinrichs, Dirk und Cyganski, Rita (2017) [_Intermodal Contour Accessibility Measures Computation Using the &lsquo;UrMo Accessibility Computer&rsquo;_](https://elib.dlr.de/118235/). International Journal On Advances in Systems and Measurements, 10 (3&4), pp. 111&ndash;123. IARIA.
 
 
 

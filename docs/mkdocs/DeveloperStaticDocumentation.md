@@ -17,7 +17,7 @@ Additionally, you need [material for mkdocs](https://squidfunk.github.io/mkdocs-
 
 To build the documentation start the script &ldquo;build_docs.py&rdquo; located in the project&apos;s &ldquo;docs&rdquo; directory. You need Python version 3.0 or higher with mkdocs installed to do so. 
 
-```&hellip;>python build_docs.py```
+```...>python build_docs.py```
 
 
 The script will download the wiki, build the docs and start the server.
@@ -26,6 +26,6 @@ The documentation is then available at http://127.0.0.1:8000/
 
 To create a static documentation, execute:
 
-```&hellip;>mkdocs build```
+```...>mkdocs build```
 
 
