@@ -165,7 +165,6 @@ def commitRoads(conn, cursor, schema, dbprefix):
                                    
 # http://wiki.openstreetmap.org/wiki/OSM_tags_for_routing/Access-Restrictions#Germany
 highways = {
-    """ @brief Default road / rail values """
     "highway_motorway":{"mode":MOTORISED, "vmax":160, "oneway":True, "lanes":2},
     "highway_motorway_link":{"mode":MOTORISED, "vmax":80, "oneway":True, "lanes":1},
     "highway_trunk":{"mode":ALL, "vmax":100, "lanes":2},
@@ -182,7 +181,7 @@ highways = {
     "highway_road":{"mode":ALL, "vmax":30, "lanes":1},
     #"highway_proposed":{"mode":ALL, "vmax":50, "lanes":1},
     #"highway_construction":{"mode":ALL, "vmax":50, "lanes":1},
-    "highway_service":{"mode":DELIVERY, "vmax":20, "lanes":1},
+    "highway_service":{"mode":ALL, "vmax":20, "lanes":1},
     "highway_track":{"mode":ALL, "vmax":20, "lanes":1},  # all only if destination (http://wiki.openstreetmap.org/wiki/OSM_tags_for_routing/Access-Restrictions#Germany)
     "highway_services":{"mode":ALL, "vmax":30, "lanes":1},
     "highway_unsurfaced":{"mode":ALL, "vmax":30, "lanes":1},
@@ -351,7 +350,6 @@ def getVMax(defaultSpeed, params):
 
 
 accessAllows = {
-    """ @brief A mapping of mode restrictions"""
     "yes":True,
     "private":False,
     "no":False,
