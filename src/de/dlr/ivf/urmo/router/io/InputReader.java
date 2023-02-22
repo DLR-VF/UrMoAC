@@ -155,7 +155,7 @@ public class InputReader {
 		switch(format) {
 		case FORMAT_POSTGRES:
 		case FORMAT_SQLITE:
-			layer = loadLayerFromDB(base, bounds, format, inputParts, filter, varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg);
+			layer = loadLayerFromDB(base, bounds, format, inputParts, filter, varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg, dismissWeight);
 			break;
 		case FORMAT_CSV:
 			layer = loadLayerFromCSVFile(base, bounds, inputParts[0], idGiver, dismissWeight);
@@ -164,10 +164,10 @@ public class InputReader {
 			layer = loadLayerFromWKTFile(base, bounds, inputParts[0], idGiver, dismissWeight);
 			break;
 		case FORMAT_SHAPEFILE:
-			layer = loadLayerFromShapefile(base, bounds, inputParts[0], varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg);
+			layer = loadLayerFromShapefile(base, bounds, inputParts[0], varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg, dismissWeight);
 			break;
 		case FORMAT_SUMO:
-			layer = loadLayerFromSUMOPOIs(base, bounds, inputParts[0], idGiver);
+			layer = loadLayerFromSUMOPOIs(base, bounds, inputParts[0], idGiver, dismissWeight);
 			break;
 		case FORMAT_GEOPACKAGE:
 			throw new IOException("Reading '" + base + "' from " + Utils.getFormatMMLName(format) + " is not supported.");
@@ -195,11 +195,16 @@ public class InputReader {
 	 * @param geomS The name of the column to read the geometry from
 	 * @param idGiver A reference to something that supports a running ID
 	 * @param epsg The EPSG of the projection to use
+	 * @param dismissWeight Whether the weight shall be discarded
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
 	private static Layer loadLayerFromDB(String layerName, Geometry bounds, Utils.Format format, String[] inputParts, String filter, String varName,
-			String idS, String geomS, IDGiver idGiver, int epsg) throws IOException {
+			String idS, String geomS, IDGiver idGiver, int epsg, boolean dismissWeight) throws IOException {
+		if(dismissWeight&&(varName==null||"".equals(varName))) {
+			System.out.println("Warning: the weight option is not used as no aggregation takes place.");
+			varName = null;
+		}
 		Set<Long> seen = new HashSet<Long>();
 		boolean ok = true;
 		try {
@@ -234,6 +239,7 @@ public class InputReader {
 				byte[] bytes = rs.getBytes(numColumns);
 				if(bytes==null) {
 					System.err.println(" Object '" + rs.getLong(idS) + "' has no geometry.");
+					ok = false;
 					continue;
 				}
 				Geometry geom = wkbRead.read(bytes);
@@ -248,6 +254,7 @@ public class InputReader {
 				if(seen.contains(id)) {
 					System.err.println("Duplicate object '" + id + "' occured.");
 					ok = false;
+					continue;
 				}
 				seen.add(id);
 			}
@@ -436,11 +443,16 @@ public class InputReader {
 	 * @param geomS The name of the column to read the geometry from
 	 * @param idGiver A reference to something that supports a running ID
 	 * @param epsg The EPSG of the projection to use
+	 * @param dismissWeight Whether the weight shall be discarded
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
 	private static Layer loadLayerFromShapefile(String layerName, Geometry bounds, String fileName, String varName,
-			String idS, String geomS, IDGiver idGiver, int epsg) throws IOException { 
+			String idS, String geomS, IDGiver idGiver, int epsg, boolean dismissWeight) throws IOException { 
+		if(dismissWeight&&(varName==null||"".equals(varName))) {
+			System.out.println("Warning: the weight option is not used as no aggregation takes place.");
+			varName = null;
+		}
 		Set<Long> seen = new HashSet<Long>();
 		boolean ok = true;
 		try {
@@ -493,10 +505,11 @@ public class InputReader {
 	 * @param bounds The bounds to clip the read thing to
 	 * @param fileName The name of the file to read
 	 * @param idGiver A reference to something that supports a running ID
+	 * @param dismissWeight Whether the weight shall be discarded
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
-	private static Layer loadLayerFromSUMOPOIs(String layerName, Geometry bounds, String fileName, IDGiver idGiver) throws IOException {
+	private static Layer loadLayerFromSUMOPOIs(String layerName, Geometry bounds, String fileName, IDGiver idGiver, boolean dismissWeight) throws IOException {
 		try {
 			Layer layer = new Layer(layerName, bounds);
 	        SAXParserFactory spf = SAXParserFactory.newInstance();
