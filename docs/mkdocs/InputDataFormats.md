@@ -95,6 +95,8 @@ Please note that currently only __numerical__ shape IDs are accepted.
 
 Please note that no projection is applied to locations stored in [SUMO shapefiles](https://sumo.dlr.de/docs/Simulation/Shapes.html) files, thereby you should set __--epsg 0__.
 
+Please note that SUMO shapes do not store a weight.
+
 The file type is recognized by the extension, i.e. use __--from _&lt;MYFILE&gt;_.poi.xml__ and __--to _&lt;MYFILE&gt;_.poi.xml__ to load origins or respectively destinations from [SUMO shapefiles](https://sumo.dlr.de/docs/Simulation/Shapes.html).
 
 
