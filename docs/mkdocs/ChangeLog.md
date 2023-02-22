@@ -4,6 +4,7 @@
 ### Channels and links
 * changed license to [EPL 2.0](LICENSE.md)
 * added [discussions](https://github.com/DLR-VF/UrMoAC/discussions) about the project
+* docs are now available at [readthedocs](https://urmoac.readthedocs.io/)
 
 
 ### New Features
@@ -38,6 +39,7 @@
     * Added the option **--subnets-summary** that lists (very verbose) all found subnets
     * Added the option **--subnets-output *&lt;OUTPUT&gt;*** that writes the found subnets
 * [issue #1](https://github.com/DLR-VF/UrMoAC/issues/1) solved: the tool reports when an edge with a velocity or a length of 0 is loaded, as well when an edge id is used more than once
+* removed the **avg_v** field from nm-ext-output as it is too complicated to keep track of connection with dist=0 (same origin/destination) and the value can be easily computed from **avg_tt** and **avg_distance**
 
 
 ### Tools

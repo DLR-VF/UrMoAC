@@ -55,7 +55,6 @@ The generated database table has the following format:
 | sid | bigint | The ID of the destination object |
 | avg_distance | real| The average distance between the origin(s) and the origin(s) |
 | avg_tt | real | The average travel time to get from the origin(s) to the origin(s) |
-| avg_v | real | The average velocity when travelling from the origin(s) to the destination(s) |
 | avg_num | real | The average number of collected destination(s) |
 | avg_value | real | The average value of the collected destination(s) |
 | avg_kcal | real | The average kilocalories consumed when travelling from the origin(s) to the destination(s) |

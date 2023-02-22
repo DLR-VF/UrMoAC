@@ -44,7 +44,7 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 	 */
 	public ODExtendedWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious) throws IOException {
 		super(format, inputParts, "ext-od-output", precision, dropPrevious, 
-				"(fid bigint, sid bigint, avg_distance real, avg_tt real, avg_v real, avg_num real, avg_value real, "
+				"(fid bigint, sid bigint, avg_distance real, avg_tt real, avg_num real, avg_value real, "
 				+ "avg_kcal real, avg_price real, avg_co2 real, avg_interchanges real, avg_access real, avg_egress real, "
 				+ "avg_waiting_time real, avg_init_waiting_time real, avg_pt_tt real, avg_pt_interchange_time real, modes text)");
 	}
@@ -56,7 +56,7 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 	 * @return The insert statement string
 	 */
 	protected String getInsertStatement(Utils.Format format, int rsid) {
-		return "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		return "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	}
 	
 	
@@ -73,20 +73,19 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 				_ps.setLong(2, result.destID);
 				_ps.setFloat(3, (float) result.weightedDistance);
 				_ps.setFloat(4, (float) result.weightedTravelTime);
-				_ps.setFloat(5, (float) result.weightedSpeed);
-				_ps.setFloat(6, (float) result.connectionsWeightSum);
-				_ps.setFloat(7, (float) result.weightedValue);
-				_ps.setFloat(8, (float) result.weightedKCal);
-				_ps.setFloat(9, (float) result.weightedPrice);
-				_ps.setFloat(10, (float) result.weightedCO2);
-				_ps.setFloat(11, (float) result.weightedInterchanges);
-				_ps.setFloat(12, (float) result.weightedAccess);
-				_ps.setFloat(13, (float) result.weightedEgress);
-				_ps.setFloat(14, (float) result.weightedWaitingTime);
-				_ps.setFloat(15, (float) result.weightedInitialWaitingTime);
-				_ps.setFloat(16, (float) result.weightedPTTravelTime);
-				_ps.setFloat(17, (float) result.weightedInterchangeTime);
-				_ps.setString(18, result.lines.toString()); // modes
+				_ps.setFloat(5, (float) result.connectionsWeightSum);
+				_ps.setFloat(6, (float) result.weightedValue);
+				_ps.setFloat(7, (float) result.weightedKCal);
+				_ps.setFloat(8, (float) result.weightedPrice);
+				_ps.setFloat(9, (float) result.weightedCO2);
+				_ps.setFloat(10, (float) result.weightedInterchanges);
+				_ps.setFloat(11, (float) result.weightedAccess);
+				_ps.setFloat(12, (float) result.weightedEgress);
+				_ps.setFloat(13, (float) result.weightedWaitingTime);
+				_ps.setFloat(14, (float) result.weightedInitialWaitingTime);
+				_ps.setFloat(15, (float) result.weightedPTTravelTime);
+				_ps.setFloat(16, (float) result.weightedInterchangeTime);
+				_ps.setString(17, result.lines.toString()); // modes
 				_ps.addBatch();
 				++batchCount;
 				if(batchCount>10000) {
@@ -100,7 +99,6 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 			_fileWriter.append(result.srcID + ";" + result.destID + ";" 
 					+ String.format(Locale.US, _FS, result.weightedDistance) + ";" 
 					+ String.format(Locale.US, _FS, result.weightedTravelTime) + ";" 
-					+ String.format(Locale.US, _FS, result.weightedSpeed) + ";"
 					+ String.format(Locale.US, _FS, result.connectionsWeightSum) + ";" 
 					+ String.format(Locale.US, _FS, result.weightedValue) + ";" 
 					+ String.format(Locale.US, _FS, result.weightedKCal) + ";" 

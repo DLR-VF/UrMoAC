@@ -45,7 +45,6 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 		ODSingleExtendedResult e = new ODSingleExtendedResult(from.em.getOuterID(), to.em.getOuterID(), from, to, dr);
 		e.weightedDistance = e.dist * e.val;
 		e.weightedTravelTime = e.tt * e.val;
-		e.weightedSpeed = e.tt!=0 ? (e.dist/e.tt) * e.val : -1; /// TODO: document
 		e.weightedValue = ((LayerObject) to.em).getAttachedValue() * e.val;
 		e.weightedWaitingTime = 0;
 		e.weightedInitialWaitingTime = 0;

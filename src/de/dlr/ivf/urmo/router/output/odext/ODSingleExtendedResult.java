@@ -32,8 +32,6 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 	public double weightedDistance = 0;
 	/// @brief The weighted travel time
 	public double weightedTravelTime = 0;
-	/// @brief The weighted speed
-	public double weightedSpeed = 0;
 	/// @brief The weighted value
 	public double weightedValue = 0;
 	/// @brief The weighted number of consumed kilocalories
@@ -98,7 +96,6 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 		ODSingleExtendedResult srnm = (ODSingleExtendedResult) asr;
 		weightedDistance += srnm.weightedDistance;
 		weightedTravelTime += srnm.weightedTravelTime;
-		weightedSpeed += srnm.weightedSpeed;
 		connectionsWeightSum += srnm.connectionsWeightSum;
 		weightedValue += srnm.weightedValue;
 		weightedKCal += srnm.weightedKCal;
@@ -126,7 +123,6 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 		ODSingleExtendedResult srnm = new ODSingleExtendedResult(srcID, destID);
 		srnm.weightedDistance = connectionsWeightSum!=0 ? weightedDistance / connectionsWeightSum : 0;
 		srnm.weightedTravelTime = connectionsWeightSum!=0 ? weightedTravelTime / connectionsWeightSum : 0;
-		srnm.weightedSpeed = connectionsWeightSum!=0 ? weightedSpeed / connectionsWeightSum : 0;
 		srnm.connectionsWeightSum = sourcesWeight!=0 ? connectionsWeightSum / sourcesWeight : 0;
 		srnm.weightedValue = sourcesWeight!=0 ? weightedValue / sourcesWeight : 0;
 		srnm.weightedKCal = connectionsWeightSum!=0 ? weightedKCal / connectionsWeightSum : 0;
