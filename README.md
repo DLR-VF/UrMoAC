@@ -1,10 +1,53 @@
 # UrMoAC
-A tool for computing accessibility measures, supporting aggregation, variable limits, and intermodality developed at the Institute of Transport Research at the German Aerospace Center (DLR).
+
+# ![logo.png](https://raw.githubusercontent.com/DLR-VF/UrMoAC/master/logo.png) UrMoAC
+
+&ldquo;Urban Mobility Accessibility Computer&rdquo; or &ldquo;UrMoAC&rdquo; is a tool for computing accessibility measures, supporting aggregation, variable limits, and intermodality. It is a scientific tool.
+
+What the tool basically does is to load a set of origin locations and a set of destination locations as well as a road network and optionally a description of the public transport offer. Then, it iterates over all loaded origins and computes the respective accessibility measure for each of them by routing to all destinations within the defined limit. Optionally, areas by which the origins and destinations shall be aggregated may be loaded.
+
+Some features:
+
+* input is read from databases or files;
+* variable origins / destinations;
+* variable aggregation options;
+* weights for origins and destinations;
+* flexible limits for search: max. time, max. distance, max. number, max. seen value, nearest only;
+* support for different transport modes, as well as intermodal accessibilities;
+* GTFS-based public transport accessibility computation;
+* possibility to read time-dependent travel times (for motorised individual traffic);
+* support for data preparation and visualisation.
+
+## Installation
+
+**UrMoAC** is written in the [Java](https://www.java.com/) programming language. You need [Java](https://www.java.com/) to run it. The easiest way to install it is to download the .jar-file from the latest release. Further possibilities to run it are given at [Installation](https://github.com/DLR-VF/UrMoAC/wiki/Installation).
+
+## Usage examples
+
+A most basic call may look as following:
+
+```console
+java -jar UrMoAC.jar --from origins.csv --to destinations.csv --net network.csv --nm-output nm_output.csv --mode bicycle --time 0 --epsg 0
+```
+
+Which would compute the accessibility of the destinations stored in ```destinations.csv``` starting at the origins stored in ```origins.csv``` along the road network stored in ```network.csv``` for the transport mode bicycle. Information about the used file formats are given at [Input Data Formats](https://github.com/DLR-VF/UrMoAC/wiki/InputDataFormats).
+
+## License
 
 The tool is licensed under the [Eclipse Public License 2.0](LICENSE.md).
 
-**When using it, you should cite it as:**
+**When using it, please cite it as:**
 
 Daniel Krajzewicz, Dirk Heinrichs and Rita Cyganski (2017) [_Intermodal Contour Accessibility Measures Computation Using the 'UrMo Accessibility Computer'_](https://elib.dlr.de/118235/). International Journal On Advances in Systems and Measurements, 10 (3&4), Seiten 111-123. IARIA.
+
+## Support and Contribution
+
+The tool is under active development and we are happy about any interaction with users or dvelopers.
+
+## Authors
+
+The tool has been developed at the [Institute of Transport Research](http://www.dlr.de/vf) of the [German Aerospace Center](http://www.dlr.de).
+
+## Links
 
 Please visit the <a href="https://github.com/DLR-VF/UrMoAC/wiki/index">wiki</a> for further information.
