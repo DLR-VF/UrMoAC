@@ -34,7 +34,9 @@ import de.dks.utils.options.Option_Double;
 import de.dks.utils.options.Option_Integer;
 import de.dks.utils.options.Option_String;
 import de.dks.utils.options.OptionsCont;
+import de.dks.utils.options.OptionsFileIO_XML;
 import de.dks.utils.options.OptionsIO;
+import de.dks.utils.options.OptionsTypedFileIO;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.NearestEdgeFinder;
 import de.dlr.ivf.urmo.router.algorithms.routing.AbstractRouteWeightFunction;
@@ -393,8 +395,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("help", "Prints the help screen.");
 
 		// parse options
+		OptionsTypedFileIO optionsIO = new OptionsFileIO_XML(); 
 		try {
-			OptionsIO.parseAndLoad(options, args, "config", false, false);
+			OptionsIO.parseAndLoad(options, args, optionsIO, "config", false, false);
 		} catch (RuntimeException e) {
 			System.err.println("Error: " + e.getMessage());
 			return null;
@@ -404,13 +407,13 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		}
 		// print help if wanted
 		if(options.getBool("help")) {
-			OptionsIO.printHelp(System.out, options, 80, 2, 2, 1);
+			OptionsIO.printHelp(System.out, options, 80, 2, 2, 1, 1);
 			return null;
 		}
 		// check template / configuration options
 		if(options.isSet("save-config")) {
 			try {
-				OptionsIO.writeXMLConfiguration(options.getString("save-config"), options);
+				optionsIO.writeConfiguration(options.getString("save-config"), options);
 			} catch (IOException e) {
 				e.printStackTrace();
 				return null;
@@ -418,7 +421,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		}
 		if(options.isSet("save-template")) {
 			try {
-				OptionsIO.writeXMLTemplate(options.getString("save-template"), options);
+				optionsIO.writeTemplate(options.getString("save-template"), options);
 			} catch (IOException e) {
 				e.printStackTrace();
 				return null;

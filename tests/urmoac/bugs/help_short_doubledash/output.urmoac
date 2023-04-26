@@ -25,6 +25,7 @@ Usage:
   --epsg                         The EPSG projection to use.
   --time                         The time the trips start at in seconds.
   --od-connections               The OD connections to compute.
+
  Input Adaptation
   -F, --from.filter              Defines a filter for origins to load.
   --from.id                      Defines the column name of the origins' ids.
@@ -51,10 +52,12 @@ Usage:
                                    attribute.
   --keep-subnets                 When set, unconnected network parts are not
                                    removed.
+
  Weighting Options
   -W, --weight                   An optional weighting attribute for the
                                    origins.
   -V, --variable                 An optional destinations' variable to collect.
+
  Routing Options
   --max-number                   The maximum number of destinations to visit.
   --max-distance                 The maximum distance to check.
@@ -71,6 +74,7 @@ Usage:
                                    'maxinterchanges_tt'].
   --measure-param1               First parameter of the chosen weight function.
   --measure-param2               Second parameter of the chosen weight function.
+
  Public Transport Options
   --pt-boundary                  Defines the data source of the boundary for the
                                    PT offer.
@@ -78,6 +82,7 @@ Usage:
                                    computed.
   -E, --entrainment              Data source for entrainment description.
   --pt-restriction               Restrictions to usable GTFS carriers.
+
  Custom Mode Options
   --custom.vmax                  Maximum velocity of the custom mode.
   --custom.kkc-per-hour          kkc used per hour when using the custom mode.
@@ -87,6 +92,7 @@ Usage:
   --custom.allowed               The type of roads the custom mode can use
                                    (combination of 'foot', 'bike', 'passenger'
                                    divided by ';').
+
  Output Options
   -o, --nm-output                Defines the n:m output.
   --ext-nm-output                Defines the extended n:m output.
@@ -106,6 +112,7 @@ Usage:
                                    point.
   --comment                      Adds a comment with the used options into
                                    generated output dbs.
+
  Process Options
   --threads                      The number of threads to use.
   -v, --verbose                  Prints what is being done.
