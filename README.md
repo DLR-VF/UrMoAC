@@ -20,7 +20,7 @@ Some features:
 
 ## Installation
 
-**UrMoAC** is written in the [Java](https://www.java.com/) programming language. You need [Java](https://www.java.com/) to run it. The easiest way to install it is to download the .jar-file from the latest [release](https://github.com/DLR-VF/UrMoAC/releases). Further possibilities to run it are given at [Installation](https://github.com/DLR-VF/UrMoAC/wiki/Installation).
+**UrMoAC** is written in the [Java](https://www.java.com/) programming language. You need [Java](https://www.java.com/) to run it. The easiest way to install it is to download the .jar-file from the latest [release](https://github.com/DLR-VF/UrMoAC/releases). Further possibilities to run it are given at [Installation](https://github.com/DLR-VF/UrMoAC/docs/mkdocs/Installation).
 
 ## Usage examples
 
@@ -30,11 +30,11 @@ A most basic call may look as following:
 java -jar UrMoAC.jar --from origins.csv --to destinations.csv --net network.csv --nm-output nm_output.csv --mode bicycle --time 0 --epsg 0
 ```
 
-Which would compute the accessibility of the destinations stored in ```destinations.csv``` starting at the origins stored in ```origins.csv``` along the road network stored in ```network.csv``` for the transport mode bicycle. Information about the used file formats are given at [Input Data Formats](https://github.com/DLR-VF/UrMoAC/wiki/InputDataFormats).
+Which would compute the accessibility of the destinations stored in ```destinations.csv``` starting at the origins stored in ```origins.csv``` along the road network stored in ```network.csv``` for the transport mode bicycle. Information about the used file formats are given at [Input Data Formats](https://github.com/DLR-VF/UrMoAC/docs/mkdocs/InputDataFormats).
 
 ## License
 
-The tool is licensed under the [Eclipse Public License 2.0](LICENSE.md).
+**UrMoAC** is licensed under the [Eclipse Public License 2.0](LICENSE.md).
 
 **When using it, please cite it as:**
 
@@ -42,13 +42,20 @@ Daniel Krajzewicz, Dirk Heinrichs and Rita Cyganski (2017) [_Intermodal Contour 
 
 ## Support and Contribution
 
-The tool is under active development and we are happy about any interaction with users or dvelopers.
+**UrMoAC** is under active development and we are happy about any interaction with users or dvelopers.
 
 ## Authors
 
-The tool has been developed at the [Institute of Transport Research](http://www.dlr.de/vf) of the [German Aerospace Center](http://www.dlr.de).
+**UrMoAC** has been developed at the [Institute of Transport Research](http://www.dlr.de/vf) of the [German Aerospace Center](http://www.dlr.de).
 
 ## Links
 
-Please visit the <a href="https://github.com/DLR-VF/UrMoAC/wiki/index">wiki</a> for further information.
+You may find further information about **UrMoAC** at the following pages:
+* a complete documentation is located at <http://urmoac.readthedocs.io>;
+* the recent as well as the previous releases can be found at <https://github.com/DLR-VF/UrMoAC/releases>;
+* the source code repository is located at <https://github.com/DLR-VF/UrMoAC>;
+* the issue tracker is located at <https://github.com/DLR-VF/UrMoAC/issues>;
+* you may start a discussion or join an existing one at <https://github.com/DLR-VF/UrMoAC/discussions>.
+
+## Legal
 
