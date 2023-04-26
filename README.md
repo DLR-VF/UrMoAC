@@ -20,7 +20,7 @@ Some features:
 
 ## Installation
 
-**UrMoAC** is written in the [Java](https://www.java.com/) programming language. You need [Java](https://www.java.com/) to run it. The easiest way to install it is to download the .jar-file from the latest release. Further possibilities to run it are given at [Installation](https://github.com/DLR-VF/UrMoAC/wiki/Installation).
+**UrMoAC** is written in the [Java](https://www.java.com/) programming language. You need [Java](https://www.java.com/) to run it. The easiest way to install it is to download the .jar-file from the latest [release](https://github.com/DLR-VF/UrMoAC/releases). Further possibilities to run it are given at [Installation](https://github.com/DLR-VF/UrMoAC/wiki/Installation).
 
 ## Usage examples
 
