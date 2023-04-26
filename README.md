@@ -59,3 +59,5 @@ You may find further information about **UrMoAC** at the following pages:
 
 ## Legal
 
+Please find additional legal information at <https://github.com/DLR-VF/UrMoAC/docs/mkdocs/Legal>.
+
