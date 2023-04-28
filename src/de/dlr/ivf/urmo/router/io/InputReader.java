@@ -163,12 +163,10 @@ public class InputReader {
 		case FORMAT_WKT:
 			layer = loadLayerFromWKTFile(base, bounds, inputParts[0], idGiver, dismissWeight);
 			break;
-		case FORMAT_SHAPEFILE:
-			layer = loadLayerFromShapefile(base, bounds, inputParts[0], varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg, dismissWeight);
-			break;
 		case FORMAT_SUMO:
 			layer = loadLayerFromSUMOPOIs(base, bounds, inputParts[0], idGiver, dismissWeight);
 			break;
+		case FORMAT_SHAPEFILE:
 		case FORMAT_GEOPACKAGE:
 			throw new IOException("Reading '" + base + "' from " + Utils.getFormatMMLName(format) + " is not supported.");
 		default:
@@ -431,72 +429,6 @@ public class InputReader {
 			return ok ? layer : null;
 	}
 	
-		
-	/**
-	 * @brief Loads a set of objects from a shapefile
-	 * 
-	 * @param layerName The name of the layer to generate
-	 * @param bounds The bounds to clip the read thing to
-	 * @param fileName The name of the file to read
-	 * @param varName The name of the attached variable
-	 * @param idS The name of the column to read the IDs from
-	 * @param geomS The name of the column to read the geometry from
-	 * @param idGiver A reference to something that supports a running ID
-	 * @param epsg The EPSG of the projection to use
-	 * @param dismissWeight Whether the weight shall be discarded
-	 * @return The generated layer with the read objects
-	 * @throws IOException When something fails
-	 */
-	private static Layer loadLayerFromShapefile(String layerName, Geometry bounds, String fileName, String varName,
-			String idS, String geomS, IDGiver idGiver, int epsg, boolean dismissWeight) throws IOException { 
-		if(dismissWeight&&(varName==null||"".equals(varName))) {
-			System.out.println("Warning: the weight option is not used as no aggregation takes place.");
-			varName = null;
-		}
-		Set<Long> seen = new HashSet<Long>();
-		boolean ok = true;
-		try {
-			Layer layer = new Layer(layerName, bounds);
-			File file = new File(fileName);
-			if(!file.exists() || !fileName.endsWith(".shp")) {
-			    throw new IOException("Invalid shapefile filepath: " + fileName);
-			}
-			ShapefileDataStore dataStore = new ShapefileDataStore(file.toURI().toURL());
-			SimpleFeatureSource featureSource = dataStore.getFeatureSource();
-			SimpleFeatureCollection featureCollection = featureSource.getFeatures();
-
-			SimpleFeatureType schema = featureSource.getSchema();
-			CoordinateReferenceSystem dataCRS = schema.getCoordinateReferenceSystem();
-	        CoordinateReferenceSystem worldCRS;
-				worldCRS = CRS.decode("EPSG:" + epsg);
-	        boolean lenient = true; // allow for some error due to different datums
-	        MathTransform transform = CRS.findMathTransform(dataCRS, worldCRS, lenient);		
-			
-			SimpleFeatureIterator iterator = featureCollection.features();
-			while(iterator.hasNext()) {
-			    SimpleFeature feature = iterator.next();
-			    Geometry g = (Geometry) feature.getAttribute(geomS);
-			    Geometry geom = JTS.transform(g, transform);
-			    Integer id = (Integer) feature.getAttribute(idS);
-				double var = 1;
-				if(varName!=null && !"".equals(varName)) {
-					var = (Double) feature.getAttribute(varName);
-				}
-				LayerObject o = new LayerObject(idGiver.getNextRunningID(), id, var, geom);
-				layer.addObject(o);
-				// check for duplicates
-				if(seen.contains((long) id)) {
-					System.err.println("Duplicate object '" + id + "' occured.");
-					ok = false;
-				}
-				seen.add((long) id);
-			}
-			return ok ? layer : null;
-		} catch (FactoryException | MismatchedDimensionException | TransformException e) {
-			throw new IOException(e);
-		}
-	}
-	
 
 	/**
 	 * @brief Loads a set of objects from a SUMO-POI-file
@@ -630,7 +562,6 @@ public class InputReader {
 		case FORMAT_WKT:
 			return loadGeometryFromWKTFile(inputParts[0]);
 		case FORMAT_SHAPEFILE:
-			return loadGeometryFromShapefile(inputParts[0], epsg);
 		case FORMAT_GEOPACKAGE:
 		case FORMAT_SUMO:
 			throw new IOException("Reading '" + what + "' from " + Utils.getFormatMMLName(format) + " is not supported.");
@@ -719,45 +650,6 @@ public class InputReader {
 			throw new IOException(e);
 		}
 	}
-	
-	
-	/** @brief Loads a geometry from a shape file
-	 * @param fileName The file to read the geometry from
-	 * @param epsg The used projection
-	 * @return The loaded geometry
-	 * @throws IOException When something fails
-	 */
-	private static Geometry loadGeometryFromShapefile(String fileName, int epsg) throws IOException {
-		try {
-			File file = new File(fileName);
-			if(!file.exists() || !fileName.endsWith(".shp")) {
-			    throw new IOException("Invalid shapefile filepath: " + fileName);
-			}
-			ShapefileDataStore dataStore = new ShapefileDataStore(file.toURI().toURL());
-			SimpleFeatureSource featureSource = dataStore.getFeatureSource();
-			SimpleFeatureCollection featureCollection = featureSource.getFeatures();
-
-			SimpleFeatureType schema = featureSource.getSchema();
-			CoordinateReferenceSystem dataCRS = schema.getCoordinateReferenceSystem();
-	        CoordinateReferenceSystem worldCRS;
-				worldCRS = CRS.decode("EPSG:" + epsg);
-	        boolean lenient = true; // allow for some error due to different datums
-	        MathTransform transform = CRS.findMathTransform(dataCRS, worldCRS, lenient);		
-			
-			SimpleFeatureIterator iterator = featureCollection.features();
-			while(iterator.hasNext()) {
-			    SimpleFeature feature = iterator.next();
-			    Geometry g = (Geometry) feature.getAttribute("the_geom");
-			    Geometry geom = JTS.transform(g, transform);
-			    // !!! clean up
-			    return geom;
-			}
-			throw new IOException("Could not load geometry from '" + fileName + "'.");
-		} catch (FactoryException | MismatchedDimensionException | TransformException e) {
-			throw new IOException(e);
-		}
-	}
-	
 	
 	
 	// --------------------------------------------------------
