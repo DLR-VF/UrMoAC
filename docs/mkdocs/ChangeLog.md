@@ -1,13 +1,16 @@
 # Change Log
 
-## master
+## to come: UrMoAC-0.6.0
+
 ### Channels and links
+
 * changed license to [EPL 2.0](LICENSE.md)
 * added [discussions](https://github.com/DLR-VF/UrMoAC/discussions) about the project
 * docs are now available at [readthedocs](https://urmoac.readthedocs.io/)
 
 
 ### New Features
+
 * initial file support (all but GTFS)
   * **Attention! option --from-filter was renamed to --from.filter**
   * **Attention! option --to-filter was renamed to --to.filter**
@@ -25,6 +28,7 @@
 
 
 ### Debugging and Improvements
+
 * We had a degradation between August 2021 and February 2022 that made public transport routing impossible; it&apos;s patched
 * We had a degradation between August 2021 and February 2022 that reinserted user password into db comments; it&apos;s patched, and comments are only generated when **--comment** is set
 * [issue #25](https://github.com/DLR-VF/UrMoAC/issues/25) solved: origin weights are not used when no aggregation area is given
@@ -43,9 +47,11 @@
 
 
 ### Tools
+
 * reorganised tools, tools are sorted by source type (osm, gtfs, sumo)
 * [issue #6](https://github.com/DLR-VF/UrMoAC/issues/6) solved: **Moved to Python 3.x**
 
 
-## 0.4
+## UrMoAC-0.4.0 (03.03.2021)
+
 * added static documentation

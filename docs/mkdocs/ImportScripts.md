@@ -13,7 +13,7 @@ We assume you have downloaded the area of your interest as a plain OSM XML file.
 
 In a first step, you have to write this data into a database. This is done using the script &ldquo;[osm2db.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osm2db.py)&rdquo;. Then, you probably want to build a road network from this data. This is done using the script &ldquo;[osmdb_buildWays.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osmdb_buildWays.py)&rdquo;.
 
-### Importing [OpenStreetMap](http://www.openstreetmap.org) into the database
+### Importing OpenStreetMap into the database
 The purpose of the [osm2db.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osm2db.py) tool is to store the contents of a given OSM XML file into a PostGIS-enabled PostgreSQL database.
 
 The [osm2db.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osm2db.py) tool gets two parameter on the command line:
@@ -45,7 +45,7 @@ The tool reads the OSM nodes, ways, and relations and stores them into generated
 * <b><i>&lt;PREFIX&gt;</i>_way</b>: an OSM way (id, refs &mdash; list of geometry node ids)
 * <b><i>&lt;PREFIX&gt;</i>_wtag</b>: a way attribute (id, k &mdash; key as text, v &mdash; value as text)
 
-### Building the road network from [OpenStreetMap](http://www.openstreetmap.org) data
+### Building the road network from OpenStreetMap data
 After inserting the data into the database using [osm2db.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osm2db.py), you may extract/build the transport network using this data. This is done using the [osmdb_buildWays.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osmdb_buildWays.py) script. It reads the imported OSM data and builds a database table that matches the road network representation used by UrMoAC. The generated database table is called &ldquo;<b><i>&lt;PREFIX</i>&gt;_network</b>&rdquo;.
 
 The call is:
@@ -61,7 +61,7 @@ Where:
 * ___&lt;USER&gt;___: the name of the user who has access (can generate tables and write into them) the database;
 * ___&lt;PASSWD&gt;___: the password of the user.
 
-### Using [OpenStreetMap](http://www.openstreetmap.org) data to build tables of certain structures
+### Using OpenStreetMap data to build tables of certain structures
 The script [osmdb_buildStructures.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osmdb_buildStructures.py) builds a database table that can be used to read origins / destinations from by parsing the contents of an OSM representation imported using [osm2db.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osm2db.py).
 
 Some structures can be represented in different ways within [OpenStreetMap](http://www.openstreetmap.org). The script [osmdb_buildStructures.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osmdb_buildStructures.py) tries to offer a simple way to gather the information about all instances of specific structures and store them into a single table, independent to their original representation within [OpenStreetMap](http://www.openstreetmap.org).
