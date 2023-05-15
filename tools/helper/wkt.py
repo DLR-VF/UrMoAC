@@ -104,26 +104,39 @@ class Geometry:
 
 
 # --- function definitions --------------------------------
-def parseMULTIPOLY2XYlists(which, scale=1.):
+def parseMULTIPOLY2XYlists(which):
   """! @brief Parses the given geometry assuming it's a 2D MULTIPOLYGON
     
   @return The parsed geometry as list of position lists
   """
-  which = which[which.find("("):-1]
-  which = which.split("(")
+  which = which[which.find("("):which.rfind(")")+1]
+  numOpen = 0
   cpolys = []
-  for polygon in which:
-    if len(polygon.strip())==0:
-      continue
-    polygon = polygon.replace(")", "")
-    points = polygon.split(",")
-    cpoints = []
-    for p in points:
-      if len(p.strip())==0:
-        continue
-      xy = p.split(" ")
-      cpoints.append( [ float(xy[0])/scale, float(xy[1])/scale ] )
-    cpolys.append(cpoints)
+  cpoly = []
+  i = 0
+  while i<len(which):
+    if which[i]=='(': 
+      if numOpen==2:
+        e = which.find(")", i)
+        polypart = which[i+1:e]
+        points = polypart.split(",")
+        cpoints = []
+        for p in points:
+          if len(p.strip())==0:
+            continue
+          xy = p.strip().split(" ")
+          cpoints.append( [ float(xy[0]), float(xy[1]) ] )
+        cpoly.append(cpoints)
+        i = e
+      else:
+        numOpen += 1
+    elif which[i]==')':
+      numOpen -= 1
+      if numOpen==1:
+        cpolys.append(cpoly)
+        #print (cpoly)
+        cpoly = []
+    i += 1
   return cpolys
 
 
