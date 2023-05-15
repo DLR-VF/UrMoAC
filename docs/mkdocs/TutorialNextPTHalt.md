@@ -79,7 +79,7 @@ After having imported our data, we can simply run UrMoAC for computing the acces
 The call looks like the following:
 
 ```console
-...>java -jar UrMoAC.jar --from "jdbc:postgresql://localhost/urmoac;berlin.osm20230428_buildings;<USER>;<PASSWD>" --from.geom centroid --to "jdbc:postgresql://localhost/urmoac;berlin.osm20230428_pthalts;<USER>;<PASSWD>" --to.geom centroid --net "jdbc:postgresql://localhost/urmoac;berlin.osm20230428_network;<USER>;<PASSWD>" --time 28800 --mode foot --epsg 25833 --nm-output "jdbc:postgresql://localhost/urmoac;berlin.osm20230428_houses2pthalts;<USER>;<PASSWD>" --verbose --shortest
+...\bin>java -jar UrMoAC.jar --from "jdbc:postgresql://localhost/urmoac;berlin.osm20230428_buildings;<USER>;<PASSWD>" --from.geom centroid --to "jdbc:postgresql://localhost/urmoac;berlin.osm20230428_pthalts;<USER>;<PASSWD>" --to.geom centroid --net "jdbc:postgresql://localhost/urmoac;berlin.osm20230428_network;<USER>;<PASSWD>" --time 28800 --mode foot --epsg 25833 --nm-output "jdbc:postgresql://localhost/urmoac;berlin.osm20230428_houses2pthalts;<USER>;<PASSWD>" --verbose --shortest
 ```
 
 The options mean the following:
@@ -92,11 +92,11 @@ The options mean the following:
 * __--time 28800__: we do need the time definitions; eventually, this is irrelevant for most modes
 * __--mode foot__: define that we want to compute accessibilities for walking
 * __--epsg 25833__: define the projection
-* __--nm-output "jdbc:postgresql://localhost/urmoac;berlin.osm20230428_houses2pthalts;<USER>;<PASSWD>"__: write a basic output to the database table osm20230428_houses2pthalts
+* __--nm-output "jdbc:postgresql://localhost/urmoac;berlin.osm20230428_houses2pthalts;&lt;USER&gt;;&lt;PASSWD&gt;"__: write a basic output to the database table osm20230428_houses2pthalts
 * __--verbose__: report what you do
 * __--shortest__: we want the access to the next public transport halt
 
-Given this, the tool will generate the table &ldquo;osm20230428_houses2pthalts&rdquo; which contains the following information for each origin (building) stored row-by-row:
+Given this, the tool will generate the table &ldquo;berlin.osm20230428_houses2pthalts&rdquo; which contains the following information for each origin (building) stored row-by-row:
 
 * __fid__: the ID of origin (building in this case)
 * __sid__: the ID of the destination (the next PT stop in this case)
@@ -107,7 +107,14 @@ Given this, the tool will generate the table &ldquo;osm20230428_houses2pthalts&r
  
  
 ### Step 4: display the results
-!!!
+
+
+```console
+...\tools\visualisation>python plot_area.py --from localhost;urmoac;berlin.osm20230428_buildings;postgres;postgres -m localhost;urmoac;berlin.osm20230428_houses2pthalts;postgres;postgres --from.geom centroid --border localhost;urmoac;berlin.osm20230428_boundary;postgres;postgres --title "Access to the nearest public transport stop"
+```
+
+
+# ![berlin_building2pt.png](./images/berlin_building2pt.png)
 
 
 

@@ -1,4 +1,4 @@
-# ![logo.png](./images/UrMoAC_logo2_shade1.png) UrMoAC
+# ![UrMoAC_logo2_shade1.png](./images/UrMoAC_logo2_shade1.png) UrMoAC
 
 &ldquo;Urban Mobility Accessibility Computer&rdquo; or &ldquo;UrMoAC&rdquo; is a tool for computing accessibility measures, supporting aggregation, variable limits, and intermodality. It is a scientific tool.
 
