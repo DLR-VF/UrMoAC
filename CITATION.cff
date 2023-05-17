@@ -1,0 +1,42 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: UrMoAC
+message: >-
+  A tool for computing accessibility measures, supporting
+  aggregation, variable limits, and intermodality.
+type: software
+authors:
+  - given-names: Daniel
+    family-names: Krajzewicz
+    email: daniel.krajzewicz@dlr.de
+    affiliation: Deutsches Zentrum für Luft- und Raumfahrt
+    orcid: 'https://orcid.org/0000-0003-1045-8800'
+  - given-names: Alain
+    family-names: Schengen
+    email: alain.schengen@dlr.de
+    affiliation: Deutsches Zentrum für Luft- und Raumfahrt
+  - given-names: Simon
+    family-names: Nieland
+    email: simon.nieland@dlr.de
+    affiliation: Deutsches Zentrum für Luft- und Raumfahrt
+    orcid: 'https://orcid.org/0000-0002-1116-0646'
+  - given-names: Yannick
+    family-names: Voigt
+    affiliation: Deutsches Zentrum für Luft- und Raumfahrt
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.7940600
+repository-code: 'https://github.com/DLR-VF/UrMoAC'
+url: 'https://github.com/DLR-VF/UrMoAC'
+abstract: >-
+  “Urban Mobility Accessibility Computer” or “UrMoAC” is a
+  tool for computing accessibility measures, supporting
+  aggregation, variable limits, and intermodality. It is a
+  scientific tool.
+keywords:
+  - accessibility measures
+  - mobility
+  - urban shape
+license: EPL-2.0
