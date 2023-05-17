@@ -16,7 +16,6 @@
 package de.dlr.ivf.urmo.router.io;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
@@ -29,12 +28,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.geotools.data.shapefile.ShapefileDataStore;
-import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.data.simple.SimpleFeatureSource;
-import org.geotools.geometry.jts.JTS;
-import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -43,13 +36,6 @@ import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 import org.locationtech.jts.io.WKTReader;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.geometry.MismatchedDimensionException;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.TransformException;
 import org.postgresql.PGConnection;
 import org.xml.sax.SAXException;
 
@@ -88,9 +74,6 @@ public class NetLoader {
 			break;
 		case FORMAT_WKT:
 			net = loadNetFromWKTFile(idGiver, inputParts[0], uModes);
-			break;
-		case FORMAT_SHAPEFILE:
-			net = loadNetFromShapefile(idGiver, inputParts[0], epsg, uModes);
 			break;
 		case FORMAT_SUMO:
 			net = loadNetFromSUMOFile(idGiver, inputParts[0], uModes);
@@ -252,66 +235,6 @@ public class NetLoader {
 		}
 	}
 	
-	
-	/** @brief Reads the network from a shapefile
-	 * @param idGiver Instance supporting running ids 
-	 * @param fileName The file to read the network from
-	 * @param epsg The projection
-	 * @param uModes The modes for which the network shall be loaded
-	 * @return The loaded net
-	 * @throws IOException When something fails 
-	 */
-	private static DBNet loadNetFromShapefile(IDGiver idGiver, String fileName, int epsg, long uModes) throws IOException {
-		try {
-			File file = new File(fileName);
-			if(!file.exists() || !fileName.endsWith(".shp")) {
-			    throw new IOException("Invalid shapefile filepath: " + fileName);
-			}
-			ShapefileDataStore dataStore = new ShapefileDataStore(file.toURI().toURL());
-			SimpleFeatureSource featureSource = dataStore.getFeatureSource();
-			SimpleFeatureCollection featureCollection = featureSource.getFeatures();
-
-			SimpleFeatureType schema = featureSource.getSchema();
-			CoordinateReferenceSystem dataCRS = schema.getCoordinateReferenceSystem();
-	        CoordinateReferenceSystem worldCRS = CRS.decode("EPSG:" + epsg);
-	        boolean lenient = true; // allow for some error due to different datums
-	        MathTransform transform = CRS.findMathTransform(dataCRS, worldCRS, lenient);		
-
-			DBNet net = new DBNet(idGiver);
-	        
-			SimpleFeatureIterator iterator = featureCollection.features();
-			boolean ok = true;
-			while(iterator.hasNext()) {
-			    SimpleFeature feature = iterator.next();
-				long modes = 0;
-				if((Boolean) feature.getAttribute("mode_walk")) modes = modes | Modes.getMode("foot").id;
-				if((Boolean) feature.getAttribute("mode_bike")) modes = modes | Modes.getMode("bicycle").id;
-				if((Boolean) feature.getAttribute("mode_mit")) modes = modes | Modes.getMode("passenger").id;
-				modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
-				if(modes==0 || ((modes&uModes)==0)) {
-					continue;
-				}
-			    Geometry g = (Geometry) feature.getAttribute("the_geom");
-			    Geometry geom = JTS.transform(g, transform);
-				if(geom.getNumGeometries()!=1) {
-					System.err.println("Edge '" + (String) feature.getAttribute("oid") + "' has a multiple geometries...");
-					ok = false;
-					continue;
-				}
-				LineString geom2 = (LineString) geom.getGeometryN(0);
-				Coordinate[] cs = geom2.getCoordinates();
-				DBNode fromNode = net.getNode((Integer) feature.getAttribute("nodefrom"), cs[0]);
-				DBNode toNode = net.getNode((Integer) feature.getAttribute("nodeto"), cs[cs.length - 1]);
-				ok &= net.addEdge(net.getNextID(), (String) feature.getAttribute("oid"), fromNode, toNode, modes,
-						(Double) feature.getAttribute("vmax") / 3.6, geom2, (Double) feature.getAttribute("length"));
-			
-			}
-			return ok ? net : null;
-		} catch (FactoryException | MismatchedDimensionException | TransformException e) {
-			throw new IOException(e);
-		}
-	}
-
 	
 	/** @brief Reads the network from a SUMO road network file
 	 * @param idGiver Instance supporting running ids 
