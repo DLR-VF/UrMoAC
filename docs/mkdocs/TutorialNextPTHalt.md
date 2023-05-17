@@ -1,7 +1,7 @@
 # Tutorial: Computing the accessibility to the next public transport halt
 
 ## Task
-Computing the access to the next public transport halt within a region is a very common use case for UrMoAC. Within this tutorial, a basic usage of the tool for this purpose is described and discussed. This tutorial shows as well how to apply a spatial aggregation of the results.
+Computing the access to the next public transport halt within a region is a very common use case for UrMoAC. Within this tutorial, a basic usage of the tool for this purpose is described and discussed.
 
 
 
@@ -73,6 +73,15 @@ Again, you may use [osmdb_buildStructures.py](./ImportScripts.md#using-openstree
 
 You will obtain a table named &ldquo;osm20230428_pthalts&rdquo; that includes the public transport halts.
 
+#### Step 2.5: prepare the city boundary
+For a nicer visualisation, we need Berlin's boundary. Again,  [osmdb_buildStructures.py](./ImportScripts.md#using-openstreetmap-data-to-build-tables-of-certain-structures) is used. The call is:
+
+```console
+...\tools\osm>python osmdb_buildStructures.py localhost;urmoac;berlin.osm20230428;<USER>;<PASSWD> structure_defs/def_city_boundaries.txt localhost;urmoac;berlin.osm20230428_boundary;<USER>;<PASSWD>
+```
+
+You will obtain a table named &ldquo;osm20230428_boundary&rdquo; that includes the city boundaries.
+
 ### Step 3: compute the accessibility
 After having imported our data, we can simply run UrMoAC for computing the access to the next public transport halt.
 
@@ -108,17 +117,25 @@ Given this, the tool will generate the table &ldquo;berlin.osm20230428_houses2pt
  
 ### Step 4: display the results
 
+>ou can now visualise the results. UrMoAC comes with Python-scripts for visualisation and we simply use one of them, namely 
+[plot_area.py](./VisualisationTools.md#plot_area). The call is as following:
+
 
 ```console
-...\tools\visualisation>python plot_area.py --from localhost;urmoac;berlin.osm20230428_buildings;postgres;postgres -m localhost;urmoac;berlin.osm20230428_houses2pthalts;postgres;postgres --from.geom centroid --border localhost;urmoac;berlin.osm20230428_boundary;postgres;postgres --title "Access to the nearest public transport stop"
+...\tools\visualisation>python plot_area.py --from localhost;urmoac;berlin.osm20230428_buildings;postgres;postgres -m localhost;urmoac;berlin.osm20230428_houses2pthalts;postgres;postgres --from.geom centroid --border localhost;urmoac;berlin.osm20230428_boundary;postgres;postgres --title "Access to the nearest public transport stop" 
+--output berlin_building2pt.png
 ```
 
+You will get a .png-file named &ldquo;berlin_building2pt.png&rdquo; that contains the following image:
 
 # ![berlin_building2pt.png](./images/berlin_building2pt.png)
 
 
-
 ## Discussion
-Ok, we can show the accessibilities, but the map representation showing single buildings can be only badly investigated. What would be nice is an aggregation of areas. We&apos;ll do this in the next step.
+
+Ok, you can now compute and visualise accessibilities measures.
+
+Congratulations!
+
 
 
