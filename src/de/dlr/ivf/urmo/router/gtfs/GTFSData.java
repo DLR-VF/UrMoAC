@@ -15,8 +15,6 @@
  */
 package de.dlr.ivf.urmo.router.gtfs;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -89,12 +87,6 @@ public class GTFSData {
 	 * @return The number of errorneous connections
 	 */
 	public int recheckTimesAndInsert(String tripID, Vector<GTFSStopTime> stopTimes, HashMap<String, GTFSStop> id2stop) {
-		Collections.sort(stopTimes, new Comparator<GTFSStopTime>() {
-            public int compare(GTFSStopTime obj1, GTFSStopTime obj2) {
-                return obj1.arrivalTime - obj2.arrivalTime;
-            }
-		});
-		
 		Vector<GTFSConnection> connections = new Vector<>();
 		GTFSStopTime lastStopTime = null;
 		for(Iterator<GTFSStopTime> i=stopTimes.iterator(); i.hasNext();) {
@@ -121,13 +113,8 @@ public class GTFSData {
 		for(int i=0; i<connections.size(); ++i) {
 			GTFSConnection curr = connections.elementAt(i);
 			if(curr.departureTime>curr.arrivalTime) {
-				//int n = curr.departureTime;
-				//curr.departureTime = curr.arrivalTime;
-				//curr.arrivalTime = n;
-				//System.err.println("A connection of line " + curr.line + " departs at " + curr.departureTime + " and arrives at " + curr.arrivalTime + ".");
 				++err;
 				continue;
-				//throw new RuntimeException("A connection of line " + curr.line + " departs at " + curr.departureTime + " and arrives at " + curr.arrivalTime + ".");
 			}
 			if(curr.departureTime!=curr.arrivalTime) {
 				continue;
