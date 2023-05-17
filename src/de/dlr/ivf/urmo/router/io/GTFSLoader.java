@@ -33,10 +33,6 @@ import de.dlr.ivf.urmo.router.shapes.DBNet;
  *         Transport Research
  */
 public class GTFSLoader {
-	/// @brief A list of week day names
-	public static String[] weekdays = { "", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday" };
-	
-	
 	/** @brief Loads GTFS data from a database or a file
 	 * @param options The options to read the input definition from
 	 * @param bounds A bounding box for prunning read information
