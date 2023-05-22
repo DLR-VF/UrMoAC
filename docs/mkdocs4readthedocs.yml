@@ -12,13 +12,14 @@ theme:
     highlightjs: true
     hljs_languages:
         - yaml
-
+        
 nav:
     - Home: index.md
     - Installation: Installation.md
     - ChangeLog: ChangeLog.md
     - Links: Links.md
     - Publications: Publications.md
+#    - FAQ: FAQ.md
     - Usage: 
         - Basics: Usage.md
         - Options: Options.md
@@ -30,13 +31,17 @@ nav:
         - Tutorial List: Tutorials.md
         - Computing the accessibility to the next public transport halt: TutorialNextPTHalt.md
         - Using QGIS to visualise UrMoAC results: TutorialQGISVisualisation.md
-#    - Methods: 
-#        - Outline: Methods.md
-#        - Mapping to network: MappingToNet.md
+#    - Subtopics:
+#        - Subtopics List: Methods.md
+#        - Projection: Subtopic_Projection.md
+#        - Mapping To Net: Subtopic_Mapping.md
+#        - Networks: Subtopic_Networks.md
+#        - OpenStreetMap: Subtopic_OSM.md
+#        - GTFS: Subtopic_GTFS.md
     - Developer Docs: 
         - Overview: DeveloperDocs.md
         - Testing UrMoAC: DeveloperTests.md
-        - Creating a static documentation: DeveloperStaticDocumentation.md
+        - Building a Static Documentation: DeveloperStaticDocumentation.md
         - How To Release: DeveloperHowToRelease.md
 #        - Todo: Todo.md
     - Legal: 
