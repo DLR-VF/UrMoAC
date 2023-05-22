@@ -922,7 +922,6 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		}
 		boolean hadError = false;
 		try {
-			// set up the db connection
 			UrMoAccessibilityComputer worker = new UrMoAccessibilityComputer();
 			// initialise (load data and stuff)
 			hadError = !worker.init(options);

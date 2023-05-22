@@ -75,6 +75,12 @@ public class GTFSReader_DB extends AbstractGTFSReader {
 	 * @throws IOException If something fails
 	 */
 	protected void init(Utils.Format format, String[] inputParts, Geometry bounds) throws IOException {
+		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
+		try {
+			Class.forName("org.postgresql.Driver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 		try {
 			connection = Utils.getConnection(format, inputParts, "pt");
 			connection.setAutoCommit(true);

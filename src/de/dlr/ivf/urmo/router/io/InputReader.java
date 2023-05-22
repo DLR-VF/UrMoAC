@@ -185,6 +185,13 @@ public class InputReader {
 	 */
 	private static Layer loadLayerFromDB(String layerName, Geometry bounds, Utils.Format format, String[] inputParts, String filter, String varName,
 			String idS, String geomS, IDGiver idGiver, int epsg, boolean dismissWeight) throws IOException {
+		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
+		try {
+			Class.forName("org.sqlite.JDBC");
+			Class.forName("org.postgresql.Driver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 		if(dismissWeight&&(varName==null||"".equals(varName))) {
 			System.out.println("Warning: the weight option is not used as no aggregation takes place.");
 			varName = null;
@@ -482,6 +489,13 @@ public class InputReader {
 	 * @throws IOException When something fails
 	 */
 	private static EntrainmentMap loadEntrainmentFromDB(Utils.Format format, String[] inputParts) throws IOException {
+		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
+		try {
+			Class.forName("org.sqlite.JDBC");
+			Class.forName("org.postgresql.Driver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 		try {
 			Connection connection = Utils.getConnection(format, inputParts, "entrainment");
 			connection.setAutoCommit(true);
@@ -566,6 +580,13 @@ public class InputReader {
 	 * @throws IOException When something fails
 	 */
 	private static Geometry loadGeometryFromDB(Utils.Format format, String[] inputParts, int epsg, String what) throws IOException {
+		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
+		try {
+			Class.forName("org.sqlite.JDBC");
+			Class.forName("org.postgresql.Driver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 		try {
 			Connection connection = Utils.getConnection(format, inputParts, what);
 			connection.setAutoCommit(true);
@@ -673,6 +694,13 @@ public class InputReader {
 	 * @throws IOException When something fails
 	 */
 	private static Vector<DBODRelation> loadODConnectionsFromDB(Utils.Format format, String[] inputParts) throws IOException {
+		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
+		try {
+			Class.forName("org.sqlite.JDBC");
+			Class.forName("org.postgresql.Driver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 		try {
 			Connection connection = Utils.getConnection(format, inputParts, "od-connections");
 			connection.setAutoCommit(true);

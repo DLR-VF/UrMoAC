@@ -103,6 +103,13 @@ public class NetLoader {
 	 * @throws IOException When something fails 
 	 */
 	private static DBNet loadNetFromDB(IDGiver idGiver, Utils.Format format, String[] inputParts, String vmax, int epsg, long uModes) throws IOException {
+		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
+		try {
+			Class.forName("org.sqlite.JDBC");
+			Class.forName("org.postgresql.Driver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 		try {
 			Connection connection = Utils.getConnection(format, inputParts, "net");
 			connection.setAutoCommit(true);
@@ -301,6 +308,13 @@ public class NetLoader {
 	 * @throws IOException When something fails 
 	 */
 	private static int loadTravelTimesFromDB(DBNet net, Utils.Format format, String[] inputParts, boolean verbose) throws IOException {
+		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
+		try {
+			Class.forName("org.sqlite.JDBC");
+			Class.forName("org.postgresql.Driver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 		try {
 			int numFalse = 0;
 			int numOk = 0;

@@ -75,6 +75,13 @@ public abstract class BasicCombinedWriter {
 		switch(format) {
 		case FORMAT_POSTGRES:
 		case FORMAT_SQLITE:
+			// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
+			try {
+				Class.forName("org.sqlite.JDBC");
+				Class.forName("org.postgresql.Driver");
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
 			try {
 				_tableName = Utils.getTableName(format, inputParts, fileType);
 				_connection = Utils.getConnection(format, inputParts, fileType);
