@@ -1,3 +1,23 @@
+#!/usr/bin/env python
+# =========================================================
+# plot_area.py
+#
+# @author Daniel Krajzewicz
+# @date 01.05.2023
+# @copyright Institut fuer Verkehrsforschung, 
+#            Deutsches Zentrum fuer Luft- und Raumfahrt
+# @brief Plots measures as an areal contour plot
+#
+# This file is part of the "UrMoAC" accessibility tool
+# https://github.com/DLR-VF/UrMoAC
+# Licensed under the Eclipse Public License 2.0
+#
+# Copyright (c) 2016-2023 DLR Institute of Transport Research
+# All rights reserved.
+# =========================================================
+
+
+# --- imported modules ------------------------------------
 from optparse import OptionParser
 import matplotlib
 import matplotlib.pyplot
@@ -18,6 +38,7 @@ import spatialhelper
 
 
 
+# --- helper functions ------------------------------------
 def cmap_discretize(cmap, N):
     """Return a discrete colormap from the continuous colormap cmap.
 
