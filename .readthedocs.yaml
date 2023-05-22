@@ -16,5 +16,6 @@ mkdocs:
   fail_on_warning: false
   
 python:
-  install:
-    - requirements: docs/requirements.txt
+   install:
+   - requirements: requirements.txt
+   
