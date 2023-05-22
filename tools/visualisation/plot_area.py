@@ -130,7 +130,7 @@ def plotArea_Contours(shapel, obj2pos, obj2val, colmap, shapes2=None, title=None
 
 def getOptions():
     optParser = OptionParser(usage="""usage: %prog [options].""")
-    optParser.add_option("-f", "--from", dest="objects",default=None, help="Defines the objecs (sources) to load")
+    optParser.add_option("-f", "--from", dest="objects",default=None, help="Defines the objects (origins) to load")
     optParser.add_option("--from.id", dest="objectsID", default="gid", help="Defines the name of the field to read the object ids from")
     optParser.add_option("--from.geom", dest="objectsGeom",default="the_geom", help="Defines the name of the field to read the object geometries from")
     optParser.add_option("-b", "--border", dest="mainBorder", default=None, help="Defines the border geometry to load")
