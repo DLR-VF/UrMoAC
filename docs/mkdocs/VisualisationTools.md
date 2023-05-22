@@ -2,7 +2,7 @@ We have developed a set of visualisation options, most of them using technically
 
 ## plot_area
 
-**plot_area.py** shows the results of an accessibility computation as an areal contour plot using the origins' positions and the computed measures.
+**plot_area.py** shows the results of an accessibility computation as an areal contour plot using the origins&#39; positions and the computed measures.
 
 It generates figures as the following:
 

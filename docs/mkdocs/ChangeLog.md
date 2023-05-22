@@ -38,7 +38,7 @@
 * improved (faster) subnets removal
 * output
     * [issue #14](https://github.com/DLR-VF/UrMoAC/issues/14) solved: mapping is sorted by edges, then by objects
-* improved mapping of objects to the network; it seems like we&apos;ve had a glitch which allocated some locations (<1 % in urban areas) to the wrong edge
+* improved mapping of objects to the network; it seems like we&apos;ve had a glitch which allocated some locations (&lt;1 % in urban areas) to the wrong edge
 * extended handling of input errors, especially when reading files. Now, wrong / broken attributes of loaded artefacts should be reported. Let us know if not (when the application stops with an exception)&hellip;
 * [issue #24](https://github.com/DLR-VF/UrMoAC/issues/24) solved: Collecting results when aggregating them is now much faster
 * [issue #48](https://github.com/DLR-VF/UrMoAC/issues/48) solved: Better reporting of unconnected networks

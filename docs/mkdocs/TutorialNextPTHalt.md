@@ -26,7 +26,7 @@ As said, we will use the city of Berlin as an example. We use a data set availab
 
 ### Step 2: import the data into a database
 
-Now, you should open a command line interface (shell / cmd.exe) and navigate to UrMoAC's OpenStreetMap tools' folder. It is located in the subfolder ```tools/osm```.
+Now, you should open a command line interface (shell / cmd.exe) and navigate to UrMoAC&#39;s OpenStreetMap tools&#39; folder. It is located in the subfolder ```tools/osm```.
 
 
 #### Step 2.1: import OSM data
