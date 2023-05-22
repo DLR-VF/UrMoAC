@@ -1,0 +1,7 @@
+[node]
+
+[way]
+
+[rel]
+type=boundary & place=city
+
