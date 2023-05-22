@@ -3,11 +3,12 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.dlr.ivf.urmo</groupId>
-    <artifactId>UrMoAccessibilityComputer</artifactId>
-    <version>0.1-PRERELEASE</version>
+    <artifactId>UrMoAC</artifactId>
+    <version>0.6</version>
     <packaging>jar</packaging>
 
     <build>
+        <defaultGoal>install</defaultGoal>
         <sourceDirectory>src</sourceDirectory>
         <plugins>
             <plugin>
@@ -35,6 +36,7 @@
                                                      "org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>de.dlr.ivf.urmo.UrMoAccessibilityComputer</mainClass>
                                 </transformer>
+                                <!-- transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/ -->
                             </transformers>
                             <filters>
                                 <filter>
@@ -71,7 +73,7 @@
         <name>German Aerospace Center (DLR) - Institute of Transport Research</name>
         <url>https://www.dlr.de/vf/en</url>
     </organization>
-    <name>UrMoAccessibilityComputer</name>
+    <name>UrMoAC</name>
     <url>https://github.com/DLR-VF/UrMoAC</url>
     <description>A tool for computing accessibility measures, supporting aggregation, variable limits, and
         intermodality.
