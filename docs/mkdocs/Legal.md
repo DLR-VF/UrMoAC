@@ -29,7 +29,6 @@ UrMoAC uses some external libraries, namely:
 
 | Library | Purpose | Licence |
 | ---- | ---- | ---- |
-| [commons-cli](https://commons.apache.org/proper/commons-cli/) | parses command line options | Apache V2.0 |
 | [commons-pool](https://commons.apache.org/proper/commons-pool/) | ? recheck ? | Apache V2.0 |
 | [gt-api](http://docs.geotools.org/latest/userguide/library/api/index.html) | GeoTools: API to GeoTools | LGPL |
 | [gt-data](http://docs.geotools.org/latest/userguide/library/data/index.html) | GeoTools: Access to data | LGPL |
@@ -41,15 +40,14 @@ UrMoAC uses some external libraries, namely:
 | [jai_core](https://www.oracle.com/technetwork/java/javasebusiness/downloads/java-archive-downloads-java-client-419417.html) | Java Advanced Imaging | Oracle Binary Code License Agreement for Java SE |
 | [jdom](http://www.jdom.org/) | XML processing | Apache-style |
 | [jgridshift](http://jgridshift.sourceforge.net/index.html) | Transformations | LGPL |
-| [jsi](http://jsi.sourceforge.net/) | Java Spatial INdex (RTree) | LGPL |
-| [jsr-275] | Measures | ? |
+| [jsr-275] | Measures | BSD |
 | [jts](https://projects.eclipse.org/projects/locationtech.jts) | Topology Suite | Eclipse Distribution Licence |
 | [log4j](https://logging.apache.org/log4j/) | Logging framework | Apache V2.0 |
 | [postgis](http://postgis.net//) | PostGIS JDBC driver | LGPL |
-| [postgresql](https://jdbc.postgresql.org/) | PostgreSQL JDBC driver | ? |
+| [postgresql](https://jdbc.postgresql.org/) | PostgreSQL JDBC driver | BSD 2-clause |
 | [slf4j](https://www.slf4j.org/) | ? Logging Facade ? | MIT |
 | [trove4j](https://bitbucket.org/trove4j/trove) | Fast collections | LGPL |
-| [vecmath] ? | Vector computation? | ? |
+| [vecmath] ? | Vector computation? | GPL-2 |
 
 We would like to thank all the contributors to the named libraries. Without you, this work would be not possible.
 
