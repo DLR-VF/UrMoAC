@@ -2,9 +2,7 @@
 
 <a name="1">[1]</a> Krajzewicz, Daniel and Heinrichs, Dirk and Cyganski, Rita (2017) [_Intermodal Contour Accessibility Measures Computation Using the &lsquo;UrMo Accessibility Computer&rsquo;_](https://elib.dlr.de/118235/). International Journal On Advances in Systems and Measurements, 10 (3&4), pp. 111&ndash;123. IARIA.
 
-and
-
-<a name="2">[2]</a> [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.79406006-blue)](https://doi.org/10.5281/zenodo.7940600)
+You probably want as well use UrMoAC's DOI: [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.79406006-blue)](https://doi.org/10.5281/zenodo.7940600)
 
 ## Other rather technical descriptions of UrMoAC
 
