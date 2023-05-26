@@ -1,6 +1,8 @@
 # Change Log
 
-## to come: UrMoAC-0.6.0
+## UrMoAC-0.6.0 (26.05.2023)
+
+[![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.79406006-blue)](https://doi.org/10.5281/zenodo.7940600)
 
 ### Channels and links
 
