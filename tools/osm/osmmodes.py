@@ -66,7 +66,7 @@ VEHICLE = ALL&~FOOT
 
 
 modes1 = {
-  PASSENGER:      {"mml":"passenger",     "vmax":200/3.6 },
+  PASSENGER:      {"mml":"car",           "vmax":200/3.6 },
   MOTORCYCLE:     {"mml":"motorcycle",    "vmax":120/3.6 },
   DELIVERY:       {"mml":"delivery",      "vmax":160/3.6 },
   HGV:            {"mml":"hgv",           "vmax":100/3.6 },

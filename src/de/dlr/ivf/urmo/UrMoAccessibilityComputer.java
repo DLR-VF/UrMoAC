@@ -256,7 +256,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("net", 'n', new Option_String());
 		options.setDescription("net", "Defines the road network to load.");
 		options.add("mode", 'm', new Option_String());
-		options.setDescription("mode", "The mode to use ['passenger', 'foot', 'bike'].");
+		options.setDescription("mode", "The mode to use ['car', 'foot', 'bike'].");
 		options.add("from-agg", new Option_String());
 		options.setDescription("from-agg", "Defines the data source of origin aggregation areas.");
 		options.add("to-agg", new Option_String());
@@ -350,7 +350,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("custom.price-per-km", new Option_Double());
 		options.setDescription("custom.price-per-km", "Price for using the custom mode per kilometre.");
 		options.add("custom.allowed", new Option_String());
-		options.setDescription("custom.allowed", "The type of roads the custom mode can use (combination of 'foot', 'bike', 'passenger' divided by ';').");
+		options.setDescription("custom.allowed", "The type of roads the custom mode can use (combination of 'foot', 'bike', 'car' divided by ';').");
 
 		options.beginSection("Output Options");
 		options.add("nm-output", 'o', new Option_String());

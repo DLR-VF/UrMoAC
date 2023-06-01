@@ -180,7 +180,7 @@ The following attributes describe a road:
 * to node: the __numeric__ ID of the node (intersection) the road ends at;
 * foot: whether pedestrians may use this road;
 * bike: whether bicyclists may use this road;
-* passenger: whether motorised vehicles may use this road;
+* car: whether motorised vehicles may use this road;
 * speed: the maximum velocity allowed on this road in km/h;
 * length: the length of this road in meters;
 * geometry: a line strip defining this road&apos;s geometry.
@@ -205,7 +205,7 @@ A road network is defined by the roads it consists of, and each road is represen
 | nodeto | long | The ID of the node the road ends at | 
 | mode_walk | boolean | Whether the road can be used by the mode &ldquo;walking&rdquo;/&ldquo;foot&rdquo; | 
 | mode_bike | boolean | Whether the road can be used by the mode &ldquo;bicycling&rdquo;/&ldquo;bike&rdquo; | 
-| mode_mit | boolean | Whether the road can be used by the mode &ldquo;motorised individual traffic&rdquo;/&ldquo;passenger&rdquo;/&ldquo;car&rdquo; | 
+| mode_mit | boolean | Whether the road can be used by the mode &ldquo;motorised individual traffic&rdquo;/&ldquo;car&rdquo;/&ldquo;car&rdquo; | 
 | vmax | double | The maximum speed allowed on this road in km/h | 
 | length | double | The length of this road | 
 
@@ -220,7 +220,7 @@ The following example defines a road with the ID &ldquo;10000&rdquo; connecting 
 
 ```10000;0;1;true;true;true;50;500;-250;0;250;0```
 
-The boolean values for &ldquo;foot&rdquo;, &ldquo;bike&rdquo;, and &ldquo;passenger&rdquo; may be encodes as &ldquo;true&rdquo; or &ldquo;1&rdquo; when the respective mode is allowed, &ldquo;false&rdquo; or &ldquo;0&rdquo; otherwise.
+The boolean values for &ldquo;foot&rdquo;, &ldquo;bike&rdquo;, and &ldquo;car&rdquo; may be encodes as &ldquo;true&rdquo; or &ldquo;1&rdquo; when the respective mode is allowed, &ldquo;false&rdquo; or &ldquo;0&rdquo; otherwise.
 
 Please note that no projection is applied to aggregation areas stored in .csv files, thereby you should set __--epsg 0__.
 
@@ -235,7 +235,7 @@ The following example defines a road with the ID &ldquo;10000&rdquo; connecting 
 
 ```10000;0;1;true;true;true;50;500;LINESTRING(-250 0, 250 0)```
 
-The boolean values for &ldquo;foot&rdquo;, &ldquo;bike&rdquo;, and &ldquo;passenger&rdquo; may be encodes as &ldquo;true&rdquo; or &ldquo;1&rdquo; when the respective mode is allowed, &ldquo;false&rdquo; or &ldquo;0&rdquo; otherwise.
+The boolean values for &ldquo;foot&rdquo;, &ldquo;bike&rdquo;, and &ldquo;car&rdquo; may be encodes as &ldquo;true&rdquo; or &ldquo;1&rdquo; when the respective mode is allowed, &ldquo;false&rdquo; or &ldquo;0&rdquo; otherwise.
 
 Please note that no projection is applied to aggregation areas stored in .wkt files, thereby you should set __--epsg 0__.
 
