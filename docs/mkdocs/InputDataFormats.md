@@ -179,7 +179,7 @@ The following attributes describe a road:
 * from node: the __numeric__ ID of the node (intersection) the road starts at;
 * to node: the __numeric__ ID of the node (intersection) the road ends at;
 * foot: whether pedestrians may use this road;
-* bicycle: whether bicyclists may use this road;
+* bike: whether bicyclists may use this road;
 * passenger: whether motorised vehicles may use this road;
 * speed: the maximum velocity allowed on this road in km/h;
 * length: the length of this road in meters;
@@ -220,7 +220,7 @@ The following example defines a road with the ID &ldquo;10000&rdquo; connecting 
 
 ```10000;0;1;true;true;true;50;500;-250;0;250;0```
 
-The boolean values for &ldquo;foot&rdquo;, &ldquo;bicycle&rdquo;, and &ldquo;passenger&rdquo; may be encodes as &ldquo;true&rdquo; or &ldquo;1&rdquo; when the respective mode is allowed, &ldquo;false&rdquo; or &ldquo;0&rdquo; otherwise.
+The boolean values for &ldquo;foot&rdquo;, &ldquo;bike&rdquo;, and &ldquo;passenger&rdquo; may be encodes as &ldquo;true&rdquo; or &ldquo;1&rdquo; when the respective mode is allowed, &ldquo;false&rdquo; or &ldquo;0&rdquo; otherwise.
 
 Please note that no projection is applied to aggregation areas stored in .csv files, thereby you should set __--epsg 0__.
 
@@ -235,7 +235,7 @@ The following example defines a road with the ID &ldquo;10000&rdquo; connecting 
 
 ```10000;0;1;true;true;true;50;500;LINESTRING(-250 0, 250 0)```
 
-The boolean values for &ldquo;foot&rdquo;, &ldquo;bicycle&rdquo;, and &ldquo;passenger&rdquo; may be encodes as &ldquo;true&rdquo; or &ldquo;1&rdquo; when the respective mode is allowed, &ldquo;false&rdquo; or &ldquo;0&rdquo; otherwise.
+The boolean values for &ldquo;foot&rdquo;, &ldquo;bike&rdquo;, and &ldquo;passenger&rdquo; may be encodes as &ldquo;true&rdquo; or &ldquo;1&rdquo; when the respective mode is allowed, &ldquo;false&rdquo; or &ldquo;0&rdquo; otherwise.
 
 Please note that no projection is applied to aggregation areas stored in .wkt files, thereby you should set __--epsg 0__.
 
@@ -368,7 +368,7 @@ Use __--entrainment jdbc:postgresql:_&lt;DB_HOST&gt;_;_&lt;SCHEMA&gt;_._&lt;TABL
 
 You may load entrainment definitions from .csv-files. Each entrainment definition is stored in a single line individually. The following example defines that a bike may be taken on board of a pt subcarrier 400 (i.e. city rail in Berlin&apos;s GTFS definition):
 
-```pt;400;bicycle```
+```pt;400;bike```
 
 Use __--entrainment _&lt;MYFILE&gt;.csv;___ to load the entrainment definitions from a .csv-file.
 

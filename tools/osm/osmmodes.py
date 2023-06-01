@@ -74,7 +74,7 @@ modes1 = {
   BUS:            {"mml":"bus",           "vmax":120/3.6 },
 
   FOOT:           {"mml":"foot",          "vmax":5/3.6 },
-  BICYCLE:        {"mml":"bicycle",       "vmax":15/3.6 },
+  BICYCLE:        {"mml":"bike",          "vmax":15/3.6 },
   HORSE:          {"mml":"horse",         "vmax":200/3.6 },
   MOPED:          {"mml":"moped",         "vmax":200/3.6 },
 

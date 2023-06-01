@@ -1,2 +1,2 @@
---from sources.poi.xml --to destinations.poi.xml --net network.net.xml --origins-to-road-output o2r_output.csv --destinations-to-road-output d2r_output.csv --epsg 0 --mode bicycle --time 0 --from-agg agg_sources.poi.xml --to-agg agg_destinations.poi.xml 
+--from sources.poi.xml --to destinations.poi.xml --net network.net.xml --origins-to-road-output o2r_output.csv --destinations-to-road-output d2r_output.csv --epsg 0 --mode bike --time 0 --from-agg agg_sources.poi.xml --to-agg agg_destinations.poi.xml 
 

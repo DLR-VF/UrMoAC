@@ -244,7 +244,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		OptionsCont options = new OptionsCont();
 		options.setHelpHeadAndTail("Urban Mobility Accessibility Computer (UrMoAC) v0.6\n  (c) German Aerospace Center (DLR), 2016-2021\n  https://github.com/DLR-VF/UrMoAC\n\nUsage:\n"
 				+"  java -jar UrMoAC.jar --help\n"
-				+"  java -jar UrMoAC.jar --from file;sources.csv --to file;destinations.csv\n    --net file;network.csv --nm-output file;nm_output.csv\n    --mode bicycle --time 0\n", "");
+				+"  java -jar UrMoAC.jar --from file;sources.csv --to file;destinations.csv\n    --net file;network.csv --nm-output file;nm_output.csv\n    --mode bike --time 0\n", "");
 		
 		options.beginSection("Input Options");
 		options.add("config", 'c', new Option_String());
@@ -256,7 +256,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("net", 'n', new Option_String());
 		options.setDescription("net", "Defines the road network to load.");
 		options.add("mode", 'm', new Option_String());
-		options.setDescription("mode", "The mode to use ['passenger', 'foot', 'bicycle'].");
+		options.setDescription("mode", "The mode to use ['passenger', 'foot', 'bike'].");
 		options.add("from-agg", new Option_String());
 		options.setDescription("from-agg", "Defines the data source of origin aggregation areas.");
 		options.add("to-agg", new Option_String());

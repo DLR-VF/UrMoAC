@@ -1,2 +1,2 @@
---from sources.csv --to destinations.csv --net network.csv --origins-to-road-output o2r_output.csv --destinations-to-road-output d2r_output.csv --epsg 0 --mode bicycle --time 0 --from-agg agg_sources.csv --to-agg agg_destinations.csv 
+--from sources.csv --to destinations.csv --net network.csv --origins-to-road-output o2r_output.csv --destinations-to-road-output d2r_output.csv --epsg 0 --mode bike --time 0 --from-agg agg_sources.csv --to-agg agg_destinations.csv 
 

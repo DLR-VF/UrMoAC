@@ -10,7 +10,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --from _&lt;OBJECT_SOURCE&gt;_<br>-f _&lt;OBJECT_SOURCE&gt;_ | N/A (__mandatory__) | Defines the data source of origins. |
 | --to _&lt;OBJECT_SOURCE&gt;_<br>-t _&lt;OBJECT_SOURCE&gt;_ | N/A (__mandatory__) | Defines the data source of destinations. |
 | --net _&lt;NET_SOURCE&gt;_<br>-n _&lt;NET_SOURCE&gt;_ | N/A (__mandatory__) | Defines the road network to load. |
-| --mode _[&apos;passenger&apos;, &lsquo;foot&rsquo;, &lsquo;bicycle&rsquo;]_ | N/A (__mandatory__) | The transport mode to use. |
+| --mode _[&apos;passenger&apos;, &lsquo;foot&rsquo;, &lsquo;bike&rsquo;]_ | N/A (__mandatory__) | The transport mode to use. |
 | --from-agg _&lt;OBJECT_SOURCE&gt;_ | N/A (optional) | Defines the data source of origin aggregation areas. |
 | --to-agg _&lt;OBJECT_SOURCE&gt;_ | N/A (optional) | Defines the data source of destination aggregation areas. |
 | --pt _&lt;GTFS_TABLES_PREFIX&gt;_<br>-p _&lt;GTFS_TABLES_PREFIX&gt;_ | N/A (optional) | Defines the GTFS-based public transport representation. |

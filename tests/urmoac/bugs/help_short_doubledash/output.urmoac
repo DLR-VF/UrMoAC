@@ -6,15 +6,14 @@ Usage:
   java -jar UrMoAC.jar --help
   java -jar UrMoAC.jar --from file;sources.csv --to file;destinations.csv
     --net file;network.csv --nm-output file;nm_output.csv
-    --mode bicycle --time 0
+    --mode bike --time 0
 
  Input Options
   -c, --config                   Defines the configuration to load.
   -f, --from                     Defines the data source of origins.
   -t, --to                       Defines the data source of destinations.
   -n, --net                      Defines the road network to load.
-  -m, --mode                     The mode to use ['passenger', 'foot',
-                                   'bicycle'].
+  -m, --mode                     The mode to use ['passenger', 'foot', 'bike'].
   --from-agg                     Defines the data source of origin aggregation
                                    areas.
   --to-agg                       Defines the data source of destination
