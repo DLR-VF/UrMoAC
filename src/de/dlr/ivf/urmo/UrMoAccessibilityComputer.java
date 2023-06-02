@@ -495,11 +495,19 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 */
 	protected static Vector<Mode> getModes(String optionValue) {
 		Vector<Mode> ret = new Vector<>();
-		String[] r = optionValue.split(";");
-		for(String r1 : r) {
-			Mode m = Modes.getMode(r1);
+		String[] givenModeNames = optionValue.split(";");
+		for(String modeName : givenModeNames) {
+			// catching deprecated mode names
+			if("bicycle".equals(modeName)) {
+				System.err.println("Warning: Mode name 'bicycle' is deprecated, please use 'bike'.");
+				modeName = "bike";
+			} else if("passenger".equals(modeName)) {
+				System.err.println("Warning: Mode name 'passenger' is deprecated, please use 'car'.");
+				modeName = "car";
+			} 
+			//
+			Mode m = Modes.getMode(modeName);
 			if(m==null) {
-				System.out.println("Error: Mode '" + r1 + "' is not known.");
 				return null;
 			}
 			ret.add(m);
