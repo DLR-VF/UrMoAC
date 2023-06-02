@@ -4,7 +4,13 @@
 
 ### cmd_options branch
 
-* mode names consolidation: "bicycle" is now "bike", "passenger" is now "car"
+* mode names consolidation:
+  * "bicycle" is now "bike"
+  * "passenger" is now "car"
+* output name consolidation:
+  * "nm-output" is now "od-output"
+  * "ext-nm-output" is now "ext-od-output"
+  * "stat-nm-output" is now "stat-od-output"
 
 
 
