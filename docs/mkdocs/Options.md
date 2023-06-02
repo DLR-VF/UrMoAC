@@ -78,7 +78,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | ---- | ---- | ---- |
 | --nm-output _&lt;OUTPUT&gt;_<br>-o _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the n:m output. |
 | --ext-nm-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the extended n:m output. |
-| --stat-nm-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the n:m statistics output. |
+| --stat-od-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the n:m statistics output. |
 | --interchanges-output _&lt;OUTPUT&gt;_<br>-i _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the interchanges output. |
 | --edges-output _&lt;OUTPUT&gt;_<br>-e _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the edges output. |
 | --pt-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the public transport output. |

@@ -96,9 +96,9 @@ public class OutputBuilder {
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
 		}
-		if (options.isSet("stat-nm-output")) {
+		if (options.isSet("stat-od-output")) {
 			ODStatsMeasuresGenerator mg = new ODStatsMeasuresGenerator();
-			AbstractResultsWriter<ODSingleStatsResult> writer = buildStatNMOutput(options.getString("stat-nm-output"), precision, dropExistingTables);
+			AbstractResultsWriter<ODSingleStatsResult> writer = buildStatNMOutput(options.getString("stat-od-output"), precision, dropExistingTables);
 			writer.createInsertStatement(rsid);
 			Aggregator<ODSingleStatsResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
