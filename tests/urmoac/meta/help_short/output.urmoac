@@ -94,7 +94,7 @@ Usage:
 
  Output Options
   -o, --nm-output                Defines the n:m output.
-  --ext-nm-output                Defines the extended n:m output.
+  --ext-od-output                Defines the extended n:m output.
   --stat-od-output               Defines the n:m statistics output.
   -i, --interchanges-output      Defines the interchanges output.
   -e, --edges-output             Defines the edges output.

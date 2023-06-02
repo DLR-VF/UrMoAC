@@ -355,8 +355,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.beginSection("Output Options");
 		options.add("nm-output", 'o', new Option_String());
 		options.setDescription("nm-output", "Defines the n:m output.");
-		options.add("ext-nm-output", new Option_String());
-		options.setDescription("ext-nm-output", "Defines the extended n:m output.");
+		options.add("ext-od-output", new Option_String());
+		options.setDescription("ext-od-output", "Defines the extended n:m output.");
 		options.add("stat-od-output", new Option_String());
 		options.setDescription("stat-od-output", "Defines the n:m statistics output.");
 		options.add("interchanges-output", 'i', new Option_String());

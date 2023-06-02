@@ -88,9 +88,9 @@ public class OutputBuilder {
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
 		}
-		if (options.isSet("ext-nm-output")) {
+		if (options.isSet("ext-od-output")) {
 			ODExtendedMeasuresGenerator mg = new ODExtendedMeasuresGenerator();
-			AbstractResultsWriter<ODSingleExtendedResult> writer = buildExtNMOutput(options.getString("ext-nm-output"), precision, dropExistingTables);
+			AbstractResultsWriter<ODSingleExtendedResult> writer = buildExtNMOutput(options.getString("ext-od-output"), precision, dropExistingTables);
 			writer.createInsertStatement(rsid);
 			Aggregator<ODSingleExtendedResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);

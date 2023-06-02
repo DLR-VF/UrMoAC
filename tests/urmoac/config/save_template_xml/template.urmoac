@@ -47,7 +47,7 @@
    <custom.price-per-km></custom.price-per-km>
    <custom.allowed></custom.allowed>
    <nm-output></nm-output>
-   <ext-nm-output></ext-nm-output>
+   <ext-od-output></ext-od-output>
    <stat-od-output></stat-od-output>
    <interchanges-output></interchanges-output>
    <edges-output></edges-output>
