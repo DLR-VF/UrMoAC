@@ -4,7 +4,7 @@
 
 ### cmd_options branch
 
-* mode names consolidation:
+* mode names consolidation (you will get a deprecation warning when using old names):
   * "bicycle" is now "bike"
   * "passenger" is now "car"
 * output name consolidation:
