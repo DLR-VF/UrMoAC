@@ -1,6 +1,7 @@
 # UrMoAC
 
 # ![logo.png](https://raw.githubusercontent.com/DLR-VF/UrMoAC/master/logo.png) UrMoAC
+[![License: EPL2](https://img.shields.io/badge/license-EPL2-green)](https://github.com/DLR-VF/UrMoAC/blob/master/LICENSE.md)
 [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.79406006-blue)](https://doi.org/10.5281/zenodo.7940600)
 [![Documentation Status](https://readthedocs.org/projects/urmoac/badge/?version=latest)](https://urmoac.readthedocs.io/en/latest/?badge=latest)
 
