@@ -46,7 +46,7 @@
    <custom.co2-per-km></custom.co2-per-km>
    <custom.price-per-km></custom.price-per-km>
    <custom.allowed></custom.allowed>
-   <nm-output></nm-output>
+   <od-output></od-output>
    <ext-od-output></ext-od-output>
    <stat-od-output></stat-od-output>
    <interchanges-output></interchanges-output>

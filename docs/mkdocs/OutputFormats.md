@@ -1,6 +1,6 @@
 UrMoAC generates the following types of results:
 
-* __--nm-output _&lt;OUTPUT&gt;___: (O/D output) a simple output that gives the main measures for each origin(area)/destination(area);
+* __--od-output _&lt;OUTPUT&gt;___: (O/D output) a simple output that gives the main measures for each origin(area)/destination(area);
 * __--ext-od-output _&lt;OUTPUT&gt;___: (extended O/D output) includes some additional measures, such as the average velocity, consumed energy in kcal, the average price, access and egress times, some additional public transport measures etc.;
 * __--stat-od-output _&lt;OUTPUT&gt;___: (O/D statistics output) this output extends the plain O/D output by some statistical measures, such as the mean, median, minimum and maximum values and their 15 percentiles;
 * __--pt-output _&lt;OUTPUT&gt;___: (Public Transport output) this output gives some measures concerning public transport trips;
@@ -28,7 +28,7 @@ The outputs are described in-depth in the following.
 
 ## O/D output
 
-This output is enabled using the option __--nm-output _&lt;OUTPUT&gt;___ (__-o _&lt;OUTPUT&gt;___ for short).
+This output is enabled using the option __--od-output _&lt;OUTPUT&gt;___ (__-o _&lt;OUTPUT&gt;___ for short).
 The generated database table has the following format:
 
 | Column Name | Type | Content |

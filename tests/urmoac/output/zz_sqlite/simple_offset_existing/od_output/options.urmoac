@@ -1,2 +1,2 @@
---nm-output jdbc:sqlite:sqlite.db;test
+--od-output jdbc:sqlite:sqlite.db;test
 

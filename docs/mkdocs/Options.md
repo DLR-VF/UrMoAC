@@ -76,7 +76,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 ## Output Options
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
-| --nm-output _&lt;OUTPUT&gt;_<br>-o _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the n:m output. |
+| --od-output _&lt;OUTPUT&gt;_<br>-o _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the n:m output. |
 | --ext-od-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the extended n:m output. |
 | --stat-od-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the n:m statistics output. |
 | --interchanges-output _&lt;OUTPUT&gt;_<br>-i _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the interchanges output. |

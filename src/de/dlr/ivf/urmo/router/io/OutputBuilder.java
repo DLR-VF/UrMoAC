@@ -80,9 +80,9 @@ public class OutputBuilder {
 		boolean aggAllTo = options.isSet("to-agg") && options.getString("to-agg").equals("all");
 		int precision = options.getInteger("precision");
 		String comment = options.getBool("comment") ? buildComment(options) : null;
-		if (options.isSet("nm-output")) {
+		if (options.isSet("od-output")) {
 			ODMeasuresGenerator mgNM = new ODMeasuresGenerator();
-			AbstractResultsWriter<ODSingleResult> writer = buildNMOutput(options.getString("nm-output"), precision, dropExistingTables);
+			AbstractResultsWriter<ODSingleResult> writer = buildNMOutput(options.getString("od-output"), precision, dropExistingTables);
 			writer.createInsertStatement(rsid);
 			Aggregator<ODSingleResult> agg = buildAggregator(mgNM, options.getBool("shortest"), 
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);

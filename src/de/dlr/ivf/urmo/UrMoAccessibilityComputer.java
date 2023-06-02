@@ -244,7 +244,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		OptionsCont options = new OptionsCont();
 		options.setHelpHeadAndTail("Urban Mobility Accessibility Computer (UrMoAC) v0.6\n  (c) German Aerospace Center (DLR), 2016-2021\n  https://github.com/DLR-VF/UrMoAC\n\nUsage:\n"
 				+"  java -jar UrMoAC.jar --help\n"
-				+"  java -jar UrMoAC.jar --from file;sources.csv --to file;destinations.csv\n    --net file;network.csv --nm-output file;nm_output.csv\n    --mode bike --time 0\n", "");
+				+"  java -jar UrMoAC.jar --from file;sources.csv --to file;destinations.csv\n    --net file;network.csv --od-output file;nm_output.csv\n    --mode bike --time 0\n", "");
 		
 		options.beginSection("Input Options");
 		options.add("config", 'c', new Option_String());
@@ -353,8 +353,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("custom.allowed", "The type of roads the custom mode can use (combination of 'foot', 'bike', 'car' divided by ';').");
 
 		options.beginSection("Output Options");
-		options.add("nm-output", 'o', new Option_String());
-		options.setDescription("nm-output", "Defines the n:m output.");
+		options.add("od-output", 'o', new Option_String());
+		options.setDescription("od-output", "Defines the n:m output.");
 		options.add("ext-od-output", new Option_String());
 		options.setDescription("ext-od-output", "Defines the extended n:m output.");
 		options.add("stat-od-output", new Option_String());

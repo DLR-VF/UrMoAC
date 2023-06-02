@@ -5,7 +5,7 @@ Urban Mobility Accessibility Computer (UrMoAC) v0.6
 Usage:
   java -jar UrMoAC.jar --help
   java -jar UrMoAC.jar --from file;sources.csv --to file;destinations.csv
-    --net file;network.csv --nm-output file;nm_output.csv
+    --net file;network.csv --od-output file;nm_output.csv
     --mode bike --time 0
 
  Input Options
@@ -93,7 +93,7 @@ Usage:
                                    by ';').
 
  Output Options
-  -o, --nm-output                Defines the n:m output.
+  -o, --od-output                Defines the n:m output.
   --ext-od-output                Defines the extended n:m output.
   --stat-od-output               Defines the n:m statistics output.
   -i, --interchanges-output      Defines the interchanges output.
