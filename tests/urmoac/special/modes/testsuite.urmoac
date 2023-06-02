@@ -1,0 +1,18 @@
+# correct mode names
+ok_foot
+ok_bike
+ok_car
+ok_custom
+
+# deprecated mode names
+deprecated_bicycle
+deprecated_passenger
+
+# unkwnown mode
+error_unknown_foo
+
+# missing custom definitions
+error_custom__undefined
+error_custom__no_allowed
+error_custom__no_speed
+
