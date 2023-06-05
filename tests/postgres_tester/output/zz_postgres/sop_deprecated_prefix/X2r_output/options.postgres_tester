@@ -1,0 +1,1 @@
+--origins-to-road-output db,jdbc:postgresql://localhost/urmoac_postgres_tests,simple_offset_plain_deprecated.o2r_output,urmoactests,urmoactests --destinations-to-road-output db,jdbc:postgresql://localhost/urmoac_postgres_tests,simple_offset_plain_deprecated.d2r_output,urmoactests,urmoactests

@@ -1,2 +1,2 @@
---stat-od-output jdbc:sqlite:sqlite.db;test
+--stat-od-output jdbc:sqlite:sqlite.db,test
 

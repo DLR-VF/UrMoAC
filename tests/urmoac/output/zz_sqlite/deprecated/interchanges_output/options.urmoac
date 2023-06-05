@@ -1,2 +1,0 @@
---interchanges-output db;jdbc:sqlite:sqlite.db;test
-

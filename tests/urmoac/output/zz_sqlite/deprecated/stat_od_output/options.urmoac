@@ -1,2 +1,0 @@
---stat-od-output db;jdbc:sqlite:sqlite.db;test
-

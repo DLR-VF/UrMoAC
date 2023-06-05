@@ -6,7 +6,7 @@ n: network.csv
 m: foot
 epsg: 0
 time: 0
-o: jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_comment.od_output;urmoactests;xxx
+o: jdbc:postgresql://localhost/urmoac_postgres_tests,simple_offset_comment.od_output,urmoactests,xxx
 comment: true
 
 ----------------------------
