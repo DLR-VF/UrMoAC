@@ -1,2 +1,2 @@
---stat-od-output jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_comment.stat_od_output;urmoactests;urmoactests
+--stat-od-output jdbc:postgresql://localhost/urmoac_postgres_tests,simple_offset_comment.stat_od_output,urmoactests,urmoactests
 

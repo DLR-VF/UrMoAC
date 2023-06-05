@@ -16,3 +16,6 @@ error_custom__undefined
 error_custom__no_allowed
 error_custom__no_speed
 
+# checking current and previous (deprecated) divider
+ok_divider_foot_car
+deprecated_divider_foot_car

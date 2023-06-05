@@ -38,3 +38,12 @@ only_high_car
 # custom - only high allowed for custom (custom = all)
 only_high_custom
 
+
+
+# deprecated divider for allowed custom lanes
+deprecated__all_custom
+deprecated__disallowed_center_custom
+deprecated__only_high_custom
+
+
+

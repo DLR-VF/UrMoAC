@@ -495,8 +495,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 */
 	protected static Vector<Mode> getModes(String optionValue) {
 		Vector<Mode> ret = new Vector<>();
-		String[] givenModeNames = null;
 		// catching deprecated divider
+		String[] givenModeNames = null;
 		if(optionValue.contains(";")&&!optionValue.contains(",")) {
 			System.err.println("Warning: Using ';' as divider is deprecated, please use ','.");
 			givenModeNames = optionValue.split(";");

@@ -228,7 +228,11 @@ public class OutputBuilder {
 	            ps.print(name);
 	            String value = options.getValueAsString(name);
 	            if(value.contains("jdbc:postgresql:")) {
-	            	value = value.substring(0, value.lastIndexOf(';')+1) + "xxx";
+	            	if(value.contains(";")&&!value.contains(",")) {
+	            		value = value.substring(0, value.lastIndexOf(';')+1) + "xxx";
+	            	} else {
+	            		value = value.substring(0, value.lastIndexOf(',')+1) + "xxx";
+	            	}
 	            }
 	            ps.print(": " + value );
 	            ps.println();

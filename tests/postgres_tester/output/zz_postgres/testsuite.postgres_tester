@@ -11,5 +11,12 @@ simple_offset_existing
 simple_offset_existing_dropprevious
 
 
-# check whether using deprecated source definitions works
-simple_offset_plain_deprecated
+# check whether using deprecated prefix works
+sop_deprecated_prefix
+
+# tests for deprecation warnings when using the old divider
+sop_deprecated_divider
+
+# tests for deprecation warnings when using the old divider and a prefix
+sop_deprecated_divider_prefix
+
