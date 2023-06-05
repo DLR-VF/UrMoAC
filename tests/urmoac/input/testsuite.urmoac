@@ -7,3 +7,6 @@ wkt
 # reading SUMO-files
 sumo 
 
+# reading shapefiles
+shapefile
+
