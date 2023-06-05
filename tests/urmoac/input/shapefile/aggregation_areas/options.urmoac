@@ -1,0 +1,2 @@
+--from sources.shp --to destinations.shp --net network.shp --origins-to-road-output o2r_output.shp --destinations-to-road-output d2r_output.shp --epsg 0 --mode bicycle --time 0 --from-agg agg_sources.shp --to-agg agg_destinations.shp 
+
