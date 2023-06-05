@@ -11,7 +11,7 @@
   * "nm-output" is now "od-output"
   * "ext-nm-output" is now "ext-od-output"
   * "stat-nm-output" is now "stat-od-output"
-
+* divider consolidation: use ',' instead of ';' (tables definition, e.g.; the reason is that ';' is not accepted on Linux)
 
 
 
