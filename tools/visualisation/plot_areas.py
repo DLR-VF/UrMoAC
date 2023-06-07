@@ -75,18 +75,15 @@ def colorbar_index(ncolors, cmap, ticklabels):
   
   
 
-def plotArea_Contours(shapel, obj2pos, obj2val, colmap, shapes2=None, title=None, bounds=None, figsize=(8,5), invalidColor="azure"):
-    # compute the boundary to show if not given
-    if bounds==None:
-        bounds = spatialhelper.geometries_bounds(list(obj2pos.values()))
+def plotArea_Contours(shapel, obj2pos, obj2val, colmap, bounds, shapes2=None, title=None, figsize=(8,5), invalidColor="azure"):
     # compute points
     xs = []
     ys = []
     zs = []
     for g in obj2pos:
         if g in obj2val: # !!! warn
-            xs.append(obj2pos[g][0])
-            ys.append(obj2pos[g][1])
+            xs.append(obj2pos[g]._shape[0])
+            ys.append(obj2pos[g]._shape[1])
             zs.append(obj2val[g])
     xi = numpy.linspace(min(xs), max(xs), 1000)
     yi = numpy.linspace(min(ys), max(ys), 1000)
@@ -98,9 +95,8 @@ def plotArea_Contours(shapel, obj2pos, obj2val, colmap, shapes2=None, title=None
     # set clip
     polys = []
     if shapel is not None:
-        for poly in shapel:
-            polys.append(matplotlib.pyplot.Polygon(poly[0], lw=2, fc="none", ec="black", zorder=1000))
-            polys.append(matplotlib.pyplot.Polygon(poly[0], lw=0, fc=colmap(1800), ec="black", zorder=-1))
+        polys.append(shapel.artist(lw=2, fc="none", ec="black", zorder=1000))
+        polys.append(shapel.artist(lw=0, fc=invalidColor, ec="black", zorder=-1))
         [ax.add_patch(i) for i in polys]
     # set figure boundaries and axes
     #
@@ -149,13 +145,7 @@ def plotArea_Contours(shapel, obj2pos, obj2val, colmap, shapes2=None, title=None
 
 
 
-def plotArea_Objects(shapel, obj2pos, obj2val, colmap, shapes2=None, title=None, bounds=None, figsize=(8,5), invalidColor="azure", from_borderwidth=1.):
-    # compute the boundary to show if not given
-    if bounds is None:
-        if shapel is not None:
-            bounds = shapel.bounds()
-        else:
-            bounds = spatialhelper.geometries_bounds(list(obj2pos.values()))
+def plotArea_Objects(shapel, obj2pos, obj2val, colmap, bounds, shapes2=None, title=None, figsize=(8,5), invalidColor="azure", from_borderwidth=1.):
     # open figure
     fig = matplotlib.pyplot.figure(figsize=figsize)
     ax = fig.add_subplot(111)
@@ -263,7 +253,7 @@ def loadShapes(source, projection, asCentroid=False, idField="gid", geomField="p
     obj2geom = {}
     for r in cursor.fetchall():
         geom = wkt.wkt2geometry(r[1])
-        if len(geom._shape)==0:
+        if geom is None or geom._shape is None or len(geom._shape)==0:
             # skipping empty geometries
             print ("The geometry of %s is empty. Skipping" % int(r[0]))
             continue
@@ -305,10 +295,17 @@ if __name__ == "__main__":
     # load shapes and measures
     obj2geom = loadShapes(options.objects, options.projection, options.contour, options.objectsID, options.objectsGeom)
     obj2value = loadMeasures(options.measures, options.measuresIndex)
+    # compute the boundary to show if not given
+    if bounds is None:
+        if mainBorder is not None:
+            bounds = mainBorder.bounds()
+        else:
+            bounds = spatialhelper.geometries_bounds(list(obj2pos.values()))
+    # draw
     if options.contour:
-        plotArea_Contours(mainBorder, obj2geom, obj2value, matplotlib.pyplot.get_cmap(options.colmap), innerBorders, title=options.title, bounds=bounds)
+        plotArea_Contours(mainBorder, obj2geom, obj2value, matplotlib.pyplot.get_cmap(options.colmap), bounds, innerBorders, title=options.title)
     else:
-        plotArea_Objects(mainBorder, obj2geom, obj2value, matplotlib.pyplot.get_cmap(options.colmap), innerBorders, title=options.title, from_borderwidth=options.from_borderwidth, bounds=bounds)
+        plotArea_Objects(mainBorder, obj2geom, obj2value, matplotlib.pyplot.get_cmap(options.colmap), bounds, innerBorders, title=options.title, from_borderwidth=options.from_borderwidth)
     if options.output is not None:
         matplotlib.pyplot.savefig(options.output)
     if not options.no_show:
