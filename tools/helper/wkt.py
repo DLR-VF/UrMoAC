@@ -322,7 +322,9 @@ def parse_POINT2D(which):
     
     @return The parsed geometry as a position
     """
-    which = which[which.find("("):which.rfind(")")+1]
+    if which.find("EMPTY")>0:
+        return None
+    which = which[which.find("(")+1:which.rfind(")")]
     xy = which.split(" ")
     return [ float(xy[0]), float(xy[1]) ]
 
@@ -332,6 +334,8 @@ def parse_LINESTRING2D(which):
     
     @return The parsed geometry list of positions
     """
+    if which.find("EMPTY")>0:
+        return None
     which = which[which.find("("):which.rfind(")")+1]
     which = which.split(",")
     cline = []
@@ -346,6 +350,8 @@ def parse_MULTILINE2D(which):
     
     @return The parsed geometry list of position lists
     """
+    if which.find("EMPTY")>0:
+        return None
     which = which[which.find("("):which.rfind(")")+1]
     which = which.split("(")
     clines = []
@@ -369,6 +375,8 @@ def parse_POLYGON2D(which):
     
     @return The parsed geometry as a list of positions
     """
+    if which.find("EMPTY")>0:
+        return None
     which = which[which.find("("):which.rfind(")")+1]
     numOpen = 0
     cpoly = []
@@ -400,6 +408,8 @@ def parse_MULTIPOLYGON2D(which):
     
     @return The parsed geometry as list of position lists
     """
+    if which.find("EMPTY")>0:
+        return None
     which = which[which.find("("):which.rfind(")")+1]
     numOpen = 0
     cpolys = []
@@ -446,18 +456,23 @@ def wkt2geometry(wkt):
     """
     if wkt.startswith("POINT"):
         shape = parse_POINT2D(wkt)
+        if shape==None: return None
         return Point(shape)
     elif wkt.startswith("LINESTRING"):
         shape = parse_LINESTRING2D(wkt)
+        if shape==None: return None
         return LineString(shape)
     elif wkt.startswith("MULTILINE"):
         shape = parse_MULTILINE2D(wkt)
+        if shape==None: return None
         return MultiLine(shape)
     elif wkt.startswith("POLYGON"):
         shape = parse_POLYGON2D(wkt)
+        if shape==None: return None
         return Polygon(shape)
     elif wkt.startswith("MULTIPOLYGON"):
         shape = parse_MULTIPOLYGON2D(wkt)
+        if shape==None: return None
         return MultiPolygon(shape)
     else:
         raise ValueError("Unknown geometry '%s'" % wkt)
