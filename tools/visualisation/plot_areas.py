@@ -113,9 +113,7 @@ def plotArea_Contours(shapel, obj2pos, obj2val, colmap, shapes2=None, title=None
         vertices = [item for sub_list in vertices for item in sub_list]
         codes = [i.get_path().codes for i in polys]
         codes = [item for sub_list in codes for item in sub_list]
-        #print (codes)
         clip = matplotlib.patches.PathPatch(matplotlib.patches.Path(vertices, codes), transform=ax.transData)
-        #ax.add_patch( patchL )
     cs1 = matplotlib.pyplot.contourf(xi, yi, zi, levels=levels, cmap=colmap, zorder=20)
     if shapes2: colB = ax.add_collection( PatchCollection( shapes2, facecolors='none', linewidths=1., edgecolor="black", zorder=40  ))
     if clip is not None:
@@ -151,10 +149,13 @@ def plotArea_Contours(shapel, obj2pos, obj2val, colmap, shapes2=None, title=None
 
 
 
-def plotArea_Objects(shapel, obj2pos, obj2val, colmap, shapes2=None, title=None, bounds=None, figsize=(8,5), invalidColor="azure"):
+def plotArea_Objects(shapel, obj2pos, obj2val, colmap, shapes2=None, title=None, bounds=None, figsize=(8,5), invalidColor="azure", from_borderwidth=1.):
     # compute the boundary to show if not given
-    if bounds==None:
-        bounds = spatialhelper.geometries_bounds(list(obj2pos.values()))
+    if bounds is None:
+        if shapel is not None:
+            bounds = shapel.bounds()
+        else:
+            bounds = spatialhelper.geometries_bounds(list(obj2pos.values()))
     # open figure
     fig = matplotlib.pyplot.figure(figsize=figsize)
     ax = fig.add_subplot(111)
@@ -162,11 +163,9 @@ def plotArea_Objects(shapel, obj2pos, obj2val, colmap, shapes2=None, title=None,
     polys = []
     if shapel is not None:
         polys.append(shapel.artist(lw=2, fc="none", ec="black", zorder=1000))
-        polys.append(shapel.artist(lw=0, fc=colmap(1800), ec="black", zorder=-1))
-        #for poly in shapel:
-        #    polys.append(matplotlib.pyplot.Polygon(poly[0], lw=2, fc="none", ec="black", zorder=1000))
-        #    polys.append(matplotlib.pyplot.Polygon(poly[0], lw=0, fc=colmap(1800), ec="black", zorder=-1))
+        polys.append(shapel.artist(lw=0, fc=invalidColor, ec="black", zorder=-1))
         [ax.add_patch(i) for i in polys]
+        #[ax.add_artist(i) for i in polys]
     # set figure boundaries and axes
     #
     #levels = [0, 150, 300, 450, 500, 650, 900]
@@ -178,47 +177,28 @@ def plotArea_Objects(shapel, obj2pos, obj2val, colmap, shapes2=None, title=None,
         vertices = [item for sub_list in vertices for item in sub_list]
         codes = [i.get_path().codes for i in polys]
         codes = [item for sub_list in codes for item in sub_list]
-        #print (codes)
         clip = matplotlib.patches.PathPatch(matplotlib.patches.Path(vertices, codes), transform=ax.transData)
-        #ax.add_patch( patchL )
     sm = matplotlib.cm.ScalarMappable(cmap=colmap, norm=matplotlib.pyplot.Normalize(vmin=0, vmax=900))
     patches = []
     for o in obj2pos:
         if o not in obj2val:
-            print (o)
-            continue
-        try:
-            p = obj2pos[o].artist(fc=sm.to_rgba(obj2val[o]), ec="black", lw=1.)
-        except:
-            print (o)
-            p = obj2pos[o].artist(fc=sm.to_rgba(obj2val[o]), ec="black", lw=1.)
+            print ("Missing values for object %s" % o)
+            p = obj2pos[o].artist(fc=invalidColor, ec="black", lw=from_borderwidth, zorder=800)
+        else:
+            p = obj2pos[o].artist(fc=sm.to_rgba(obj2val[o]), ec="black", lw=from_borderwidth, zorder=800)
         if p is None:
-            print (o)
+            print ("Missing geometry for object %s" % o)
             continue
-        #matplotlib.patches.Polygon(obj2pos[o][0][0], fc=sm.to_rgba(obj2val[o]), ec="black", lw=1.)
         if clip is not None:
             p.set_clip_path(clip)
         ax.add_artist(p)
-    #cs1 = ax.add_collection( matplotlib.collections.PatchCollection( patches ))
     if shapes2: 
         colB = ax.add_collection( PatchCollection( shapes2, facecolors='none', linewidths=1., edgecolor="black", zorder=40  ))
-    #if clip is not None:
-    #    cs1.set_clip_path(clip)
-        #for col in cs1:
-        #    col.set_clip_path(clip)
     # fake up the array of the scalar mappable. Urgh..." (pelson, http://stackoverflow.com/questions/8342549/matplotlib-add-colorbar-to-a-sequence-of-line-plots)
     sm._A = []
     labels = []
-    """
-    for il,l in enumerate(levels):
-        if il==0: continue 
-        if il==len(levels)-1: l = str(levels[il-1]) + "- " + valueMeasure
-        else: l = str(levels[il-1]) + "-" + str(levels[il]) + " " + valueMeasure
-        labels.append(l)
-    """
     if True:
         cbar = matplotlib.pyplot.colorbar(sm, ticks=range(0, 1000, 100))
-        #cbar = colorbar_index(len(levels[1:]), colmap, labels)#["300s","600s","900s","1200s","1500s","1800s"])
         cbar.ax.tick_params(labelsize=12)   
         cbar.ax.set_yticklabels(["0 s", "100 s", "200 s", "300 s", "400 s", "500 s", "600 s", "700 s", "800 s", ">= 900 s"])
     if title is not None: 
@@ -247,19 +227,22 @@ def getOptions():
     optParser.add_option("-b", "--border", dest="mainBorder", default=None, help="Defines the border geometry to load")
     optParser.add_option("-m", "--measures", dest="measures", default=None, help="Defines the measures to load")
     optParser.add_option("-i", "--index", dest="measuresIndex", default=2, type=int, help="Defines the index of the measure to use")
-    optParser.add_option("--inner", dest="innerBorders", default=None, help="Defines the optionsl inner boundaries")
-    optParser.add_option("-o", "--output", dest="output", default=None, help="Defines the name of the graphic to generate")
+    optParser.add_option("-p", "--projection", dest="projection", type=int, default=25833, help="Sets the projection EPSG number")
+    #
+    optParser.add_option("--bounds", dest="bounds", default=None, help="Defines the bounding box to show")
+    optParser.add_option("--inner", dest="innerBorders", default=None, help="Defines the optional inner boundaries")
     optParser.add_option("-C", "--colmap", dest="colmap", default="RdYlGn_r", help="Defines the color map to use")
+    optParser.add_option("--contour", dest="contour", action="store_true", default=False, help="Triggers contour rendering")
+    optParser.add_option("-t", "--title", dest="title", default=None, help="Sets the figure title")
+    optParser.add_option("--from.borderwidth", dest="from_borderwidth", type=float, default=1., help="Sets the width of the border of the loaded objects")
+    #
+    optParser.add_option("-o", "--output", dest="output", default=None, help="Defines the name of the graphic to generate")
     optParser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Triggers verbose output")
     optParser.add_option("-S", "--no-show", dest="no_show", action="store_true", default=False, help="Does not show the figure if set")
-    optParser.add_option("-p", "--projection", dest="projection", type=int, default=25833, help="Sets the projection EPSG number")
-    optParser.add_option("-t", "--title", dest="title", default=None, help="Sets the figure title")
   
     options, remaining_args = optParser.parse_args()
     if options.objects==None:
         print ("You have to define the objects to load using '--from / -f")
-    #if options.mainBorder==None:
-    #    print ("You have to define the main border (region clip) to load using '--border / -b")
     if options.measures==None:
         print ("You have to define the measures to load using '--measures / -m")
     if options.objects==None or options.measures==None:
@@ -282,7 +265,7 @@ def loadShapes(source, projection, asCentroid=False, idField="gid", geomField="p
         geom = wkt.wkt2geometry(r[1])
         if len(geom._shape)==0:
             # skipping empty geometries
-            print (int(r[0]))
+            print ("The geometry of %s is empty. Skipping" % int(r[0]))
             continue
         obj2geom[int(r[0])] = geom
     return obj2geom
@@ -303,17 +286,29 @@ def loadMeasures(source, sourceIndex):
 
 if __name__ == "__main__":
     options, remaining_args = getOptions()
+    # load the main border optionally
     mainBorder = None
     if options.mainBorder!=None:
         mainBorder = loadShapes(options.mainBorder, options.projection, False)
         mainBorder = mainBorder[list(mainBorder.keys())[0]]
+    # load the inner borders optionally
     innerBorders = None
     if options.innerBorders!=None:
         innerBorders = loadShapes(options.innerBorders, options.projection, False)
-    obj2geom = loadShapes(options.objects, options.projection, False, options.objectsID, options.objectsGeom)
+    # get the optional bounding box
+    bounds = None
+    if options.bounds:
+        bounds = [float(v) for v in options.bounds.split(",")]
+        if len(bounds)!=4:
+            print ("The bounds must be a tuple of minx,miny,maxx,maxy.")
+            exit()
+    # load shapes and measures
+    obj2geom = loadShapes(options.objects, options.projection, options.contour, options.objectsID, options.objectsGeom)
     obj2value = loadMeasures(options.measures, options.measuresIndex)
-    #plotArea_Contours(mainBorder, obj2geom, obj2value, matplotlib.pyplot.get_cmap(options.colmap), innerBorders, title=options.title)
-    plotArea_Objects(mainBorder, obj2geom, obj2value, matplotlib.pyplot.get_cmap(options.colmap), innerBorders, title=options.title)
+    if options.contour:
+        plotArea_Contours(mainBorder, obj2geom, obj2value, matplotlib.pyplot.get_cmap(options.colmap), innerBorders, title=options.title, bounds=bounds)
+    else:
+        plotArea_Objects(mainBorder, obj2geom, obj2value, matplotlib.pyplot.get_cmap(options.colmap), innerBorders, title=options.title, from_borderwidth=options.from_borderwidth, bounds=bounds)
     if options.output is not None:
         matplotlib.pyplot.savefig(options.output)
     if not options.no_show:
