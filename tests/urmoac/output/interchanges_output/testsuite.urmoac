@@ -21,4 +21,5 @@ aggregation
 
 
 # tests whether the deprecated file definition works
-deprecated
+deprecated_prefix
+
