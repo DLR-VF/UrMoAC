@@ -93,13 +93,14 @@ Usage:
                                    by ';').
 
  Output Options
-  -o, --od-output                Defines the n:m output.
-  --ext-od-output                Defines the extended n:m output.
-  --stat-od-output               Defines the n:m statistics output.
-  -i, --interchanges-output      Defines the interchanges output.
-  -e, --edges-output             Defines the edges output.
-  --pt-output                    Defines the public transport output.
-  -d, --direct-output            Defines the direct output.
+  -o, --od-output                Defines the simple o/d-output to generate.
+  --ext-od-output                Defines the extended o/d-output to generate.
+  --stat-od-output               Defines the o/d statistics output to generate.
+  -i, --interchanges-output      Defines the interchanges output to generate.
+  -e, --edges-output             Defines the edges output to generate.
+  --pt-output                    Defines the public transport output to
+                                   generate.
+  -d, --direct-output            Defines the direct output to generate.
   --origins-to-road-output       Defines the output of the mapping between
                                    sources and the network.
   --destinations-to-road-output  Defines the output of the mapping between
