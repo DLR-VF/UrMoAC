@@ -1,6 +1,6 @@
 # Change Log
 
-## under work
+## UrMoAC-0.8.0 (to come)
 
 ### cmd_options branch
 
@@ -11,7 +11,10 @@
   * "nm-output" is now "od-output"
   * "ext-nm-output" is now "ext-od-output"
   * "stat-nm-output" is now "stat-od-output"
-
+* replaced ';' as divider by ',' (you will get a deprecation warning when using the old divider):
+  * databases definition (input and output)
+  * modes to use
+  * carrier definition
 
 
 
