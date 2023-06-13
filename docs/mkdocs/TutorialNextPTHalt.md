@@ -88,20 +88,20 @@ After having imported our data, we can simply run UrMoAC for computing the acces
 The call looks like the following:
 
 ```console
-...\bin>java -jar UrMoAC.jar --from "jdbc:postgresql://localhost/urmoac;berlin.osm20230428_buildings;<USER>;<PASSWD>" --from.geom centroid --to "jdbc:postgresql://localhost/urmoac;berlin.osm20230428_pthalts;<USER>;<PASSWD>" --to.geom centroid --net "jdbc:postgresql://localhost/urmoac;berlin.osm20230428_network;<USER>;<PASSWD>" --time 28800 --mode foot --epsg 25833 --od-output "jdbc:postgresql://localhost/urmoac;berlin.osm20230428_houses2pthalts;<USER>;<PASSWD>" --verbose --shortest
+...\bin>java -jar UrMoAC.jar --from "jdbc:postgresql://localhost/urmoac,berlin.osm20230428_buildings,<USER>,<PASSWD>" --from.geom centroid --to "jdbc:postgresql://localhost/urmoac,berlin.osm20230428_pthalts,<USER>,<PASSWD>" --to.geom centroid --net "jdbc:postgresql://localhost/urmoac,berlin.osm20230428_network,<USER>,<PASSWD>" --time 28800 --mode foot --epsg 25833 --od-output "jdbc:postgresql://localhost/urmoac,berlin.osm20230428_houses2pthalts,<USER>,<PASSWD>" --verbose --shortest
 ```
 
 The options mean the following:
 
-* __--from "jdbc:postgresql://localhost/urmoac;berlin.osm20230428_buildings;&lt;USER&gt;;&lt;PASSWD&gt;"__: use the buildings stored in the database table berlin.osm20210310_buildings as origins
+* __--from "jdbc:postgresql://localhost/urmoac,berlin.osm20230428_buildings,&lt;USER&gt;,&lt;PASSWD&gt;"__: use the buildings stored in the database table berlin.osm20210310_buildings as origins
 * __--from.geom centroid__: use the generated centroids as origins' positions
-* __--to "jdbc:postgresql://localhost/urmoac;berlin.osm20230428_pthalts;&lt;USER&gt;;&lt;PASSWD&gt;"__: use the public transport halts stored in the database table berlin.osm20210310_buildings as destinations
+* __--to "jdbc:postgresql://localhost/urmoac,berlin.osm20230428_pthalts,&lt;USER&gt;,&lt;PASSWD&gt;"__: use the public transport halts stored in the database table berlin.osm20210310_buildings as destinations
 * __--to.geom centroid__: use the generated centroids as destinations' positions
-* __--net "jdbc:postgresql://localhost/urmoac;berlin.osm20230428_network;&lt;USER&gt;;&lt;PASSWD&gt;"__: use the network stored in berlin.osm20181028_network for routing
+* __--net "jdbc:postgresql://localhost/urmoac,berlin.osm20230428_network,&lt;USER&gt;,&lt;PASSWD&gt;"__: use the network stored in berlin.osm20181028_network for routing
 * __--time 28800__: we do need the time definitions; eventually, this is irrelevant for most modes
 * __--mode foot__: define that we want to compute accessibilities for walking
 * __--epsg 25833__: define the projection
-* __--od-output "jdbc:postgresql://localhost/urmoac;berlin.osm20230428_houses2pthalts;&lt;USER&gt;;&lt;PASSWD&gt;"__: write a basic output to the database table osm20230428_houses2pthalts
+* __--od-output "jdbc:postgresql://localhost/urmoac,berlin.osm20230428_houses2pthalts,&lt;USER&gt;,&lt;PASSWD&gt;"__: write a basic output to the database table osm20230428_houses2pthalts
 * __--verbose__: report what you do
 * __--shortest__: we want the access to the next public transport halt
 

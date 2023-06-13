@@ -15,6 +15,7 @@
   * databases definition (input and output)
   * modes to use
   * carrier definition
+* divider consolidation: use ',' instead of ';' (tables definition, e.g.; the reason is that ';' is not accepted on Linux)
 
 
 

@@ -32,7 +32,7 @@ An origin or a destination is represented using the following attributes in the 
 | the_geom | PostGIS-Geometry | Defines the object&apos;s position in space |
 | N/A (optional) | double | Weights the object |
 
-To load objects from a database, you have to give the complete path to the according database table as well as the credentials needed to access it. As such, the call to load origins from a database looks like: __--from jdbc:postgresql:_&lt;DB_HOST&gt;_;_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_;_&lt;USER&gt;_;_&lt;PASSWORD&gt;___, where:
+To load objects from a database, you have to give the complete path to the according database table as well as the credentials needed to access it. As such, the call to load origins from a database looks like: __--from jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___, where:
 
 * ___&lt;DB_HOST&gt;___ is the adress of the database server
 * ___&lt;SCHEMA&gt;___ is the database schema the table is located within
@@ -126,7 +126,7 @@ An aggregation area is represented using the following attributes in a database:
 | gid | int/long | Names the area |
 | the_geom | PostGIS-Polygon | Defines the area&apos;s shape |
 
-Use __--from-agg jdbc:postgresql:_&lt;DB_HOST&gt;_;_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_;_&lt;USER&gt;_;_&lt;PASSWORD&gt;___ to load origin aggregation areas from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
+Use __--from-agg jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___ to load origin aggregation areas from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
 
 
 ### File (.csv) Format
@@ -209,7 +209,7 @@ A road network is defined by the roads it consists of, and each road is represen
 | vmax | double | The maximum speed allowed on this road in km/h | 
 | length | double | The length of this road | 
 
-Use __--net jdbc:postgresql:_&lt;DB_HOST&gt;_;_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_;_&lt;USER&gt;_;_&lt;PASSWORD&gt;___ to load a network from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
+Use __--net jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___ to load a network from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
 
 
 ### File (.csv) Format
@@ -280,7 +280,7 @@ A speed time line entry consists of the following data in the database:
 | eid | String| The name of the road as defined in the &ldquo;oid&rdquo; field of the road network | 
 | speed | float | The average/current/maximum speed at this road | 
 
-Use __--traveltimes jdbc:postgresql:_&lt;DB_HOST&gt;_;_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_;_&lt;USER&gt;_;_&lt;PASSWORD&gt;___ to load speed time lines from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
+Use __--traveltimes jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___ to load speed time lines from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
 
 
 ### File (.csv) Format
@@ -322,7 +322,7 @@ An OD-connection is represented using the following attributes in the database:
 | origin | long | ID of the origin as loaded using --from |
 | destination | long | ID of the origin as loaded using --to|
 
-Use __--od-connections jdbc:postgresql:_&lt;DB_HOST&gt;_;_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_;_&lt;USER&gt;_;_&lt;PASSWORD&gt;___ to load OD-connections from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
+Use __--od-connections jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___ to load OD-connections from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
 
 
 ### File (.csv) Format
@@ -361,7 +361,7 @@ The definition of an entrainment possibility consists of the following data in a
 | carrier_subtype | string | The subtype as defined in GTFS | 
 | carried | string | The name of the entrained mode, e.g. &ldquo;bike&rdquo; | 
 
-Use __--entrainment jdbc:postgresql:_&lt;DB_HOST&gt;_;_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_;_&lt;USER&gt;_;_&lt;PASSWORD&gt;___ to load entrainment definitions from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
+Use __--entrainment jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___ to load entrainment definitions from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
 
 
 ### File (.csv) Format
