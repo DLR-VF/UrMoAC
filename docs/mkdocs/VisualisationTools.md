@@ -1,8 +1,10 @@
-We have developed a set of visualisation options, most of them using technically on the &mdash; outstading tool for scientific investigations &mdash; [matplotlib library](https://matplotlib.org/) for Python that generates wonderful figures and diagrams, see [their examples page](https://matplotlib.org/stable/gallery/index).
+UrMoAC includes some scripts for evaluating and visualising the results, based on the outstanding [matplotlib library](https://matplotlib.org/) for scientific visualisations using Python. You may find some [matplotlib](https://matplotlib.org/) examples on the [matplotlib gallery page](https://matplotlib.org/stable/gallery/index).
+
+Below, you will find the descriptions of the tools included in the UrMoAC package.
 
 ## plot_area
 
-**plot_area.py** shows the results of an accessibility computation as an areal contour plot using the origins&#39; positions and the computed measures.
+**plot_area.py** shows the results of an accessibility computation on a map.
 
 It generates figures as the following:
 
