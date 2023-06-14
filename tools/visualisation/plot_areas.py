@@ -112,7 +112,8 @@ def plotArea_Contours(shapel, obj2pos, obj2val, colmap, bounds, shapes2=None, ti
         codes = [item for sub_list in codes for item in sub_list]
         clip = matplotlib.patches.PathPatch(matplotlib.patches.Path(vertices, codes), transform=ax.transData)
     cs1 = matplotlib.pyplot.contourf(xi, yi, zi, levels=levels, cmap=colmap, zorder=20)
-    if shapes2: colB = ax.add_collection( PatchCollection( shapes2, facecolors='none', linewidths=1., edgecolor="black", zorder=40  ))
+    if shapes2: 
+        colB = ax.add_collection( PatchCollection( shapes2, facecolors='none', linewidths=1., edgecolor="black", zorder=40  ))
     if clip is not None:
         for col in cs1.collections:
             col.set_clip_path(clip)
@@ -215,6 +216,7 @@ def getOptions():
     optParser.add_option("-f", "--from", dest="objects",default=None, help="Defines the objects (origins) to load")
     optParser.add_option("--from.id", dest="objectsID", default="gid", help="Defines the name of the field to read the object ids from")
     optParser.add_option("--from.geom", dest="objectsGeom",default="polygon", help="Defines the name of the field to read the object geometries from")
+    optParser.add_option("--from.filter", dest="objectsFilter",default=None, help="Defines a filter applied when loading the origins")
     optParser.add_option("-b", "--border", dest="mainBorder", default=None, help="Defines the border geometry to load")
     optParser.add_option("-m", "--measures", dest="measures", default=None, help="Defines the measures to load")
     optParser.add_option("-i", "--index", dest="measuresIndex", default=2, type=int, help="Defines the index of the measure to use")
@@ -223,6 +225,7 @@ def getOptions():
     optParser.add_option("--bounds", dest="bounds", default=None, help="Defines the bounding box to show")
     optParser.add_option("--inner", dest="innerBorders", default=None, help="Defines the optional inner boundaries")
     optParser.add_option("-n", "--net", dest="net", default=None, help="Defines the optional road network source")
+    optParser.add_option("--water", dest="water", default=None, help="Defines the optional water source")
     optParser.add_option("-C", "--colmap", dest="colmap", default="RdYlGn_r", help="Defines the color map to use")
     optParser.add_option("--contour", dest="contour", action="store_true", default=False, help="Triggers contour rendering")
     optParser.add_option("-t", "--title", dest="title", default=None, help="Sets the figure title")
@@ -242,16 +245,19 @@ def getOptions():
     return options, remaining_args
 
 
-def loadShapes(source, projection, asCentroid=False, idField="gid", geomField="polygon"):
-    print ("%s %s" % (asCentroid, geomField))
+def loadShapes(source, projection, asCentroid=False, idField="gid", geomField="polygon", geomFilter=None):
     (host, db, tableFull, user, password) = source.split(";")
     (schema, table) = tableFull.split(".")
+    where = ""
+    if geomFilter is not None:
+        where = " WHERE %s" % geomFilter
     conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
     cursor = conn.cursor()
     if asCentroid: 
-        cursor.execute("SELECT %s,ST_AsText(ST_Centroid(ST_Transform(%s, %s))) FROM %s.%s" % (idField, geomField, projection, schema, table))
+        cursor.execute("SELECT %s,ST_AsText(ST_Centroid(ST_Transform(%s, %s))) FROM %s.%s%s" % (idField, geomField, projection, schema, table, where))
     else: 
-        cursor.execute("SELECT %s,ST_AsText(ST_Transform(%s, %s)) FROM %s.%s" % (idField, geomField, projection, schema, table))
+        print ("SELECT %s,ST_AsText(ST_Transform(%s, %s)) FROM %s.%s%s" % (idField, geomField, projection, schema, table, where))
+        cursor.execute("SELECT %s,ST_AsText(ST_Transform(%s, %s)) FROM %s.%s%s" % (idField, geomField, projection, schema, table, where))
     obj2geom = {}
     for r in cursor.fetchall():
         geom = wkt.wkt2geometry(r[1])
@@ -291,6 +297,11 @@ if __name__ == "__main__":
     network = None
     if options.net:
         network = net.loadNet("postgresql:"+options.net, options.projection, ["street_type"])
+    # load the water
+    water = None
+    if options.water:
+        water = loadShapes(options.water, options.projection, False)
+    # get the optional bounding box
     bounds = None
     if options.bounds:
         bounds = [float(v) for v in options.bounds.split(",")]
@@ -298,7 +309,7 @@ if __name__ == "__main__":
             print ("The bounds must be a tuple of minx,miny,maxx,maxy.")
             exit()
     # load shapes and measures
-    obj2geom = loadShapes(options.objects, options.projection, options.contour, options.objectsID, options.objectsGeom)
+    obj2geom = loadShapes(options.objects, options.projection, options.contour, options.objectsID, options.objectsGeom, options.objectsFilter)
     obj2value = loadMeasures(options.measures, options.measuresIndex)
     # compute the boundary to show if not given
     if bounds is None:
@@ -311,6 +322,10 @@ if __name__ == "__main__":
         fig, ax = plotArea_Contours(mainBorder, obj2geom, obj2value, matplotlib.pyplot.get_cmap(options.colmap), bounds, innerBorders, title=options.title)
     else:
         fig, ax = plotArea_Objects(mainBorder, obj2geom, obj2value, matplotlib.pyplot.get_cmap(options.colmap), bounds, innerBorders, title=options.title, from_borderwidth=options.from_borderwidth)
+    if water is not None:
+        for w in water:
+            p = water[w].artist(fc="#3cacd5", lw=0, zorder=900)
+            ax.add_artist(p)
     if network is not None:
         net.plotNet(ax, network, color="#000000", alpha=1)
     if options.output is not None:
