@@ -1,0 +1,8 @@
+[node]
+natural=water
+
+[way]
+natural=water
+
+[rel]
+natural=water
