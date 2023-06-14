@@ -215,7 +215,6 @@ class Polygon(Geometry):
         s, c = encode_complex_polygon(self._shape)
         path = matplotlib.path.Path(s, c, closed=True)
         return matplotlib.patches.PathPatch(path, **kwargs)
-        #return Polygon(self._shape, **kwargs)
 
 
     def bounds(self):
@@ -249,8 +248,11 @@ class MultiLine(Geometry):
 
     def artist(self, **kwargs):
         """Returns a matplotlib artist that represents this geometry"""
+        import matplotlib.patches
+        import matplotlib.path
         s, c = encode_complex_polygon(self._shape)
-        return PathPatch(mpl.path.Path(s, c, closed=False), kwargs)
+        path = matplotlib.path.Path(s, c, closed=False)
+        return matplotlib.patches.PathPatch(path, **kwargs)
 
 
     def bounds(self):

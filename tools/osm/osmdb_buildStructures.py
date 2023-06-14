@@ -272,7 +272,7 @@ class OSMExtractor:
                 cursor.execute("SELECT id,ST_AsText(pos) FROM %s.%s_node WHERE id in (%s)" % (schema, prefix, idstr))
                 conn.commit()
                 for r in cursor.fetchall():
-                    area.addNode(osm.OSMNode(int(r[0]), parsePOINT2XY(r[1])))
+                    area.addNode(osm.OSMNode(int(r[0]), parse_POINT2D(r[1])))
         # clear - no longer used
         missingNODEids = []
         missingWAYids = []
