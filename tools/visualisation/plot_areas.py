@@ -35,6 +35,7 @@ mymodule_dir = os.path.join( script_dir, '..', 'helper' )
 sys.path.append( mymodule_dir )
 
 import wkt
+import net
 import spatialhelper
 
 
@@ -221,6 +222,7 @@ def getOptions():
     #
     optParser.add_option("--bounds", dest="bounds", default=None, help="Defines the bounding box to show")
     optParser.add_option("--inner", dest="innerBorders", default=None, help="Defines the optional inner boundaries")
+    optParser.add_option("-n", "--net", dest="net", default=None, help="Defines the optional road network source")
     optParser.add_option("-C", "--colmap", dest="colmap", default="RdYlGn_r", help="Defines the color map to use")
     optParser.add_option("--contour", dest="contour", action="store_true", default=False, help="Triggers contour rendering")
     optParser.add_option("-t", "--title", dest="title", default=None, help="Sets the figure title")
@@ -285,7 +287,10 @@ if __name__ == "__main__":
     innerBorders = None
     if options.innerBorders!=None:
         innerBorders = loadShapes(options.innerBorders, options.projection, False)
-    # get the optional bounding box
+    # load the network optionally
+    network = None
+    if options.net:
+        network = net.loadNet("postgresql:"+options.net, options.projection, ["street_type"])
     bounds = None
     if options.bounds:
         bounds = [float(v) for v in options.bounds.split(",")]
@@ -303,9 +308,11 @@ if __name__ == "__main__":
             bounds = spatialhelper.geometries_bounds(list(obj2pos.values()))
     # draw
     if options.contour:
-        plotArea_Contours(mainBorder, obj2geom, obj2value, matplotlib.pyplot.get_cmap(options.colmap), bounds, innerBorders, title=options.title)
+        fig, ax = plotArea_Contours(mainBorder, obj2geom, obj2value, matplotlib.pyplot.get_cmap(options.colmap), bounds, innerBorders, title=options.title)
     else:
-        plotArea_Objects(mainBorder, obj2geom, obj2value, matplotlib.pyplot.get_cmap(options.colmap), bounds, innerBorders, title=options.title, from_borderwidth=options.from_borderwidth)
+        fig, ax = plotArea_Objects(mainBorder, obj2geom, obj2value, matplotlib.pyplot.get_cmap(options.colmap), bounds, innerBorders, title=options.title, from_borderwidth=options.from_borderwidth)
+    if network is not None:
+        net.plotNet(ax, network, color="#000000", alpha=1)
     if options.output is not None:
         matplotlib.pyplot.savefig(options.output)
     if not options.no_show:
