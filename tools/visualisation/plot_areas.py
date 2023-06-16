@@ -217,16 +217,18 @@ def parse_options():
     optParser.add_option("-f", "--from", dest="objects",default=None, help="Defines the objects (origins) to load")
     optParser.add_option("--from.id", dest="objectsID", default="gid", help="Defines the name of the field to read the object ids from")
     optParser.add_option("--from.geom", dest="objectsGeom",default="polygon", help="Defines the name of the field to read the object geometries from")
-    optParser.add_option("--from.filter", dest="objectsFilter",default=None, help="Defines a filter applied when loading the origins")
-    optParser.add_option("-b", "--border", dest="mainBorder", default=None, help="Defines the border geometry to load")
-    optParser.add_option("-m", "--measures", dest="measures", default=None, help="Defines the measures to load")
-    optParser.add_option("-i", "--index", dest="measuresIndex", default=2, type=int, help="Defines the index of the measure to use")
+    optParser.add_option("--from.filter", dest="objectsFilter",default=None, help="Defines a SQL WHERE-clause parameter to filter the origins to read")
+    optParser.add_option("-m", "--measures", dest="measures", default=None, help="Defines the measures' table to load")
+    optParser.add_option("-i", "--value", dest="measuresValue", default='avg_tt', help="Defines the name of the value to load from the measures")
     optParser.add_option("-p", "--projection", dest="projection", type=int, default=25833, help="Sets the projection EPSG number")
     #
+    optParser.add_option("-b", "--border", dest="mainBorder", default=None, help="Defines the border geometry to load")
+    optParser.add_option("--inner", dest="innerBorders", default=None, help="Defines the optional inner boundaries to load")
     optParser.add_option("--bounds", dest="bounds", default=None, help="Defines the bounding box to show")
-    optParser.add_option("--inner", dest="innerBorders", default=None, help="Defines the optional inner boundaries")
+    #
     optParser.add_option("-n", "--net", dest="net", default=None, help="Defines the optional road network source")
     optParser.add_option("--water", dest="water", default=None, help="Defines the optional water source")
+    #
     optParser.add_option("-C", "--colmap", dest="colmap", default="RdYlGn_r", help="Defines the color map to use")
     optParser.add_option("--contour", dest="contour", action="store_true", default=False, help="Triggers contour rendering")
     optParser.add_option("-t", "--title", dest="title", default=None, help="Sets the figure title")
@@ -271,15 +273,15 @@ def load_shapes(source, projection, asCentroid=False, idField="gid", geomField="
 
 
 
-def load_measures(source, sourceIndex):
+def load_measures(source, measure):
     (host, db, tableFull, user, password) = source.split(";")
     (schema, table) = tableFull.split(".")
     conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM %s.%s" % (schema, table))
+    cursor.execute("SELECT fid,%s FROM %s.%s" % (measure, schema, table))
     obj2value = {}
     for r in cursor.fetchall():
-        obj2value[int(r[0])] = float(r[sourceIndex])
+        obj2value[int(r[0])] = float(r[1])
     return obj2value
 
 
@@ -311,7 +313,7 @@ if __name__ == "__main__":
             exit()
     # load shapes and measures
     obj2geom = load_shapes(options.objects, options.projection, options.contour, options.objectsID, options.objectsGeom, options.objectsFilter)
-    obj2value = load_measures(options.measures, options.measuresIndex)
+    obj2value = load_measures(options.measures, options.measuresValue)
     # compute the boundary to show if not given
     if bounds is None:
         if mainBorder is not None:
