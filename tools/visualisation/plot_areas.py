@@ -76,7 +76,7 @@ def colorbar_index(ncolors, cmap, ticklabels):
   
   
 
-def plotArea_Contours(shapel, obj2pos, obj2val, colmap, bounds, shapes2=None, title=None, figsize=(8,5), invalidColor="azure"):
+def plot_area_contours(shapel, obj2pos, obj2val, colmap, bounds, shapes2=None, title=None, figsize=(8,5), invalidColor="azure"):
     # compute points
     xs = []
     ys = []
@@ -148,7 +148,7 @@ def plotArea_Contours(shapel, obj2pos, obj2val, colmap, bounds, shapes2=None, ti
 
 
 
-def plotArea_Objects(shapel, obj2pos, obj2val, colmap, bounds, shapes2=None, title=None, figsize=(8,5), invalidColor="azure", from_borderwidth=1.):
+def plot_area_objects(shapel, obj2pos, obj2val, colmap, bounds, shapes2=None, title=None, figsize=(8,5), invalidColor="azure", from_borderwidth=1.):
     # open figure
     fig = matplotlib.pyplot.figure(figsize=figsize)
     ax = fig.add_subplot(111)
@@ -212,7 +212,7 @@ def plotArea_Objects(shapel, obj2pos, obj2val, colmap, bounds, shapes2=None, tit
 
 
 
-def getOptions():
+def parse_options():
     optParser = OptionParser(usage="""usage: %prog [options].""")
     optParser.add_option("-f", "--from", dest="objects",default=None, help="Defines the objects (origins) to load")
     optParser.add_option("--from.id", dest="objectsID", default="gid", help="Defines the name of the field to read the object ids from")
@@ -246,7 +246,7 @@ def getOptions():
     return options, remaining_args
 
 
-def loadShapes(source, projection, asCentroid=False, idField="gid", geomField="polygon", geomFilter=None):
+def load_shapes(source, projection, asCentroid=False, idField="gid", geomField="polygon", geomFilter=None):
     (host, db, tableFull, user, password) = source.split(";")
     (schema, table) = tableFull.split(".")
     where = ""
@@ -271,7 +271,7 @@ def loadShapes(source, projection, asCentroid=False, idField="gid", geomField="p
 
 
 
-def loadMeasures(source, sourceIndex):
+def load_measures(source, sourceIndex):
     (host, db, tableFull, user, password) = source.split(";")
     (schema, table) = tableFull.split(".")
     conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
@@ -284,16 +284,16 @@ def loadMeasures(source, sourceIndex):
 
 
 if __name__ == "__main__":
-    options, remaining_args = getOptions()
+    options, remaining_args = parse_options()
     # load the main border optionally
     mainBorder = None
     if options.mainBorder!=None:
-        mainBorder = loadShapes(options.mainBorder, options.projection, False)
+        mainBorder = load_shapes(options.mainBorder, options.projection, False)
         mainBorder = mainBorder[list(mainBorder.keys())[0]]
     # load the inner borders optionally
     innerBorders = None
     if options.innerBorders!=None:
-        innerBorders = loadShapes(options.innerBorders, options.projection, False)
+        innerBorders = load_shapes(options.innerBorders, options.projection, False)
     # load the network optionally
     network = None
     if options.net:
@@ -301,7 +301,7 @@ if __name__ == "__main__":
     # load the water
     water = None
     if options.water:
-        water = loadShapes(options.water, options.projection, False)
+        water = load_shapes(options.water, options.projection, False)
     # get the optional bounding box
     bounds = None
     if options.bounds:
@@ -310,8 +310,8 @@ if __name__ == "__main__":
             print ("The bounds must be a tuple of minx,miny,maxx,maxy.")
             exit()
     # load shapes and measures
-    obj2geom = loadShapes(options.objects, options.projection, options.contour, options.objectsID, options.objectsGeom, options.objectsFilter)
-    obj2value = loadMeasures(options.measures, options.measuresIndex)
+    obj2geom = load_shapes(options.objects, options.projection, options.contour, options.objectsID, options.objectsGeom, options.objectsFilter)
+    obj2value = load_measures(options.measures, options.measuresIndex)
     # compute the boundary to show if not given
     if bounds is None:
         if mainBorder is not None:
@@ -319,10 +319,11 @@ if __name__ == "__main__":
         else:
             bounds = spatialhelper.geometries_bounds(list(obj2pos.values()))
     # draw
+    colormap = matplotlib.pyplot.get_cmap(options.colmap)
     if options.contour:
-        fig, ax = plotArea_Contours(mainBorder, obj2geom, obj2value, matplotlib.pyplot.get_cmap(options.colmap), bounds, innerBorders, title=options.title)
+        fig, ax = plot_area_contours(mainBorder, obj2geom, obj2value, colormap, bounds, innerBorders, title=options.title)
     else:
-        fig, ax = plotArea_Objects(mainBorder, obj2geom, obj2value, matplotlib.pyplot.get_cmap(options.colmap), bounds, innerBorders, title=options.title, from_borderwidth=options.from_borderwidth)
+        fig, ax = plot_area_objects(mainBorder, obj2geom, obj2value, colormap, bounds, innerBorders, title=options.title, from_borderwidth=options.from_borderwidth)
     if water is not None:
         for w in water:
             p = water[w].artist(fc="#3cacd5", lw=0, zorder=900)
