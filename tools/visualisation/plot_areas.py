@@ -85,7 +85,7 @@ def plotArea_Contours(shapel, obj2pos, obj2val, colmap, bounds, shapes2=None, ti
         if g in obj2val: # !!! warn
             xs.append(obj2pos[g]._shape[0])
             ys.append(obj2pos[g]._shape[1])
-            zs.append(obj2val[g])
+            zs.append(min(obj2val[g], 900)) # !!!
     xi = numpy.linspace(min(xs), max(xs), 1000)
     yi = numpy.linspace(min(ys), max(ys), 1000)
     xi, yi = numpy.meshgrid(xi, yi)
@@ -101,7 +101,7 @@ def plotArea_Contours(shapel, obj2pos, obj2val, colmap, bounds, shapes2=None, ti
         [ax.add_patch(i) for i in polys]
     # set figure boundaries and axes
     #
-    levels = [0, 300, 600, 900, 1200, 1500, 1800]
+    levels = [0, 150, 300, 450, 600, 750, 900, 1200]
     valueMeasure = "s"
     clip = None
     if shapel is not None:
@@ -112,19 +112,20 @@ def plotArea_Contours(shapel, obj2pos, obj2val, colmap, bounds, shapes2=None, ti
         codes = [item for sub_list in codes for item in sub_list]
         clip = matplotlib.patches.PathPatch(matplotlib.patches.Path(vertices, codes), transform=ax.transData)
     cs1 = matplotlib.pyplot.contourf(xi, yi, zi, levels=levels, cmap=colmap, zorder=20)
+    #cs1 = matplotlib.pyplot.contourf(xi, yi, zi, levels=100, cmap=colmap, zorder=20)
     if shapes2: 
         colB = ax.add_collection( PatchCollection( shapes2, facecolors='none', linewidths=1., edgecolor="black", zorder=40  ))
     if clip is not None:
         for col in cs1.collections:
             col.set_clip_path(clip)
-    sm = matplotlib.cm.ScalarMappable(cmap=colmap, norm=matplotlib.pyplot.Normalize(vmin=0, vmax=600))
+    sm = matplotlib.cm.ScalarMappable(cmap=colmap, norm=matplotlib.pyplot.Normalize(vmin=0, vmax=900))
     # fake up the array of the scalar mappable. Urgh..." (pelson, http://stackoverflow.com/questions/8342549/matplotlib-add-colorbar-to-a-sequence-of-line-plots)
     sm._A = []
     labels = []
     for il,l in enumerate(levels):
         if il==0: continue 
-        if il==len(levels)-1: l = str(levels[il-1]) + "- " + valueMeasure
-        else: l = str(levels[il-1]) + "-" + str(levels[il]) + " " + valueMeasure
+        if il==len(levels)-1: l = ">= " + str(levels[il-1]) + " " + valueMeasure
+        else: l = str(levels[il-1]) + " " + valueMeasure + " - " + str(levels[il]) + " " + valueMeasure
         labels.append(l)
     if True:
         cbar = colorbar_index(len(levels[1:]), colmap, labels)#["300s","600s","900s","1200s","1500s","1800s"])
