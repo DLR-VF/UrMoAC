@@ -96,16 +96,17 @@ def patchify(polys, **kwargs):
     return PathPatch(Path(vertices.T, codes), kwargs)
 
 
-def encode_complex_polygon(polys):
+def encode_complex_polygon(polys, close):
     import matplotlib.path
     s = []
     c = []
     for poly in polys:
         s.extend(poly)
-        s.append([-1, -1])
         c.append(matplotlib.path.Path.MOVETO)
         c.extend([matplotlib.path.Path.LINETO]*(len(poly)-1))
-        c.append(matplotlib.path.Path.CLOSEPOLY) # 79: CLOSEPOLY
+        if close:
+            s.append([-1, -1])
+            c.append(matplotlib.path.Path.CLOSEPOLY) # 79: CLOSEPOLY
     return s, c
 
 
@@ -180,7 +181,7 @@ class LineString(Geometry):
         """Returns a matplotlib artist that represents this geometry"""
         codes = [1]
         codes.extend([2]*(len(self._shape)-1))
-        return mpl.path.Path(self._shape, codes, **kwargs)
+        return mpl.path.Path(self._shape, codes, closed=False, **kwargs)
 
 
     def bounds(self):
@@ -212,7 +213,7 @@ class Polygon(Geometry):
         """Returns a matplotlib artist that represents this geometry"""
         import matplotlib.patches
         import matplotlib.path
-        s, c = encode_complex_polygon(self._shape)
+        s, c = encode_complex_polygon(self._shape, True)
         path = matplotlib.path.Path(s, c, closed=True)
         return matplotlib.patches.PathPatch(path, **kwargs)
 
@@ -250,9 +251,9 @@ class MultiLine(Geometry):
         """Returns a matplotlib artist that represents this geometry"""
         import matplotlib.patches
         import matplotlib.path
-        s, c = encode_complex_polygon(self._shape)
-        path = matplotlib.path.Path(s, c, closed=False)
-        return matplotlib.patches.PathPatch(path, **kwargs)
+        s, c = encode_complex_polygon(self._shape, False)
+        path = matplotlib.path.Path(s, closed=False)
+        return matplotlib.patches.PathPatch(path, fill=False, **kwargs)
 
 
     def bounds(self):
@@ -287,7 +288,7 @@ class MultiPolygon(Geometry):
         ss = []
         cs = []
         for poly in self._shape:
-            s, c = encode_complex_polygon(poly)
+            s, c = encode_complex_polygon(poly, True)
             ss.extend(s)
             cs.extend(c)
         path = matplotlib.path.Path(ss, cs)
