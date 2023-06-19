@@ -9,11 +9,11 @@
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Extracts specific structures (not the network) from an OSM-database representation
 # Call with
-#  osmdb_buildStructures.py <INPUT_TABLE> <DEF_FILE> <OUTPUT_TABLE> 
-# where <INPUT_TABLE> is defined as:
-#  <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD>  
+#  osmdb_buildStructures.py <INPUT_TABLES_PREFIX> <DEF_FILE> <OUTPUT_TABLE> 
+# where <INPUT_TABLES_PREFIX> is defined as:
+#  <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD>  
 # and <OUTPUT_TABLE> is defined as:
-#  <HOST>;<DB>;<SCHEMA>.<NAME>;<USER>;<PASSWD>  
+#  <HOST>,<DB>,<SCHEMA>,<NAME>,<USER>,<PASSWD>  
 #
 # This file is part of the "UrMoAC" accessibility tool
 # https://github.com/DLR-VF/UrMoAC
@@ -389,8 +389,7 @@ class OSMExtractor:
 def main(argv):       
     t1 = datetime.datetime.now()
     # -- open connection
-    (host, db, tableFull, user, password) = sys.argv[1].split(";")
-    (schema, prefix) = tableFull.split(".")
+    (host, db, schema, prefix, user, password) = sys.argv[1].split(",")
     conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
     cursor = conn.cursor()
 
@@ -406,8 +405,7 @@ def main(argv):
     # -- write extracted objects
     # --- open connection
     print ("Building destination databases")
-    (host, db, tableFull, user, password) = sys.argv[3].split(";")
-    (schema, name) = tableFull.split(".")
+    (host, db, schema, name, user, password) = sys.argv[3].split(",")
     conn2 = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
     cursor2 = conn2.cursor()
     # --- build tables
