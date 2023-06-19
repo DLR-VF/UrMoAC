@@ -101,12 +101,12 @@ Currently, the following definition files are available:
 
 [osmdb_buildStructures.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osmdb_buildStructures.py) is currently under development and experimental.
 
-## Importing [GTFS](https://developers.google.com/transit/gtfs/)
+## Importing GTFS
 
 If accessibilities for using public transport shall be computed, UrMoAC requires the representation of the public transport offer within the region in form of [GTFS](https://developers.google.com/transit/gtfs/) data. [GTFS](https://developers.google.com/transit/gtfs/) data comes as text files. For using it with UrMoAC, it has to be imported into the database. The script [importGTFS.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/importGTFS.py) does this.
 
 [importGTFS.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/importGTFS.py) is called like the other UrMoAC import scripts:
-```python importGTFS.py <INPUT_PATH> <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD>```
+```python importGTFS.py <INPUT_PATH> <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD>```
 Where:
 
 * ___&lt;INPUT_PATH&gt;___: the path to the folder the GTFS files are located within;

@@ -56,7 +56,7 @@ class GTFSImporter:
         @param dbDef The definition of the database to write the data to
         """
         self._srcFolder = srcFolder
-        (self._host, self._db, self._schema, self._tablePrefix, self._user, self._password) = dbDef.split(";")
+        (self._host, self._db, self._schema, self._tablePrefix, self._user, self._password) = dbDef.split(",")
         # connect to db
         self._conn = psycopg2.connect("host='%s' dbname='%s' user='%s' password='%s'" % (self._host, self._db, self._user, self._password))
         self._cursor = self._conn.cursor()
@@ -281,7 +281,7 @@ def main(argv):
     # check and parse command line parameter and input files
     if len(argv)<3:
         print ("importGTFS.py <INPUT_FOLDER> <TARGET_DB_DEFINITION>")
-        print ("  where <TARGET_DB_DEFINITION> is <HOST>;<DB>;<SCHEMA>;<TABLE_PREFIX>;<USER>;<PASSWD>")
+        print ("  where <TARGET_DB_DEFINITION> is <HOST>,<DB>,<SCHEMA>,<TABLE_PREFIX>,<USER>,<PASSWD>")
         sys.exit()
     # - input folder
     inputFolder = argv[1]
@@ -298,8 +298,8 @@ def main(argv):
     if error:
         sys.exit()
     # - output db
-    if len(argv[2].split(";"))<6:
-        print ("Missing values in target database definition; should be: <HOST>;<DB>;<SCHEMA>;TABLE_PREFIX>;<USER>;<PASSWD>")
+    if len(argv[2].split(","))<6:
+        print ("Missing values in target database definition; should be: <HOST>,<DB>,<SCHEMA>,<TABLE_PREFIX>,<USER>,<PASSWD>")
         sys.exit()
         
     # build the importer
