@@ -17,7 +17,7 @@
   * carrier definition
 * divider consolidation: use ',' instead of ';' (tables definition, e.g.; the reason is that ';' is not accepted on Linux)
   * within UrMoAC
-  * within included Python-scripts
+  * within included Python-scripts (please note that all fields are now divided using a ',')
 
 
 

@@ -27,13 +27,13 @@ Consequently, the call is:
 
 Where:
 
-* ___&lt;HOST&gt;___: the name of your database server
-* ___&lt;DB&gt;___: the name of your database
-* ___&lt;SCHEMA&gt;___: the database schema to store the database tables at
-* ___&lt;PREFIX&gt;___: a prefix for the database tables
-* ___&lt;USER&gt;___: the name of the user who has access (can generate tables and write into them) the database
-* ___&lt;PASSWD&gt;___: the password of the user
-* ___&lt;FILE&gt;___: the name of the OSM XML file that shall be imported.
+* ***&lt;HOST&gt;***: the name of your database server
+* ***&lt;DB&gt;***: the name of your database
+* ***&lt;SCHEMA&gt;***: the database schema to store the database tables at
+* ***&lt;PREFIX&gt;***: a prefix for the database tables
+* ***&lt;USER&gt;***: the name of the user who has access (can generate tables and write into them) the database
+* ***&lt;PASSWD&gt;***: the password of the user
+* ***&lt;FILE&gt;***: the name of the OSM XML file that shall be imported.
 
 The tool reads the OSM nodes, ways, and relations and stores them into generated database tables. The generated database tables are:
 
@@ -54,12 +54,12 @@ The call is:
 
 Where:
 
-* ___&lt;HOST&gt;___: the name of your database server;
-* ___&lt;DB&gt;___: the name of your database;
-* ___&lt;SCHEMA&gt;___: the database schema to store the database tables at;
-* ___&lt;PREFIX&gt;___: a prefix for the database tables;
-* ___&lt;USER&gt;___: the name of the user who has access (can generate tables and write into them) the database;
-* ___&lt;PASSWD&gt;___: the password of the user.
+* ***&lt;HOST&gt;***: the name of your database server;
+* ***&lt;DB&gt;***: the name of your database;
+* ***&lt;SCHEMA&gt;***: the database schema to store the database tables at;
+* ***&lt;PREFIX&gt;***: a prefix for the database tables;
+* ***&lt;USER&gt;***: the name of the user who has access (can generate tables and write into them) the database;
+* ***&lt;PASSWD&gt;***: the password of the user.
 
 ### Using OpenStreetMap data to build tables of certain structures
 The script [osmdb_buildStructures.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osmdb_buildStructures.py) builds a database table that can be used to read origins / destinations from by parsing the contents of an OSM representation imported using [osm2db.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osm2db.py).
@@ -135,13 +135,13 @@ If accessibilities for using public transport shall be computed, UrMoAC requires
 ```python importGTFS.py <INPUT_PATH> <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD>```
 Where:
 
-* ___&lt;INPUT_PATH&gt;___: the path to the folder the GTFS files are located within;
-* ___&lt;HOST&gt;___: the name of your database server;
-* ___&lt;DB&gt;___: the name of your database;
-* ___&lt;SCHEMA&gt;___: the database schema to store the database tables at;
-* ___&lt;PREFIX&gt;___: a prefix for the database tables;
-* ___&lt;USER&gt;___: the name of the user who has access (can generate tables and write into them) the database;
-* ___&lt;PASSWD&gt;___: the password of the user.
+* ***&lt;INPUT_PATH&gt;***: the path to the folder the GTFS files are located within;
+* ***&lt;HOST&gt;***: the name of your database server;
+* ***&lt;DB&gt;***: the name of your database;
+* ***&lt;SCHEMA&gt;***: the database schema to store the database tables at;
+* ***&lt;PREFIX&gt;***: a prefix for the database tables;
+* ***&lt;USER&gt;***: the name of the user who has access (can generate tables and write into them) the database;
+* ***&lt;PASSWD&gt;***: the password of the user.
 
 
 
