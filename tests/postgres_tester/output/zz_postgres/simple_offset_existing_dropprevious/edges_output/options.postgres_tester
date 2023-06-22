@@ -1,2 +1,2 @@
---edges-output jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_existing_dropprevious.edges_output;urmoactests;urmoactests
+--edges-output jdbc:postgresql://localhost/urmoac_postgres_tests,simple_offset_existing_dropprevious.edges_output,urmoactests,urmoactests
 

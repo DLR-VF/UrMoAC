@@ -5,6 +5,12 @@ origin_destination
 aggregation_areas
 
 
+# deprecated prefix (with a ,)
+deprecated_prefix
+
+# deprecated prefix and divider (with a ;)
+deprecated_prefix_divider
+
 
 # testing error handling
 errors

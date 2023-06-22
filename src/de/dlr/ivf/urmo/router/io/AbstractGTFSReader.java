@@ -177,7 +177,7 @@ public abstract class AbstractGTFSReader {
 			Vector<EdgeMappable> stopsV = new Vector<>();
 			readStops(stops, id2stop, stopsV);
 			// map stops to edges
-			long accessModes = Modes.getMode("foot").id|Modes.getMode("bicycle").id;
+			long accessModes = Modes.getMode("foot").id|Modes.getMode("bike").id;
 			NearestEdgeFinder nef = new NearestEdgeFinder(stopsV, _net, accessModes);
 			HashMap<DBEdge, Vector<MapResult>> edge2stops = nef.getNearestEdges(false, numThreads);
 			// connect stops to network

@@ -17,4 +17,4 @@ multiple_edges_no_offset
 
 
 # tests whether the deprecated file definition works
-deprecated
+deprecated_prefix

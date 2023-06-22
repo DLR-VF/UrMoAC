@@ -23,4 +23,14 @@ aggregation
 
 
 # tests whether the deprecated file definition works
-deprecated
+deprecated_prefix
+
+# tests whether the deprecated file definition and name works
+deprecated_prefix_name
+
+# tests whether the deprecated name works
+deprecated_name
+
+
+
+

@@ -32,7 +32,7 @@ An origin or a destination is represented using the following attributes in the 
 | the_geom | PostGIS-Geometry | Defines the object&apos;s position in space |
 | N/A (optional) | double | Weights the object |
 
-To load objects from a database, you have to give the complete path to the according database table as well as the credentials needed to access it. As such, the call to load origins from a database looks like: __--from jdbc:postgresql:_&lt;DB_HOST&gt;_;_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_;_&lt;USER&gt;_;_&lt;PASSWORD&gt;___, where:
+To load objects from a database, you have to give the complete path to the according database table as well as the credentials needed to access it. As such, the call to load origins from a database looks like: __--from jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___, where:
 
 * ___&lt;DB_HOST&gt;___ is the adress of the database server
 * ___&lt;SCHEMA&gt;___ is the database schema the table is located within
@@ -126,7 +126,7 @@ An aggregation area is represented using the following attributes in a database:
 | gid | int/long | Names the area |
 | the_geom | PostGIS-Polygon | Defines the area&apos;s shape |
 
-Use __--from-agg jdbc:postgresql:_&lt;DB_HOST&gt;_;_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_;_&lt;USER&gt;_;_&lt;PASSWORD&gt;___ to load origin aggregation areas from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
+Use __--from-agg jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___ to load origin aggregation areas from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
 
 
 ### File (.csv) Format
@@ -179,8 +179,8 @@ The following attributes describe a road:
 * from node: the __numeric__ ID of the node (intersection) the road starts at;
 * to node: the __numeric__ ID of the node (intersection) the road ends at;
 * foot: whether pedestrians may use this road;
-* bicycle: whether bicyclists may use this road;
-* passenger: whether motorised vehicles may use this road;
+* bike: whether bicyclists may use this road;
+* car: whether motorised vehicles may use this road;
 * speed: the maximum velocity allowed on this road in km/h;
 * length: the length of this road in meters;
 * geometry: a line strip defining this road&apos;s geometry.
@@ -205,11 +205,11 @@ A road network is defined by the roads it consists of, and each road is represen
 | nodeto | long | The ID of the node the road ends at | 
 | mode_walk | boolean | Whether the road can be used by the mode &ldquo;walking&rdquo;/&ldquo;foot&rdquo; | 
 | mode_bike | boolean | Whether the road can be used by the mode &ldquo;bicycling&rdquo;/&ldquo;bike&rdquo; | 
-| mode_mit | boolean | Whether the road can be used by the mode &ldquo;motorised individual traffic&rdquo;/&ldquo;passenger&rdquo;/&ldquo;car&rdquo; | 
+| mode_mit | boolean | Whether the road can be used by the mode &ldquo;motorised individual traffic&rdquo;/&ldquo;car&rdquo;/&ldquo;car&rdquo; | 
 | vmax | double | The maximum speed allowed on this road in km/h | 
 | length | double | The length of this road | 
 
-Use __--net jdbc:postgresql:_&lt;DB_HOST&gt;_;_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_;_&lt;USER&gt;_;_&lt;PASSWORD&gt;___ to load a network from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
+Use __--net jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___ to load a network from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
 
 
 ### File (.csv) Format
@@ -220,7 +220,7 @@ The following example defines a road with the ID &ldquo;10000&rdquo; connecting 
 
 ```10000;0;1;true;true;true;50;500;-250;0;250;0```
 
-The boolean values for &ldquo;foot&rdquo;, &ldquo;bicycle&rdquo;, and &ldquo;passenger&rdquo; may be encodes as &ldquo;true&rdquo; or &ldquo;1&rdquo; when the respective mode is allowed, &ldquo;false&rdquo; or &ldquo;0&rdquo; otherwise.
+The boolean values for &ldquo;foot&rdquo;, &ldquo;bike&rdquo;, and &ldquo;car&rdquo; may be encodes as &ldquo;true&rdquo; or &ldquo;1&rdquo; when the respective mode is allowed, &ldquo;false&rdquo; or &ldquo;0&rdquo; otherwise.
 
 Please note that no projection is applied to aggregation areas stored in .csv files, thereby you should set __--epsg 0__.
 
@@ -235,7 +235,7 @@ The following example defines a road with the ID &ldquo;10000&rdquo; connecting 
 
 ```10000;0;1;true;true;true;50;500;LINESTRING(-250 0, 250 0)```
 
-The boolean values for &ldquo;foot&rdquo;, &ldquo;bicycle&rdquo;, and &ldquo;passenger&rdquo; may be encodes as &ldquo;true&rdquo; or &ldquo;1&rdquo; when the respective mode is allowed, &ldquo;false&rdquo; or &ldquo;0&rdquo; otherwise.
+The boolean values for &ldquo;foot&rdquo;, &ldquo;bike&rdquo;, and &ldquo;car&rdquo; may be encodes as &ldquo;true&rdquo; or &ldquo;1&rdquo; when the respective mode is allowed, &ldquo;false&rdquo; or &ldquo;0&rdquo; otherwise.
 
 Please note that no projection is applied to aggregation areas stored in .wkt files, thereby you should set __--epsg 0__.
 
@@ -280,7 +280,7 @@ A speed time line entry consists of the following data in the database:
 | eid | String| The name of the road as defined in the &ldquo;oid&rdquo; field of the road network | 
 | speed | float | The average/current/maximum speed at this road | 
 
-Use __--traveltimes jdbc:postgresql:_&lt;DB_HOST&gt;_;_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_;_&lt;USER&gt;_;_&lt;PASSWORD&gt;___ to load speed time lines from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
+Use __--traveltimes jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___ to load speed time lines from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
 
 
 ### File (.csv) Format
@@ -322,7 +322,7 @@ An OD-connection is represented using the following attributes in the database:
 | origin | long | ID of the origin as loaded using --from |
 | destination | long | ID of the origin as loaded using --to|
 
-Use __--od-connections jdbc:postgresql:_&lt;DB_HOST&gt;_;_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_;_&lt;USER&gt;_;_&lt;PASSWORD&gt;___ to load OD-connections from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
+Use __--od-connections jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___ to load OD-connections from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
 
 
 ### File (.csv) Format
@@ -361,14 +361,14 @@ The definition of an entrainment possibility consists of the following data in a
 | carrier_subtype | string | The subtype as defined in GTFS | 
 | carried | string | The name of the entrained mode, e.g. &ldquo;bike&rdquo; | 
 
-Use __--entrainment jdbc:postgresql:_&lt;DB_HOST&gt;_;_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_;_&lt;USER&gt;_;_&lt;PASSWORD&gt;___ to load entrainment definitions from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
+Use __--entrainment jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___ to load entrainment definitions from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
 
 
 ### File (.csv) Format
 
 You may load entrainment definitions from .csv-files. Each entrainment definition is stored in a single line individually. The following example defines that a bike may be taken on board of a pt subcarrier 400 (i.e. city rail in Berlin&apos;s GTFS definition):
 
-```pt;400;bicycle```
+```pt;400;bike```
 
 Use __--entrainment _&lt;MYFILE&gt;.csv;___ to load the entrainment definitions from a .csv-file.
 

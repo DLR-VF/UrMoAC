@@ -32,6 +32,7 @@ import os
 import subprocess
 import sys
 import psycopg2
+import re
 
 
 # --- main method -----------------------------------------
@@ -56,7 +57,7 @@ def main(argv):
         if t.find("jdbc:postgresql:")>0:
             t = t[t.find("jdbc:postgresql:"):]
         # assert schema exists
-        t = t.split(";")
+        t = re.split(r';|,', t) # https://stackoverflow.com/questions/11050562/how-do-i-split-a-string-in-python-with-multiple-separators
         schema = t[1][:t[1].find(".")]
         cursor.execute("CREATE SCHEMA IF NOT EXISTS %s;" % schema)
         conn.commit()
@@ -96,7 +97,7 @@ def main(argv):
             continue
         if t.find("jdbc:postgresql:")>0:
             t = t[t.find("jdbc:postgresql:"):]
-        t = t.split(";")
+        t = re.split(r';|,', t) # https://stackoverflow.com/questions/11050562/how-do-i-split-a-string-in-python-with-multiple-separators
         # get values and write them to a file
         cursor.execute("SELECT * FROM %s;" % t[1])
         fdo1.write("%s\n" % t[1])

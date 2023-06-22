@@ -11,5 +11,12 @@ simple_offset_existing
 simple_offset_existing_dropprevious
 
 
-# tests whether the deprecated file definition works
-deprecated
+# tests whether the deprecated prefix works
+deprecated_prefix
+
+# tests whether the deprecated divider works
+deprecated_divider
+
+# tests whether the deprecated prefix and divider work
+deprecated_divider_prefix
+

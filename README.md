@@ -38,10 +38,10 @@ Please consult the section *Links* below for further information sources.
 A most basic call may look as following:
 
 ```console
-java -jar UrMoAC.jar --from origins.csv --to destinations.csv --net network.csv --nm-output nm_output.csv --mode bicycle --time 0 --epsg 0
+java -jar UrMoAC.jar --from origins.csv --to destinations.csv --net network.csv --od-output nm_output.csv --mode bike --time 0 --epsg 0
 ```
 
-Which would compute the accessibility of the destinations stored in ```destinations.csv``` starting at the origins stored in ```origins.csv``` along the road network stored in ```network.csv``` for the transport mode bicycle. Information about the used file formats are given at [Input Data Formats](https://github.com/DLR-VF/UrMoAC/blob/master/docs/mkdocs/InputDataFormats.md).
+Which would compute the accessibility of the destinations stored in ```destinations.csv``` starting at the origins stored in ```origins.csv``` along the road network stored in ```network.csv``` for the transport mode bike. Information about the used file formats are given at [Input Data Formats](https://github.com/DLR-VF/UrMoAC/blob/master/docs/mkdocs/InputDataFormats.md).
 
 ## License
 

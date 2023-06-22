@@ -1,2 +1,2 @@
---origins-to-road-output jdbc:sqlite:sqlite.db;test_o2r --destinations-to-road-output jdbc:sqlite:sqlite.db;test_d2r
+--origins-to-road-output jdbc:sqlite:sqlite.db,test_o2r --destinations-to-road-output jdbc:sqlite:sqlite.db,test_d2r
 

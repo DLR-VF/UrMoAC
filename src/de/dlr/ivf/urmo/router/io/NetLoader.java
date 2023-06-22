@@ -124,8 +124,8 @@ public class NetLoader {
 			while (rs.next()) {
 				long modes = 0;
 				if(rs.getBoolean("mode_walk")) modes = modes | Modes.getMode("foot").id;
-				if(rs.getBoolean("mode_bike")) modes = modes | Modes.getMode("bicycle").id;
-				if(rs.getBoolean("mode_mit")) modes = modes | Modes.getMode("passenger").id;
+				if(rs.getBoolean("mode_bike")) modes = modes | Modes.getMode("bike").id;
+				if(rs.getBoolean("mode_mit")) modes = modes | Modes.getMode("car").id;
 				modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
 				if(modes==0 || ((modes&uModes)==0)) {
 					continue;
@@ -176,8 +176,8 @@ public class NetLoader {
 			String[] vals = line.split(";");
 			long modes = 0;
 			if("true".equals(vals[3].toLowerCase()) || "1".equals(vals[3])) modes = modes | Modes.getMode("foot").id;
-			if("true".equals(vals[4].toLowerCase()) || "1".equals(vals[4])) modes = modes | Modes.getMode("bicycle").id;
-			if("true".equals(vals[5].toLowerCase()) || "1".equals(vals[5])) modes = modes | Modes.getMode("passenger").id;
+			if("true".equals(vals[4].toLowerCase()) || "1".equals(vals[4])) modes = modes | Modes.getMode("bike").id;
+			if("true".equals(vals[5].toLowerCase()) || "1".equals(vals[5])) modes = modes | Modes.getMode("car").id;
 			modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
 			if(modes==0 || ((modes&uModes)==0)) {
 				continue;
@@ -223,8 +223,8 @@ public class NetLoader {
 				String[] vals = line.split(";");
 				long modes = 0;
 				if("true".equals(vals[3].toLowerCase()) || "1".equals(vals[3])) modes = modes | Modes.getMode("foot").id;
-				if("true".equals(vals[4].toLowerCase()) || "1".equals(vals[4])) modes = modes | Modes.getMode("bicycle").id;
-				if("true".equals(vals[5].toLowerCase()) || "1".equals(vals[5])) modes = modes | Modes.getMode("passenger").id;
+				if("true".equals(vals[4].toLowerCase()) || "1".equals(vals[4])) modes = modes | Modes.getMode("bike").id;
+				if("true".equals(vals[5].toLowerCase()) || "1".equals(vals[5])) modes = modes | Modes.getMode("car").id;
 				modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
 				if(modes==0 || ((modes&uModes)==0)) {
 					continue;

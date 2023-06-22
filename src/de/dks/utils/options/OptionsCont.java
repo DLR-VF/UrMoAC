@@ -31,6 +31,9 @@ public class OptionsCont {
     /// @brief The name of the option that defines the parent configuration
     private String myParentConfigurationName = null;
     
+    /// @brief Map from deprecated to current options
+    private HashMap<String, String> myDeprecations = new HashMap<>();
+    
     
 
     /** @brief A string-by-length comparator (increasing length)
@@ -118,7 +121,30 @@ public class OptionsCont {
             add(name1, o2);
         }
     }
-    /// @{
+
+
+    /** @brief Registers a known option under the other synonym which is marked as deprecated
+     * @param[in] name1 The name the option was already known under
+     * @param[in] name2 The synonym to register
+     */
+    public void addDeprecatedSynonym(String name1, String name2) {
+        Option o1 = getOptionSecure(name1);
+        Option o2 = getOptionSecure(name2);
+        if(o1==null&&o2==null) {
+            throw new RuntimeException("Neither an option with the name '" + name1 + "' nor an option with the name '" + name2 + "' is known.");
+        }
+        if(o1!=null&&o2!=null) {
+            throw new RuntimeException("Both options are already set ('" + name1 + "' and '" + name2 + "')!");
+        }
+        if(o1!=null) {
+            add(name2, o1);
+            myDeprecations.put(name2, name1);
+        } else {
+            add(name1, o2);
+            myDeprecations.put(name1, name2);
+        }
+    }
+    /// @}
 
 
 
@@ -333,9 +359,13 @@ public class OptionsCont {
         Vector<String> ret = new Vector<>();
         for(Iterator<String> i=myOptionsMap.keySet().iterator(); i.hasNext(); ) {
             String name = i.next();
-            if(myOptionsMap.get(name)==option) {
-                ret.add(name);
+            if(myOptionsMap.get(name)!=option) {
+            	continue;
             }
+            if(myDeprecations.containsKey(name)) {
+            	continue;
+            }
+            ret.add(name);
         }
         Collections.sort(ret, new SortByLengthComparator()) ;
         return ret;
@@ -353,6 +383,9 @@ public class OptionsCont {
      */
     public void set(String name, String value) {
         Option o = getOption(name);
+        if(myDeprecations.containsKey(name)) {
+        	System.err.println("The option '" + name + "' is deprecated. Please use '" + myDeprecations.get(name) + "'.");
+        }
         o.set(value);
     }
 
@@ -365,6 +398,9 @@ public class OptionsCont {
         Option o = getOptionSecure(name);
         if(!(o instanceof Option_Bool)) { 
             throw new RuntimeException("This is not a boolean option");
+        }
+        if(myDeprecations.containsKey(name)) {
+        	System.err.println("The option '" + name + "' is deprecated. Please use '" + myDeprecations.get(name) + "'.");
         }
         if(value) {
             o.set("true");

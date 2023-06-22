@@ -1,0 +1,2 @@
+--od-output db;jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_plain.od_output;urmoactests;urmoactests
+

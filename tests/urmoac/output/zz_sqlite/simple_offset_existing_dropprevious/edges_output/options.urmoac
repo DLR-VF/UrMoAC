@@ -1,2 +1,2 @@
---edges-output jdbc:sqlite:sqlite.db;test
+--edges-output jdbc:sqlite:sqlite.db,test
 

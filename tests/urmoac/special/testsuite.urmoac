@@ -6,3 +6,6 @@ weights
 
 # evaluation of network connectivity
 subnets
+
+# mode settings
+modes
