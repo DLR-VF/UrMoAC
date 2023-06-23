@@ -1,2 +1,2 @@
---direct-output jdbc:sqlite:sqlite.db;test
+--direct-output jdbc:sqlite:sqlite.db,test
 

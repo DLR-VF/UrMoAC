@@ -8,7 +8,7 @@
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Imports an OSM-file into the database
 # Call with
-#  osmdb_buildWays <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD>
+#  osmdb_buildWays <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD>
 #
 # This file is part of the "UrMoAC" accessibility tool
 # https://github.com/DLR-VF/UrMoAC
@@ -436,8 +436,7 @@ def getParams(params):
 def main(argv):
     """ @brief Main method
     """
-    (host, db, tableFull, user, password) = sys.argv[1].split(";")
-    (schema, prefix) = tableFull.split(".")
+    (host, db, schema, prefix, user, password) = sys.argv[1].split(",")
     t1 = datetime.datetime.now()
     conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
     cursor = conn.cursor()
@@ -626,5 +625,5 @@ def main(argv):
 
 # -- main check
 if __name__ == '__main__':
-  main(sys.argv)
+    main(sys.argv)
    

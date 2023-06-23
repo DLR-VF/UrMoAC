@@ -10,7 +10,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --from _&lt;OBJECT_SOURCE&gt;_<br>-f _&lt;OBJECT_SOURCE&gt;_ | N/A (__mandatory__) | Defines the data source of origins. |
 | --to _&lt;OBJECT_SOURCE&gt;_<br>-t _&lt;OBJECT_SOURCE&gt;_ | N/A (__mandatory__) | Defines the data source of destinations. |
 | --net _&lt;NET_SOURCE&gt;_<br>-n _&lt;NET_SOURCE&gt;_ | N/A (__mandatory__) | Defines the road network to load. |
-| --mode _[&apos;passenger&apos;, &lsquo;foot&rsquo;, &lsquo;bicycle&rsquo;]_ | N/A (__mandatory__) | The transport mode to use. |
+| --mode _[&apos;car&apos;, &lsquo;foot&rsquo;, &lsquo;bike&rsquo;]_ | N/A (__mandatory__) | The transport mode to use. |
 | --from-agg _&lt;OBJECT_SOURCE&gt;_ | N/A (optional) | Defines the data source of origin aggregation areas. |
 | --to-agg _&lt;OBJECT_SOURCE&gt;_ | N/A (optional) | Defines the data source of destination aggregation areas. |
 | --pt _&lt;GTFS_TABLES_PREFIX&gt;_<br>-p _&lt;GTFS_TABLES_PREFIX&gt;_ | N/A (optional) | Defines the GTFS-based public transport representation. |
@@ -71,14 +71,14 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --custom.kkc-per-hour _&lt;DOUBLE&gt;_ | N/A (optional) | kkc used per hour when using the custom mode. |
 | --custom.co2-per-km _&lt;DOUBLE&gt;_ | N/A (optional) | CO2 emitted per kilometer when using the custom mode. |
 | --custom.price-per-km _&lt;DOUBLE&gt;_ | N/A (optional) | Price for using the custom mode per kilometre. |
-| --custom.allowed _&lt;MODE&gt;[;_&lt;MODE&gt;_]*_ | N/A (optional) | The type of roads the custom mode can use (combination of &lsquo;foot&rsquo;, &lsquo;bike&rsquo;, &lsquo;passenger&rsquo; divided by &lsquo;;&rsquo;). |
+| --custom.allowed _&lt;MODE&gt;[;_&lt;MODE&gt;_]*_ | N/A (optional) | The type of roads the custom mode can use (combination of &lsquo;foot&rsquo;, &lsquo;bike&rsquo;, &lsquo;car&rsquo; divided by &lsquo;;&rsquo;). |
 
 ## Output Options
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
-| --nm-output _&lt;OUTPUT&gt;_<br>-o _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the n:m output. |
-| --ext-nm-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the extended n:m output. |
-| --stat-nm-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the n:m statistics output. |
+| --od-output _&lt;OUTPUT&gt;_<br>-o _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the n:m output. |
+| --ext-od-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the extended n:m output. |
+| --stat-od-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the n:m statistics output. |
 | --interchanges-output _&lt;OUTPUT&gt;_<br>-i _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the interchanges output. |
 | --edges-output _&lt;OUTPUT&gt;_<br>-e _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the edges output. |
 | --pt-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the public transport output. |

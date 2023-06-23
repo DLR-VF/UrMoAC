@@ -23,7 +23,7 @@ Below, you may find a brief explanation about how to use UrMoAC.
 For computing the accessibility of places stored in destinations.csv from places stored in origins.csv by bike using the road network stored in network.csv, write:
 
 ```console
-java -jar UrMoAC.jar --from origins.csv --to destinations.csv --net network.csv --nm-output nm_output.csv --mode bicycle --time 0 --epsg 0
+java -jar UrMoAC.jar --from origins.csv --to destinations.csv --net network.csv --od-output nm_output.csv --mode bike --time 0 --epsg 0
 ```
 
 

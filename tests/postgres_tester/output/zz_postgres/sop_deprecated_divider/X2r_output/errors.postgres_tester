@@ -1,0 +1,4 @@
+Deprecation warning: the prefix 'db;' used for option 'origins-to-road-output' is no longer needed
+Warning: Using ';' as divider is deprecated, please use ','.
+Deprecation warning: the prefix 'db;' used for option 'destinations-to-road-output' is no longer needed
+Warning: Using ';' as divider is deprecated, please use ','.

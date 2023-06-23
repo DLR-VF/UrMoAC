@@ -244,7 +244,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		OptionsCont options = new OptionsCont();
 		options.setHelpHeadAndTail("Urban Mobility Accessibility Computer (UrMoAC) v0.6\n  (c) German Aerospace Center (DLR), 2016-2021\n  https://github.com/DLR-VF/UrMoAC\n\nUsage:\n"
 				+"  java -jar UrMoAC.jar --help\n"
-				+"  java -jar UrMoAC.jar --from file;sources.csv --to file;destinations.csv\n    --net file;network.csv --nm-output file;nm_output.csv\n    --mode bicycle --time 0\n", "");
+				+"  java -jar UrMoAC.jar --from file;sources.csv --to file;destinations.csv\n    --net file;network.csv --od-output file;nm_output.csv\n    --mode bike --time 0\n", "");
 		
 		options.beginSection("Input Options");
 		options.add("config", 'c', new Option_String());
@@ -256,7 +256,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("net", 'n', new Option_String());
 		options.setDescription("net", "Defines the road network to load.");
 		options.add("mode", 'm', new Option_String());
-		options.setDescription("mode", "The mode to use ['passenger', 'foot', 'bicycle'].");
+		options.setDescription("mode", "The mode to use ['car', 'foot', 'bike'].");
 		options.add("from-agg", new Option_String());
 		options.setDescription("from-agg", "Defines the data source of origin aggregation areas.");
 		options.add("to-agg", new Option_String());
@@ -350,23 +350,26 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("custom.price-per-km", new Option_Double());
 		options.setDescription("custom.price-per-km", "Price for using the custom mode per kilometre.");
 		options.add("custom.allowed", new Option_String());
-		options.setDescription("custom.allowed", "The type of roads the custom mode can use (combination of 'foot', 'bike', 'passenger' divided by ';').");
+		options.setDescription("custom.allowed", "The type of roads the custom mode can use (combination of 'foot', 'bike', 'car' divided by ';').");
 
 		options.beginSection("Output Options");
-		options.add("nm-output", 'o', new Option_String());
-		options.setDescription("nm-output", "Defines the n:m output.");
-		options.add("ext-nm-output", new Option_String());
-		options.setDescription("ext-nm-output", "Defines the extended n:m output.");
-		options.add("stat-nm-output", new Option_String());
-		options.setDescription("stat-nm-output", "Defines the n:m statistics output.");
+		options.add("od-output", 'o', new Option_String());
+		options.addDeprecatedSynonym("od-output", "nm-output");
+		options.setDescription("od-output", "Defines the simple o/d-output to generate.");
+		options.add("ext-od-output", new Option_String());
+		options.addDeprecatedSynonym("ext-od-output", "ext-nm-output");
+		options.setDescription("ext-od-output", "Defines the extended o/d-output to generate.");
+		options.add("stat-od-output", new Option_String());
+		options.addDeprecatedSynonym("stat-od-output", "stat-nm-output");
+		options.setDescription("stat-od-output", "Defines the o/d statistics output to generate.");
 		options.add("interchanges-output", 'i', new Option_String());
-		options.setDescription("interchanges-output", "Defines the interchanges output.");
+		options.setDescription("interchanges-output", "Defines the interchanges output to generate.");
 		options.add("edges-output", 'e', new Option_String());
-		options.setDescription("edges-output", "Defines the edges output.");
+		options.setDescription("edges-output", "Defines the edges output to generate.");
 		options.add("pt-output", new Option_String());
-		options.setDescription("pt-output", "Defines the public transport output.");
+		options.setDescription("pt-output", "Defines the public transport output to generate.");
 		options.add("direct-output", 'd', new Option_String());
-		options.setDescription("direct-output", "Defines the direct output.");
+		options.setDescription("direct-output", "Defines the direct output to generate.");
 		options.add("origins-to-road-output", new Option_String());
 		options.setDescription("origins-to-road-output", "Defines the output of the mapping between sources and the network.");
 		options.add("destinations-to-road-output", new Option_String());
@@ -495,11 +498,26 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 */
 	protected static Vector<Mode> getModes(String optionValue) {
 		Vector<Mode> ret = new Vector<>();
-		String[] r = optionValue.split(";");
-		for(String r1 : r) {
-			Mode m = Modes.getMode(r1);
+		// catching deprecated divider
+		String[] givenModeNames = null;
+		if(optionValue.contains(";")&&!optionValue.contains(",")) {
+			System.err.println("Warning: Using ';' as divider is deprecated, please use ','.");
+			givenModeNames = optionValue.split(";");
+		} else {
+			givenModeNames = optionValue.split(",");
+		}
+		for(String modeName : givenModeNames) {
+			// catching deprecated mode names
+			if("bicycle".equals(modeName)) {
+				System.err.println("Warning: Mode name 'bicycle' is deprecated, please use 'bike'.");
+				modeName = "bike";
+			} else if("passenger".equals(modeName)) {
+				System.err.println("Warning: Mode name 'passenger' is deprecated, please use 'car'.");
+				modeName = "car";
+			} 
+			//
+			Mode m = Modes.getMode(modeName);
 			if(m==null) {
-				System.out.println("Error: Mode '" + r1 + "' is not known.");
 				return null;
 			}
 			ret.add(m);

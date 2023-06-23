@@ -1,0 +1,2 @@
+The option 'ext-nm-output' is deprecated. Please use 'ext-od-output'.
+Deprecation warning: the prefix 'file;' used for option 'ext-od-output' is no longer needed

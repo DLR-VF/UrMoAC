@@ -55,8 +55,8 @@ public class Modes {
 		// costs: Eisenmann, Christine und Kuhnimhof, Tobias (2017) Vehicle cost imputation in travel surveys: Gaining insight into the fundamentals of (auto-) mobility choices. 11th International Conference on Transport Survey Methods, 24.-29. Sept. 2017, Estérel, Kanada. 
 		add(new Mode(1, "custom", 0, 300, 0, 0, 0));
 		add(new Mode(2, "foot", 3.6, 50, 280, 0, 0)); // kcal: 17190
-		add(new Mode(4, "bicycle", 13, 300, 510, 0, 0)); // kcal: 1020
-		add(new Mode(8, "passenger", 200, 500, 170, 150, 31)); // kcal: 16010
+		add(new Mode(4, "bike", 13, 300, 510, 0, 0)); // kcal: 1020
+		add(new Mode(8, "car", 200, 500, 170, 150, 31)); // kcal: 16010
 		add(new Mode(16, "bus", 80, 500, 85, 75, 0)); // kcal: 16016
 		//add(new Mode(8, "custom", custom_vmax, 300, custom_kkc, custom_co2, custom_price));
 	}

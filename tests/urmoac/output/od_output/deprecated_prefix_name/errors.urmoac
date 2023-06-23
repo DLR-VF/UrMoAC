@@ -1,0 +1,2 @@
+The option 'nm-output' is deprecated. Please use 'od-output'.
+Deprecation warning: the prefix 'file;' used for option 'od-output' is no longer needed
