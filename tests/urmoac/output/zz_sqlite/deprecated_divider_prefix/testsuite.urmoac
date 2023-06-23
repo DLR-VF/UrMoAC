@@ -1,0 +1,25 @@
+# all tests use the "simple_offset" test
+
+# direct output tests
+direct_output
+
+# od-output tests
+od_output
+
+# ext-od-output tests
+ext_od_output
+
+# stat-od-output tests
+stat_od_output
+
+# interchanges-output tests
+interchanges_output
+
+# pt-output tests
+pt_output
+
+# edges-output tests
+edges_output
+
+# origins-to-road- and destinations-to-road-output
+X2r_output

@@ -1,0 +1,2 @@
+--ext-od-output jdbc:sqlite:sqlite.db;test
+
