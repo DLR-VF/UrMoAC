@@ -154,8 +154,12 @@ public class OptionsIO {
                     beg = desc.length();
                 } else {
                     int end = desc.lastIndexOf(' ', beg+maxWidth-startCol);
-                    os.println(desc.substring(beg, end));
-                    beg = end;
+                    if(end>=0) {
+                    	os.println(desc.substring(beg, end));
+                    	beg = end;
+                    } else {
+                    	throw new RuntimeException("Could not render the description for option '" + name + "'. The description probably contains too long words");
+                    }
                 }
                 startCol = divider+optMaxWidth+optionIndent+1; // could "running description indent"
                 offset = startCol;

@@ -14,7 +14,7 @@
 #            Deutsches Zentrum fuer Luft- und Raumfahrt
 # @brief Imports an OSM-file into the database
 # Call with
-#  osm2db <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD> <FILE>
+#  osm2db <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD> <FILE>
 # =========================================================
 
 
@@ -185,8 +185,7 @@ def main(argv):
     @param argv The program argument
     """
     # connect to the database
-    (host, db, tableFull, user, password) = sys.argv[1].split(";")
-    (schema, prefix) = tableFull.split(".")
+    (host, db, schema, prefix, user, password) = sys.argv[1].split(",")
     t1 = datetime.datetime.now()
     print ("Connecting to the db...")
     conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
@@ -205,8 +204,8 @@ def main(argv):
         cursor.execute("DROP TABLE %s.%s_rtag;" % (schema, prefix))
         cursor.execute("DROP TABLE %s.%s_wtag;" % (schema, prefix))
         cursor.execute("DROP TABLE %s.%s_ntag;" % (schema, prefix))
-        cursor.execute("DROP TABLE %s.%s_rel" % (schema, prefix))
-        cursor.execute("DROP TABLE %s.%s_way" % (schema, prefix))
+        cursor.execute("DROP TABLE %s.%s_rel;" % (schema, prefix))
+        cursor.execute("DROP TABLE %s.%s_way;" % (schema, prefix))
         cursor.execute("DROP TABLE %s.%s_node;" % (schema, prefix))
         conn.commit()
     

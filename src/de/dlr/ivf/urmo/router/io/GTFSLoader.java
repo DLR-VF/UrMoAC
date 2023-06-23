@@ -85,18 +85,31 @@ public class GTFSLoader {
 	/** @brief Parses the definition of pt carriers to load
 	 * @param carrierDef The definition to parse
 	 * @return The list of carriers to load
+	 * @throws IOException 
 	 */
-	private static Vector<Integer> parseCarrierDef(String carrierDef) {
-		Vector<Integer> allowedCarrier = null;
-		if(!"".equals(carrierDef)) {
-			String[] r = carrierDef.split(";");
-			allowedCarrier = new Vector<>();
-			for(String r1 : r) {
+	private static Vector<Integer> parseCarrierDef(String carrierDef) throws IOException {
+		if("".equals(carrierDef)) {
+			return null;
+		}
+		// catching deprecated divider
+		String[] r = null;
+		if(carrierDef.contains(";")&&!carrierDef.contains(",")) {
+			System.err.println("Warning: Using ';' as divider is deprecated, please use ','.");
+			r = carrierDef.split(";");
+		} else {
+			r = carrierDef.split(",");
+		}
+		//
+		Vector<Integer> allowedCarrier = new Vector<>();
+		for(String r1 : r) {
+			try {
 				allowedCarrier.add(Integer.parseInt(r1));
+			} catch(NumberFormatException e) {
+				throw new IOException("Carrier definition should contain numeric values.");
 			}
-			if(allowedCarrier.size()==0) {
-				allowedCarrier = null;
-			}
+		}
+		if(allowedCarrier.size()==0) {
+			allowedCarrier = null;
 		}
 		return allowedCarrier;
 	}

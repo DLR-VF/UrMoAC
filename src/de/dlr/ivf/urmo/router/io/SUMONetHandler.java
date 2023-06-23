@@ -43,9 +43,9 @@ public class SUMONetHandler extends DefaultHandler {
 	/// @brief Faster access to foot representation
 	private long modeFoot = Modes.getMode("foot").id;
 	/// @brief Faster access to bike representation
-	private long modeBike = Modes.getMode("bicycle").id;
-	/// @brief Faster access to passenger representation
-	private long modeCar = Modes.getMode("passenger").id;
+	private long modeBike = Modes.getMode("bike").id;
+	/// @brief Faster access to car representation
+	private long modeCar = Modes.getMode("car").id;
 
 	
 	

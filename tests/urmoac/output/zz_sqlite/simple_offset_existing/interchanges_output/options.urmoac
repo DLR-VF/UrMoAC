@@ -1,2 +1,2 @@
---interchanges-output jdbc:sqlite:sqlite.db;test
+--interchanges-output jdbc:sqlite:sqlite.db,test
 

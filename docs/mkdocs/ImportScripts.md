@@ -8,8 +8,8 @@ Importing shapefiles is done using the tools brought by PostgreSQL:
 
 ```shp2pgsql -s <SRID> -W <ENCODING> <SHAPEFILE> | psql -h <HOST> -d <DBNAME> -U <USERNAME>```
 
-## Importing [OpenStreetMap](http://www.openstreetmap.org)
-We assume you have downloaded the area of your interest as a plain OSM XML file. Other formats are currently not supported.
+## Importing OpenStreetMap
+We assume you have downloaded the area of your interest as a plain [OpenStreetMap](http://www.openstreetmap.org) XML file. Other formats are currently not supported.
 
 In a first step, you have to write this data into a database. This is done using the script &ldquo;[osm2db.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osm2db.py)&rdquo;. Then, you probably want to build a road network from this data. This is done using the script &ldquo;[osmdb_buildWays.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osmdb_buildWays.py)&rdquo;.
 
@@ -23,17 +23,17 @@ The [osm2db.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osm2db.py
 
 Consequently, the call is:
 
-```python osm2db.py <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD> <FILE>```
+```python osm2db.py <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD> <FILE>```
 
 Where:
 
-* ___&lt;HOST&gt;___: the name of your database server
-* ___&lt;DB&gt;___: the name of your database
-* ___&lt;SCHEMA&gt;___: the database schema to store the database tables at
-* ___&lt;PREFIX&gt;___: a prefix for the database tables
-* ___&lt;USER&gt;___: the name of the user who has access (can generate tables and write into them) the database
-* ___&lt;PASSWD&gt;___: the password of the user
-* ___&lt;FILE&gt;___: the name of the OSM XML file that shall be imported.
+* ***&lt;HOST&gt;***: the name of your database server
+* ***&lt;DB&gt;***: the name of your database
+* ***&lt;SCHEMA&gt;***: the database schema to store the database tables at
+* ***&lt;PREFIX&gt;***: a prefix for the database tables
+* ***&lt;USER&gt;***: the name of the user who has access (can generate tables and write into them) the database
+* ***&lt;PASSWD&gt;***: the password of the user
+* ***&lt;FILE&gt;***: the name of the OSM XML file that shall be imported.
 
 The tool reads the OSM nodes, ways, and relations and stores them into generated database tables. The generated database tables are:
 
@@ -50,16 +50,16 @@ After inserting the data into the database using [osm2db.py](https://github.com/
 
 The call is:
 
-```python osmdb_buildWays.py <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD>```
+```python osmdb_buildWays.py <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD>```
 
 Where:
 
-* ___&lt;HOST&gt;___: the name of your database server;
-* ___&lt;DB&gt;___: the name of your database;
-* ___&lt;SCHEMA&gt;___: the database schema to store the database tables at;
-* ___&lt;PREFIX&gt;___: a prefix for the database tables;
-* ___&lt;USER&gt;___: the name of the user who has access (can generate tables and write into them) the database;
-* ___&lt;PASSWD&gt;___: the password of the user.
+* ***&lt;HOST&gt;***: the name of your database server;
+* ***&lt;DB&gt;***: the name of your database;
+* ***&lt;SCHEMA&gt;***: the database schema to store the database tables at;
+* ***&lt;PREFIX&gt;***: a prefix for the database tables;
+* ***&lt;USER&gt;***: the name of the user who has access (can generate tables and write into them) the database;
+* ***&lt;PASSWD&gt;***: the password of the user.
 
 ### Using OpenStreetMap data to build tables of certain structures
 The script [osmdb_buildStructures.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osmdb_buildStructures.py) builds a database table that can be used to read origins / destinations from by parsing the contents of an OSM representation imported using [osm2db.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osm2db.py).
@@ -75,7 +75,7 @@ For this purpose, [osmdb_buildStructures.py](https://github.com/DLR-VF/UrMoAC/bl
 <FILTER>
 ```
 
-The _&lt;OSM_DATATYPE&gt;_ is one of &ldquo;node&rdquo;, &ldquo;way&rdquo;, and &ldquo;relation&rdquo;. After this data type definition, the filtering options are given that describe which elements of this data type shall be included. Each line describes a single set and the sets will be merged. A ___&lt;FILTER&gt;___ includes one or more key/value pairs. If more than one is given, they are divided by a &lsquo;&&rsquo;. An element needs to match all of the key/value pairs within a line for being included.
+The ___&lt;OSM_DATATYPE&gt;___ is one of &ldquo;node&rdquo;, &ldquo;way&rdquo;, and &ldquo;relation&rdquo;. After this data type definition, the filtering options are given that describe which elements of this data type shall be included. Each line describes a single set and the sets will be merged. A ___&lt;FILTER&gt;___ includes one or more key/value pairs. If more than one is given, they are divided by a &lsquo;&&rsquo;. An element needs to match all of the key/value pairs within a line for being included.
 
 Some examples:
 
@@ -94,28 +94,54 @@ public_transport=stop_position&bus=yes
 
 All [OpenStreetMap](http://www.openstreetmap.org) nodes that have the combination key=&apos;public_transport&apos; and value=&apos;stop_position&apos; and the combination key=&apos;bus&apos; and value=&apos;yes&apos; &mdash; all public transport stops where busses stop &mdash; are included.
 
-Currently, the following definition files are available:
+The call is:
 
-* [def_pt_halts.txt](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/structure_defs/def_pt_halts.txt): imports all public transport halts
-* [def_buildings.txt](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/structure_defs/def_buildings.txt): imports all buildings
+```python osmdb_buildStructures.py <INPUT_TABLES_PREFIX> <DEF_FILE> <OUTPUT_TABLE>```
 
-[osmdb_buildStructures.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osmdb_buildStructures.py) is currently under development and experimental.
+Where:
 
-## Importing [GTFS](https://developers.google.com/transit/gtfs/)
+* ***&lt;INPUT_TABLES_PREFIX&gt;***: definition of the database to find the imported OSM data at;
+* ***&lt;DEF_FILE&gt;***: path to the definition file to use;
+* ***&lt;OUTPUT_TABLE&gt;***: definition of the database table to generate.
+
+***&lt;INPUT_TABLES_PREFIX&gt;*** is defined as following: ***&lt;HOST&gt;***,***&lt;DB&gt;***,***&lt;SCHEMA&gt;***,***&lt;PREFIX&gt;***,***&lt;USER&gt;***,***&lt;PASSWD&gt;***
+
+Where:
+
+* ***&lt;HOST&gt;***: the name of your database server;
+* ***&lt;DB&gt;***: the name of your database;
+* ***&lt;SCHEMA&gt;***: the database schema to store the database tables at;
+* ***&lt;PREFIX&gt;***: a prefix for the database tables;
+* ***&lt;USER&gt;***: the name of the user who has access (can generate tables and write into them) the database;
+* ***&lt;PASSWD&gt;***: the password of the user.
+
+***&lt;OUTPUT_TABLE&gt;*** is defined as following:***&lt;HOST&gt;***,***&lt;DB&gt;***,***&lt;SCHEMA&gt;***,***&lt;TABLE&gt;***,***&lt;USER&gt;***,***&lt;PASSWD&gt;***
+
+Where:
+
+* ***&lt;HOST&gt;***: the name of your database server;
+* ***&lt;DB&gt;***: the name of your database;
+* ***&lt;SCHEMA&gt;***: the database schema to store the database tables at;
+* ***&lt;TABLE&gt;***: the name of the table to generate;
+* ***&lt;USER&gt;***: the name of the user who has access (can generate tables and write into them) the database;
+* ***&lt;PASSWD&gt;***: the password of the user.
+
+
+## Importing GTFS
 
 If accessibilities for using public transport shall be computed, UrMoAC requires the representation of the public transport offer within the region in form of [GTFS](https://developers.google.com/transit/gtfs/) data. [GTFS](https://developers.google.com/transit/gtfs/) data comes as text files. For using it with UrMoAC, it has to be imported into the database. The script [importGTFS.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/importGTFS.py) does this.
 
 [importGTFS.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/importGTFS.py) is called like the other UrMoAC import scripts:
-```python importGTFS.py <INPUT_PATH> <HOST>;<DB>;<SCHEMA>.<PREFIX>;<USER>;<PASSWD>```
+```python importGTFS.py <INPUT_PATH> <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD>```
 Where:
 
-* ___&lt;INPUT_PATH&gt;___: the path to the folder the GTFS files are located within;
-* ___&lt;HOST&gt;___: the name of your database server;
-* ___&lt;DB&gt;___: the name of your database;
-* ___&lt;SCHEMA&gt;___: the database schema to store the database tables at;
-* ___&lt;PREFIX&gt;___: a prefix for the database tables;
-* ___&lt;USER&gt;___: the name of the user who has access (can generate tables and write into them) the database;
-* ___&lt;PASSWD&gt;___: the password of the user.
+* ***&lt;INPUT_PATH&gt;***: the path to the folder the GTFS files are located within;
+* ***&lt;HOST&gt;***: the name of your database server;
+* ***&lt;DB&gt;***: the name of your database;
+* ***&lt;SCHEMA&gt;***: the database schema to store the database tables at;
+* ***&lt;PREFIX&gt;***: a prefix for the database tables;
+* ***&lt;USER&gt;***: the name of the user who has access (can generate tables and write into them) the database;
+* ***&lt;PASSWD&gt;***: the password of the user.
 
 
 

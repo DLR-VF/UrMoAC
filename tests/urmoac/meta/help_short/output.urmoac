@@ -5,16 +5,15 @@ Urban Mobility Accessibility Computer (UrMoAC) v0.6
 Usage:
   java -jar UrMoAC.jar --help
   java -jar UrMoAC.jar --from file;sources.csv --to file;destinations.csv
-    --net file;network.csv --nm-output file;nm_output.csv
-    --mode bicycle --time 0
+    --net file;network.csv --od-output file;nm_output.csv
+    --mode bike --time 0
 
  Input Options
   -c, --config                   Defines the configuration to load.
   -f, --from                     Defines the data source of origins.
   -t, --to                       Defines the data source of destinations.
   -n, --net                      Defines the road network to load.
-  -m, --mode                     The mode to use ['passenger', 'foot',
-                                   'bicycle'].
+  -m, --mode                     The mode to use ['car', 'foot', 'bike'].
   --from-agg                     Defines the data source of origin aggregation
                                    areas.
   --to-agg                       Defines the data source of destination
@@ -90,17 +89,18 @@ Usage:
                                    mode.
   --custom.price-per-km          Price for using the custom mode per kilometre.
   --custom.allowed               The type of roads the custom mode can use
-                                   (combination of 'foot', 'bike', 'passenger'
-                                   divided by ';').
+                                   (combination of 'foot', 'bike', 'car' divided
+                                   by ';').
 
  Output Options
-  -o, --nm-output                Defines the n:m output.
-  --ext-nm-output                Defines the extended n:m output.
-  --stat-nm-output               Defines the n:m statistics output.
-  -i, --interchanges-output      Defines the interchanges output.
-  -e, --edges-output             Defines the edges output.
-  --pt-output                    Defines the public transport output.
-  -d, --direct-output            Defines the direct output.
+  -o, --od-output                Defines the simple o/d-output to generate.
+  --ext-od-output                Defines the extended o/d-output to generate.
+  --stat-od-output               Defines the o/d statistics output to generate.
+  -i, --interchanges-output      Defines the interchanges output to generate.
+  -e, --edges-output             Defines the edges output to generate.
+  --pt-output                    Defines the public transport output to
+                                   generate.
+  -d, --direct-output            Defines the direct output to generate.
   --origins-to-road-output       Defines the output of the mapping between
                                    sources and the network.
   --destinations-to-road-output  Defines the output of the mapping between

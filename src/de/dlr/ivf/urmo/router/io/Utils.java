@@ -56,13 +56,28 @@ public class Utils {
 	 * @throws IOException If the definition is wrong
 	 */
 	public static String[] getParts(Format format, String input, String name) throws IOException {
+		// catching deprecated prefix
 		if(input.startsWith("db;") || input.startsWith("file;") || input.startsWith("csv;") || input.startsWith("wkt;")
 				|| input.startsWith("shp;") || input.startsWith("gpkg;") || input.startsWith("sumo;")) {
 			String prefix = input.substring(0, input.indexOf(";")+1);
 			input = input.substring(input.indexOf(";")+1);
 			System.err.println("Deprecation warning: the prefix '" + prefix + "' used for option '" + name + "' is no longer needed");
 		}
-		String[] parsed = input.split(";");
+		if(input.startsWith("db,") || input.startsWith("file,") || input.startsWith("csv,") || input.startsWith("wkt,")
+				|| input.startsWith("shp,") || input.startsWith("gpkg,") || input.startsWith("sumo,")) {
+			String prefix = input.substring(0, input.indexOf(",")+1);
+			input = input.substring(input.indexOf(",")+1);
+			System.err.println("Deprecation warning: the prefix '" + prefix + "' used for option '" + name + "' is no longer needed");
+		}
+		// catching deprecated divider
+		String[] parsed = null;
+		if(input.contains(";")&&!input.contains(",")) {
+			System.err.println("Warning: Using ';' as divider is deprecated, please use ','.");
+			parsed = input.split(";");
+		} else {
+			parsed = input.split(",");
+		}
+		//
 		switch(format) {
 		case FORMAT_POSTGRES:
 			if(parsed.length==4) {
@@ -129,19 +144,19 @@ public class Utils {
 	 */
 	public static Format getFormat(String input) {
 		// old-style definition
-		if(input.startsWith("db;jdbc:postgresql:") || input.startsWith("jdbc:postgresql:")) {
+		if(input.startsWith("db;jdbc:postgresql:") || input.startsWith("db,jdbc:postgresql:") || input.startsWith("jdbc:postgresql:")) {
 			return Format.FORMAT_POSTGRES;
-		} else if(input.startsWith("db;jdbc:sqlite:") || input.startsWith("jdbc:sqlite:")) {
+		} else if(input.startsWith("db;jdbc:sqlite:") || input.startsWith("db,jdbc:sqlite:") || input.startsWith("jdbc:sqlite:")) {
 			return Format.FORMAT_SQLITE;
-		} else if(input.startsWith("file;") || input.startsWith("csv;")) {
+		} else if(input.startsWith("file;") || input.startsWith("file,") || input.startsWith("csv;") || input.startsWith("csv,")) {
 			return Format.FORMAT_CSV;
-		} else if(input.startsWith("wkt;")) {
+		} else if(input.startsWith("wkt;") || input.startsWith("wkt,")) {
 			return Format.FORMAT_WKT;
-		} else if(input.startsWith("shp;")) {
+		} else if(input.startsWith("shp;") || input.startsWith("shp,")) {
 			return Format.FORMAT_SHAPEFILE;
-		} else if(input.startsWith("gpkg;")) {
+		} else if(input.startsWith("gpkg;") || input.startsWith("gpkg,")) {
 			return Format.FORMAT_GEOPACKAGE;
-		} else if(input.startsWith("sumo;")) {
+		} else if(input.startsWith("sumo;") || input.startsWith("sumo,")) {
 			return Format.FORMAT_SUMO;
 		}   
 		// new-style definition

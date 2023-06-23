@@ -80,25 +80,25 @@ public class OutputBuilder {
 		boolean aggAllTo = options.isSet("to-agg") && options.getString("to-agg").equals("all");
 		int precision = options.getInteger("precision");
 		String comment = options.getBool("comment") ? buildComment(options) : null;
-		if (options.isSet("nm-output")) {
+		if (options.isSet("od-output")) {
 			ODMeasuresGenerator mgNM = new ODMeasuresGenerator();
-			AbstractResultsWriter<ODSingleResult> writer = buildNMOutput(options.getString("nm-output"), precision, dropExistingTables);
+			AbstractResultsWriter<ODSingleResult> writer = buildNMOutput(options.getString("od-output"), precision, dropExistingTables);
 			writer.createInsertStatement(rsid);
 			Aggregator<ODSingleResult> agg = buildAggregator(mgNM, options.getBool("shortest"), 
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
 		}
-		if (options.isSet("ext-nm-output")) {
+		if (options.isSet("ext-od-output")) {
 			ODExtendedMeasuresGenerator mg = new ODExtendedMeasuresGenerator();
-			AbstractResultsWriter<ODSingleExtendedResult> writer = buildExtNMOutput(options.getString("ext-nm-output"), precision, dropExistingTables);
+			AbstractResultsWriter<ODSingleExtendedResult> writer = buildExtNMOutput(options.getString("ext-od-output"), precision, dropExistingTables);
 			writer.createInsertStatement(rsid);
 			Aggregator<ODSingleExtendedResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 			aggregators.add(agg);
 		}
-		if (options.isSet("stat-nm-output")) {
+		if (options.isSet("stat-od-output")) {
 			ODStatsMeasuresGenerator mg = new ODStatsMeasuresGenerator();
-			AbstractResultsWriter<ODSingleStatsResult> writer = buildStatNMOutput(options.getString("stat-nm-output"), precision, dropExistingTables);
+			AbstractResultsWriter<ODSingleStatsResult> writer = buildStatNMOutput(options.getString("stat-od-output"), precision, dropExistingTables);
 			writer.createInsertStatement(rsid);
 			Aggregator<ODSingleStatsResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
@@ -228,7 +228,11 @@ public class OutputBuilder {
 	            ps.print(name);
 	            String value = options.getValueAsString(name);
 	            if(value.contains("jdbc:postgresql:")) {
-	            	value = value.substring(0, value.lastIndexOf(';')+1) + "xxx";
+	            	if(value.contains(";")&&!value.contains(",")) {
+	            		value = value.substring(0, value.lastIndexOf(';')+1) + "xxx";
+	            	} else {
+	            		value = value.substring(0, value.lastIndexOf(',')+1) + "xxx";
+	            	}
 	            }
 	            ps.print(": " + value );
 	            ps.println();
