@@ -19,7 +19,8 @@ nav:
     - ChangeLog: ChangeLog.md
     - Links: Links.md
     - Publications: Publications.md
-#    - FAQ: FAQ.md
+    - FAQ: FAQ.md
+    - Included Data: IncludedData.md
     - Usage: 
         - Basics: Usage.md
         - Options: Options.md

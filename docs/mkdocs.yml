@@ -36,10 +36,11 @@ nav:
 #        - Networks: Subtopic_Networks.md
 #        - OpenStreetMap: Subtopic_OSM.md
 #        - GTFS: Subtopic_GTFS.md
+    - FAQ: FAQ.md
     - ChangeLog: ChangeLog.md
     - Links: Links.md
     - Publications: Publications.md
-#    - FAQ: FAQ.md
+    - Included Data: IncludedData.md
     - Developer Docs: 
         - Overview: DeveloperDocs.md
         - Testing UrMoAC: DeveloperTests.md
