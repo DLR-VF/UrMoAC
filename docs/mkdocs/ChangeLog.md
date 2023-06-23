@@ -2,22 +2,22 @@
 
 ## UrMoAC-0.8.0 (to come)
 
-### cmd_options branch
+### Changes in options
 
 * mode names consolidation (you will get a deprecation warning when using old names):
-  * "bicycle" is now "bike"
-  * "passenger" is now "car"
+    * "bicycle" is now "bike"
+    * "passenger" is now "car"
 * output name consolidation:
-  * "nm-output" is now "od-output"
-  * "ext-nm-output" is now "ext-od-output"
-  * "stat-nm-output" is now "stat-od-output"
+    * "nm-output" is now "od-output"
+    * "ext-nm-output" is now "ext-od-output"
+    * "stat-nm-output" is now "stat-od-output"
 * replaced ';' as divider by ',' (you will get a deprecation warning when using the old divider):
-  * databases definition (input and output)
-  * modes to use
-  * carrier definition
+    * databases definition (input and output)
+    * modes to use
+    * carrier definition
 * divider consolidation: use ',' instead of ';' (tables definition, e.g.; the reason is that ';' is not accepted on Linux)
-  * within UrMoAC
-  * within included Python-scripts (please note that all fields are now divided using a ',')
+    * within UrMoAC
+    * within included Python-scripts (please note that all fields are now divided using a ',')
 
 
 
