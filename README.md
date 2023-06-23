@@ -7,6 +7,8 @@
 
 &ldquo;Urban Mobility Accessibility Computer&rdquo; or &ldquo;UrMoAC&rdquo; is a tool for computing accessibility measures, supporting aggregation, variable limits, and intermodality. It is a scientific tool.
 
+This version of the documentation describes the current development version. You should use one of the available [releases](https://github.com/DLR-VF/UrMoAC/releases). The according documentation can be found at [readthedocs](http://urmoac.readthedocs.io) or within the release itself.
+
 What the tool basically does is to load a set of origin locations and a set of destination locations as well as a road network and optionally a description of the public transport offer. Then, it iterates over all loaded origins and computes the respective accessibility measure for each of them by routing to all destinations within the defined limit. Optionally, areas by which the origins and destinations shall be aggregated may be loaded.
 
 Some features:
