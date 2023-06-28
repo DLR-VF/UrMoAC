@@ -44,6 +44,7 @@ import org.xml.sax.XMLReader;
 
 import de.dks.utils.options.OptionsCont;
 import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
+import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.shapes.DBODRelation;
 import de.dlr.ivf.urmo.router.shapes.IDGiver;
@@ -505,7 +506,12 @@ public class InputReader {
 			ResultSet rs = s.executeQuery(query);
 			EntrainmentMap em = new EntrainmentMap();
 			while (rs.next()) {
-				em.add(""+rs.getString("carrier")+rs.getInt("carrier_subtype"), Modes.getMode(rs.getString("carried")).id);
+				Mode carried = Modes.getMode(rs.getString("carried"));
+				if(carried==null) {
+					System.err.println("Error: trying to entrain unknown mode '" + rs.getString("carried") + "'.");
+					continue;
+				}
+				em.add(""+rs.getString("carrier")+rs.getInt("carrier_subtype"), carried.id);
 			}
 			rs.close();
 			s.close();
@@ -532,7 +538,16 @@ public class InputReader {
 				continue;
 			}
 			String[] vals = line.split(";");
-			em.add(vals[0]+vals[1], Modes.getMode(vals[2]).id);
+			if(vals.length!=3) {
+				System.err.println("Error: entrainment definition should contain <CARRIER>;<CARRIER_SUBMODE>;<CARRIED_MODE>.");
+				continue;
+			}
+			Mode carried = Modes.getMode(vals[2]);
+			if(carried==null) {
+				System.err.println("Error: trying to entrain unknown mode '" + vals[2] + "'.");
+				continue;
+			}
+			em.add(vals[0]+vals[1], carried.id);
 	    } while(line!=null);
 		br.close();
 		return em;
