@@ -193,7 +193,7 @@ public class InputReader {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
-		if(dismissWeight&&(varName==null||"".equals(varName))) {
+		if(dismissWeight&&(varName!=null&&!"".equals(varName))) {
 			System.out.println("Warning: the weight option is not used as no aggregation takes place.");
 			varName = null;
 		}
