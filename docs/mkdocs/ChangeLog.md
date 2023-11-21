@@ -15,9 +15,13 @@
     * databases definition (input and output)
     * modes to use
     * carrier definition
-* divider consolidation: use ',' instead of ';' (tables definition, e.g.; the reason is that ';' is not accepted on Linux)
     * within UrMoAC
     * within included Python-scripts (please note that all fields are now divided using a ',')
+
+### Debugging and Improvements
+
+* patched several documentation issues
+
 
 
 
@@ -43,7 +47,7 @@
 * [issue #20](https://github.com/DLR-VF/UrMoAC/issues/20) added a custom mode
 * [issue #28](https://github.com/DLR-VF/UrMoAC/issues/28) the precision of floating point values in output can be changed using the --precision <INT> option (default: 2)
 * [issue #38](https://github.com/DLR-VF/UrMoAC/issues/38) mapping of objects to edges is now multithreaded (controlled by the --threads option)
-* [issue #10](https://github.com/DLR-VF/UrMoAC/issues/10) [SUMO networks](https://sumo.dlr.de/docs/Networks/SUMO_Road_Networks.html) can now be loaded directly. The file extension must be &ldquo;.net-xml&rdquo;.
+* [issue #10](https://github.com/DLR-VF/UrMoAC/issues/10) [SUMO networks](https://sumo.dlr.de/docs/Networks/SUMO_Road_Networks.html) can now be loaded directly. The file extension must be &ldquo;.net.xml&rdquo;.
 * [issue #11](https://github.com/DLR-VF/UrMoAC/issues/11) origins, destinations, and aggregation areas can now be loaded from [SUMO shapefiles](https://sumo.dlr.de/docs/Simulation/Shapes.html) directly. The file extension is &ldquo;.poi.xml&rdquo;. __Please note that UrMoAC only accepts numerical IDs, at least currently.__
 * You may directly load a [SUMO Edge-Based Network State](https://sumo.dlr.de/docs/Simulation/Output/Lane-_or_Edge-based_Traffic_Measures.html) as travel time information.
 * [issue #42](https://github.com/DLR-VF/UrMoAC/issues/42) solved: GTFS files can now be loaded directly from disc

@@ -10,7 +10,7 @@ Computing the access to the next public transport halt within a region is a very
 For the first, you will need the following tools and applications:
 
 * UrMoAC
-* [Java](https://java.com/)
+* [Java](https://projects.eclipse.org/projects/adoptium.temurin)
 * [Python](https://www.python.org/)
 * [PostgreSQL](https://www.postgresql.org/) with [PostGIS](https://postgis.net/) extensions
 
@@ -33,7 +33,7 @@ Now, you should open a command line interface (shell / cmd.exe) and navigate to 
 UrMoAC comes with a Python script named [osm2db.py](./ImportScripts.md#importing-openstreetmap-into-the-database) for importing [OpenStreetMap](http://www.openstreetmap.org) data into a database. My call for importing the downloaded and extracted OSM-file into my local database is as following:
 
 ```console
-...\tools\osm>python osm2db.py localhost;urmoac;berlin.osm20230428;<USER>;<PASSWD> data\berlin-latest.osm
+...\tools\osm>python osm2db.py localhost,urmoac,berlin,osm20230428,<USER>,<PASSWD> data\berlin-latest.osm
 ```
 
 Please note that you need the PostGis extensions to be installed. If not, use:
@@ -42,7 +42,7 @@ Please note that you need the PostGis extensions to be installed. If not, use:
 CREATE EXTENSION postgis;
 ```
 
-As described in the section about [import scripts](ImportScripts), [osm2db.py](./ImportScripts.md#importing-openstreetmap-into-the-database) gets the definition of the database to generate as the first, and about the file to parse as the second parameter. The format of the first (see [import scripts](ImportScripts) ) is _&lt;HOST&gt;_;_&lt;DB&gt;_;_&lt;SCHEMA&gt;_._&lt;PREFIX&gt;_;_&lt;USER&gt;_;_&lt;PASSWD&gt;_.
+As described in the section about [import scripts](ImportScripts), [osm2db.py](./ImportScripts.md#importing-openstreetmap-into-the-database) gets the definition of the database to generate as the first, and about the file to parse as the second parameter. The format of the first (see [import scripts](ImportScripts) ) is _&lt;HOST&gt;_,_&lt;DB&gt;_,_&lt;SCHEMA&gt;_,_&lt;PREFIX&gt;_,_&lt;USER&gt;_,_&lt;PASSWD&gt;_.
 
 The tool builds the tables as given in [import scripts](ImportScripts) and reports about inserting nodes, ways, and relations. It takes some time, for Berlin, with 6.6Mio nodes, 1Mio ways, and 16k relations, my computer needed about five minutes.
 
@@ -50,7 +50,7 @@ The tool builds the tables as given in [import scripts](ImportScripts) and repor
 As described in [import scripts](ImportScripts), you may use the [osmdb_buildWays.py](./ImportScripts.md#building-the-road-network-from-openstreetmap-data) script to build your road network from a previously imported OSM data. In our case, the call is: 
 
 ```console
-...\tools\osm>python osmdb_buildWays.py localhost;urmoac;berlin.osm20230428;<USER>;<PASSWD>
+...\tools\osm>python osmdb_buildWays.py localhost,urmoac,berlin,osm20230428,<USER>,<PASSWD>
 ```
 
 You may note that the tool reports about unknown highway or railway tags. Usually, these are yet unbuilt or even erased roads. For importing the road network of Berlin (about 1.2Mio edges), the tool needed about seven minutes.
@@ -59,7 +59,7 @@ You may note that the tool reports about unknown highway or railway tags. Usuall
 Use the tool [osmdb_buildStructures.py](./ImportScripts.md#using-openstreetmap-data-to-build-tables-of-certain-structures) to import buildings by calling:
 
 ```console
-...\tools\osm>python osmdb_buildStructures.py localhost;urmoac;berlin.osm20230428;<USER>;<PASSWD> structure_defs/defs_buildings.txt localhost;urmoac;berlin.osm20230428_buildings;<USER>;<PASSWD>
+...\tools\osm>python osmdb_buildStructures.py localhost,urmoac,berlin,osm20230428,<USER>,<PASSWD> structure_defs/def_buildings.txt localhost,urmoac,berlin,osm20230428_buildings,<USER>,<PASSWD>
 ```
 
 You will obtain a table named &ldquo;osm20230428_buildings&rdquo; that includes the buildings. The process took about 1 minute on my computer.
@@ -68,7 +68,7 @@ You will obtain a table named &ldquo;osm20230428_buildings&rdquo; that includes 
 Again, you may use [osmdb_buildStructures.py](./ImportScripts.md#using-openstreetmap-data-to-build-tables-of-certain-structures) to import public transport halts. The call is:
 
 ```console
-...\tools\osm>python osmdb_buildStructures.py localhost;urmoac;berlin.osm20230428;<USER>;<PASSWD> structure_defs/def_pt_halts.txt localhost;urmoac;berlin.osm20230428_pthalts;<USER>;<PASSWD>
+...\tools\osm>python osmdb_buildStructures.py localhost,urmoac,berlin,osm20230428,<USER>,<PASSWD> structure_defs/def_pt_halts.txt localhost,urmoac,berlin,osm20230428_pthalts,<USER>,<PASSWD>
 ```
 
 You will obtain a table named &ldquo;osm20230428_pthalts&rdquo; that includes the public transport halts.
@@ -77,7 +77,7 @@ You will obtain a table named &ldquo;osm20230428_pthalts&rdquo; that includes th
 For a nicer visualisation, we need Berlin's boundary. Again,  [osmdb_buildStructures.py](./ImportScripts.md#using-openstreetmap-data-to-build-tables-of-certain-structures) is used. The call is:
 
 ```console
-...\tools\osm>python osmdb_buildStructures.py localhost;urmoac;berlin.osm20230428;<USER>;<PASSWD> structure_defs/def_city_boundaries.txt localhost;urmoac;berlin.osm20230428_boundary;<USER>;<PASSWD>
+...\tools\osm>python osmdb_buildStructures.py localhost,urmoac,berlin,osm20230428,<USER>,<PASSWD> structure_defs/def_city_boundaries.txt localhost,urmoac,berlin,osm20230428_boundary,<USER>,<PASSWD>
 ```
 
 You will obtain a table named &ldquo;osm20230428_boundary&rdquo; that includes the city boundaries.
@@ -122,7 +122,7 @@ Given this, the tool will generate the table &ldquo;berlin.osm20230428_houses2pt
 
 
 ```console
-...\tools\visualisation>python plot_area.py --from localhost;urmoac;berlin.osm20230428_buildings;postgres;postgres -m localhost;urmoac;berlin.osm20230428_houses2pthalts;postgres;postgres --from.geom centroid --border localhost;urmoac;berlin.osm20230428_boundary;postgres;postgres --title "Access to the nearest public transport stop" 
+...\tools\visualisation>python plot_area.py --from localhost,urmoac,berlin,osm20230428_buildings,postgres,postgres -m localhost,urmoac,berlin,osm20230428_houses2pthalts,postgres,postgres --from.geom centroid --border localhost,urmoac,berlin,osm20230428_boundary,postgres,postgres --title "Access to the nearest public transport stop" 
 --output berlin_building2pt.png
 ```
 

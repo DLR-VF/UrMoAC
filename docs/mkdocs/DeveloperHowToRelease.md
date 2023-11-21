@@ -2,7 +2,7 @@
 
 ## Building a release
 * check whether docs are up to date
-    * build docs as described at [Static Documentation](DeveloperStaticDocumentation)
+    * build docs as described at [Static Documentation](./DeveloperStaticDocumentation.md)
     * disable incomplete docs
     * compress it as &ldquo;site.zip&rdquo;
 
@@ -23,7 +23,7 @@
 ## Contents of the release description
 
 * short note / welcome
-* [ChangeLog](ChangeLog)
+* [ChangeLog](./ChangeLog.md)
 * Information about using the documentation
 * greetings
 

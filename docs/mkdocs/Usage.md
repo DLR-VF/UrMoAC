@@ -3,7 +3,7 @@ Below, you may find a brief explanation about how to use UrMoAC.
 ## Outline
 
 * UrMoAC is run on the [command line](https://en.wikipedia.org/wiki/Command-line_interface). This means, on Windows, you have to open cmd.exe. You should know how to open a terminal if you are working on Linux.
-* UrMoAC is written in [Java](https://java.com/). You need at least a [Java](https://java.com/) interpreter (JRE &mdash; Java Runtime Environment) to run it.
+* UrMoAC is written in [Java](https://projects.eclipse.org/projects/adoptium.temurin). You need at least a [Java](https://projects.eclipse.org/projects/adoptium.temurin) interpreter (JRE &mdash; Java Runtime Environment) to run it.
 * Some of the supporting [import scripts](ImportScripts) are written in [Python](https://www.python.org/). You need [Python](https://www.python.org/) in version 3 to run them.
 * The tool reads data from files or a [PostGIS](https://postgis.net/)-enabled SQL-database. We usually use [PostgreSQL](https://www.postgresql.org/) with [PostGIS](https://postgis.net/) extensions.
 * The tool requires at least the following information: 
