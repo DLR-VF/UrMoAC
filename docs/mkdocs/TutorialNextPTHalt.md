@@ -42,12 +42,12 @@ Please note that you need the PostGis extensions to be installed. If not, use:
 CREATE EXTENSION postgis;
 ```
 
-As described in the section about [import scripts](ImportScripts), [osm2db.py](./ImportScripts.md#importing-openstreetmap-into-the-database) gets the definition of the database to generate as the first, and about the file to parse as the second parameter. The format of the first (see [import scripts](ImportScripts) ) is _&lt;HOST&gt;_,_&lt;DB&gt;_,_&lt;SCHEMA&gt;_,_&lt;PREFIX&gt;_,_&lt;USER&gt;_,_&lt;PASSWD&gt;_.
+As described in the section about [import scripts](ImportScripts.md), [osm2db.py](./ImportScripts.md#importing-openstreetmap-into-the-database) gets the definition of the database to generate as the first, and about the file to parse as the second parameter. The format of the first (see [import scripts](ImportScripts.md) ) is _&lt;HOST&gt;_,_&lt;DB&gt;_,_&lt;SCHEMA&gt;_,_&lt;PREFIX&gt;_,_&lt;USER&gt;_,_&lt;PASSWD&gt;_.
 
-The tool builds the tables as given in [import scripts](ImportScripts) and reports about inserting nodes, ways, and relations. It takes some time, for Berlin, with 6.6Mio nodes, 1Mio ways, and 16k relations, my computer needed about five minutes.
+The tool builds the tables as given in [import scripts](ImportScripts.md) and reports about inserting nodes, ways, and relations. It takes some time, for Berlin, with 6.6Mio nodes, 1Mio ways, and 16k relations, my computer needed about five minutes.
 
 #### Step 2.2: prepare the road network
-As described in [import scripts](ImportScripts), you may use the [osmdb_buildWays.py](./ImportScripts.md#building-the-road-network-from-openstreetmap-data) script to build your road network from a previously imported OSM data. In our case, the call is: 
+As described in [import scripts](ImportScripts.md), you may use the [osmdb_buildWays.py](./ImportScripts.md#building-the-road-network-from-openstreetmap-data) script to build your road network from a previously imported OSM data. In our case, the call is: 
 
 ```console
 ...\tools\osm>python osmdb_buildWays.py localhost,urmoac,berlin,osm20230428,<USER>,<PASSWD>

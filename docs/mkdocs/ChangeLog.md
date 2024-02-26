@@ -51,7 +51,7 @@
 * [issue #11](https://github.com/DLR-VF/UrMoAC/issues/11) origins, destinations, and aggregation areas can now be loaded from [SUMO shapefiles](https://sumo.dlr.de/docs/Simulation/Shapes.html) directly. The file extension is &ldquo;.poi.xml&rdquo;. __Please note that UrMoAC only accepts numerical IDs, at least currently.__
 * You may directly load a [SUMO Edge-Based Network State](https://sumo.dlr.de/docs/Simulation/Output/Lane-_or_Edge-based_Traffic_Measures.html) as travel time information.
 * [issue #42](https://github.com/DLR-VF/UrMoAC/issues/42) solved: GTFS files can now be loaded directly from disc
-* [issue #3](https://github.com/DLR-VF/UrMoAC/issues/31) solved: **the outputs do not include the access/egress distaces and traveltimes from/to the buildings to/from the road; we assume that this makes the outputs more standard compliant; the access/egress distances are still a part of the [https://github.com/DLR-VF/UrMoAC/wiki/OutputFormats](nm-ext-output)**
+* [issue #3](https://github.com/DLR-VF/UrMoAC/issues/31) solved: **the outputs do not include the access/egress distaces and traveltimes from/to the buildings to/from the road; we assume that this makes the outputs more standard compliant; the access/egress distances are still a part of the ext-nm-output**
 * finally added at least one [visualisation tool](./VisualisationTools.md)
 * added a citation file
 * got a DOI (10.5281/zenodo.7940600)
