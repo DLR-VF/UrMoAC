@@ -1,2 +1,2 @@
-org.postgresql.util.PSQLException: FEHLER: Relation »od_output« existiert bereits
+Exception 'org.postgresql.util.PSQLException: FEHLER: Relation »od_output« existiert bereits' occured while building the od-output.
 Quitting on error...

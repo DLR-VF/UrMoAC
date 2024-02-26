@@ -21,6 +21,7 @@
 ### Debugging and Improvements
 
 * patched several documentation issues
+* more verbose error handling
 
 
 

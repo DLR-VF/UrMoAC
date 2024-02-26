@@ -1,2 +1,2 @@
-org.postgresql.util.PSQLException: FEHLER: Relation »pt_output« existiert bereits
+Exception 'org.postgresql.util.PSQLException: FEHLER: Relation »pt_output« existiert bereits' occured while building the pt-output.
 Quitting on error...
