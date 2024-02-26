@@ -1,2 +1,2 @@
---od-output jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_plain.od_output;urmoactests;urmoactests
+--od-output jdbc:postgresql://localhost/urmoac_postgres_tests;sop_deprecated_divider.od_output;urmoactests;urmoactests
 

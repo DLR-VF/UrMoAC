@@ -55,6 +55,8 @@ def main(argv):
             # We are only interested in manipulating the database
             continue
         if t.find("jdbc:postgresql:")>0:
+            if t.startswith("db"):
+                t = t[3:]
             t = t[t.find("jdbc:postgresql:"):]
         # assert schema exists
         t = re.split(r';|,', t) # https://stackoverflow.com/questions/11050562/how-do-i-split-a-string-in-python-with-multiple-separators

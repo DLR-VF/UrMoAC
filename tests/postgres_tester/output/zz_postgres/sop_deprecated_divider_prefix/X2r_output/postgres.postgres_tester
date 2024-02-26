@@ -1,6 +1,6 @@
-simple_offset_plain_deprecated.o2r_output
+sop_deprecated_divider_prefix.o2r_output
 1000;opp_10000;350.0;10.0;01020000000200000000000000000059C0000000000000000000000000000059C00000000000002440
 ----------------------------
-simple_offset_plain_deprecated.d2r_output
+sop_deprecated_divider_prefix.d2r_output
 2000;10000;350.0;20.0;01020000000200000000000000000059400000000000000000000000000000594000000000000034C0
 ----------------------------
