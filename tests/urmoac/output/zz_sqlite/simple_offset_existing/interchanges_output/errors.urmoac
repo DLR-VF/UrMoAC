@@ -1,2 +1,2 @@
-org.sqlite.SQLiteException: [SQLITE_ERROR] SQL error or missing database (table test already exists)
+Exception 'org.sqlite.SQLiteException: [SQLITE_ERROR] SQL error or missing database (table test already exists)' occured while building the interchanges-output.
 Quitting on error...
