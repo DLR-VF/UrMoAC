@@ -18,6 +18,7 @@ package de.dlr.ivf.urmo;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -793,7 +794,10 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		
 		// initialise threads
 		int numThreads = options.getInteger("threads");
-		nextEdgePointer = nearestFromEdges.keySet().iterator();
+		Vector<DBEdge> fromEdges = new Vector<DBEdge>();
+		fromEdges.addAll(nearestFromEdges.keySet());
+		Collections.sort(fromEdges, (a, b) -> a.id.compareTo(b.id));  
+		nextEdgePointer = fromEdges.iterator();
 		seenEdges = 0;
 		Vector<Thread> threads = new Vector<>();
 		for (int i=0; i<numThreads; ++i) {
