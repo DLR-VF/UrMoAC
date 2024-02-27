@@ -1,29 +1,27 @@
-#!/usr/bin/env python
-# =========================================================
-# buildEntrainmentTable.py
-# 
-# @author Daniel Krajzewicz
-# @date 2018
-# @copyright Institut fuer Verkehrsforschung, 
-#            Deutsches Zentrum fuer Luft- und Raumfahrt
-# @brief Builds an example table that defines entrainment
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# =============================================================================
+# osmdb.py
 #
-# This is a very simple tool to demonstrate how an 
-# entrainment table looks like.
-#
-# In principle, it is outdated a bot as well as entrainment
-# tables may as well be given as csv-files.
+# Author: Daniel Krajzewicz
+# Date:   01.04.2018
 #
 # This file is part of the "UrMoAC" accessibility tool
 # https://github.com/DLR-VF/UrMoAC
 # Licensed under the Eclipse Public License 2.0
 #
-# Copyright (c) 2018-2023 DLR Institute of Transport Research
+# Copyright (c) 2018-2024 Institute of Transport Research,
+#                         German Aerospace Center
 # All rights reserved.
-# =========================================================
+# =============================================================================
+"""This is a very simple tool to demonstrate how an 
+entrainment table looks like.
 
+In principle, it is outdated a bot as well as entrainment
+tables may as well be given as csv-files."""
+# =============================================================================
 
-# --- imports ---------------------------------------------
+# --- imported modules --------------------------------------------------------
 import sys, psycopg2
 
 
