@@ -1,22 +1,23 @@
-#!/usr/bin/env python
-# =========================================================
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# =============================================================================
 # osmdb.py
+#
+# Author: Daniel Krajzewicz
+# Date:   01.04.2016
+#
 # This file is part of the "UrMoAC" accessibility tool
 # https://github.com/DLR-VF/UrMoAC
 # Licensed under the Eclipse Public License 2.0
 #
-# Copyright (c) 2016-2023 DLR Institute of Transport Research
+# Copyright (c) 2016-2024 Institute of Transport Research,
+#                         German Aerospace Center
 # All rights reserved.
-# 
-# @author Daniel Krajzewicz, Simon Nieland
-# @date 01.04.2016
-# @copyright Institut fuer Verkehrsforschung, 
-#            Deutsches Zentrum fuer Luft- und Raumfahrt
-# @brief Helper methods for dealing with our OSM-database representation
-# =========================================================
+# =============================================================================
+"""OSM database representation."""
+# =============================================================================
 
-
-# --- imports ---------------------------------------------
+# --- imported modules --------------------------------------------------------
 import psycopg2
 
 

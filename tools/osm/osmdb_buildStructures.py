@@ -1,30 +1,32 @@
-#!/usr/bin/env python
-# =========================================================
-# osmdb_getStructures.py
-# 
-# @author Daniel Krajzewicz
-# @author Simon Nieland
-# @date 14.08.2019
-# @copyright Institut fuer Verkehrsforschung, 
-#            Deutsches Zentrum fuer Luft- und Raumfahrt
-# @brief Extracts specific structures (not the network) from an OSM-database representation
-# Call with
-#  osmdb_buildStructures.py <INPUT_TABLES_PREFIX> <DEF_FILE> <OUTPUT_TABLE> 
-# where <INPUT_TABLES_PREFIX> is defined as:
-#  <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD>  
-# and <OUTPUT_TABLE> is defined as:
-#  <HOST>,<DB>,<SCHEMA>,<NAME>,<USER>,<PASSWD>  
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# =============================================================================
+# osmdb_buildStructures.py
+#
+# Author: Daniel Krajzewicz, Simon Nieland
+# Date:   01.04.2016
 #
 # This file is part of the "UrMoAC" accessibility tool
 # https://github.com/DLR-VF/UrMoAC
 # Licensed under the Eclipse Public License 2.0
 #
-# Copyright (c) 2019-2023 DLR Institute of Transport Research
+# Copyright (c) 2016-2024 Institute of Transport Research,
+#                         German Aerospace Center
 # All rights reserved.
-# =========================================================
+# =============================================================================
+"""Builds a table with defined structures (not the network) using an 
+OSM-database representation.
 
+Call with
+  osmdb_buildStructures.py <INPUT_TABLES_PREFIX> <DEF_FILE> <OUTPUT_TABLE> 
+where <INPUT_TABLES_PREFIX> is defined as:
+  <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD>  
+and <OUTPUT_TABLE> is defined as:
+  <HOST>,<DB>,<SCHEMA>,<NAME>,<USER>,<PASSWD>  
+"""
+# =============================================================================
 
-# --- imported modules ------------------------------------
+# --- imported modules --------------------------------------------------------
 import sys, os
 import psycopg2
 import datetime
@@ -42,9 +44,9 @@ from geom_helper import *
 # --- global definitions ----------------------------------
 """! @brief A map from a data type to the respective tags"""
 subtype2tag = {
-  "node": "ntag",
-  "way": "wtag",
-  "rel": "rtag"
+    "node": "ntag",
+    "way": "wtag",
+    "rel": "rtag"
 }
 
 
@@ -386,17 +388,17 @@ class OSMExtractor:
 
 
 # --- main method -----------------------------------------
-def main(argv):       
+def main(srcdb, deffile, dstdb):       
     t1 = datetime.datetime.now()
     # -- open connection
-    (host, db, schema, prefix, user, password) = sys.argv[1].split(",")
+    (host, db, schema, prefix, user, password) = srcdb.split(",")
     conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
     cursor = conn.cursor()
 
     # -- load definitions of things to extract
     extractor = OSMExtractor()
     print ("Loading definition of things to extract")
-    extractor.loadDefinitions(sys.argv[2])
+    extractor.loadDefinitions(deffile)
     print ("Determining object IDs")
     extractor.loadObjectIDs(conn, cursor, schema, prefix)
     print ("Collecting object geometries")
@@ -405,7 +407,7 @@ def main(argv):
     # -- write extracted objects
     # --- open connection
     print ("Building destination databases")
-    (host, db, schema, name, user, password) = sys.argv[3].split(",")
+    (host, db, schema, name, user, password) = dstdb.split(",")
     conn2 = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
     cursor2 = conn2.cursor()
     # --- build tables
@@ -431,5 +433,5 @@ def main(argv):
 
 # -- main check
 if __name__ == '__main__':
-    main(sys.argv)
+    main(sys.argv[1], sys.argv[2], sys.argv[3])
     

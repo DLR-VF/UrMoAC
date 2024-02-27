@@ -1,23 +1,23 @@
-#!/usr/bin/env python
-# =========================================================
-# osm2db.py
-# 
-# @author Daniel Krajzewicz, Simon Nieland
-# @date 01.04.2016
-# @copyright Institut fuer Verkehrsforschung, 
-#            Deutsches Zentrum fuer Luft- und Raumfahrt
-# @brief OSM data model
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# =============================================================================
+# osm.py
+#
+# Author: Daniel Krajzewicz
+# Date:   01.04.2016
 #
 # This file is part of the "UrMoAC" accessibility tool
 # https://github.com/DLR-VF/UrMoAC
 # Licensed under the Eclipse Public License 2.0
 #
-# Copyright (c) 2016-2023 DLR Institute of Transport Research
+# Copyright (c) 2016-2024 Institute of Transport Research,
+#                         German Aerospace Center
 # All rights reserved.
-# =========================================================
+# =============================================================================
+"""OSM data model."""
+# =============================================================================
 
-
-# --- imported modules ------------------------------------
+# --- imported modules --------------------------------------------------------
 import os, sys, math, copy
 
 script_dir = os.path.dirname( __file__ )

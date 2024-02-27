@@ -1,25 +1,26 @@
-#!/usr/bin/env python
-# =========================================================
-# osmdb_BuildWays.py
-# 
-# @author Daniel Krajzewicz, Simon Nieland
-# @date 01.04.2016
-# @copyright Institut fuer Verkehrsforschung, 
-#            Deutsches Zentrum fuer Luft- und Raumfahrt
-# @brief Imports an OSM-file into the database
-# Call with
-#  osmdb_buildWays <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD>
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# =============================================================================
+# osmdb_buildWays.py
+#
+# Author: Daniel Krajzewicz, Simon Nieland
+# Date:   01.04.2016
 #
 # This file is part of the "UrMoAC" accessibility tool
 # https://github.com/DLR-VF/UrMoAC
 # Licensed under the Eclipse Public License 2.0
 #
-# Copyright (c) 2016-2023 DLR Institute of Transport Research
+# Copyright (c) 2016-2024 Institute of Transport Research,
+#                         German Aerospace Center
 # All rights reserved.
-# =========================================================
+# =============================================================================
+"""Builds an road network table using  an OSM-database representation.
 
+Call with
+  osmdb_buildWays <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD>"""
+# =============================================================================
 
-# --- imported modules ------------------------------------
+# --- imported modules --------------------------------------------------------
 import os, string, sys, io
 import datetime
 from xml.sax import saxutils, make_parser, handler
