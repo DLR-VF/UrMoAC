@@ -41,6 +41,7 @@ nav:
     - Links: Links.md
     - Publications: Publications.md
     - Included Data: IncludedData.md
+    - Included Scripts: IncludedScripts.md
     - Developer Docs: 
         - Overview: DeveloperDocs.md
         - Testing UrMoAC: DeveloperTests.md

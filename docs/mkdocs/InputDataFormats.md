@@ -347,7 +347,7 @@ There are different rules for entraining own mobility options within public tran
 
 The following options are used in combination with this data type:
 
-* __--entrainment _&lt;OD_CONNECTIONS&gt;___.
+* __--entrainment _&lt;ENTRAINMENT_SOURCE&gt;___.
 
 Please note that we do not have much experience in using the entrainment table, yet.
 
