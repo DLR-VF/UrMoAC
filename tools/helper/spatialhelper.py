@@ -1,23 +1,23 @@
-#!/usr/bin/env python
-# =========================================================
-# spatialhelper.py
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# =============================================================================
+# simplemaps.py
 #
-# @author Daniel Krajzewicz
-# @date 19.01.2022
-# @copyright Institut fuer Verkehrsforschung, 
-#            Deutsches Zentrum fuer Luft- und Raumfahrt
-# @brief Helper methods for dealing with spatial data
+# Author: Daniel Krajzewicz
+# Date:   19.01.2022
 #
 # This file is part of the "UrMoAC" accessibility tool
 # https://github.com/DLR-VF/UrMoAC
 # Licensed under the Eclipse Public License 2.0
 #
-# Copyright (c) 2016-2023 DLR Institute of Transport Research
+# Copyright (c) 2022-2024 Institute of Transport Research,
+#                         German Aerospace Center
 # All rights reserved.
-# =========================================================
+# =============================================================================
+"""Methods for computing boundaries and centers."""
+# =============================================================================
 
-
-# --- imported modules ------------------------------------
+# --- imported modules --------------------------------------------------------
 def getBounds(positions):
     if positions==None or len(positions)==0:
         return None

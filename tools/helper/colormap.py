@@ -1,20 +1,24 @@
-#!/usr/bin/env python
-# =========================================================
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# =============================================================================
 # colormap.py
 #
-# @author Daniel Krajzewicz
-# @date 28.11.2020
-# @copyright Institut fuer Verkehrsforschung, 
-#            Deutsches Zentrum fuer Luft- und Raumfahrt
-# @brief A simple method for defining own colormaps
+# Author: Daniel Krajzewicz
+# Date:   28.11.2020
 #
 # This file is part of the "UrMoAC" accessibility tool
 # https://github.com/DLR-VF/UrMoAC
 # Licensed under the Eclipse Public License 2.0
 #
-# Copyright (c) 2020-2023 DLR Institute of Transport Research
+# Copyright (c) 2020-2024 Institute of Transport Research,
+#                         German Aerospace Center
 # All rights reserved.
-# =========================================================
+# =============================================================================
+"""Colormap helper."""
+# =============================================================================
+
+# --- imported modules --------------------------------------------------------
+
 def toHex(val):
     """Converts the given value (0-255) into its hexadecimal representation"""
     hex = "0123456789abcdef"

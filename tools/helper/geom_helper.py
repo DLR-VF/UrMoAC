@@ -1,23 +1,23 @@
-#!/usr/bin/env python
-# =========================================================
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# =============================================================================
 # geom_helper.py
 #
-# @author Daniel Krajzewicz, Simon Nieland
-# @date 12.08.2022
-# @copyright Institut fuer Verkehrsforschung, 
-#            Deutsches Zentrum fuer Luft- und Raumfahrt
-# @brief Some geometry helpers
+# Author: Daniel Krajzewicz
+# Date:   12.08.2022
 #
 # This file is part of the "UrMoAC" accessibility tool
 # https://github.com/DLR-VF/UrMoAC
 # Licensed under the Eclipse Public License 2.0
 #
-# Copyright (c) 2022-2023 DLR Institute of Transport Research
+# Copyright (c) 2022-2024 Institute of Transport Research,
+#                         German Aerospace Center
 # All rights reserved.
-# =========================================================
+# =============================================================================
+"""Some geometry helper."""
+# =============================================================================
 
-
-# --- imported modules ------------------------------------
+# --- imported modules --------------------------------------------------------
 import math
 
 

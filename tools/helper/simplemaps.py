@@ -1,20 +1,23 @@
-#!/usr/bin/env python
-# =========================================================
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# =============================================================================
 # simplemaps.py
 #
-# @author Daniel Krajzewicz
-# @date 28.11.2020
-# @copyright Institut fuer Verkehrsforschung, 
-#            Deutsches Zentrum fuer Luft- und Raumfahrt
-# @brief Methods for generating maps and histograms
+# Author: Daniel Krajzewicz
+# Date:   28.11.2020
 #
 # This file is part of the "UrMoAC" accessibility tool
 # https://github.com/DLR-VF/UrMoAC
 # Licensed under the Eclipse Public License 2.0
 #
-# Copyright (c) 2020-2023 DLR Institute of Transport Research
+# Copyright (c) 2020-2024 Institute of Transport Research,
+#                         German Aerospace Center
 # All rights reserved.
-# =========================================================
+# =============================================================================
+"""Some simple maps for data categorization."""
+# =============================================================================
+
+# --- imported modules --------------------------------------------------------
 def addToSimpleMap(tMap, tAttr):
   if tAttr not in tMap:
     tMap[tAttr] = 1

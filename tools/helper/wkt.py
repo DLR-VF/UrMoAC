@@ -1,29 +1,29 @@
-#!/usr/bin/env python
-# =========================================================
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# =============================================================================
 # wkt.py
 #
-# @author Daniel Krajzewicz
-# @date 23.06.2022
-# @copyright Institut fuer Verkehrsforschung, 
-#            Deutsches Zentrum fuer Luft- und Raumfahrt
-# @brief Helper methods and classes for dealing with WKTs
+# Author: Daniel Krajzewicz
+# Date:   23.06.2022
 #
 # This file is part of the "UrMoAC" accessibility tool
 # https://github.com/DLR-VF/UrMoAC
 # Licensed under the Eclipse Public License 2.0
 #
-# Copyright (c) 2022-2023 DLR Institute of Transport Research
+# Copyright (c) 2022-2024 Institute of Transport Research,
+#                         German Aerospace Center
 # All rights reserved.
-# =========================================================
+# =============================================================================
+"""Defines geometry objects and parses WKT."""
+# =============================================================================
 
-
-# --- imported modules ------------------------------------
+# --- imported modules --------------------------------------------------------
 from enum import IntEnum
 
 
-# --- enum definitions ------------------------------------
+# --- enum definitions --------------------------------------------------------
 class GeometryType(IntEnum):
-    """! @brief An enumeration of known geometry types"""
+    """An enumeration of known geometry types"""
     POINT = 0
     LINESTRING = 1
     MULTILINE = 2
@@ -34,9 +34,8 @@ class GeometryType(IntEnum):
 
 
 
-# https://stackoverflow.com/questions/8919719/how-to-plot-a-complex-polygon
+# --- method definitions ------------------------------------------------------
 def patchify(polys, **kwargs):
-    import numpy as np
     """Returns a matplotlib patch representing the polygon with holes.
 
     polys is an iterable (i.e list) of polygons, each polygon is a numpy array
@@ -46,6 +45,8 @@ def patchify(polys, **kwargs):
 
     This is inspired by
     https://sgillies.net/2010/04/06/painting-punctured-polygons-with-matplotlib.html
+    and
+    https://stackoverflow.com/questions/8919719/how-to-plot-a-complex-polygon
 
     Example usage:
     ext = np.array([[-4, 4, 4, -4, -4], [-4, -4, 4, 4, -4]])
@@ -64,6 +65,7 @@ def patchify(polys, **kwargs):
     ax.set_xlim([-6, 6])
     ax.set_ylim([-6, 6])
     """
+    import numpy as np
 
     def reorder(poly, cw=True):
         """Reorders the polygon to run clockwise or counter-clockwise
@@ -157,12 +159,13 @@ class Point(Geometry):
 
     def artist(self, **kwargs):
         """Returns a matplotlib artist that represents this geometry"""
-        return Circle(self._shape, **kwargs)
+        import matplotlib.patches
+        return matplotlib.patches.Circle(self._shape, **kwargs)
 
 
     def bounds(self):
         """Returns the bounds of this geometry"""
-        return [self._shape[0][0], self._shape[0][1], self._shape[0][0], self._shape[0][1]]
+        return [self._shape[0], self._shape[1], self._shape[0], self._shape[1]]
 
 
 
@@ -179,9 +182,11 @@ class LineString(Geometry):
 
     def artist(self, **kwargs):
         """Returns a matplotlib artist that represents this geometry"""
-        codes = [1]
-        codes.extend([2]*(len(self._shape)-1))
-        return mpl.path.Path(self._shape, codes, closed=False, **kwargs)
+        import matplotlib.patches
+        import matplotlib.path
+        path = matplotlib.path.Path(self._shape, closed=False)
+        return matplotlib.patches.PathPatch(path, fill=False, **kwargs)
+
 
 
     def bounds(self):
