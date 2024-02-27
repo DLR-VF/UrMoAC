@@ -1,29 +1,30 @@
-#!/usr/bin/env python
-# =========================================================
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# =============================================================================
 # importGTFS.py
 #
-# @author Daniel Krajzewicz
-# @date 01.04.2016
-# @copyright Institut fuer Verkehrsforschung, 
-#            Deutsches Zentrum fuer Luft- und Raumfahrt
-# @brief Imports a given GTFS data set
+# Author: Daniel Krajzewicz
+# Date:   01.04.2016
 #
 # This file is part of the "UrMoAC" accessibility tool
 # https://github.com/DLR-VF/UrMoAC
 # Licensed under the Eclipse Public License 2.0
 #
-# Copyright (c) 2016-2023 DLR Institute of Transport Research
+# Copyright (c) 2016-2024 Institute of Transport Research,
+#                         German Aerospace Center
 # All rights reserved.
-# =========================================================
+# =============================================================================
+"""Imports a GTFS data set into a database"""
+# =============================================================================
 
-
-# --- imported modules ------------------------------------
+# --- imported modules --------------------------------------------------------
 from enum import IntEnum
 import psycopg2, sys, os.path, io
 import gtfs_defs
 
 
-"""! @brief A map from GTFS data types to Postgres datatypes"""
+# --- enum definitions --------------------------------------------------------
+"""A map from GTFS data types to Postgres datatypes"""
 gtfs2postgres = {
     gtfs_defs.FieldType.COLOR : "text",
     gtfs_defs.FieldType.CURRENCY_CODE : "text",
@@ -45,9 +46,9 @@ gtfs2postgres = {
 }
 
 
-
+# --- class definitions -------------------------------------------------------
 class GTFSImporter:
-    """! @brief A class for importing GTFS data into a database"""
+    """A class for importing GTFS data into a database"""
 
     def __init__(self, srcFolder, dbDef):
         """! @brief Initialises the importer
@@ -220,7 +221,7 @@ class GTFSImporter:
 
 
     def importFiles(self):
-        """! @brief Goes through the tables and imports existing ones
+        """Goes through the tables and imports existing ones
         @param self The class instance
         """
         print ("Importing data")
@@ -238,7 +239,7 @@ class GTFSImporter:
 
 
     def addLinesToStops(self):
-        """! @brief Adds line information to stops
+        """Adds line information to stops
         @param self The class instance
         @todo Move to a GTFS-manipulating class?
         """
@@ -276,8 +277,7 @@ class GTFSImporter:
 
 
 def main(argv):
-    """ @brief Main method
-    """
+    """Main method"""
     # check and parse command line parameter and input files
     if len(argv)<3:
         print ("importGTFS.py <INPUT_FOLDER> <TARGET_DB_DEFINITION>")
