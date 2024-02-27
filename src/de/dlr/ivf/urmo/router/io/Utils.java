@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2023 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024 DLR Institute of Transport Research
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstra�e 2
+ * Rutherfordstraße 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
