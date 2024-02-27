@@ -17,7 +17,18 @@
 """Methods for computing boundaries and centers."""
 # =============================================================================
 
-# --- imported modules --------------------------------------------------------
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2022-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
+
+
+# --- function definitions ----------------------------------------------------
 def getBounds(positions):
     if positions==None or len(positions)==0:
         return None

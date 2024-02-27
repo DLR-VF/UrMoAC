@@ -25,7 +25,18 @@ from matplotlib.collections import PatchCollection
 import colorhelper
 
 
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2017-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
 
+
+# --- function definitions ----------------------------------------------------
 def saveShowClear(options, oName):
     fp = os.path.join(options.output, oName)
     savefig(fp+".png")

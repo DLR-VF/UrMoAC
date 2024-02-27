@@ -17,7 +17,18 @@
 """Defines modes of transport for the OSM importer."""
 # =============================================================================
 
-# --- imported modules --------------------------------------------------------
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2016-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
+
+
+# --- data definitions --------------------------------------------------------
 FOOT = 1
 BICYCLE = 2
 PASSENGER = 4

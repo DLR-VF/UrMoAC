@@ -23,6 +23,17 @@ import psycopg2, sys, os.path, io
 import gtfs_defs
 
 
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2016-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
+
+
 # --- enum definitions --------------------------------------------------------
 """A map from GTFS data types to Postgres datatypes"""
 gtfs2postgres = {
@@ -274,8 +285,7 @@ class GTFSImporter:
             self._conn.commit()
 
 
-
-
+# --- function definitions ----------------------------------------------------
 def main(argv):
     """Main method"""
     # check and parse command line parameter and input files
@@ -310,7 +320,6 @@ def main(argv):
     importer.importFiles()
     # extend stops by lines
     importer.addLinesToStops()
-
 
 
 # -- main check

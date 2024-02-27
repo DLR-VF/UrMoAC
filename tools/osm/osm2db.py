@@ -28,7 +28,18 @@ import psycopg2
 import osm
 
 
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2016-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
 
+
+# --- class definitions -------------------------------------------------------
 # --- OSMReader
 class OSMReader(handler.ContentHandler):
     """ @class OSMReader
@@ -180,8 +191,8 @@ class OSMReader(handler.ContentHandler):
         self.relations = []
     
 
-
-# --- main method -----------------------------------------
+# --- function definitions ----------------------------------------------------
+# --- main 
 def main(argv):
     """ @brief Main method
     @param argv The program argument
@@ -248,7 +259,6 @@ def main(argv):
     dt = t2-t1
     print ("In %s" % dt)
 
-  
 
 # -- main check
 if __name__ == '__main__':

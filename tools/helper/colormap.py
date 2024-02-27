@@ -17,8 +17,18 @@
 """Colormap helper."""
 # =============================================================================
 
-# --- imported modules --------------------------------------------------------
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2020-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
 
+
+# --- function definitions ----------------------------------------------------
 def toHex(val):
     """Converts the given value (0-255) into its hexadecimal representation"""
     hex = "0123456789abcdef"

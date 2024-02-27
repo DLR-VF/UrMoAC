@@ -21,6 +21,17 @@
 from enum import IntEnum
 
 
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2022-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
+
+
 # --- enum definitions --------------------------------------------------------
 class GeometryType(IntEnum):
     """An enumeration of known geometry types"""
@@ -30,8 +41,6 @@ class GeometryType(IntEnum):
     POLYGON = 3
     MULTIPOLYGON = 4
     GEOMETRYCOLLECTION = 5
-
-
 
 
 # --- method definitions ------------------------------------------------------
@@ -114,7 +123,7 @@ def encode_complex_polygon(polys, close):
 
 
 
-# --- class definitions -----------------------------------
+# --- class definitions -------------------------------------------------------
 class Geometry:
     """An abstract geometry"""
 
@@ -318,13 +327,7 @@ class MultiPolygon(Geometry):
         return bounds
 
     
-    
-    
-    
-
-
-
-# --- function definitions --------------------------------
+# --- function definitions ----------------------------------------------------
 def parse_POINT2D(which):
     """! @brief Parses the given geometry assuming it's a 2D POINT
     

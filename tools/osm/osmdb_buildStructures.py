@@ -40,8 +40,19 @@ from wkt import *
 from geom_helper import *
 
 
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2016-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
 
-# --- global definitions ----------------------------------
+
+
+# --- data definitions --------------------------------------------------------
 """! @brief A map from a data type to the respective tags"""
 subtype2tag = {
     "node": "ntag",
@@ -50,7 +61,7 @@ subtype2tag = {
 }
 
 
-# --- class definitions -----------------------------------
+# --- class definitions -------------------------------------------------------
 class OSMExtractor:
     """! @brief A class for extracting defined structures from OSM
   
@@ -387,7 +398,8 @@ class OSMExtractor:
                     fd.write("%s;%s;%s\n" % (type, self._idMapping[type][id], id))
 
 
-# --- main method -----------------------------------------
+# --- function definitions ----------------------------------------------------
+# --- main
 def main(srcdb, deffile, dstdb):       
     t1 = datetime.datetime.now()
     # -- open connection

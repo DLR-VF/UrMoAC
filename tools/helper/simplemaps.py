@@ -17,7 +17,18 @@
 """Some simple maps for data categorization."""
 # =============================================================================
 
-# --- imported modules --------------------------------------------------------
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2020-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
+
+
+# --- function definitions ----------------------------------------------------
 def addToSimpleMap(tMap, tAttr):
   if tAttr not in tMap:
     tMap[tAttr] = 1

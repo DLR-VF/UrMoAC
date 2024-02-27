@@ -28,8 +28,19 @@ import psycopg2, osmdb
 from osmmodes import *
 
 
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2016-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
 
-# --- class definitions -----------------------------------
+
+
+# --- class definitions -------------------------------------------------------
 class Params:
     """ @class Params
     @brief Stores the parameter of a OSM-object and controls their usage
@@ -87,7 +98,7 @@ class Params:
 
 
 
-# --- method definitions ----------------------------------
+# --- function definitions ----------------------------------------------------
 def parsePOINT2XY(which, scale=1.):
     """ @brief Parses and returns a single position
     @param which The wkt-description of the position
@@ -433,7 +444,7 @@ def getParams(params):
   
 
 
-# --- main method -----------------------------------------
+# --- main
 def main(argv):
     """ @brief Main method
     """
@@ -620,8 +631,6 @@ def main(argv):
     dt = t2-t1
     print ("Built %s roads" % num)
     print (" in %s" % dt)
-
-
 
 
 # -- main check

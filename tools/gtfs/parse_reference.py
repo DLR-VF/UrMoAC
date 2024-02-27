@@ -23,6 +23,17 @@ import bs4
 import sys, os.path, io
 
 
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2022-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
+
+
 # --- enum definitions --------------------------------------------------------
 """A map of file type MML to their enum"""
 fieldTypeMap = {
@@ -172,7 +183,7 @@ class FieldType(IntEnum):
 """)
 
 
-
+# --- function definitions ----------------------------------------------------
 def main(argv):
     """Parses a copy of the GTFS definitions page
     

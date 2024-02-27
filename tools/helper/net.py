@@ -17,7 +17,18 @@
 """A network representation."""
 # =============================================================================
 
-# --- imported modules --------------------------------------------------------
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2023-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
+
+
+# --- class definitions -------------------------------------------------------
 class Edge:
     def __init__(self, id, geom, data=None):
         self._id = id
@@ -131,7 +142,7 @@ class Net:
         return self._rtree
 
 
-
+# --- function definitions ----------------------------------------------------
 def _loadNetFromDB(d, proj, stringData=[], vmaxS="vmax"):
     import psycopg2, wkt
     print (d)

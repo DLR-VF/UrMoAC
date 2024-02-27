@@ -21,8 +21,19 @@
 import math
 
 
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2022-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
 
-# --- method definitions ----------------------------------
+
+
+# --- function definitions ----------------------------------------------------
 def signed_area(poly):
     """! brief Returns the orientation of the polygon
     

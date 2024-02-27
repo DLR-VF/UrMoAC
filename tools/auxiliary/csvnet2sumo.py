@@ -24,7 +24,18 @@ Call with
 import sys
 
 
-# --- method definitions ------------------------------------------------------
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2023-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
+
+
+# --- function definitions ----------------------------------------------------
 def csvnet2sumo(input_file, output_prefix):
     """Parses the contents from the csv net file with the given name and writes
     them into an edges and a nodes file which names are built using the given
