@@ -8,6 +8,7 @@ These scripts are located in ***&lt;UrMoAC&gt;*/tools** and are sorted by topic:
 * **gtfs**: Scripts for parsing and importing GTFS data sets into a database
 * **helper**: Different helper scripts
 * **osm**: Scripts for parsing and importing OSM data sets into a database
+* **visualisation**: Scripts that visualise the results
 
 
 ## Auxiliary

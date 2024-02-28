@@ -17,19 +17,19 @@ For the first, you will need the following tools and applications:
 We will describe below how you can get the data.
 
 
-## Basic Computation
+## Basic computation
 
-### Step 1: get the data
+### Step 1: Get the data
 Download an area you are interested in from [OpenStreetMap](http://www.openstreetmap.org). We will use a representation of the city of Berlin for our examples. This data already contains buildings, public transport halts, and a road network. Please note that the quality of [OpenStreetMap](http://www.openstreetmap.org) differs between regions. For Germany, the data is quite complete and up-to-date.
 
 As said, we will use the city of Berlin as an example. We use a data set available on [Geofabrik](https://download.geofabrik.de/). the one we used was generated on the 28<sup>th</sup> of April 2023.
 
-### Step 2: import the data into a database
+### Step 2: Import the data into a database
 
 Now, you should open a command line interface (shell / cmd.exe) and navigate to UrMoAC&#39;s OpenStreetMap tools&#39; folder. It is located in the subfolder ```tools/osm```.
 
 
-#### Step 2.1: import OSM data
+#### Step 2.1: Import OSM data
 UrMoAC comes with a Python script named [osm2db.py](./ImportScripts.md#importing-openstreetmap-into-the-database) for importing [OpenStreetMap](http://www.openstreetmap.org) data into a database. My call for importing the downloaded and extracted OSM-file into my local database is as following:
 
 ```console
@@ -46,7 +46,7 @@ As described in the section about [import scripts](ImportScripts.md), [osm2db.py
 
 The tool builds the tables as given in [import scripts](ImportScripts.md) and reports about inserting nodes, ways, and relations. It takes some time, for Berlin, with 6.6Mio nodes, 1Mio ways, and 16k relations, my computer needed about five minutes.
 
-#### Step 2.2: prepare the road network
+#### Step 2.2: Prepare the road network
 As described in [import scripts](ImportScripts.md), you may use the [osmdb_buildWays.py](./ImportScripts.md#building-the-road-network-from-openstreetmap-data) script to build your road network from a previously imported OSM data. In our case, the call is: 
 
 ```console
@@ -55,7 +55,7 @@ As described in [import scripts](ImportScripts.md), you may use the [osmdb_build
 
 You may note that the tool reports about unknown highway or railway tags. Usually, these are yet unbuilt or even erased roads. For importing the road network of Berlin (about 1.2Mio edges), the tool needed about seven minutes.
 
-#### Step 2.3: prepare the buildings (origins)
+#### Step 2.3: Prepare the buildings (origins)
 Use the tool [osmdb_buildStructures.py](./ImportScripts.md#using-openstreetmap-data-to-build-tables-of-certain-structures) to import buildings by calling:
 
 ```console
@@ -64,7 +64,7 @@ Use the tool [osmdb_buildStructures.py](./ImportScripts.md#using-openstreetmap-d
 
 You will obtain a table named &ldquo;osm20230428_buildings&rdquo; that includes the buildings. The process took about 1 minute on my computer.
 
-#### Step 2.4: prepare the public transport halts (destinations)
+#### Step 2.4: Prepare the public transport halts (destinations)
 Again, you may use [osmdb_buildStructures.py](./ImportScripts.md#using-openstreetmap-data-to-build-tables-of-certain-structures) to import public transport halts. The call is:
 
 ```console
@@ -73,7 +73,7 @@ Again, you may use [osmdb_buildStructures.py](./ImportScripts.md#using-openstree
 
 You will obtain a table named &ldquo;osm20230428_pthalts&rdquo; that includes the public transport halts.
 
-#### Step 2.5: prepare the city boundary
+#### Step 2.5: Prepare the city boundary
 For a nicer visualisation, we need Berlin's boundary. Again,  [osmdb_buildStructures.py](./ImportScripts.md#using-openstreetmap-data-to-build-tables-of-certain-structures) is used. The call is:
 
 ```console
@@ -82,7 +82,7 @@ For a nicer visualisation, we need Berlin's boundary. Again,  [osmdb_buildStruct
 
 You will obtain a table named &ldquo;osm20230428_boundary&rdquo; that includes the city boundaries.
 
-### Step 3: compute the accessibility
+### Step 3: Compute the accessibility
 After having imported our data, we can simply run UrMoAC for computing the access to the next public transport halt.
 
 The call looks like the following:
@@ -115,7 +115,7 @@ Given this, the tool will generate the table &ldquo;berlin.osm20230428_houses2pt
 * __avg_value__: always -1, as we do not aggregate
  
  
-### Step 4: display the results
+### Step 4: Display the results
 
 >ou can now visualise the results. UrMoAC comes with Python-scripts for visualisation and we simply use one of them, namely 
 [plot_area.py](./VisualisationTools.md#plot_area). The call is as following:
@@ -133,7 +133,7 @@ You will get a .png-file named &ldquo;berlin_building2pt.png&rdquo; that contain
 
 ## Discussion
 
-Ok, you can now compute and visualise accessibilities measures.
+Ok, you can now compute and visualise accessibility measures.
 
 Congratulations!
 

@@ -44,7 +44,7 @@ When writing to a file, these attributes are stored in a single line, separated 
 
 
 
-## extended O/D output
+## Extended O/D output
 
 This output is enabled using the option __--ext-od-output _&lt;OUTPUT&gt;___.
 The generated database table has the following format:

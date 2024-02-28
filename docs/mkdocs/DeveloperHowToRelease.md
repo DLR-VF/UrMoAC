@@ -20,7 +20,7 @@
     * add some notes about what has been changed (see below)
     * add the compressed docs to the release
 
-## Contents of the release description
+## Contents of the release text
 
 * short note / welcome
 * [ChangeLog](./ChangeLog.md)
