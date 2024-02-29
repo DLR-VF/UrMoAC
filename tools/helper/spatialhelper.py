@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # =============================================================================
-# simplemaps.py
+# spatialhelper.py
 #
 # Author: Daniel Krajzewicz
 # Date:   19.01.2022

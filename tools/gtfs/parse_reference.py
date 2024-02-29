@@ -86,10 +86,13 @@ def parse_table(info, fdo, optional):
     definitions.
                 
     The contents are written to the given file.
-                
-    @param info The definitions page as parsed HTML
-    @param fdo The file to write the parsed definitions to
-    @param optional A list to append the GTFS file name to if it's optional
+
+    :param info: The definitions page as parsed HTML
+    :type info: bs4.element.Tag
+    :param fdo: The file to write the parsed definitions to
+    :type fdo: io.TextIOWrapper
+    :param optional: A list to append the GTFS file name to if it's optional
+    :type optional: list[str]
     """
     tabName = info.contents[0].strip()
     print (tabName)
@@ -125,7 +128,10 @@ def parse_table(info, fdo, optional):
 
 
 def write_header(fdo):
-    """Writes the file header to the given file"""
+    """Writes the file header to the given file
+    :param fdo: The file to write the parsed definitions to
+    :type fdo: io.TextIOWrapper
+    """
     fdo.write("""#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # =============================================================================
@@ -184,7 +190,7 @@ class FieldType(IntEnum):
 
 
 # --- function definitions ----------------------------------------------------
-def main(argv):
+def parse_reference():
     """Parses a copy of the GTFS definitions page
     
     Reads the page and parses it using BeautifulSoup.
@@ -220,6 +226,6 @@ def main(argv):
 
 # -- main check
 if __name__ == '__main__':
-    main(sys.argv)
+    parse_reference()
   
   

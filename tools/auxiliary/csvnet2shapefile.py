@@ -40,7 +40,13 @@ __status__     = "Development"
 def csvnet2shapefile(input_file, output_prefix):
     """Parses the contents from the csv net file with the given name and 
     writes them into the set of files with the given name that make up a 
-    shapefile."""
+    shapefile.
+    
+    :param input_file: The name of the input file
+    :type input_file: str
+    :param output_prefix: The output prefix
+    :type output_prefix: str
+    """
     fdi = open(input_file)
     w = shapefile.Writer(output_prefix, shapefile.POLYLINE)
     w.field('oid', 'C', 40, 40)
@@ -73,4 +79,8 @@ def csvnet2shapefile(input_file, output_prefix):
 
 # -- main check
 if __name__ == '__main__':
+    if len(sys.argv)<3:
+        print ("Error: Parameter is missing\nPlease run with:\n  csvnet2shapefile.py <INPUT_CSV_NET> <SHAPEFILE_OUTPUT_PREFIX>")
+        sys.exit(1)
     csvnet2shapefile(sys.argv[1], sys.argv[2])
+    sys.exit(0)

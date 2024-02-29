@@ -217,7 +217,7 @@ def parse_options(args):
 
 
 def load_shapes(source, projection, asCentroid=False, idField="gid", geomField="polygon", geomFilter=None):
-    (host, db, tableFull, user, password) = source.split(";")
+    (host, db, tableFull, user, password) = source.split(",")
     (schema, table) = tableFull.split(".")
     where = ""
     if geomFilter is not None:
@@ -241,7 +241,7 @@ def load_shapes(source, projection, asCentroid=False, idField="gid", geomField="
 
 
 def load_measures(source, measure, minV, maxV, isochrone):
-    (host, db, tableFull, user, password) = source.split(";")
+    (host, db, tableFull, user, password) = source.split(",")
     (schema, table) = tableFull.split(".")
     conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
     cursor = conn.cursor()
@@ -335,8 +335,8 @@ def plot(mainBorder, innerBorders, network, water, obj2geom, obj2value, options,
     matplotlib.pyplot.subplots_adjust(bottom=0.05, right=.96, left=.02, top=0.9, wspace=0)
 
 
-def main():
-    options, remaining_args = parse_options(sys.args)
+def main(argv):
+    options, remaining_args = parse_options(argv)
     # -- load objects
     # load the main border optionally
     mainBorder = None
@@ -375,6 +375,6 @@ def main():
 
 # -- main check
 if __name__ == "__main__":
-    main()
+    main(sys.argv)
   
   

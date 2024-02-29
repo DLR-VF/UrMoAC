@@ -53,7 +53,7 @@ __status__     = "Development"
 
 
 # --- data definitions --------------------------------------------------------
-"""! @brief A map from a data type to the respective tags"""
+"""A map from a data type to the respective tags"""
 subtype2tag = {
     "node": "ntag",
     "way": "wtag",
@@ -63,7 +63,7 @@ subtype2tag = {
 
 # --- class definitions -------------------------------------------------------
 class OSMExtractor:
-    """! @brief A class for extracting defined structures from OSM
+    """A class for extracting defined structures from OSM
   
     The class reads a set of definitions of the things to extract from a definitions file.
     The definitions are stored as !!!.
@@ -72,9 +72,7 @@ class OSMExtractor:
     """
     
     def __init__(self):
-        """! @brief Constructor
-        @param self The class instance
-        """
+        """Constructor"""
         # ids of matching objects
         self._objectIDs = { "node": [], "way": [], "rel": [] }
         # definitions of what to load
@@ -86,12 +84,12 @@ class OSMExtractor:
         self._idMapping = { "node": {}, "way": {}, "rel": {} }
     
 
-    def loadDefinitions(self, fileName):
-        """! @brief Loads the definitions about what to extract from a file
-        @param self The class instance
-        @param fileName The name of the file to read the definitions from
+    def load_definitions(self, file_name):
+        """Loads the definitions about what to extract from a file
+        :param file_name: The name of the file to read the definitions from
+        :type file_name: str
         """
-        fd = open(fileName)
+        fd = open(file_name)
         subtype = ""
         for l in fd:
             if len(l.strip())==0: continue # skip empty lines
@@ -109,17 +107,27 @@ class OSMExtractor:
         return self._defs
     
 
-    def _getObjects(self, conn, cursor, schema, prefix, subtype, op, k, v):
-        """! @brief Returns the IDs of the objects in the given OSM table that match the given definitions 
-        @param self The class instance
-        @param conn The database connection to use
-        @param cursor The database cursor to use 
-        @param schema The database sceham to use
-        @param prefix The OSM database prefix to use
-        @param subtype The OSM subtype to extract information about
-        @param k The key value to match
-        @param v The value value to match, "*" if any
-        @todo Make database connection an attribute of the class
+    def _get_objects(self, conn, cursor, schema, prefix, subtype, op, k, v):
+        """Returns the IDs of the objects in the given OSM table that match the given definitions 
+        :param conn: The connection to the database
+        :type conn: psycopg2.extensions.connection
+        :param cursor: The cursor used to write to the database
+        :type cursor: psycopg2.extensions.cursor
+        :param schema: The database schema to use
+        :type schema: str
+        :param prefix: The OSM database prefix to use
+        :type prefix: str
+        :param subtype: The OSM subtype to extract information about
+        :type subtype: str
+        :param op: The comparison operation
+        :type op: str
+        :param k: The key to match
+        :type k: str
+        :param v: The value to match, "*" if any
+        :type v: str
+        :return: The results of the query
+        :rtype: 
+        :todo: Make database connection an attribute of the class
         """
         ret = set()
         """
@@ -141,14 +149,17 @@ class OSMExtractor:
         return ret
 
 
-    def loadObjectIDs(self, conn, cursor, schema, prefix):
-        """! @brief Returns the IDs of the objects in the given OSM data that match the given definitions 
-        @param self The class instance
-        @param conn The database connection to use
-        @param cursor The database cursor to use 
-        @param schema The database sceham to use
-        @param prefix The OSM database prefix to use
-        @todo Make database connection an attribute of the class
+    def get_object_ids(self, conn, cursor, schema, prefix):
+        """Returns the IDs of the objects in the given OSM data that match the given definitions 
+        :param conn: The connection to the database
+        :type conn: psycopg2.extensions.connection
+        :param cursor: The cursor used to write to the database
+        :type cursor: psycopg2.extensions.cursor
+        :param schema: The database schema to use
+        :type schema: str
+        :param prefix: The OSM database prefix to use
+        :type prefix: str
+        :todo: Make database connection an attribute of the class
         """
         for subtype in ["node", "way", "rel"]:
             print (" ... for %s" % subtype)
@@ -159,14 +170,14 @@ class OSMExtractor:
                 for sd in subdefs:
                     sd = sd.strip()
                     if sd=="*":
-                        oss = self._getObjects(conn, cursor, schema, prefix, subtype, "*", "*", "*")
+                        oss = self._get_objects(conn, cursor, schema, prefix, subtype, "*", "*", "*")
                         k = "*"
                         v = "*"
                     else:
                         for op in ["!=", "!~", "=", "~"]:
                             if sd.find(op)>=0:
                                 k,v = sd.split(op)
-                                oss = self._getObjects(conn, cursor, schema, prefix, subtype, op, k, v)
+                                oss = self._get_objects(conn, cursor, schema, prefix, subtype, op, k, v)
                                 break
                     if collected!=None:
                         collected = collected.intersection(oss)
@@ -182,7 +193,7 @@ class OSMExtractor:
             #  print ("%s %s" % (subtype, o))
         # scan for duplicates
         print ("Scanning for duplicates")
-        nextAvailable = 0
+        have_next = 0
         seenIDs = set()
         for subtype in ["node", "way", "rel"]:
             for id in self._objectIDs[subtype]:
@@ -191,8 +202,8 @@ class OSMExtractor:
                     continue
                 pid = id
                 while True:
-                    id = nextAvailable
-                    nextAvailable += 1
+                    id = have_next
+                    have_next += 1
                     if id not in seenIDs:
                         seenIDs.add(id)
                         self._idMapping[subtype][id] = pid
@@ -202,14 +213,17 @@ class OSMExtractor:
    
    
     
-    def collectReferencedObjects(self, conn, cursor, schema, prefix):
-        """! @brief Collects all needed geometry information 
-        @param self The class instance
-        @param conn The database connection to use
-        @param cursor The database cursor to use 
-        @param schema The database sceham to use
-        @param prefix The OSM database prefix to use
-        @todo Make database connection an attribute of the class
+    def collect_referenced_objects(self, conn, cursor, schema, prefix):
+        """Collects all needed geometry information 
+        :param conn: The connection to the database
+        :type conn: psycopg2.extensions.connection
+        :param cursor: The cursor used to write to the database
+        :type cursor: psycopg2.extensions.cursor
+        :param schema: The database schema to use
+        :type schema: str
+        :param prefix: The OSM database prefix to use
+        :type prefix: str
+        :todo: Make database connection an attribute of the class
         """
         def divide_chunks(l, n):
             for i in range(0, len(l), n):
@@ -233,15 +247,15 @@ class OSMExtractor:
                 for r in cursor.fetchall():
                     # close the currently processed relation if a new starts
                     rid = int(r[0])
-                    relation = area.getRelation(rid)
+                    relation = area.get_relation(rid)
                     if not relation:
                         relation = osm.OSMRelation(rid)
-                        area.addRelation(relation)
+                        area.add_relation(relation)
                     role = r[3]
                     #if len(self._roles)>0 and role not in self._roles:
                     #    continue
                     iid = int(r[1])
-                    relation.addMember(iid, r[2], r[3])
+                    relation.add_member(iid, r[2], r[3])
                     if r[2]=="rel" or r[2]=="relation":
                         if iid==int(r[0]):
                             print ("Self-referencing relation %s" % r[0])
@@ -271,7 +285,7 @@ class OSMExtractor:
                 cursor.execute("SELECT id,refs FROM %s.%s_way WHERE id in (%s)" % (schema, prefix, idstr))
                 conn.commit()
                 for r in cursor.fetchall():
-                    area.addWay(osm.OSMWay(int(r[0]), r[1]))
+                    area.add_way(osm.OSMWay(int(r[0]), r[1]))
                     npoints.append(r[1])
                     for nID in r[1]:
                         if True and nID in self._objectIDs["node"]:
@@ -285,7 +299,7 @@ class OSMExtractor:
                 cursor.execute("SELECT id,ST_AsText(pos) FROM %s.%s_node WHERE id in (%s)" % (schema, prefix, idstr))
                 conn.commit()
                 for r in cursor.fetchall():
-                    area.addNode(osm.OSMNode(int(r[0]), parse_POINT2D(r[1])))
+                    area.add_node(osm.OSMNode(int(r[0]), parse_POINT2D(r[1])))
         # clear - no longer used
         missingNODEids = []
         missingWAYids = []
@@ -293,15 +307,19 @@ class OSMExtractor:
         return area
 
 
-    def _checkCommit(self, forced, entries, conn, cursor, schema, name):
-        """! @brief Inserts read objects if forced or if their number is higher than 10000
-        @param self The class instance
-        @param entries The objects to insert
-        @param conn The database connection to use
-        @param cursor The database cursor to use 
-        @param schema The database sceham to use
-        @param name The name of the database table
-        @todo Make database connection an attribute of the class
+    def _check_commit(self, forced, entries, conn, cursor, schema, name):
+        """Inserts read objects if forced or if their number is higher than 10000
+        :param entries: Descriptions of the objects to insert
+        :type entries: list[str]
+        :param conn: The connection to the database
+        :type conn: psycopg2.extensions.connection
+        :param cursor: The cursor used to write to the database
+        :type cursor: psycopg2.extensions.cursor
+        :param schema: The database schema to use
+        :type schema: str
+        :param name: The name of the database table
+        :type name: str
+        :todo: Make database connection an attribute of the class
         """
         if not forced and len(entries)<10000:
             return
@@ -313,18 +331,23 @@ class OSMExtractor:
         del entries[:]
         
 
-    def _addItem(self, entries, item, conn, cursor, schema, name):
-        """ @brief Prebuilds the given item's insertion string and checks whether it shall be submitted
-        @param self The class instance
-        @param entries The objects to insert
-        @param item The item to add to the objects
-        @param conn The database connection to use
-        @param cursor The database cursor to use 
-        @param schema The database sceham to use
-        @param name The name of the database table
-        @todo Make database connection an attribute of the class
+    def _add_item(self, entries, item, conn, cursor, schema, name):
+        """Prebuilds the given item's insertion string and checks whether it shall be submitted
+        :param entries: Descriptions of the objects to insert to extend
+        :type entries: list[str]
+        :param item: The item to add to the objects
+        :type item: 
+        :param conn: The connection to the database
+        :type conn: psycopg2.extensions.connection
+        :param cursor: The cursor used to write to the database
+        :type cursor: psycopg2.extensions.cursor
+        :param schema: The database schema to use
+        :type schema: str
+        :param name: The name of the database table
+        :type name: str
+        :todo: Make database connection an attribute of the class
         """
-        id, type, polys, geom = item.getDescriptionWithPolygons()
+        id, type, polys, geom = item.get_description_with_polygons()
         if len(geom)==0:
             print ("Missing geometry for %s %s" % (geom[1], geom[0]))
             return
@@ -358,38 +381,44 @@ class OSMExtractor:
         else:
             polys = "MULTIPOLYGON EMPTY"
         entries.append([id, type, polys, geom, centroid])
-        self._checkCommit(False, entries, conn, cursor, schema, name)
+        self._check_commit(False, entries, conn, cursor, schema, name)
 
 
-    def storeObjects(self, area, conn, cursor, schema, name):
-        """! @brief Stores objects and their geometries in the given table(s)
+    def store_objects(self, area, conn, cursor, schema, name):
+        """Stores objects and their geometries in the given table(s)
         
-        @param conn The database connection to use
-        @param cursor The database cursor to use 
-        @param schema The database sceham to use
-        @param name The name of the database to store the objects in
-        @param namePS The name of the database to store the objects' outline as points in
-        @todo Make database connection an attribute of the class
+        :param conn: The connection to the database
+        :type conn: psycopg2.extensions.connection
+        :param cursor: The cursor used to write to the database
+        :type cursor: psycopg2.extensions.cursor
+        :param schema: The database schema to use
+        :type schema: str
+        :param name: The name of the database to store the objects in
+        :type name: str
+        :todo: Make database connection an attribute of the class
         """
         geometries = []
         fr = 0
         for rID in self._objectIDs["rel"]:
-            if area._relations[rID].buildGeometry(area):
-                self._addItem(geometries, area._relations[rID], conn, cursor, schema, name)
+            if area._relations[rID].build_geometry(area):
+                self._add_item(geometries, area._relations[rID], conn, cursor, schema, name)
             else: fr += 1
         fw = 0
         for wID in self._objectIDs["way"]:
-            if area._ways[wID].buildGeometry(area):
-                self._addItem(geometries, area._ways[wID], conn, cursor, schema, name)
+            if area._ways[wID].build_geometry(area):
+                self._add_item(geometries, area._ways[wID], conn, cursor, schema, name)
             else: fw += 1
         for nID in self._objectIDs["node"]:
-            self._addItem(geometries, area._nodes[nID], conn, cursor, schema, name)
-        self._checkCommit(True, geometries, conn, cursor, schema, name)
+            self._add_item(geometries, area._nodes[nID], conn, cursor, schema, name)
+        self._check_commit(True, geometries, conn, cursor, schema, name)
         return len(self._objectIDs["node"])+len(self._objectIDs["way"])+len(self._objectIDs["rel"]), fw, fr
 
 
-    def saveMappingIfExists(self, filename):
-        """Saves the mapping of duplicate IDs to new ones if existing"""
+    def save_mapping_if_exists(self, filename):
+        """Saves the mapping of duplicate IDs to new ones if existing
+        :param filename: The file to save the mapping to
+        :type filename: str
+        """
         if len(self._idMapping)==0:
             return
         with open(filename, "w") as fd:
@@ -403,23 +432,25 @@ class OSMExtractor:
 def main(srcdb, deffile, dstdb):       
     t1 = datetime.datetime.now()
     # -- open connection
-    (host, db, schema, prefix, user, password) = srcdb.split(",")
+    (host, db, schema_prefix, user, password) = srcdb.split(",")
+    schema, prefix = schema_prefix.split(".")
     conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
     cursor = conn.cursor()
 
     # -- load definitions of things to extract
     extractor = OSMExtractor()
     print ("Loading definition of things to extract")
-    extractor.loadDefinitions(deffile)
+    extractor.load_definitions(deffile)
     print ("Determining object IDs")
-    extractor.loadObjectIDs(conn, cursor, schema, prefix)
+    extractor.get_object_ids(conn, cursor, schema, prefix)
     print ("Collecting object geometries")
-    area = extractor.collectReferencedObjects(conn, cursor, schema, prefix)
+    area = extractor.collect_referenced_objects(conn, cursor, schema, prefix)
 
     # -- write extracted objects
     # --- open connection
     print ("Building destination databases")
-    (host, db, schema, name, user, password) = dstdb.split(",")
+    (host, db, schema_name, user, password) = dstdb.split(",")
+    schema, name = schema_name.split(".")
     conn2 = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
     cursor2 = conn2.cursor()
     # --- build tables
@@ -431,9 +462,9 @@ def main(srcdb, deffile, dstdb):
     conn2.commit()
     # --- insert objects
     print ("Building and storing objects")
-    num, fw, fr = extractor.storeObjects(area, conn2, cursor2, schema, name)
+    num, fw, fr = extractor.store_objects(area, conn2, cursor2, schema, name)
     # --- write mapping of duplicate ids
-    extractor.saveMappingIfExists(name + "_mapping.txt")
+    extractor.save_mapping_if_exists(name + "_mapping.txt")
     # --- finish
     t2 = datetime.datetime.now()
     dt = t2-t1
@@ -445,5 +476,15 @@ def main(srcdb, deffile, dstdb):
 
 # -- main check
 if __name__ == '__main__':
+    if len(sys.argv)<4:
+        print ("""Error: Parameter is missing
+Please run with:
+    osmdb_buildStructures.py <INPUT_TABLES_PREFIX> <DEF_FILE> <OUTPUT_TABLE>
+where <INPUT_TABLES_PREFIX> is defined as:
+    <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD>  
+and <OUTPUT_TABLE> is defined as:
+    <HOST>,<DB>,<SCHEMA>,<NAME>,<USER>,<PASSWD>""")
+        sys.exit(1)
     main(sys.argv[1], sys.argv[2], sys.argv[3])
+    sys.exit(0)
     

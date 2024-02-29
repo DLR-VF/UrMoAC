@@ -30,42 +30,42 @@ __status__     = "Development"
 
 # --- function definitions ----------------------------------------------------
 def addToSimpleMap(tMap, tAttr):
-  if tAttr not in tMap:
-    tMap[tAttr] = 1
-  else:
-    tMap[tAttr] = tMap[tAttr] + 1
+    if tAttr not in tMap:
+        tMap[tAttr] = 1
+    else:
+        tMap[tAttr] = tMap[tAttr] + 1
     
 def addToDoubleMap(tMap, tAttr1, tAttr2):
-  if tAttr1 not in tMap:
-    tMap[tAttr1] = {}
-  addToSimpleMap(tMap[tAttr1], tAttr2)
+    if tAttr1 not in tMap:
+        tMap[tAttr1] = {}
+    addToSimpleMap(tMap[tAttr1], tAttr2)
     
 def addToTripleMap(tMap, tAttr1, tAttr2, tAttr3):
-  if tAttr1 not in tMap:
-    tMap[tAttr1] = {}
-  addToDoubleMap(tMap[tAttr1], tAttr2, tAttr3)
+    if tAttr1 not in tMap:
+        tMap[tAttr1] = {}
+    addToDoubleMap(tMap[tAttr1], tAttr2, tAttr3)
 
 
 
 def addToValueMap(tMap, tAttr, value):
-  if tAttr not in tMap:
-    tMap[tAttr] = value
-  else:
-    tMap[tAttr] = tMap[tAttr] + value
+    if tAttr not in tMap:
+        tMap[tAttr] = value
+    else:
+        tMap[tAttr] = tMap[tAttr] + value
  
 
 
 def addToHistogram(hist, binSize, tAttr):
-  i = int(tAttr / binSize)
-  while(len(hist)<=i):
-    hist.append(0)
-  hist[i] = hist[i] + 1
+    i = int(tAttr / binSize)
+    while(len(hist)<=i):
+        hist.append(0)
+    hist[i] = hist[i] + 1
 
 
 def addToHistogramMap(tMap, tAttr1, binSize, tAttr2):
-  if tAttr1 not in tMap:
-    tMap[tAttr1] = []
-  addToHistogram(tMap[tAttr1], binSize, tAttr2)
+    if tAttr1 not in tMap:
+        tMap[tAttr1] = []
+    addToHistogram(tMap[tAttr1], binSize, tAttr2)
   
   
   

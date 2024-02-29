@@ -39,7 +39,13 @@ __status__     = "Development"
 def csvnet2sumo(input_file, output_prefix):
     """Parses the contents from the csv net file with the given name and writes
     them into an edges and a nodes file which names are built using the given
-    prefix."""
+    prefix.
+    
+    :param input_file: The name of the input file
+    :type input_file: str
+    :param output_prefix: The output prefix
+    :type output_prefix: str
+    """
     fdi = open(input_file)
     fdoE = open(output_prefix + "_edges.xml", "w")
     fdoN = open(output_prefix + "_nodes.xml", "w")
@@ -72,5 +78,8 @@ def csvnet2sumo(input_file, output_prefix):
 
 # -- main check
 if __name__ == '__main__':
+    if len(sys.argv)<3:
+        print ("Error: Parameter is missing\nPlease run with:\n  csvnet2sumo.py <INPUT_CSV_NET> <SUMO_OUTPUT_PREFIX>")
+        sys.exit(1)
     csvnet2sumo(sys.argv[1], sys.argv[2])
     

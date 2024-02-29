@@ -35,7 +35,7 @@ __status__     = "Development"
 
 # --- function definitions ----------------------------------------------------
 def signed_area(poly):
-    """! brief Returns the orientation of the polygon
+    """Returns the orientation of the polygon
     
     Taken from https://gis.stackexchange.com/questions/298290/checking-if-vertices-of-polygon-are-in-clockwise-or-anti-clockwise-direction-in
     with adaptations.
@@ -46,7 +46,7 @@ def signed_area(poly):
 
 
 def lineLineIntersection(Ax1, Ay1, Ax2, Ay2, Bx1, By1, Bx2, By2):
-    """ @brief Returns the intersection position of two lines
+    """Returns the intersection position of two lines
     
     @return A (x, y) tuple or None if there is no intersection
     """
@@ -64,7 +64,7 @@ def lineLineIntersection(Ax1, Ay1, Ax2, Ay2, Bx1, By1, Bx2, By2):
 
 
 def distance(p1, p2):
-    """ @brief Returns the distance between two points
+    """Returns the distance between two points
     @param p1 First point
     @param p2 Second point
     """
@@ -103,7 +103,7 @@ def point_in_polygon(point, polygon):
 
 
 def polygon_in_polygon(small, big):
-    """ @brief Returns whether the first polygon is completely within the second polygon
+    """Returns whether the first polygon is completely within the second polygon
     @param small The polygon to test whether it is completely within the other one
     @param big The polygon within which the first one should be
     @return Whether the first polygon is completely within the second one

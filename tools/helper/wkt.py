@@ -329,7 +329,7 @@ class MultiPolygon(Geometry):
     
 # --- function definitions ----------------------------------------------------
 def parse_POINT2D(which):
-    """! @brief Parses the given geometry assuming it's a 2D POINT
+    """Parses the given geometry assuming it's a 2D POINT
     
     @return The parsed geometry as a position
     """
@@ -341,7 +341,7 @@ def parse_POINT2D(which):
 
 
 def parse_LINESTRING2D(which):
-    """! @brief Parses the given geometry assuming it's a 2D LINESTRING
+    """Parses the given geometry assuming it's a 2D LINESTRING
     
     @return The parsed geometry list of positions
     """
@@ -357,7 +357,7 @@ def parse_LINESTRING2D(which):
 
 
 def parse_MULTILINE2D(which):
-    """! @brief Parses the given geometry assuming it's a 2D MULTILINE
+    """Parses the given geometry assuming it's a 2D MULTILINE
     
     @return The parsed geometry list of position lists
     """
@@ -382,7 +382,7 @@ def parse_MULTILINE2D(which):
 
 
 def parse_POLYGON2D(which):
-    """! @brief Parses the given geometry assuming it's a 2D POLYGON
+    """Parses the given geometry assuming it's a 2D POLYGON
     
     @return The parsed geometry as a list of positions
     """
@@ -415,7 +415,7 @@ def parse_POLYGON2D(which):
 
 
 def parse_MULTIPOLYGON2D(which):
-    """! @brief Parses the given geometry assuming it's a 2D MULTIPOLYGON
+    """Parses the given geometry assuming it's a 2D MULTIPOLYGON
     
     @return The parsed geometry as list of position lists
     """
@@ -460,7 +460,7 @@ def parse_MULTIPOLYGON2D(which):
 
 
 def wkt2geometry(wkt):
-    """! @brief Parses the given WKT into a Geometry object
+    """Parses the given WKT into a Geometry object
   
     @param wkt The WKT
     @return The Geometry representing the WKT
@@ -490,7 +490,7 @@ def wkt2geometry(wkt):
 
 
 def wkt2lists(wkt):
-    """! @brief Parses the given WKT into a Geometry object
+    """Parses the given WKT into a Geometry object
   
     @param wkt The WKT
     @return Lists of different dimensions in dependence of the WKT type

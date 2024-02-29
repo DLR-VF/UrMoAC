@@ -38,7 +38,13 @@ __status__     = "Development"
 # --- function definitions ----------------------------------------------------
 def csvshape2sumo(input_file, output_file):
     """Parses the contents from the csv shape file with the given name and 
-    writes them into a SUMO additional (shapes) file."""
+    writes them into a SUMO additional (shapes) file.
+    
+    :param input_file: The name of the input file
+    :type input_file: str
+    :param output_file: The name of the output file
+    :type output_file: str
+    """
     fdi = open(input_file)
     fdo = open(output_file, "w")
     fdo.write("<shapes>\n")
@@ -68,4 +74,7 @@ def csvshape2sumo(input_file, output_file):
 
 # -- main check
 if __name__ == '__main__':
+    if len(sys.argv)<3:
+        print ("Error: Parameter is missing\nPlease run with:\n  csvshape2sumo.py <INPUT_CSV_SHAPES> <SUMO_SHAPE_OUTPUT>")
+        sys.exit(1)
     csvshape2sumo(sys.argv[1], sys.argv[2])

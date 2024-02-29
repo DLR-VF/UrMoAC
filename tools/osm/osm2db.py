@@ -17,7 +17,7 @@
 """Imports an OSM-file into the database.
 
 Call with
-   osm2db <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD> <FILE>"""
+   osm2db.py <HOST>,<DB>,<SCHEMA>.<PREFIX>,<USER>,<PASSWD> <FILE>"""
 # =============================================================================
 
 # --- imported modules --------------------------------------------------------
@@ -42,163 +42,167 @@ __status__     = "Development"
 # --- class definitions -------------------------------------------------------
 # --- OSMReader
 class OSMReader(handler.ContentHandler):
-    """ @class OSMReader
-    @brief A reader that parses an OSM XML file and writes it to a database
-    """
+    """A reader that parses an OSM XML file and writes it to a database."""
 
-    def __init__(self, schema, prefix, conn, cursor):
-        """ @brief Initialises the reader
-        @param self The class instance
-        @param schema The database schema to write the data to
-        @param prefix The database prefix to write the data to
-        @param conn The connection to the database
-        @param cursor The cursor used to write to the database
+    def __init__(self, schema, dbprefix, conn, cursor):
+        """Initialises the reader
+        :param schema: The database schema to write the data to
+        :type schema: str
+        :param dbprefix: The database prefix to write the data to
+        :type dbprefix: str
+        :param conn: The connection to the database
+        :type conn: psycopg2.extensions.connection
+        :param cursor: The cursor used to write to the database
+        :type cursor: psycopg2.extensions.cursor
         """
-        self.schema = schema
-        self.prefix = prefix
-        self.fname = schema+"."+prefix
-        self.conn = conn
-        self.cursor = cursor
-        self.last = None
-        self.elements = []
-        self.nodes = []
-        self.ways = []
-        self.relations = []
-        self.stats = {"nodes":0, "ways":0, "node_attrs":0, "way_attrs":0, "rels":0, "relMembers":0, "rel_attrs":0}
+        self._fname = schema+"."+dbprefix
+        self._conn = conn
+        self._cursor = cursor
+        self._last = None
+        self._elements = []
+        self._nodes = []
+        self._ways = []
+        self._relations = []
+        self.stats = {"nodes":0, "ways":0, "node_attrs":0, "way_attrs":0, "rels":0, "n_rmembers":0, "rel_attrs":0}
   
   
     def startElement(self, name, attrs):
-        """ @brief Called when an element begins
-        @param self The class instance
-        @param name The name of the element
-        @param attrs The attributes of the element
+        """Called when an element begins
+        :param name: The name of the opened element
+        :type name: str
+        :param attrs: The element's attributes
+        :type attrs: xml.sax.xmlreader.AttributesImpl
         """
-        self.elements.append(name)
+        self._elements.append(name)
         if name=="osm" or name=="bounds":
             pass
         elif name=="node":
             id = int(attrs["id"])
             n = osm.OSMNode(id, [float(attrs["lon"]), float(attrs["lat"])])
-            self.nodes.append(n)
-            self.last = n
+            self._nodes.append(n)
+            self._last = n
         elif name=="way":
             id = int(attrs["id"])
             e = osm.OSMWay(id)
-            self.ways.append(e)
-            self.last = e
+            self._ways.append(e)
+            self._last = e
         elif name=="nd":
             n = int(attrs["ref"])
-            self.last.addNodeID(n)
+            self._last.add_node_id(n)
         elif name=="relation":
             id = int(attrs["id"])
             r = osm.OSMRelation(id)
-            self.relations.append(r)
-            self.last = r
+            self._relations.append(r)
+            self._last = r
         elif name=="member":
             n = int(attrs["ref"])
-            self.last.addMember(n, attrs["type"], attrs["role"])
-        elif name=='tag' and self.last!=None:
+            self._last.add_member(n, attrs["type"], attrs["role"])
+        elif name=='tag' and self._last!=None:
             k = attrs['k']
             v = attrs['v']
-            self.last.addTag(k, v)
+            self._last.add_tag(k, v)
       
       
     def endElement(self, name):
-        """ @brief Called when an element ends
-        @param self The class instance
-        @param name The name of the element
+        """Called when an element ends
+        :param name: The name of the closed element
+        :type name: str
         """
-        l = self.elements[-1]
+        l = self._elements[-1]
         if l=="node" or l=="way" or l=="relation":
-            self.last = None
-            self.checkCommit(False)
-        self.elements = self.elements[:-1]
+            self._last = None
+            self._check_commit(False)
+        self._elements = self._elements[:-1]
 
 
-    def checkCommit(self, force):
-        """ @brief Commits stored entries if a sufficient number has been reached
-        @param self The class instance
-        @param force When set, all stored items are committed in any case
+    def _check_commit(self, force):
+        """Commits stored entries if a sufficient number has been reached
+        :param force: Whether elements shall be written in any case (on end)
+        :type force: bool
         """
-        if not force and (len(self.nodes)+len(self.ways)+len(self.relations))<10000:
+        if not force and (len(self._nodes)+len(self._ways)+len(self._relations))<10000:
             return
-        ntagsNum = 0
-        wtagsNum = 0
-        rtagsNum = 0
-        relMembers = 0
+        n_ntags = 0
+        n_wtags = 0
+        n_rtags = 0
+        n_rmembers = 0
         # nodes
-        nodeEntries = []
-        nodeTagEntries = []
-        for n in self.nodes:
-            nodeEntries.append((n.id, n.pos[0], n.pos[1]))
+        nodes_to_add = []
+        node_tags_to_add = []
+        for n in self._nodes:
+            nodes_to_add.append((n.id, n.pos[0], n.pos[1]))
             for k in n.tags:
-                nodeTagEntries.append((n.id, k, n.tags[k]))
-                ntagsNum = ntagsNum + 1
-        if len(nodeEntries)>0:
-            args = ','.join(self.cursor.mogrify("(%s, ST_GeomFromText('POINT(%s %s)', 4326))", i).decode('utf-8') for i in nodeEntries)
-            self.cursor.execute("INSERT INTO %s_node(id, pos) VALUES " % (self.fname) + (args))
-        if len(nodeTagEntries)>0:
-            args = ','.join(self.cursor.mogrify("(%s, %s, %s)", i).decode('utf-8') for i in nodeTagEntries)
-            self.cursor.execute("INSERT INTO %s_ntag(id, k, v) VALUES " % (self.fname) + (args))
+                node_tags_to_add.append((n.id, k, n.tags[k]))
+                n_ntags = n_ntags + 1
+        if len(nodes_to_add)>0:
+            args = ','.join(self._cursor.mogrify("(%s, ST_GeomFromText('POINT(%s %s)', 4326))", i).decode('utf-8') for i in nodes_to_add)
+            self._cursor.execute("INSERT INTO %s_node(id, pos) VALUES " % (self._fname) + (args))
+        if len(node_tags_to_add)>0:
+            args = ','.join(self._cursor.mogrify("(%s, %s, %s)", i).decode('utf-8') for i in node_tags_to_add)
+            self._cursor.execute("INSERT INTO %s_ntag(id, k, v) VALUES " % (self._fname) + (args))
         # ways
-        wayEntries = []
-        wayTagEntries = []
-        for w in self.ways:
-            wayEntries.append((w.id, w.refs))
+        ways_to_add = []
+        way_tags_to_add = []
+        for w in self._ways:
+            ways_to_add.append((w.id, w.refs))
             for k in w.tags:
-                wayTagEntries.append((w.id, k, w.tags[k]))
-                wtagsNum = wtagsNum + 1
-        if len(wayEntries)>0:
-            args = ','.join(self.cursor.mogrify("(%s, %s)", i).decode('utf-8') for i in wayEntries)
-            self.cursor.execute("INSERT INTO %s_way(id, refs) VALUES " % (self.fname) + (args))
-        if len(wayTagEntries)>0:
-            args = ','.join(self.cursor.mogrify("(%s, %s, %s)", i).decode('utf-8') for i in wayTagEntries)
-            self.cursor.execute("INSERT INTO %s_wtag(id, k, v) VALUES " % (self.fname) + (args))
+                way_tags_to_add.append((w.id, k, w.tags[k]))
+                n_wtags = n_wtags + 1
+        if len(ways_to_add)>0:
+            args = ','.join(self._cursor.mogrify("(%s, %s)", i).decode('utf-8') for i in ways_to_add)
+            self._cursor.execute("INSERT INTO %s_way(id, refs) VALUES " % (self._fname) + (args))
+        if len(way_tags_to_add)>0:
+            args = ','.join(self._cursor.mogrify("(%s, %s, %s)", i).decode('utf-8') for i in way_tags_to_add)
+            self._cursor.execute("INSERT INTO %s_wtag(id, k, v) VALUES " % (self._fname) + (args))
         # relations
-        relEntries = []
-        relTagEntries = []
-        relMemberEntries = []
-        for r in self.relations:
-            relEntries.append((r.id,))
+        rels_to_add = []
+        rel_tags_to_add = []
+        members_to_add = []
+        for r in self._relations:
+            rels_to_add.append((r.id,))
             for k in r.tags:
-                relTagEntries.append((r.id, k, r.tags[k]))
-                rtagsNum = rtagsNum + 1
+                rel_tags_to_add.append((r.id, k, r.tags[k]))
+                n_rtags = n_rtags + 1
             for idx,m in enumerate(r.members):
-                relMemberEntries.append((r.id, m[0], m[1], m[2], idx))
-                relMembers = relMembers + 1
-        if len(relEntries)>0:
-            args = ','.join(self.cursor.mogrify("(%s)", i).decode('utf-8') for i in relEntries)
-            self.cursor.execute("INSERT INTO %s_rel(id) VALUES " % (self.fname) + (args))
-        if len(relTagEntries)>0:
-            args = ','.join(self.cursor.mogrify("(%s, %s, %s)", i).decode('utf-8') for i in relTagEntries)
-            self.cursor.execute("INSERT INTO %s_rtag(id, k, v) VALUES " % (self.fname) + (args))
-        if len(relMemberEntries)>0:
-            args = ','.join(self.cursor.mogrify("(%s, %s, %s, %s, %s)", i).decode('utf-8') for i in relMemberEntries)
-            self.cursor.execute("INSERT INTO %s_member(rid, elemID, type, role, idx) VALUES " % (self.fname) + (args))
+                members_to_add.append((r.id, m[0], m[1], m[2], idx))
+                n_rmembers = n_rmembers + 1
+        if len(rels_to_add)>0:
+            args = ','.join(self._cursor.mogrify("(%s)", i).decode('utf-8') for i in rels_to_add)
+            self._cursor.execute("INSERT INTO %s_rel(id) VALUES " % (self._fname) + (args))
+        if len(rel_tags_to_add)>0:
+            args = ','.join(self._cursor.mogrify("(%s, %s, %s)", i).decode('utf-8') for i in rel_tags_to_add)
+            self._cursor.execute("INSERT INTO %s_rtag(id, k, v) VALUES " % (self._fname) + (args))
+        if len(members_to_add)>0:
+            args = ','.join(self._cursor.mogrify("(%s, %s, %s, %s, %s)", i).decode('utf-8') for i in members_to_add)
+            self._cursor.execute("INSERT INTO %s_member(rid, elemID, type, role, idx) VALUES " % (self._fname) + (args))
         #
-        print (" %s nodes (%s keys), %s ways (%s keys), and %s relations (%s keys, %s members)" % (len(self.nodes), ntagsNum, len(self.ways), wtagsNum, len(self.relations), rtagsNum, relMembers))
-        self.stats["nodes"] = self.stats["nodes"] + len(self.nodes)
-        self.stats["ways"] = self.stats["ways"] + len(self.ways)
-        self.stats["node_attrs"] = self.stats["node_attrs"] + ntagsNum
-        self.stats["way_attrs"] = self.stats["way_attrs"] + wtagsNum
-        self.stats["rels"] = self.stats["rels"] + len(self.relations)
-        self.stats["relMembers"] = self.stats["relMembers"] + relMembers
-        self.stats["rel_attrs"] = self.stats["rel_attrs"] + rtagsNum
-        if len(self.nodes)+len(self.ways)+len(self.relations)>0:
-            self.conn.commit() 
-        self.nodes = []
-        self.ways = []
-        self.relations = []
+        print (" %s nodes (%s keys), %s ways (%s keys), and %s relations (%s keys, %s members)" % (len(self._nodes), n_ntags, len(self._ways), n_wtags, len(self._relations), n_rtags, n_rmembers))
+        self.stats["nodes"] = self.stats["nodes"] + len(self._nodes)
+        self.stats["ways"] = self.stats["ways"] + len(self._ways)
+        self.stats["node_attrs"] = self.stats["node_attrs"] + n_ntags
+        self.stats["way_attrs"] = self.stats["way_attrs"] + n_wtags
+        self.stats["rels"] = self.stats["rels"] + len(self._relations)
+        self.stats["n_rmembers"] = self.stats["n_rmembers"] + n_rmembers
+        self.stats["rel_attrs"] = self.stats["rel_attrs"] + n_rtags
+        if len(self._nodes)+len(self._ways)+len(self._relations)>0:
+            self._conn.commit() 
+        self._nodes = []
+        self._ways = []
+        self._relations = []
     
 
 # --- function definitions ----------------------------------------------------
 # --- main 
-def main(argv):
-    """ @brief Main method
-    @param argv The program argument
+def osm2db(db_def, input_file):
+    """Main method
+    :param db_def: The definition of the database tables to generate
+    :type db_def: str
+    :param input_file: The OSM file to parse
+    :type input_file: str
     """
     # connect to the database
-    (host, db, schema, prefix, user, password) = sys.argv[1].split(",")
+    (host, db, schema_prefix, user, password) = db_def.split(",")
+    schema, prefix = schema_prefix.split(".")
     t1 = datetime.datetime.now()
     print ("Connecting to the db...")
     conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
@@ -244,8 +248,8 @@ def main(argv):
     parser = make_parser()
     r = OSMReader(schema, prefix, conn, cursor)
     parser.setContentHandler(r)
-    parser.parse(sys.argv[2])
-    r.checkCommit(True)
+    parser.parse(input_file)
+    r._check_commit(True)
     cursor.close()
     conn.close()
 
@@ -255,11 +259,17 @@ def main(argv):
     print ("Summary:")
     print (" %s nodes with %s attributes" % (r.stats["nodes"], r.stats["node_attrs"]))
     print (" %s ways with %s attributes" % (r.stats["ways"], r.stats["way_attrs"]))
-    print (" %s relations with %s members and %s attributes" % (r.stats["rels"], r.stats["relMembers"], r.stats["rel_attrs"]))
+    print (" %s relations with %s members and %s attributes" % (r.stats["rels"], r.stats["n_rmembers"], r.stats["rel_attrs"]))
     dt = t2-t1
     print ("In %s" % dt)
 
 
 # -- main check
 if __name__ == '__main__':
-    main(sys.argv)
+    if len(sys.argv)<3:
+        print ("""Error: Parameter is missing
+Please run with:
+    osm2db.py <HOST>,<DB>,<SCHEMA>.<PREFIX>,<USER>,<PASSWD> <FILE>""")
+        sys.exit(1)
+    osm2db(sys.argv[1], sys.argv[2])
+    sys.exit(0)

@@ -40,7 +40,13 @@ __status__     = "Development"
 def csvshape2shapefile(input_file, output_prefix):
     """Parses the contents from the csv shape file with the given name and 
     writes them into the set of files with the given name that make up a 
-    shapefile."""
+    shapefile.
+    
+    :param input_file: The name of the input file
+    :type input_file: str
+    :param output_prefix: The output prefix
+    :type output_prefix: str
+    """
     objects = []
     fdi = open(input_file)
     numPoints = 0
@@ -101,5 +107,8 @@ def csvshape2shapefile(input_file, output_prefix):
 
 # -- main check
 if __name__ == '__main__':
+    if len(sys.argv)<3:
+        print ("Error: Parameter is missing\nPlease run with:\n  csvshape2shapefile.py <INPUT_CSV_SHAPES> <SHAPEFILE_OUTPUT_PREFIX>")
+        sys.exit(1)
     csvshape2shapefile(sys.argv[1], sys.argv[2])
     
