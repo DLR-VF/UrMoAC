@@ -74,12 +74,12 @@ def cmap_discretize(cmap, N):
     return matplotlib.colors.LinearSegmentedColormap(cmap.name + "_%d"%N, cdict, 1024)
     
         
-def colorbar_index(ncolors, cmap, ticklabels):
+def colorbar_index(ax, ncolors, cmap, ticklabels):
     cmap = cmap_discretize(cmap, ncolors)
     mappable = matplotlib.cm.ScalarMappable(cmap=cmap)
     mappable.set_array([])
     mappable.set_clim(-0.5, ncolors+0.5)
-    colorbar = matplotlib.pyplot.colorbar(mappable)
+    colorbar = matplotlib.pyplot.colorbar(mappable, ax=ax)
     colorbar.set_ticks(numpy.linspace(0, ncolors, ncolors))
     colorbar.set_ticklabels(ticklabels)
     return colorbar    
@@ -102,12 +102,12 @@ def plot_area_contours(fig, ax, obj2pos, obj2val, colmap, norm, levels, report_a
         xs.append(obj2pos[g]._shape[0])
         ys.append(obj2pos[g]._shape[1])
         zs.append(obj2val[g])
-    xi = numpy.linspace(min(xs), max(xs), 10000) # !!!
-    yi = numpy.linspace(min(ys), max(ys), 10000) # !!!
+    xi = numpy.linspace(min(xs), max(xs), 1000) # !!!
+    yi = numpy.linspace(min(ys), max(ys), 1000) # !!!
     xi, yi = numpy.meshgrid(xi, yi)
     zi = scipy.interpolate.griddata((xs, ys), zs, (xi, yi), method='linear')
     #
-    cs1 = matplotlib.pyplot.contourf(xi, yi, zi, levels=levels, cmap=colmap, zorder=20, norm=norm, alpha=.5)
+    cs1 = matplotlib.pyplot.contourf(xi, yi, zi, levels=levels, cmap=colmap, zorder=20, norm=norm)#, alpha=.5)
 
 
 
@@ -150,7 +150,7 @@ def add_colorbar(fig, ax, colmap, sm, levels, logarithmic, measurelabel):
                 else:
                     l = str(levels[il-1]) + " - " + str(levels[il])
             labels.append(l)
-        cbar = colorbar_index(len(levels[1:]), colmap, labels)
+        cbar = colorbar_index(ax, len(levels[1:]), colmap, labels)
     else:
         if logarithmic:
             from matplotlib.ticker import LogLocator
@@ -305,7 +305,7 @@ def plot(mainBorder, innerBorders, network, water, obj2geom, obj2value, options,
         ax.add_patch(mainBorder.artist(lw=0, fc=options.invalidColor, ec="black", zorder=-1))
     # decorate
     if options.title is not None: 
-        matplotlib.pyplot.title(title.replace("\\n", "\n"), size=16)
+        matplotlib.pyplot.title(options.title.replace("\\n", "\n"), size=16)
     
     # -- get/set bounds
     # compute the boundary to show if not given

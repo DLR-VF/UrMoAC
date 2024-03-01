@@ -17,11 +17,13 @@
     * carrier definition
     * within UrMoAC
     * within included Python-scripts (please note that all fields are now divided using a ',')
+* __references to database are now defined on the command line like: *&lt;HOST&gt;*,*&lt;DB&gt;*,*&lt;SCHEMA&gt;*.*&lt;TABLE&gt;*,*&lt;USER&gt;*,*&lt;PASSWD&gt;*__ - schema and table name are divided using a '.', all other fields using a ','
 
 ### Debugging and Improvements
 
 * patched several documentation issues
 * more verbose error handling
+* The script "plot_area.py" now supports disaggregated, aggregated, and filled contours visualisations
 
 
 

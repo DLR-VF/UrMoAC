@@ -56,4 +56,4 @@ These scripts are located in ***&lt;UrMoAC&gt;*/tools** and are sorted by topic:
 
 | Script | Purpose | Call |
 | ------ | ------- | ---- |
-| plot_area.py | Plots measures on a map. | |
+| plot_area.py | Plots measures on a map. | see [plot_area](./VisualisationTools.md#plot_area) |

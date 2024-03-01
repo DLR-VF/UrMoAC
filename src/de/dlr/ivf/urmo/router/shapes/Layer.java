@@ -47,6 +47,7 @@ public class Layer {
 		objects = new Vector<>();
 		visible = true;
 		envelope = _envelope;
+		envelope = null;
 	}
 
 

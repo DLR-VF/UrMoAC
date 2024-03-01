@@ -13,7 +13,7 @@ UrMoAC generates the following types of results:
 Currently, writing to a [PostgreSQL](https://www.postgresql.org/) database or writing to a file is supported. It is respectively defined as follows:
 
 * when writing to a file, ___&lt;OUTPUT&gt;___ is defined as: ___&lt;FILENAME&gt;.csv___ (the extension must be __&ldquo;.csv&rdquo;__)
-* when generating a database table, ___&lt;OUTPUT&gt;___ is defined as: __jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA.TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___
+* when generating a database table, ___&lt;OUTPUT&gt;___ is defined as: __jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___
 
 Some notes:
 
