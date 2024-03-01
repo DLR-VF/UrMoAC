@@ -1,0 +1,2 @@
+--pt-output jdbc:sqlite:sqlite.db;test
+

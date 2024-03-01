@@ -2,22 +2,29 @@
 
 ## UrMoAC-0.8.0 (to come)
 
-### cmd_options branch
+### Changes in options
 
 * mode names consolidation (you will get a deprecation warning when using old names):
-  * "bicycle" is now "bike"
-  * "passenger" is now "car"
+    * "bicycle" is now "bike"
+    * "passenger" is now "car"
 * output name consolidation:
-  * "nm-output" is now "od-output"
-  * "ext-nm-output" is now "ext-od-output"
-  * "stat-nm-output" is now "stat-od-output"
+    * "nm-output" is now "od-output"
+    * "ext-nm-output" is now "ext-od-output"
+    * "stat-nm-output" is now "stat-od-output"
 * replaced ';' as divider by ',' (you will get a deprecation warning when using the old divider):
-  * databases definition (input and output)
-  * modes to use
-  * carrier definition
-* divider consolidation: use ',' instead of ';' (tables definition, e.g.; the reason is that ';' is not accepted on Linux)
-  * within UrMoAC
-  * within included Python-scripts (please note that all fields are now divided using a ',')
+    * databases definition (input and output)
+    * modes to use
+    * carrier definition
+    * within UrMoAC
+    * within included Python-scripts (please note that all fields are now divided using a ',')
+* __references to database are now defined on the command line like: *&lt;HOST&gt;*,*&lt;DB&gt;*,*&lt;SCHEMA&gt;*.*&lt;TABLE&gt;*,*&lt;USER&gt;*,*&lt;PASSWD&gt;*__ - schema and table name are divided using a '.', all other fields using a ','
+
+### Debugging and Improvements
+
+* patched several documentation issues
+* more verbose error handling
+* The script "plot_area.py" now supports disaggregated, aggregated, and filled contours visualisations
+
 
 
 
@@ -43,11 +50,11 @@
 * [issue #20](https://github.com/DLR-VF/UrMoAC/issues/20) added a custom mode
 * [issue #28](https://github.com/DLR-VF/UrMoAC/issues/28) the precision of floating point values in output can be changed using the --precision <INT> option (default: 2)
 * [issue #38](https://github.com/DLR-VF/UrMoAC/issues/38) mapping of objects to edges is now multithreaded (controlled by the --threads option)
-* [issue #10](https://github.com/DLR-VF/UrMoAC/issues/10) [SUMO networks](https://sumo.dlr.de/docs/Networks/SUMO_Road_Networks.html) can now be loaded directly. The file extension must be &ldquo;.net-xml&rdquo;.
+* [issue #10](https://github.com/DLR-VF/UrMoAC/issues/10) [SUMO networks](https://sumo.dlr.de/docs/Networks/SUMO_Road_Networks.html) can now be loaded directly. The file extension must be &ldquo;.net.xml&rdquo;.
 * [issue #11](https://github.com/DLR-VF/UrMoAC/issues/11) origins, destinations, and aggregation areas can now be loaded from [SUMO shapefiles](https://sumo.dlr.de/docs/Simulation/Shapes.html) directly. The file extension is &ldquo;.poi.xml&rdquo;. __Please note that UrMoAC only accepts numerical IDs, at least currently.__
 * You may directly load a [SUMO Edge-Based Network State](https://sumo.dlr.de/docs/Simulation/Output/Lane-_or_Edge-based_Traffic_Measures.html) as travel time information.
 * [issue #42](https://github.com/DLR-VF/UrMoAC/issues/42) solved: GTFS files can now be loaded directly from disc
-* [issue #3](https://github.com/DLR-VF/UrMoAC/issues/31) solved: **the outputs do not include the access/egress distaces and traveltimes from/to the buildings to/from the road; we assume that this makes the outputs more standard compliant; the access/egress distances are still a part of the [https://github.com/DLR-VF/UrMoAC/wiki/OutputFormats](nm-ext-output)**
+* [issue #3](https://github.com/DLR-VF/UrMoAC/issues/31) solved: **the outputs do not include the access/egress distaces and traveltimes from/to the buildings to/from the road; we assume that this makes the outputs more standard compliant; the access/egress distances are still a part of the ext-nm-output**
 * finally added at least one [visualisation tool](./VisualisationTools.md)
 * added a citation file
 * got a DOI (10.5281/zenodo.7940600)

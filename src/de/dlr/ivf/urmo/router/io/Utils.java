@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2023 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024 DLR Institute of Transport Research
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -84,14 +84,14 @@ public class Utils {
 				return parsed;
 			}
 			throw new IOException("False Postgres database definition for option '" + name + "'\n"
-					+ " should be 'jdbc:postgresql:<DB_HOST>;<SCHEMA.TABLE>;<USER>;<PASSWORD>'\n"
+					+ " should be 'jdbc:postgresql:<DB_HOST>,<SCHEMA.TABLE>,<USER>,<PASSWORD>'\n"
 					+ " is '" + input + "'");
 		case FORMAT_SQLITE:
 			if(parsed.length==2) {
 				return parsed;
 			}
 			throw new IOException("False SQLite database definition for option '" + name + "'\n"
-					+ " should be 'jdbc:sqlite:<DB_FILE>;<TABLE>'\n"
+					+ " should be 'jdbc:sqlite:<DB_FILE>,<TABLE>'\n"
 					+ " is '" + input + "'");
 		case FORMAT_CSV:
 		case FORMAT_WKT:

@@ -1,2 +1,2 @@
-org.postgresql.util.PSQLException: FEHLER: Relation »direct_output« existiert bereits
+Exception 'org.postgresql.util.PSQLException: FEHLER: Relation »direct_output« existiert bereits' occured while building the direct-output.
 Quitting on error...

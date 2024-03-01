@@ -12,3 +12,6 @@ unknown_option
 
 # different network issues that may occure
 net_issues
+
+# a mode that is not known shall be entrained
+unknown_mode_entrainment

@@ -1,2 +1,2 @@
---edges-output jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_plain.edges_output;urmoactests;urmoactests
+--edges-output jdbc:postgresql://localhost/urmoac_postgres_tests;sop_deprecated_divider.edges_output;urmoactests;urmoactests
 

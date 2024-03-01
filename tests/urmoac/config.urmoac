@@ -7,6 +7,7 @@ copy_test_path:destinations.csv
 copy_test_path:agg_sources.csv
 copy_test_path:agg_destinations.csv
 copy_test_path:od_connections.csv
+copy_test_path:entrainment.csv
 copy_test_path:network.wkt
 copy_test_path:sources.wkt
 copy_test_path:destinations.wkt

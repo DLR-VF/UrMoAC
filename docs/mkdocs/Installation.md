@@ -1,4 +1,4 @@
-These installation instructions are suitable for windows and are tested under Windows 10 and [Java](https://java.com/) sdk1.8.0_291. Ensure that a Java Development Kit (preferably version 1.8) is installed and that the folder containing the java.exe file is in your path environment variable.
+These installation instructions are suitable for windows and are tested under Windows 10 and [Java](https://projects.eclipse.org/projects/adoptium.temurin) jdk-17.0.9+9. Ensure that a Java Development Kit (at least version 1.8) is installed and that the folder containing the java.exe file is in your path environment variable.
 
 ## Download the latest release
 The easiest way is to download the latest release. It should contain everything needed to run the software.

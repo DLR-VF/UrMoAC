@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2023 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024 DLR Institute of Transport Research
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -81,52 +81,76 @@ public class OutputBuilder {
 		int precision = options.getInteger("precision");
 		String comment = options.getBool("comment") ? buildComment(options) : null;
 		if (options.isSet("od-output")) {
-			ODMeasuresGenerator mgNM = new ODMeasuresGenerator();
-			AbstractResultsWriter<ODSingleResult> writer = buildNMOutput(options.getString("od-output"), precision, dropExistingTables);
-			writer.createInsertStatement(rsid);
-			Aggregator<ODSingleResult> agg = buildAggregator(mgNM, options.getBool("shortest"), 
-					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
-			aggregators.add(agg);
+			try {
+				ODMeasuresGenerator mgNM = new ODMeasuresGenerator();
+				AbstractResultsWriter<ODSingleResult> writer = buildNMOutput(options.getString("od-output"), precision, dropExistingTables);
+				writer.createInsertStatement(rsid);
+				Aggregator<ODSingleResult> agg = buildAggregator(mgNM, options.getBool("shortest"), 
+						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+				aggregators.add(agg);
+			} catch(IOException e) {
+				throw new IOException("Exception '" + e.getMessage() + "' occured while building the od-output.");
+			}
 		}
 		if (options.isSet("ext-od-output")) {
-			ODExtendedMeasuresGenerator mg = new ODExtendedMeasuresGenerator();
-			AbstractResultsWriter<ODSingleExtendedResult> writer = buildExtNMOutput(options.getString("ext-od-output"), precision, dropExistingTables);
-			writer.createInsertStatement(rsid);
-			Aggregator<ODSingleExtendedResult> agg = buildAggregator(mg, options.getBool("shortest"), 
-					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
-			aggregators.add(agg);
+			try {
+				ODExtendedMeasuresGenerator mg = new ODExtendedMeasuresGenerator();
+				AbstractResultsWriter<ODSingleExtendedResult> writer = buildExtNMOutput(options.getString("ext-od-output"), precision, dropExistingTables);
+				writer.createInsertStatement(rsid);
+				Aggregator<ODSingleExtendedResult> agg = buildAggregator(mg, options.getBool("shortest"), 
+						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+				aggregators.add(agg);
+			} catch(IOException e) {
+				throw new IOException("Exception '" + e.getMessage() + "' occured while building the ext-od-output.");
+			}
 		}
 		if (options.isSet("stat-od-output")) {
-			ODStatsMeasuresGenerator mg = new ODStatsMeasuresGenerator();
-			AbstractResultsWriter<ODSingleStatsResult> writer = buildStatNMOutput(options.getString("stat-od-output"), precision, dropExistingTables);
-			writer.createInsertStatement(rsid);
-			Aggregator<ODSingleStatsResult> agg = buildAggregator(mg, options.getBool("shortest"), 
-					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
-			aggregators.add(agg);
+			try {
+				ODStatsMeasuresGenerator mg = new ODStatsMeasuresGenerator();
+				AbstractResultsWriter<ODSingleStatsResult> writer = buildStatNMOutput(options.getString("stat-od-output"), precision, dropExistingTables);
+				writer.createInsertStatement(rsid);
+				Aggregator<ODSingleStatsResult> agg = buildAggregator(mg, options.getBool("shortest"), 
+						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+				aggregators.add(agg);
+			} catch(IOException e) {
+				throw new IOException("Exception '" + e.getMessage() + "' occured while building the stat-od-output.");
+			}
 		}
 		if (options.isSet("interchanges-output")) {
-			InterchangeMeasuresGenerator mg = new InterchangeMeasuresGenerator();
-			AbstractResultsWriter<InterchangeSingleResult> writer = buildInterchangeOutput(options.getString("interchanges-output"), precision, dropExistingTables);
-			writer.createInsertStatement(rsid);
-			Aggregator<InterchangeSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
-					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
-			aggregators.add(agg);
+			try {
+				InterchangeMeasuresGenerator mg = new InterchangeMeasuresGenerator();
+				AbstractResultsWriter<InterchangeSingleResult> writer = buildInterchangeOutput(options.getString("interchanges-output"), precision, dropExistingTables);
+				writer.createInsertStatement(rsid);
+				Aggregator<InterchangeSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
+						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+				aggregators.add(agg);
+			} catch(IOException e) {
+				throw new IOException("Exception '" + e.getMessage() + "' occured while building the interchanges-output.");
+			}
 		}
 		if (options.isSet("edges-output")) {
-			EUMeasuresGenerator mg = new EUMeasuresGenerator();
-			AbstractResultsWriter<EUSingleResult> writer = buildEUOutput(options.getString("edges-output"), precision, dropExistingTables);
-			writer.createInsertStatement(rsid);
-			Aggregator<EUSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
-					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
-			aggregators.add(agg);
+			try {
+				EUMeasuresGenerator mg = new EUMeasuresGenerator();
+				AbstractResultsWriter<EUSingleResult> writer = buildEUOutput(options.getString("edges-output"), precision, dropExistingTables);
+				writer.createInsertStatement(rsid);
+				Aggregator<EUSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
+						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+				aggregators.add(agg);
+			} catch(IOException e) {
+				throw new IOException("Exception '" + e.getMessage() + "' occured while building the edges-output.");
+			}
 		}
 		if (options.isSet("pt-output")) {
-			PTODMeasuresGenerator mg = new PTODMeasuresGenerator();
-			AbstractResultsWriter<PTODSingleResult> writer = buildPTODOutput(options.getString("pt-output"), precision, dropExistingTables);
-			writer.createInsertStatement(rsid);
-			Aggregator<PTODSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
-					aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
-			aggregators.add(agg);
+			try {
+				PTODMeasuresGenerator mg = new PTODMeasuresGenerator();
+				AbstractResultsWriter<PTODSingleResult> writer = buildPTODOutput(options.getString("pt-output"), precision, dropExistingTables);
+				writer.createInsertStatement(rsid);
+				Aggregator<PTODSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
+						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+				aggregators.add(agg);
+			} catch(IOException e) {
+				throw new IOException("Exception '" + e.getMessage() + "' occured while building the pt-output.");
+			}
 		}
 		return aggregators;
 	}
@@ -143,16 +167,20 @@ public class OutputBuilder {
 		if (!options.isSet("direct-output")) {
 			return null;
 		}
-		int precision = options.getInteger("precision");
-		String d = options.getString("direct-output");
-		Utils.Format format = Utils.getFormat(d);
-		String[] inputParts = Utils.getParts(format, d, "direct-output");
-		DirectWriter dw = new DirectWriter(format, inputParts, precision, options.getBool("dropprevious"), rsid, nearestToEdges);
-		dw.createInsertStatement(rsid);
-		if(options.getBool("comment")) {
-			dw.addComment(buildComment(options));
+		try {
+			int precision = options.getInteger("precision");
+			String d = options.getString("direct-output");
+			Utils.Format format = Utils.getFormat(d);
+			String[] inputParts = Utils.getParts(format, d, "direct-output");
+			DirectWriter dw = new DirectWriter(format, inputParts, precision, options.getBool("dropprevious"), rsid, nearestToEdges);
+			dw.createInsertStatement(rsid);
+			if(options.getBool("comment")) {
+				dw.addComment(buildComment(options));
+			}
+			return dw;
+		} catch(IOException e) {
+			throw new IOException("Exception '" + e.getMessage() + "' occured while building the direct-output.");
 		}
-		return dw;
 	}
 
 	
@@ -171,13 +199,17 @@ public class OutputBuilder {
 		String d = options.getString(outputName);
 		Utils.Format format = Utils.getFormat(d);
 		String[] inputParts = Utils.getParts(format, d, outputName);
-		EdgeMappingWriter emw = new EdgeMappingWriter(format, inputParts, precision, dropPrevious, epsg);
-		emw.createInsertStatement(epsg);
-		if(options.getBool("comment")) {
-			emw.addComment(buildComment(options));
+		try {
+			EdgeMappingWriter emw = new EdgeMappingWriter(format, inputParts, precision, dropPrevious, epsg);
+			emw.createInsertStatement(epsg);
+			if(options.getBool("comment")) {
+				emw.addComment(buildComment(options));
+			}
+			emw.writeResults(nearestEdges);
+			emw.close();
+		} catch(IOException e) {
+			throw new IOException("Exception '" + e.getMessage() + "' occured while building the " + outputName + ".");
 		}
-		emw.writeResults(nearestEdges);
-		emw.close();
 	}
 
 

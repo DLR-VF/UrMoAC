@@ -20,7 +20,7 @@ The following options are used in combination with this data type:
 * __--from _&lt;SOURCES&gt;___: defines where to load origins from;
 * __--to _&lt;DESTINATIONS&gt;___: defines where to load destinations from.
 
-We often use locations from [OpenStreetMap](http://www.openstreetmap.org). A [tool for importing them](ImportScripts) into a database is supported.
+We often use locations from [OpenStreetMap](http://www.openstreetmap.org). A [tool for importing them](ImportScripts.md) into a database is supported.
 
 ### Database Format
 
@@ -191,7 +191,7 @@ The following options are used in combination with this data type:
 
 * __--net _&lt;NETWORK&gt;___.
 
-We usually use road networks from [OpenStreetMap](http://www.openstreetmap.org). A [tool for importing them](ImportScripts) into a database is supported.
+We usually use road networks from [OpenStreetMap](http://www.openstreetmap.org). A [tool for importing them](ImportScripts.md) into a database is supported.
 
 ### Database Format
 
@@ -267,7 +267,7 @@ The following options are used in combination with this data type:
 
 * __--traveltimes _&lt;TRAVEL_TIMES&gt;___.
 
-We sometimes use the [edge-based traffic measures](https://sumo.dlr.de/wiki/Simulation/Output/Lane-_or_Edge-based_Traffic_Measures) output from [SUMO](http://sumo.dlr.de) for obtaining the speed time lines of a road network. A [tool for importing them](ImportScripts) into the database is supported.
+We sometimes use the [edge-based traffic measures](https://sumo.dlr.de/wiki/Simulation/Output/Lane-_or_Edge-based_Traffic_Measures) output from [SUMO](http://sumo.dlr.de) for obtaining the speed time lines of a road network. A [tool for importing them](ImportScripts.md) into the database is supported.
 
 ### Database Format
 
@@ -347,7 +347,7 @@ There are different rules for entraining own mobility options within public tran
 
 The following options are used in combination with this data type:
 
-* __--entrainment _&lt;OD_CONNECTIONS&gt;___.
+* __--entrainment _&lt;ENTRAINMENT_SOURCE&gt;___.
 
 Please note that we do not have much experience in using the entrainment table, yet.
 
@@ -380,5 +380,5 @@ Use __--entrainment _&lt;MYFILE&gt;.csv;___ to load the entrainment definitions 
 
 [GTFS](https://gtfs.org/) data can be directly read from the according files.
 
-A [tool for importing them](ImportScripts) into a database is supported.
+A [tool for importing them](ImportScripts.md) into a database is supported.
 

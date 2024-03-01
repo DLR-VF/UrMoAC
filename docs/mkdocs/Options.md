@@ -2,15 +2,15 @@ Below, you may find the command line options the tool uses, sorted by their scop
 
 Please note that some options may be defined using an abbreviation; non-abbreviated option names start with &lsquo;--&rsquo; (two minus signs); abbreviated option names are only one character long and start with &lsquo;-&rsquo; (one minus sign).
 
-## Input Options
-### Basic Definitions
+## Input options
+### Basic definitions
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
 | --config _&lt;CONFIGURATION&gt;_<br>-c _&lt;CONFIGURATION&gt;_ | N/A (optional) | Defines the configuration to load. |
 | --from _&lt;OBJECT_SOURCE&gt;_<br>-f _&lt;OBJECT_SOURCE&gt;_ | N/A (__mandatory__) | Defines the data source of origins. |
 | --to _&lt;OBJECT_SOURCE&gt;_<br>-t _&lt;OBJECT_SOURCE&gt;_ | N/A (__mandatory__) | Defines the data source of destinations. |
 | --net _&lt;NET_SOURCE&gt;_<br>-n _&lt;NET_SOURCE&gt;_ | N/A (__mandatory__) | Defines the road network to load. |
-| --mode _[&apos;car&apos;, &lsquo;foot&rsquo;, &lsquo;bike&rsquo;]_ | N/A (__mandatory__) | The transport mode to use. |
+| --mode _[&apos;car&apos;, &lsquo;foot&rsquo;, &lsquo;bike&rsquo;]_<br>-m _[&apos;car&apos;, &lsquo;foot&rsquo;, &lsquo;bike&rsquo;]_ | N/A (__mandatory__) | The transport mode to use. |
 | --from-agg _&lt;OBJECT_SOURCE&gt;_ | N/A (optional) | Defines the data source of origin aggregation areas. |
 | --to-agg _&lt;OBJECT_SOURCE&gt;_ | N/A (optional) | Defines the data source of destination aggregation areas. |
 | --pt _&lt;GTFS_TABLES_PREFIX&gt;_<br>-p _&lt;GTFS_TABLES_PREFIX&gt;_ | N/A (optional) | Defines the GTFS-based public transport representation. |
@@ -19,7 +19,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --time _&lt;TIMES&gt;_ | N/A (mandatory) | The time the trips start at in seconds. |
 | --od-connections _&lt;OD_SOURCE&gt;_ | N/A (optional) | When set, O/D-connections to compute are read from the given data source. |
 
-### Input Adaptation
+### Input adaptation
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
 | --from.filter _&lt;FILTER&gt;_<br>-F _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for origins to load. |
@@ -37,13 +37,13 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --net.vmax _&lt;COLUMN_NAME&gt;_ | &ldquo;vmax&rdquo; | Defines the column name of networks&apos;s vmax attribute. |
 | --keep-subnets | N/A (optional) | When set, unconnected network parts are not removed. |
 
-## Weighting Options
+## Weighting options
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
-| --weight _&lt;FIELD&gt;_<br>-W _&lt;FIELD&gt;_ | &ldquo;&rdquo; | An optional weighting attribute for the origins. |
-| --variable _&lt;FIELD&gt;_<br>-V _&lt;FIELD&gt;_ | &ldquo;&rdquo; | An optional destinations&apos; variable to collect. |
+| --weight _&lt;FIELD&gt;_<br>-W _&lt;FIELD&gt;_ | None/empty | An optional weighting attribute for the origins. |
+| --variable _&lt;FIELD&gt;_<br>-V _&lt;FIELD&gt;_ | None/empty | An optional destinations&apos; variable to collect. |
 
-## Routing Options
+## Routing options
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
 | --max-number _&lt;INTEGER&gt;_ | N/A (optional) | The maximum number of destinations to visit. |
@@ -56,24 +56,24 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --measure-param1 _&lt;DOUBLE&gt;_ | N/A (optional) | The parameter for the first routing measure&apos;s variable. |
 | --measure-param2 _&lt;DOUBLE&gt;_ | N/A (optional) | The parameter for the second routing measure&apos;s variable. |
 
-## Public Transport Options
+## Public Transport options
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
 | --pt-boundary _&lt;BOUNDARY_SOURCE&gt;_ | N/A (optional) | Defines the data source of the boundary for the PT offer. |
 | --date _&lt;DATE&gt;_ | N/A (optional); mandatory when using public transport | The date for which the accessibilities shall be computed. |
-| --entrainment _&lt;ENTRAINMENT_SOURCE&gt;_<br>-e _&lt;ENTRAINMENT_SOURCE&gt;_ | N/A (optional) | Data source for entrainment description. |
-| --pt-restriction _&lt;CARRIERS&gt;_<br>-P _&lt;CARRIERS&gt;_ | N/A (optional) | A list of carriers that shall be loaded (all are loaded if not given). |
+| --entrainment _&lt;ENTRAINMENT_SOURCE&gt;_<br>-E _&lt;ENTRAINMENT_SOURCE&gt;_ | N/A (optional) | Data source for entrainment description. |
+| --pt-restriction _&lt;CARRIERS&gt;_ | N/A (optional) | A list of carriers that shall be loaded (all are loaded if not given). |
 
-## Custom Mode Options
+## Custom Mode options
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
 | --custom.vmax _&lt;DOUBLE&gt;_ | N/A (optional) | Maximum velocity of the custom mode. |
 | --custom.kkc-per-hour _&lt;DOUBLE&gt;_ | N/A (optional) | kkc used per hour when using the custom mode. |
 | --custom.co2-per-km _&lt;DOUBLE&gt;_ | N/A (optional) | CO2 emitted per kilometer when using the custom mode. |
 | --custom.price-per-km _&lt;DOUBLE&gt;_ | N/A (optional) | Price for using the custom mode per kilometre. |
-| --custom.allowed _&lt;MODE&gt;[;_&lt;MODE&gt;_]*_ | N/A (optional) | The type of roads the custom mode can use (combination of &lsquo;foot&rsquo;, &lsquo;bike&rsquo;, &lsquo;car&rsquo; divided by &lsquo;;&rsquo;). |
+| --custom.allowed _&lt;MODE&gt;[,_&lt;MODE&gt;_]*_ | N/A (optional) | The type of roads the custom mode can use (combination of &lsquo;foot&rsquo;, &lsquo;bike&rsquo;, &lsquo;car&rsquo; divided by &lsquo;;&rsquo;). |
 
-## Output Options
+## Output options
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
 | --od-output _&lt;OUTPUT&gt;_<br>-o _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the n:m output. |
@@ -90,7 +90,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --precision _&lt;INTEGER&gt;_ | 2 | Defines the number of digits after the decimal point. |
 | --comment | N/A (optional) | Adds a comment with the used options into generated output dbs. |
 
-## Process Options
+## Process options
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
 | --threads _&lt;INTEGER&gt;_ | 1 | The number of threads to use. |

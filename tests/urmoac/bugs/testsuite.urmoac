@@ -6,3 +6,9 @@ help_parameter
 
 # reporting is missing if an O/D-connection could not be found
 od_connections_missing_report
+
+# an option has been set twice
+option_set_twice
+option_set_twice2
+
+

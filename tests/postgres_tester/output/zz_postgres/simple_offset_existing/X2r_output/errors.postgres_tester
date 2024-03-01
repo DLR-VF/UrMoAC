@@ -1,2 +1,2 @@
-org.postgresql.util.PSQLException: FEHLER: Relation »o2r_output« existiert bereits
+Exception 'org.postgresql.util.PSQLException: FEHLER: Relation »o2r_output« existiert bereits' occured while building the origins-to-road-output.
 Quitting on error...

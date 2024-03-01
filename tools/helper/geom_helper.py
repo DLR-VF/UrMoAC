@@ -1,30 +1,41 @@
-#!/usr/bin/env python
-# =========================================================
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# =============================================================================
 # geom_helper.py
 #
-# @author Daniel Krajzewicz, Simon Nieland
-# @date 12.08.2022
-# @copyright Institut fuer Verkehrsforschung, 
-#            Deutsches Zentrum fuer Luft- und Raumfahrt
-# @brief Some geometry helpers
+# Author: Daniel Krajzewicz
+# Date:   12.08.2022
 #
 # This file is part of the "UrMoAC" accessibility tool
 # https://github.com/DLR-VF/UrMoAC
 # Licensed under the Eclipse Public License 2.0
 #
-# Copyright (c) 2022-2023 DLR Institute of Transport Research
+# Copyright (c) 2022-2024 Institute of Transport Research,
+#                         German Aerospace Center
 # All rights reserved.
-# =========================================================
+# =============================================================================
+"""Some geometry helper."""
+# =============================================================================
 
-
-# --- imported modules ------------------------------------
+# --- imported modules --------------------------------------------------------
 import math
 
 
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2022-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
 
-# --- method definitions ----------------------------------
+
+
+# --- function definitions ----------------------------------------------------
 def signed_area(poly):
-    """! brief Returns the orientation of the polygon
+    """Returns the orientation of the polygon
     
     Taken from https://gis.stackexchange.com/questions/298290/checking-if-vertices-of-polygon-are-in-clockwise-or-anti-clockwise-direction-in
     with adaptations.
@@ -35,7 +46,7 @@ def signed_area(poly):
 
 
 def lineLineIntersection(Ax1, Ay1, Ax2, Ay2, Bx1, By1, Bx2, By2):
-    """ @brief Returns the intersection position of two lines
+    """Returns the intersection position of two lines
     
     @return A (x, y) tuple or None if there is no intersection
     """
@@ -53,7 +64,7 @@ def lineLineIntersection(Ax1, Ay1, Ax2, Ay2, Bx1, By1, Bx2, By2):
 
 
 def distance(p1, p2):
-    """ @brief Returns the distance between two points
+    """Returns the distance between two points
     @param p1 First point
     @param p2 Second point
     """
@@ -92,7 +103,7 @@ def point_in_polygon(point, polygon):
 
 
 def polygon_in_polygon(small, big):
-    """ @brief Returns whether the first polygon is completely within the second polygon
+    """Returns whether the first polygon is completely within the second polygon
     @param small The polygon to test whether it is completely within the other one
     @param big The polygon within which the first one should be
     @return Whether the first polygon is completely within the second one

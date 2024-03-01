@@ -1,252 +1,510 @@
-#!/usr/bin/env python
-# =========================================================
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# =============================================================================
 # wkt.py
 #
-# @author Daniel Krajzewicz
-# @date 23.06.2022
-# @copyright Institut fuer Verkehrsforschung, 
-#            Deutsches Zentrum fuer Luft- und Raumfahrt
-# @brief Helper methods and classes for dealing with WKTs
+# Author: Daniel Krajzewicz
+# Date:   23.06.2022
 #
 # This file is part of the "UrMoAC" accessibility tool
 # https://github.com/DLR-VF/UrMoAC
 # Licensed under the Eclipse Public License 2.0
 #
-# Copyright (c) 2022-2023 DLR Institute of Transport Research
+# Copyright (c) 2022-2024 Institute of Transport Research,
+#                         German Aerospace Center
 # All rights reserved.
-# =========================================================
+# =============================================================================
+"""Defines geometry objects and parses WKT."""
+# =============================================================================
 
-
-# --- imported modules ------------------------------------
+# --- imported modules --------------------------------------------------------
 from enum import IntEnum
 
 
-# --- enum definitions ------------------------------------
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2022-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
+
+
+# --- enum definitions --------------------------------------------------------
 class GeometryType(IntEnum):
-  """! @brief An enumeration of known geometry types"""
-  POINT = 0
-  LINESTRING = 1
-  MULTILINE = 2
-  POLYGON = 3
-  MULTIPOLYGON = 4
-  GEOMETRYCOLLECTION = 5
+    """An enumeration of known geometry types"""
+    POINT = 0
+    LINESTRING = 1
+    MULTILINE = 2
+    POLYGON = 3
+    MULTIPOLYGON = 4
+    GEOMETRYCOLLECTION = 5
 
 
-# --- class definitions -----------------------------------
+# --- method definitions ------------------------------------------------------
+def patchify(polys, **kwargs):
+    """Returns a matplotlib patch representing the polygon with holes.
+
+    polys is an iterable (i.e list) of polygons, each polygon is a numpy array
+    of shape (2, N), where N is the number of points in each polygon. The first
+    polygon is assumed to be the exterior polygon and the rest are holes. The
+    first and last points of each polygon may or may not be the same.
+
+    This is inspired by
+    https://sgillies.net/2010/04/06/painting-punctured-polygons-with-matplotlib.html
+    and
+    https://stackoverflow.com/questions/8919719/how-to-plot-a-complex-polygon
+
+    Example usage:
+    ext = np.array([[-4, 4, 4, -4, -4], [-4, -4, 4, 4, -4]])
+    t = -np.linspace(0, 2 * np.pi)
+    hole1 = np.array([2 + 0.4 * np.cos(t), 2 + np.sin(t)])
+    hole2 = np.array([np.cos(t) * (1 + 0.2 * np.cos(4 * t + 1)),
+                      np.sin(t) * (1 + 0.2 * np.cos(4 * t))])
+    hole2 = np.array([-2 + np.cos(t) * (1 + 0.2 * np.cos(4 * t)),
+                      1 + np.sin(t) * (1 + 0.2 * np.cos(4 * t))])
+    hole3 = np.array([np.cos(t) * (1 + 0.5 * np.cos(4 * t)),
+                      -2 + np.sin(t)])
+    holes = [ext, hole1, hole2, hole3]
+    patch = patchify([ext, hole1, hole2, hole3])
+    ax = plt.gca()
+    ax.add_patch(patch)
+    ax.set_xlim([-6, 6])
+    ax.set_ylim([-6, 6])
+    """
+    import numpy as np
+
+    def reorder(poly, cw=True):
+        """Reorders the polygon to run clockwise or counter-clockwise
+        according to the value of cw. It calculates whether a polygon is
+        cw or ccw by summing (x2-x1)*(y2+y1) for all edges of the polygon,
+        see https://stackoverflow.com/a/1165943/898213.
+        """
+        # Close polygon if not closed
+        if not np.allclose(poly[:, 0], poly[:, -1]):
+            poly = np.c_[poly, poly[:, 0]]
+        direction = ((poly[0] - np.roll(poly[0], 1)) * (poly[1] + np.roll(poly[1], 1))).sum() < 0
+        if direction == cw:
+            return poly
+        else:
+            return poly[::-1]
+
+    def ring_coding(n):
+        """Returns a list of len(n) of this format:
+        [MOVETO, LINETO, LINETO, ..., LINETO, LINETO CLOSEPOLY]
+        """
+        codes = [Path.LINETO] * n
+        codes[0] = Path.MOVETO
+        codes[-1] = Path.CLOSEPOLY
+        return codes
+
+    ccw = [True] + ([False] * (len(polys) - 1))
+    polys = [reorder(poly, c) for poly, c in zip(polys, ccw)]
+    codes = np.concatenate([ring_coding(p.shape[1]) for p in polys])
+    vertices = np.concatenate(polys, axis=1)
+    return PathPatch(Path(vertices.T, codes), kwargs)
+
+
+def encode_complex_polygon(polys, close):
+    import matplotlib.path
+    s = []
+    c = []
+    for poly in polys:
+        s.extend(poly)
+        c.append(matplotlib.path.Path.MOVETO)
+        c.extend([matplotlib.path.Path.LINETO]*(len(poly)-1))
+        if close:
+            s.append([-1, -1])
+            c.append(matplotlib.path.Path.CLOSEPOLY) # 79: CLOSEPOLY
+    return s, c
+
+
+
+
+# --- class definitions -------------------------------------------------------
 class Geometry:
-  """! @brief A class for storing abstract geometries"""
+    """An abstract geometry"""
 
-  def __init__(self, type, shape):
-    """! @brief Constructor
+    def __init__(self, type, shape):
+        """ Constructor
     
-    @param type The type of the geometry
-    @param shape The geometry representation
+        
+        @param type The type of the geometry
+        @param shape The geometry representation
+        """
+        self._type = type
+        self._shape = shape
+
+    
+    def artist(self):
+        """Returns a matplotlib artist that represents this geometry"""
+        raise ValueError("abstract Geometry type")
+
+
+    def bounds(self):
+        """Returns the bounds of this geometry"""
+        raise ValueError("abstract Geometry type")
+
+
+    def shape(self):
+        """Returns the shape of this geometry"""
+        return self._shape
+
+
+
+
+class Point(Geometry):
+    """A point"""
+
+    def __init__(self, shape):
+        """ Constructor
+        
+        @param shape The geometry representation
+        """
+        Geometry.__init__(self, GeometryType.POINT, shape)
+
+
+    def artist(self, **kwargs):
+        """Returns a matplotlib artist that represents this geometry"""
+        import matplotlib.patches
+        return matplotlib.patches.Circle(self._shape, **kwargs)
+
+
+    def bounds(self):
+        """Returns the bounds of this geometry"""
+        return [self._shape[0], self._shape[1], self._shape[0], self._shape[1]]
+
+
+
+class LineString(Geometry):
+    """A linestring"""
+
+    def __init__(self, shape):
+        """ Constructor
+        
+        @param shape The geometry representation
+        """
+        Geometry.__init__(self, GeometryType.LINESTRING, shape)
+
+
+    def artist(self, **kwargs):
+        """Returns a matplotlib artist that represents this geometry"""
+        import matplotlib.patches
+        import matplotlib.path
+        path = matplotlib.path.Path(self._shape, closed=False)
+        return matplotlib.patches.PathPatch(path, fill=False, **kwargs)
+
+
+
+    def bounds(self):
+        """Returns the bounds of this geometry"""
+        bounds = [self._shape[0][0], self._shape[0][1], self._shape[0][0], self._shape[0][1]]
+        for p in self._shape:
+            bounds[0] = min(bounds[0], p[0])
+            bounds[1] = min(bounds[1], p[1])
+            bounds[2] = max(bounds[2], p[0])
+            bounds[3] = max(bounds[3], p[1])
+        return bounds
+
+
+    
+    
+
+class Polygon(Geometry):
+    """A polygon"""
+
+    def __init__(self, shape):
+        """ Constructor
+        
+        @param shape The geometry representation
+        """
+        Geometry.__init__(self, GeometryType.POLYGON, shape)
+
+
+    def artist(self, **kwargs):
+        """Returns a matplotlib artist that represents this geometry"""
+        import matplotlib.patches
+        import matplotlib.path
+        s, c = encode_complex_polygon(self._shape, True)
+        path = matplotlib.path.Path(s, c, closed=True)
+        return matplotlib.patches.PathPatch(path, **kwargs)
+
+
+    def bounds(self):
+        """Returns the bounds of this geometry"""
+        bounds = [self._shape[0][0][0], self._shape[0][0][1], self._shape[0][0][0], self._shape[0][0][1]]
+        for poly in self._shape:
+            for p in poly:
+                bounds[0] = min(bounds[0], p[0])
+                bounds[1] = min(bounds[1], p[1])
+                bounds[2] = max(bounds[2], p[0])
+                bounds[3] = max(bounds[3], p[1])
+        return bounds
+
+
+
+
+
+    
+
+
+class MultiLine(Geometry):
+    """A multiline"""
+
+    def __init__(self, shape):
+        """ Constructor
+        
+        @param shape The geometry representation
+        """
+        Geometry.__init__(self, GeometryType.MULTILINE, shape)
+
+
+    def artist(self, **kwargs):
+        """Returns a matplotlib artist that represents this geometry"""
+        import matplotlib.patches
+        import matplotlib.path
+        s, c = encode_complex_polygon(self._shape, False)
+        path = matplotlib.path.Path(s, closed=False)
+        return matplotlib.patches.PathPatch(path, fill=False, **kwargs)
+
+
+    def bounds(self):
+        """Returns the bounds of this geometry"""
+        bounds = [self._shape[0][0][0], self._shape[0][0][1], self._shape[0][0][0], self._shape[0][0][1]]
+        for line in self._shape:
+            for p in line:
+                bounds[0] = min(bounds[0], p[0])
+                bounds[1] = min(bounds[1], p[1])
+                bounds[2] = max(bounds[2], p[0])
+                bounds[3] = max(bounds[3], p[1])        
+        return bounds
+
+    
+
+
+class MultiPolygon(Geometry):
+    """A multipolygon"""
+
+    def __init__(self, shape):
+        """ Constructor
+        
+        @param shape The geometry representation
+        """
+        Geometry.__init__(self, GeometryType.MULTIPOLYGON, shape)
+
+
+    def artist(self, **kwargs):
+        """Returns a matplotlib artist that represents this geometry"""
+        import matplotlib.patches
+        import matplotlib.path
+        ss = []
+        cs = []
+        for poly in self._shape:
+            s, c = encode_complex_polygon(poly, True)
+            ss.extend(s)
+            cs.extend(c)
+        path = matplotlib.path.Path(ss, cs)
+        return matplotlib.patches.PathPatch(path, **kwargs)
+
+
+    def bounds(self):
+        """Returns the bounds of this geometry"""
+        bounds = None
+        for cpoly in self._shape:
+            for poly in cpoly:
+                for p in poly:
+                    bounds = [ p[0], p[1], p[0], p[1] ]
+                    break
+        for cpoly in self._shape:
+            for poly in cpoly:
+                for p in poly:
+                    bounds[0] = min(bounds[0], p[0])
+                    bounds[1] = min(bounds[1], p[1])
+                    bounds[2] = max(bounds[2], p[0])
+                    bounds[3] = max(bounds[3], p[1])        
+        return bounds
+
+    
+# --- function definitions ----------------------------------------------------
+def parse_POINT2D(which):
+    """Parses the given geometry assuming it's a 2D POINT
+    
+    @return The parsed geometry as a position
     """
-    self._type = type
-    self._shape = shape
-    self._patch = None
+    if which.find("EMPTY")>0:
+        return None
+    which = which[which.find("(")+1:which.rfind(")")]
+    xy = which.split(" ")
+    return [ float(xy[0]), float(xy[1]) ]
+
+
+def parse_LINESTRING2D(which):
+    """Parses the given geometry assuming it's a 2D LINESTRING
     
-    
-  def toPatch(self):
-    """! @brief Converts the geometry to a matplotlib patch
-    
-    @return The geometry as patch
+    @return The parsed geometry list of positions
     """
-    import matplotlib as mpl
-    # return if already built
-    if self._patch:
-      return self._patch
-    # build
-    if self._type==GeometryType.POINT:
-      self._patch = Circle(self._shape)
-    elif self._type==GeometryType.LINESTRING:
-      codes = [1]
-      codes.extend([2]*(len(self._shape)-1))
-      self._patch = mpl.path.Path(self._shape, codes)
-    elif self._type==GeometryType.MULTILINE:
-      s = []
-      c = []
-      for shp in self._shape:
-        s.extend(shp)
-        s.append([-1, -1])
-        c.append(1) # MOVETO
-        c.extend([2]*(len(shp)-1)) # 2: LINETO
-        c.append(0) # 0: STOP
-      self._patch = mpl.path.Path(s, c, closed=False)
-    elif self._type==GeometryType.POLYGON:
-      self._patch = Polygon(self._shape)
-    elif self._type==GeometryType.MULTIPOLYGON:
-      self._patch = Polygon(self._shape[0]) # !!!
-    return self._patch
-  def getBounds(self):
-    if self._type==GeometryType.POINT:
-      return [self._shape[0][0], self._shape[0][1], self._shape[0][0], self._shape[0][1]]
-    elif self._type==GeometryType.LINESTRING or self._type==GeometryType.POLYGON:
-      bounds = [self._shape[0][0], self._shape[0][1], self._shape[0][0], self._shape[0][1]]
-      for p in self._shape:
-        bounds[0] = min(bounds[0], p[0])
-        bounds[1] = min(bounds[1], p[1])
-        bounds[2] = max(bounds[2], p[0])
-        bounds[3] = max(bounds[3], p[1])
-      return bounds
-    elif self._type==GeometryType.MULTILINE or self._type==GeometryType.MULTIPOLYGON:
-      bounds = [self._shape[0][0][0], self._shape[0][0][1], self._shape[0][0][0], self._shape[0][0][1]]
-      for l in self._shape:
-        for p in l:
-          bounds[0] = min(bounds[0], p[0])
-          bounds[1] = min(bounds[1], p[1])
-          bounds[2] = max(bounds[2], p[0])
-          bounds[3] = max(bounds[3], p[1])
-      return bounds
-  def getShape(self):
-    return self._shape
+    if which.find("EMPTY")>0:
+        return None
+    which = which[which.find("("):which.rfind(")")+1]
+    which = which.split(",")
+    cline = []
+    for p in which:
+        xy = p.split(" ")
+        cline.append( [ float(xy[0]), float(xy[1]) ] )
+    return cline
 
 
-
-# --- function definitions --------------------------------
-def parseMULTIPOLY2XYlists(which):
-  """! @brief Parses the given geometry assuming it's a 2D MULTIPOLYGON
+def parse_MULTILINE2D(which):
+    """Parses the given geometry assuming it's a 2D MULTILINE
     
-  @return The parsed geometry as list of position lists
-  """
-  which = which[which.find("("):which.rfind(")")+1]
-  numOpen = 0
-  cpolys = []
-  cpoly = []
-  i = 0
-  while i<len(which):
-    if which[i]=='(': 
-      if numOpen==2:
-        e = which.find(")", i)
-        polypart = which[i+1:e]
-        points = polypart.split(",")
-        cpoints = []
-        for p in points:
-          if len(p.strip())==0:
+    @return The parsed geometry list of position lists
+    """
+    if which.find("EMPTY")>0:
+        return None
+    which = which[which.find("("):which.rfind(")")+1]
+    which = which.split("(")
+    clines = []
+    for line in which:
+        if len(line.strip())==0:
             continue
-          xy = p.strip().split(" ")
-          cpoints.append( [ float(xy[0]), float(xy[1]) ] )
-        cpoly.append(cpoints)
-        i = e
-      else:
-        numOpen += 1
-    elif which[i]==')':
-      numOpen -= 1
-      if numOpen==1:
-        cpolys.append(cpoly)
-        #print (cpoly)
-        cpoly = []
-    i += 1
-  return cpolys
+        line = line.replace(")", "")
+        line = line.split(",")
+        cpoints = []
+        for p in line:
+            if len(p.strip())==0:
+                continue
+            xy = p.split(" ")
+            cpoints.append( [ float(xy[0]), float(xy[1]) ] )
+        clines.append(cpoints)
+    return clines
 
 
-def parsePOLY2XYlists(which, scale=1.):
-  """! @brief Parses the given geometry assuming it's a 2D POLYGON
+def parse_POLYGON2D(which):
+    """Parses the given geometry assuming it's a 2D POLYGON
     
-  @return The parsed geometry as a list of positions
-  """
-  which = which[9:-2]
-  #print which
-  points = which.split(",")
-  cpoints = []
-  for p in points:
-    if len(p.strip())==0:
-      continue
-    xy = p.split(" ")
-    cpoints.append( [ float(xy[0])/scale, float(xy[1])/scale ] )
-  return cpoints
+    @return The parsed geometry as a list of positions
+    """
+    if which.find("EMPTY")>0:
+        return None
+    which = which[which.find("("):which.rfind(")")+1]
+    numOpen = 0
+    cpoly = []
+    i = 0
+    while i<len(which):
+        if which[i]=='(': 
+            if numOpen==1:
+                e = which.find(")", i)
+                polypart = which[i+1:e]
+                points = polypart.split(",")
+                cpoints = []
+                for p in points:
+                    if len(p.strip())==0:
+                        continue
+                    xy = p.strip().split(" ")
+                    cpoints.append( [ float(xy[0]), float(xy[1]) ] )
+                cpoly.append(cpoints)
+                i = e
+            else:
+                numOpen += 1
+        elif which[i]==')':
+            numOpen -= 1
+        i += 1
+    return cpoly
 
 
-def parsePOINT2XY(which, scale=1.):
-  """! @brief Parses the given geometry assuming it's a 2D POINT
+def parse_MULTIPOLYGON2D(which):
+    """Parses the given geometry assuming it's a 2D MULTIPOLYGON
     
-  @return The parsed geometry as a position
-  """
-  which = which[6:-1]
-  xy = which.split(" ")
-  return [ float(xy[0])/scale, float(xy[1])/scale ]
+    @return The parsed geometry as list of position lists
+    """
+    if which.find("EMPTY")>0:
+        return None
+    which = which[which.find("("):which.rfind(")")+1]
+    numOpen = 0
+    cpolys = []
+    cpoly = []
+    i = 0
+    while i<len(which):
+        if which[i]=='(': 
+            if numOpen==2:
+                e = which.find(")", i)
+                polypart = which[i+1:e]
+                points = polypart.split(",")
+                cpoints = []
+                for p in points:
+                    if len(p.strip())==0:
+                        continue
+                    xy = p.strip().split(" ")
+                    cpoints.append( [ float(xy[0]), float(xy[1]) ] )
+                cpoly.append(cpoints)
+                i = e
+            else:
+                numOpen += 1
+        elif which[i]==')':
+            numOpen -= 1
+            if numOpen==1:
+                cpolys.append(cpoly)
+                cpoly = []
+        i += 1
+    return cpolys
 
 
-def parseMULTILINE2XYlists(which, scale=1.):
-  """! @brief Parses the given geometry assuming it's a 2D MULTILINE
-    
-  @return The parsed geometry list of position lists
-  """
-  which = which[16:-1]
-  which = which.split("(")
-  clines = []
-  for line in which:
-    if len(line.strip())==0:
-      continue
-    line = line.replace(")", "")
-    line = line.split(",")
-    cpoints = []
-    for p in line:
-      if len(p.strip())==0:
-        continue
-      xy = p.split(" ")
-      cpoints.append( [ float(xy[0])/scale, float(xy[1])/scale ] )
-    clines.append(cpoints)
-  return clines
-
-def parseMULTILINE2XYZMlists(which, scale=1.):
-  """! @brief Parses the given geometry assuming it's a 2D MULTILINE
-    
-  @return The parsed geometry list of positions lists
-  """
-  which = which[20:-1]
-  which = which.split("(")
-  clines = []
-  for line in which:
-    if len(line.strip())==0:
-      continue
-    line = line.replace(")", "")
-    line = line.split(",")
-    cpoints = []
-    for p in line:
-      if len(p.strip())==0:
-        continue
-      xy = p.split(" ")
-      cpoints.append( [ float(xy[0])/scale, float(xy[1])/scale ] )
-    clines.append(cpoints)
-  return clines
 
 
-def parseLINESTRING2XYlists(which, scale=1.):
-  """! @brief Parses the given geometry assuming it's a 2D LINESTRING
-    
-  @return The parsed geometry list of positions
-  """
-  which = which[11:-1]
-  which = which.split(",")
-  cline = []
-  for p in which:
-    xy = p.split(" ")
-    cline.append( [ float(xy[0])/scale, float(xy[1])/scale ] )
-  return cline
+
+
+
+
 
 
 def wkt2geometry(wkt):
-  """! @brief Parses the given WKT into a Geometry object
+    """Parses the given WKT into a Geometry object
   
-  @param wkt The WKT
-  @return The Geometry representing the WKT
-  """
-  if wkt.startswith("POINT"):
-    shape = parsePOINT2XY(wkt)
-    return Geometry(GeometryType.POINT, shape)
-  elif wkt.startswith("LINESTRING"):
-    shape = parseLINESTRING2XYlists(wkt)
-    return Geometry(GeometryType.LINESTRING, shape)
-  elif wkt.startswith("MULTILINE"):
-    shape = parseMULTILINE2XYlists(wkt)
-    return Geometry(GeometryType.MULTILINE, shape)
-  elif wkt.startswith("POLYGON"):
-    shape = parsePOLY2XYlists(wkt)
-    return Geometry(GeometryType.POLYGON, shape)
-  elif wkt.startswith("MULTIPOLYGON"):
-    shape = parseMULTIPOLY2XYlists(wkt)
-    return Geometry(GeometryType.MULTIPOLYGON, shape)
-  else:
-    raise ValueError("Unknown geometry '%s'" % wkt)
+    @param wkt The WKT
+    @return The Geometry representing the WKT
+    """
+    if wkt.startswith("POINT"):
+        shape = parse_POINT2D(wkt)
+        if shape==None: return None
+        return Point(shape)
+    elif wkt.startswith("LINESTRING"):
+        shape = parse_LINESTRING2D(wkt)
+        if shape==None: return None
+        return LineString(shape)
+    elif wkt.startswith("MULTILINE"):
+        shape = parse_MULTILINE2D(wkt)
+        if shape==None: return None
+        return MultiLine(shape)
+    elif wkt.startswith("POLYGON"):
+        shape = parse_POLYGON2D(wkt)
+        if shape==None: return None
+        return Polygon(shape)
+    elif wkt.startswith("MULTIPOLYGON"):
+        shape = parse_MULTIPOLYGON2D(wkt)
+        if shape==None: return None
+        return MultiPolygon(shape)
+    else:
+        raise ValueError("Unknown geometry '%s'" % wkt)
+
+
+def wkt2lists(wkt):
+    """Parses the given WKT into a Geometry object
+  
+    @param wkt The WKT
+    @return Lists of different dimensions in dependence of the WKT type
+    """
+    if wkt.startswith("POINT"):
+        return parse_POINT2D(wkt)
+    elif wkt.startswith("LINESTRING"):
+        return parse_LINESTRING2D(wkt)
+    elif wkt.startswith("MULTILINE"):
+        return parse_MULTILINE2D(wkt)
+    elif wkt.startswith("POLYGON"):
+        return parse_POLYGON2D(wkt)
+    elif wkt.startswith("MULTIPOLYGON"):
+        return parse_MULTIPOLYGON2D(wkt)
+    else:
+        raise ValueError("Unknown geometry '%s'" % wkt)
 

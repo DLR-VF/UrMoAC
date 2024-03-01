@@ -1,23 +1,23 @@
-#!/usr/bin/env python
-# =========================================================
-# osm2db.py
-# 
-# @author Daniel Krajzewicz, Simon Nieland
-# @date 01.04.2016
-# @copyright Institut fuer Verkehrsforschung, 
-#            Deutsches Zentrum fuer Luft- und Raumfahrt
-# @brief OSM data model
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# =============================================================================
+# osm.py
+#
+# Author: Daniel Krajzewicz
+# Date:   01.04.2016
 #
 # This file is part of the "UrMoAC" accessibility tool
 # https://github.com/DLR-VF/UrMoAC
 # Licensed under the Eclipse Public License 2.0
 #
-# Copyright (c) 2016-2023 DLR Institute of Transport Research
+# Copyright (c) 2016-2024 Institute of Transport Research,
+#                         German Aerospace Center
 # All rights reserved.
-# =========================================================
+# =============================================================================
+"""OSM data model."""
+# =============================================================================
 
-
-# --- imported modules ------------------------------------
+# --- imported modules --------------------------------------------------------
 import os, sys, math, copy
 
 script_dir = os.path.dirname( __file__ )
@@ -27,29 +27,38 @@ from wkt import *
 from geom_helper import *
 
 
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2016-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
 
-# --- class definitions -----------------------------------
+
+# --- class definitions -------------------------------------------------------
 # --- OSMElement
 class OSMElement:
-    """ @class OSMElement
-    @brief The base class for nodes, ways, and relations with an ID an tags
-    """
+    """The base class for nodes, ways, and relations with an ID an tags."""
     
     def __init__(self, id):
-        """ @brief Initialises the element
-        @param self The class instance
-        @param id The ID of the element
+        """Initialises the element
+        :param id: The ID of the element
+        :type id: int
         """
         self.id = id
         self.tags = {}
         self._ok = True
 
 
-    def addTag(self, k, v):
-        """ @brief Adds an attribute to the node
-        @param self The class instance
-        @param k The attribute's key
-        @param v The attribute's value
+    def add_tag(self, k, v):
+        """Adds an attribute to the node
+        :param k: The key name
+        :type k: str
+        :param v: The value
+        :type v: str
         """
         self.tags[k] = v
 
@@ -58,33 +67,32 @@ class OSMElement:
 
 # --- OSMNode
 class OSMNode(OSMElement):
-    """ @class OSMNode
-    @brief The representation of an OSM node
-    """
+    """The representation of an OSM node."""
     
     def __init__(self, id, pos):
-        """ @brief Initialises the node
-        @param self The class instance
-        @param id The ID of the node
-        @param pos The position (latitude, longitude) of the node
+        """Initialises the node
+        :param id: The ID of the node
+        :type id: int
+        :param pos: The key name
+        :type pos: tuple[float, float]
         """
         OSMElement.__init__(self, id)
         self.refNum = 0
         self.pos = pos
 
 
-    def getDescriptionWithPolygons(self):
-        """ @brief Returns a description for inserting the object as a multipolygon and geomtrycollection
-        @param self The class instance
-        @return A tuple of id, type, polygons, and WKT representation
+    def get_description_with_polygons(self):
+        """Returns a description for inserting the object as a multipolygon and geomtrycollection
+        :return: A tuple of id, type, polygons, and WKT representation
+        :rtype: tuple[int, str, list[str], str]
         """
         return [self.id, "node", [], "POINT(%s %s)" % (self.pos[0], self.pos[1])]
 
 
-    def getGeometryType(self):
-        """ @brief Returns the type of this element (here: always GeometryType.POINT)
-        @param self The class instance
-        @return GeometryType.POINT
+    def get_geometry_type(self):
+        """Returns the type of this element (here: always GeometryType.POINT)
+        :return: The geometry type (GeometryType.POINT)
+        :rtype: GeometryType
         """
         return GeometryType.POINT
 
@@ -92,32 +100,34 @@ class OSMNode(OSMElement):
 
 # --- OSMWay
 class OSMWay(OSMElement):
-    """ @class OSMWay
-    @brief The representation of an OSM way
-    """
+    """The representation of an OSM way."""
     
     def __init__(self, id, refs=[], geom=None):
-        """ @brief Initialises the node
-        @param self The class instance
-        @param id The ID of the node
+        """Initialises the way
+        :param id: The ID of the way
+        :type id: int
+        :param refs: The list of referenced nodes
+        :type refs: list[int]
+        :param geom: The geometry
+        :type geom: list[tuple[float, float]]
         """
         OSMElement.__init__(self, id)
         self.refs = list(refs)
         self.geom = geom
 
 
-    def addNodeID(self, nID):
-        """ @brief Adds a node (a vertex) to the way
-        @param self The class instance
-        @param nID The ID of the node to add
+    def add_node_id(self, nID):
+        """Adds a node (a vertex) to the way
+        :param id: The ID of the referenced node
+        :type id: int
         """
         self.refs.append(nID)
         
         
-    def buildGeometry(self, area):
-        """ @brief Builds the geometry
-        @param self The class instance
-        @param area The area to get information from
+    def build_geometry(self, area):
+        """Builds the geometry
+        :param area: The area to get information from
+        :type area: OSMArea
         """
         if self._ok and self.geom!=None:
             return True
@@ -133,10 +143,10 @@ class OSMWay(OSMElement):
         return self._ok
         
 
-    def getDescriptionWithPolygons(self):
-        """ @brief Returns a description for inserting the object as a multipolygon and geomtrycollection
-        @param self The class instance
-        @return A tuple of id, type, polygons, and WKT representation
+    def get_description_with_polygons(self):
+        """Returns a description for inserting the object as a multipolygon and geomtrycollection
+        :return: A tuple of id, type, polygons, and WKT representation
+        :rtype: tuple[int, str, list[str], str]
         """
         if self.geom[0]==self.geom[-1]:
             p = ",".join(["%s %s" % (p[0], p[1]) for p in self.geom])
@@ -144,10 +154,10 @@ class OSMWay(OSMElement):
         return [self.id, "way", None, "LINESTRING(" + ",".join(["%s %s" % (p[0], p[1]) for p in self.geom]) + ")"]
 
 
-    def getGeometryType(self):
-        """ @brief Returns the type of this element
-        @param self The class instance
-        @return GeometryType.POLYGON if the way is closed, otherwise GeometryType.LINESTRING
+    def get_geometry_type(self):
+        """Returns the type of this element
+        :return: GeometryType.POLYGON if the way is closed, otherwise GeometryType.LINESTRING
+        :rtype: GeometryType
         """
         if self.geom[0]==self.geom[-1]:
             return GeometryType.POLYGON
@@ -160,12 +170,15 @@ class OSMWay(OSMElement):
     
 # --- OSMRelation
 class OSMRelation(OSMElement):
-    """ @class OSMWay
-    @brief The representation of an OSM relation
-    """
+    """The representation of an OSM relation."""
 
     def __init__(self, id, geom=None):
-        """ @brief Initialises the relation
+        """Initialises the relation
+        :param id: The ID of the relation
+        :type id: int
+        :param geom: The geometry
+        :type geom: list[list[list[tuple[float, float]]]
+
         @param self The class instance
         @param id The ID of the relation
         """
@@ -174,36 +187,37 @@ class OSMRelation(OSMElement):
         self.geom = geom
         
         
-    def addMember(self, mID, mType, mRole):
-        """ @brief Adds amember to the relation
-        @param self The class instance
-        @param mID The ID of the member
-        @param mType The type (node / way / relation) of the member
-        @param mRole The role of the member
+    def add_member(self, mID, mType, mRole):
+        """Adds amember to the relation
+        :param mID: The ID of the member
+        :type mID: int
+        :param mType: The type (node / way / relation) of the member
+        :type mType: str
+        :param mRole: The role of the member
+        :type mRole: str
         """
         self.members.append([mID, mType, mRole])
         
         
     # --- geometry computation
-    def _computePossibleConsecutions(self, roleItems):
-        """ @brief Computes possible follower items
+    def _compute_possible_consecutions(self, roleItems):
+        """Computes possible follower items
         
         The possible followers are stored in the item's "possibleFollowers"
         variable
-        
-        @param self The class instance
-        @param roleItems The list of the parts of a relation
+        :param roleItems: 
+        :type roleItems: 
         """
         # initialise consecution list
         for i in roleItems:
             i.possibleFollowers = []
         # fill consecution list
         for i,w1 in enumerate(roleItems):
-            if w1.getGeometryType()!=GeometryType.LINESTRING:
+            if w1.get_geometry_type()!=GeometryType.LINESTRING:
                 continue
             for j,w2 in enumerate(roleItems):
                 if i==j: continue
-                if w2.getGeometryType()!=GeometryType.LINESTRING:
+                if w2.get_geometry_type()!=GeometryType.LINESTRING:
                     continue
                 if w1.geom[-1]==w2.geom[0]: # ok, plain continuation
                     w1.possibleFollowers.append([j, 0])
@@ -215,7 +229,11 @@ class OSMRelation(OSMElement):
                     w1.possibleFollowers.append([j, 3])        
 
 
-    def _joinUnambiguous(self, roleItems):
+    def _join_unambiguous(self, roleItems):
+        """Joins subparts with no alternative consecution
+        :param roleItems: 
+        :type roleItems: 
+        """
         changed = True
         while changed:
             changed = False
@@ -251,17 +269,19 @@ class OSMRelation(OSMElement):
                 changed = True
                 break
             if changed:
-                self._computePossibleConsecutions(newRoleItems)
+                self._compute_possible_consecutions(newRoleItems)
                 roleItems = newRoleItems
         return newRoleItems
                 
 
     def _extendCombinations(self, roleItems, combinations, seen):
-        """ @brief Extends the given combinations by next possible items
-        @param self The class instance
-        @param roleItems The list of the parts of a relation
-        @param combinations The list of combinations to extend
-        @param seen The list seen objects per combination
+        """Extends the given combinations by next possible items
+        :param roleItems: The list of the parts of a relation
+        :type roleItems: 
+        :param combinations: The list of combinations to extend
+        :type combinations: 
+        :param seen: The list seen objects per combination
+        :type seen: 
         """
         newCombinations = []
         newSeen = []
@@ -297,10 +317,10 @@ class OSMRelation(OSMElement):
         return newCombinations, newSeen
 
                 
-    def _computeCombinations(self, roleItems):
-        """ @brief Computes possible combinations of the given geometry items
-        @param self The class instance
-        @param roleItems The list of the parts of a relation
+    def _compute_combinations(self, roleItems):
+        """Computes possible combinations of the given geometry items
+        :param roleItems: The list of the parts of a relation
+        :type roleItems: 
         """
         combinations = []
         seen = []
@@ -325,12 +345,14 @@ class OSMRelation(OSMElement):
         return combinations
         
     
-    def _checkPolygonValidities(self, id, roleItems, combinations, closeIfNeeded):
-        """ @brief Builds polygons and checks their validities
-        @param self The class instance
-        @param roleItems The list of the parts of a relation
-        @param combinations The list of combinations to extend
-        @param closeIfNeeded If true, an unclosed polygon will be closed
+    def _get_polygon_validities(self, id, roleItems, combinations, closeIfNeeded):
+        """Builds polygons and checks their validities
+        :param roleItems: The list of the parts of a relation
+        :type roleItems: 
+        :param combinations: The list of combinations to extend
+        :type combinations: 
+        :param closeIfNeeded: If true, an unclosed polygon will be closed
+        :type closeIfNeeded: 
         """
         valids = []
         ngeomss = []
@@ -386,12 +408,12 @@ class OSMRelation(OSMElement):
         return ngeomss, valids
 
     
-    def _computeCliques(self, items):
-        """ @brief Divides the given list of elements into cliques
+    def _compute_cliques(self, items):
+        """Divides the given list of elements into cliques
         
         A clique contains only items which reference other
-        @param self The class instance
-        @param items The list of items
+        :param items: The list of items
+        :type items: 
         """
         cliques = []
         for i,item in enumerate(items):
@@ -417,10 +439,10 @@ class OSMRelation(OSMElement):
         return cliques
     
         
-    def buildGeometry(self, area):
-        """ @brief Builds the geometry
-        @param self The class instance
-        @param area The objects storage
+    def build_geometry(self, area):
+        """Builds the geometry
+        :param area: The objects storage
+        :type area: OSMArea
         """
         if self._ok and self.geom!=None:
             return True
@@ -434,32 +456,32 @@ class OSMRelation(OSMElement):
         closeIfNeeded = False
         for m in self.members:
             if m[1]=="node":
-                n = area.getNode(m[0])
+                n = area.get_node(m[0])
                 if not n:
                     print ("Missing node %s in relation %s" % (m[0], self.id))
                     self._ok = False
                     continue
                 roles[m[2]].append(n)
             elif m[1]=="way":
-                w = area.getWay(m[0])
+                w = area.get_way(m[0])
                 if not w:
                     print ("Missing way %s in relation %s" % (m[0], self.id))
                     self._ok = False
                     closeIfNeeded = True
                     continue
-                self._ok &= w.buildGeometry(area)
+                self._ok &= w.build_geometry(area)
                 if self._ok:
                     roles[m[2]].append(w) # well, we append it even if it's not ok!?
             elif m[1]=="relation" or m[1]=="rel":
                 if self.id==m[0]:
                     print ("Skipping self-referencing relation in %s" % self.id)
                     continue
-                r = area.getRelation(m[0])
+                r = area.get_relation(m[0])
                 if not r:
                     print ("Missing relation %s in relation %s" % (m[0], self.id))
                     self._ok = False
                     continue
-                self._ok &= r.buildGeometry(area)
+                self._ok &= r.build_geometry(area)
                 if not self._ok:
                     print ("Broken geometry of relation %s in relation %s" % (m[0], self.id))
                     self._ok = False
@@ -476,30 +498,30 @@ class OSMRelation(OSMElement):
             # add all elements that do not need any continuations (are a closed polygon or point)
             leftItems = []
             for r in roles[role]:
-                if r.getGeometryType()==GeometryType.POINT:
+                if r.get_geometry_type()==GeometryType.POINT:
                     self.geom[role].append(r)
-                elif r.getGeometryType()==GeometryType.POLYGON:
+                elif r.get_geometry_type()==GeometryType.POLYGON:
                     asign = signed_area(r.geom)
                     if (asign>0 and role=="inner") or (asign<0 and role=="outer"):
                         r.geom.reverse()
                     self.geom[role].append(r)
-                elif r.getGeometryType()==GeometryType.GEOMETRYCOLLECTION:
+                elif r.get_geometry_type()==GeometryType.GEOMETRYCOLLECTION:
                     self.geom[role].append(r)
                 else:
                     leftItems.append(r)
             # check continuations for complex items
             if len(leftItems)>0:
-                self._computePossibleConsecutions(leftItems)
-                leftItems = self._joinUnambiguous(leftItems)
-                self._computePossibleConsecutions(leftItems)
-                cliques = self._computeCliques(leftItems)
+                self._compute_possible_consecutions(leftItems)
+                leftItems = self._join_unambiguous(leftItems)
+                self._compute_possible_consecutions(leftItems)
+                cliques = self._compute_cliques(leftItems)
                 for c in cliques:
                     if len(c)==0:
                         continue
                     entries = list(c)
-                    self._computePossibleConsecutions(entries)
-                    combinations = self._computeCombinations(entries)
-                    ngeomss, valids = self._checkPolygonValidities(self.id, entries, combinations, closeIfNeeded)
+                    self._compute_possible_consecutions(entries)
+                    combinations = self._compute_combinations(entries)
+                    ngeomss, valids = self._get_polygon_validities(self.id, entries, combinations, closeIfNeeded)
                     # check whether we could successfully combine items
                     if True not in valids:
                         # ok, we could not determine meaningful element combinations
@@ -517,25 +539,25 @@ class OSMRelation(OSMElement):
         return self._ok
         
 
-    def getGeometryType(self):
-        """ @brief Returns the type of this element (here: always GeometryType.GEOMETRYCOLLECTION)
-        @param self The class instance
-        @return GeometryType.GEOMETRYCOLLECTION
+    def get_geometry_type(self):
+        """Returns the type of this element (here: always GeometryType.GEOMETRYCOLLECTION)
+        :return: The geometry type (GeometryType.GEOMETRYCOLLECTION)
+        :rtype: GeometryType
         """
         return GeometryType.GEOMETRYCOLLECTION
 
 
-    def getDescriptionWithPolygons(self):
-        """ @brief Returns a description for inserting the object as a multipolygon and geomtrycollection
-        @param self The class instance
-        @return A tuple of id, type, polygons, and WKT representation
+    def get_description_with_polygons(self):
+        """Returns a description for inserting the object as a multipolygon and geomtrycollection
+        :return: A tuple of id, type, polygons, and WKT representation
+        :rtype: tuple[int, str, list[str], str]
         """
         ret = []
         polys = []
         seen = set()
         if "outer" in self.geom:
             for o in self.geom["outer"]:
-                id, type, outerpolys, outer = o.getDescriptionWithPolygons()
+                id, type, outerpolys, outer = o.get_description_with_polygons()
                 if not outer.startswith("POLYGON"):
                     continue
                 if signed_area(outerpolys[0][0])<0: outerpolys[0][0].reverse()
@@ -545,9 +567,9 @@ class OSMRelation(OSMElement):
                     for i in self.geom["inner"]:
                         if i in seen:
                             continue
-                        if i.getGeometryType()!=GeometryType.LINESTRING and i.getGeometryType()!=GeometryType.POLYGON:
+                        if i.get_geometry_type()!=GeometryType.LINESTRING and i.get_geometry_type()!=GeometryType.POLYGON:
                             continue
-                        id, type, innerpolys, inner = i.getDescriptionWithPolygons()
+                        id, type, innerpolys, inner = i.get_description_with_polygons()
                         if not inner.startswith("POLYGON"):
                             continue
                         if polygon_in_polygon(innerpolys[0][0], outerpolys[0][0]):
@@ -564,7 +586,7 @@ class OSMRelation(OSMElement):
             for g in self.geom[r]:
                 if g in seen:
                     continue
-                id, type, npolys, geom2 = g.getDescriptionWithPolygons()
+                id, type, npolys, geom2 = g.get_description_with_polygons()
                 if npolys!=None: polys.extend(npolys)
                 if geom2.startswith("GEOMETRYCOLLECTION"):
                     geom2 = geom2[geom2.find("(")+1:-1]
@@ -576,86 +598,86 @@ class OSMRelation(OSMElement):
     
 # --- OSMArea
 class OSMArea:
-    """! @class OSMArea
-    @brief A complete area consisting of nodes, way, and elements
-    """
+    """A complete area consisting of nodes, way, and elements."""
     
     def __init__(self):
-        """ @brief Initialises the area
-        @param self The class instance
-        """
+        """Initialises the area"""
         self._nodes = {}
         self._ways = {}
         self._relations = {}
     
     
     # --- getter
-    def getNode(self, nodeID):
-        """ @brief Returns the named node of None if it's not known
-        @param self The class instance
-        @param nodeID The id of the node to return
+    def get_node(self, nID):
+        """Returns the named node of None if it's not known
+        :param nID: The ID of the node
+        :type nID: int
+        :return: The named node or None if the node is not known
+        :rtype: OSMNode
         """
-        if nodeID not in self._nodes:
+        if nID not in self._nodes:
             return None
-        return self._nodes[nodeID]
+        return self._nodes[nID]
         
         
-    def getWay(self, wayID):
-        """ @brief Returns the named way of None if it's not known
-        @param self The class instance
-        @param wayID The id of the way to return
+    def get_way(self, wID):
+        """Returns the named way of None if it's not known
+        :param wID: The ID of the way
+        :type wID: int
+        :return: The named way or None if the node is not known
+        :rtype: OSMWay
         """
-        if wayID not in self._ways:
+        if wID not in self._ways:
             return None
-        return self._ways[wayID]
+        return self._ways[wID]
         
         
-    def getRelation(self, relID):
-        """ @brief Returns the named relation of None if it's not known
-        @param self The class instance
-        @param relID The id of the relation to return
+    def get_relation(self, rID):
+        """Returns the named relation of None if it's not known
+        :param rID: The ID of the relation
+        :type rID: int
+        :return: The named relation or None if the node is not known
+        :rtype: OSMRelation
         """
-        if relID not in self._relations:
+        if rID not in self._relations:
             return None
-        return self._relations[relID]
+        return self._relations[rID]
         
         
     # --- adder
-    def addNode(self, node):
-        """ @brief Adds a node
-        @param self The class instance
-        @param node The node to add
+    def add_node(self, node):
+        """Adds a node
+        :param node: The node to add
+        :type node: OSMNode
         """
         self._nodes[node.id] = node
         
     
-    def addWay(self, way):
-        """ @brief Adds a way
-        @param self The class instance
-        @param way The way to add
+    def add_way(self, way):
+        """Adds a way
+        :param node: The way to add
+        :type node: OSMWay
         """
         self._ways[way.id] = way
     
     
-    def addRelation(self, rel):
-        """ @brief Adds a relation
-        @param self The class instance
-        @param rel The rel to add
+    def add_relation(self, rel):
+        """Adds a relation
+        :param rel: The relaltion to add
+        :type rel: OSMRelation
         """
         self._relations[rel.id] = rel
     
     
-    def buildGeometries(self):
-        """ @brief Builds geometries for ways and releations
-        @param self The class instance
-        """
+    def build_geometries(self):
+        """Builds geometries for ways and releations"""
         fw = 0
         for w in self._ways:
-            if not self._ways[w].buildGeometry(self):
+            if not self._ways[w].build_geometry(self):
                 fw += 1
         fr = 0
         for r in self._relations:
-            if not self._relations[r].buildGeometry(self):
+            if not self._relations[r].build_geometry(self):
                 fr += 1
         return fw,fr
 
