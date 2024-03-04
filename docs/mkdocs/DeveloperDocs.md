@@ -1,3 +1,3 @@
-* [Testing UrMoAC](DeveloperTests)
-* [Building a Static Documentation](DeveloperStaticDocumentation)
-* [How To Release](DeveloperHowToRelease)
+* [Testing UrMoAC](DeveloperTests.md)
+* [Building a Static Documentation](DeveloperStaticDocumentation.md)
+* [How To Release](DeveloperHowToRelease.md)

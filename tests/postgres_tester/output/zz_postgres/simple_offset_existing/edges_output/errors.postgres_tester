@@ -1,2 +1,2 @@
-org.postgresql.util.PSQLException: FEHLER: Relation »edges_output« existiert bereits
+Exception 'org.postgresql.util.PSQLException: FEHLER: Relation »edges_output« existiert bereits' occured while building the edges-output.
 Quitting on error...

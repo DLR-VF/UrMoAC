@@ -23,7 +23,7 @@ The [osm2db.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osm2db.py
 
 Consequently, the call is:
 
-```python osm2db.py <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD> <FILE>```
+```python osm2db.py <HOST>,<DB>,<SCHEMA>.<PREFIX>,<USER>,<PASSWD> <FILE>```
 
 Where:
 
@@ -50,7 +50,7 @@ After inserting the data into the database using [osm2db.py](https://github.com/
 
 The call is:
 
-```python osmdb_buildWays.py <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD>```
+```python osmdb_buildWays.py <HOST>,<DB>,<SCHEMA>.<PREFIX>,<USER>,<PASSWD>```
 
 Where:
 
@@ -104,7 +104,7 @@ Where:
 * ***&lt;DEF_FILE&gt;***: path to the definition file to use;
 * ***&lt;OUTPUT_TABLE&gt;***: definition of the database table to generate.
 
-***&lt;INPUT_TABLES_PREFIX&gt;*** is defined as following: ***&lt;HOST&gt;***,***&lt;DB&gt;***,***&lt;SCHEMA&gt;***,***&lt;PREFIX&gt;***,***&lt;USER&gt;***,***&lt;PASSWD&gt;***
+***&lt;INPUT_TABLES_PREFIX&gt;*** is defined as following: ***&lt;HOST&gt;***,***&lt;DB&gt;***,***&lt;SCHEMA&gt;***.***&lt;PREFIX&gt;***,***&lt;USER&gt;***,***&lt;PASSWD&gt;***
 
 Where:
 
@@ -115,7 +115,7 @@ Where:
 * ***&lt;USER&gt;***: the name of the user who has access (can generate tables and write into them) the database;
 * ***&lt;PASSWD&gt;***: the password of the user.
 
-***&lt;OUTPUT_TABLE&gt;*** is defined as following:***&lt;HOST&gt;***,***&lt;DB&gt;***,***&lt;SCHEMA&gt;***,***&lt;TABLE&gt;***,***&lt;USER&gt;***,***&lt;PASSWD&gt;***
+***&lt;OUTPUT_TABLE&gt;*** is defined as following:***&lt;HOST&gt;***,***&lt;DB&gt;***,***&lt;SCHEMA&gt;***.***&lt;TABLE&gt;***,***&lt;USER&gt;***,***&lt;PASSWD&gt;***
 
 Where:
 
@@ -132,7 +132,7 @@ Where:
 If accessibilities for using public transport shall be computed, UrMoAC requires the representation of the public transport offer within the region in form of [GTFS](https://developers.google.com/transit/gtfs/) data. [GTFS](https://developers.google.com/transit/gtfs/) data comes as text files. For using it with UrMoAC, it has to be imported into the database. The script [importGTFS.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/importGTFS.py) does this.
 
 [importGTFS.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/importGTFS.py) is called like the other UrMoAC import scripts:
-```python importGTFS.py <INPUT_PATH> <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD>```
+```python importGTFS.py <INPUT_PATH> <HOST>,<DB>,<SCHEMA>.<PREFIX>,<USER>,<PASSWD>```
 Where:
 
 * ***&lt;INPUT_PATH&gt;***: the path to the folder the GTFS files are located within;

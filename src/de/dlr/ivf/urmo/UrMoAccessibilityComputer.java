@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2023 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024 DLR Institute of Transport Research
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -18,6 +18,7 @@ package de.dlr.ivf.urmo;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -793,7 +794,10 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		
 		// initialise threads
 		int numThreads = options.getInteger("threads");
-		nextEdgePointer = nearestFromEdges.keySet().iterator();
+		Vector<DBEdge> fromEdges = new Vector<DBEdge>();
+		fromEdges.addAll(nearestFromEdges.keySet());
+		Collections.sort(fromEdges, (a, b) -> a.id.compareTo(b.id));  
+		nextEdgePointer = fromEdges.iterator();
 		seenEdges = 0;
 		Vector<Thread> threads = new Vector<>();
 		for (int i=0; i<numThreads; ++i) {

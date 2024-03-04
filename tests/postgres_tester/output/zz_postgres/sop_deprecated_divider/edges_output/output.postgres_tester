@@ -1,5 +1,5 @@
 
 done.
-dropping simple_offset_plain.edges_output;
-Running UrMoAC with --from sources.csv --to destinations.csv --net network.csv --epsg 0 --mode foot --time 0 --edges-output jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_plain.edges_output;urmoactests;urmoactests
+dropping sop_deprecated_divider.edges_output;
+Running UrMoAC with --from sources.csv --to destinations.csv --net network.csv --epsg 0 --mode foot --time 0 --edges-output jdbc:postgresql://localhost/urmoac_postgres_tests;sop_deprecated_divider.edges_output;urmoactests;urmoactests
 Collecting results

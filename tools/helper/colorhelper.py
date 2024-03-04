@@ -1,31 +1,46 @@
-#!/usr/bin/env python
-# =========================================================
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# =============================================================================
 # colorhelper.py
 #
-# @author Daniel Krajzewicz
-# @date 27.05.2015
-# @copyright Institut fuer Verkehrsforschung, 
-#            Deutsches Zentrum fuer Luft- und Raumfahrt
-# @brief Some helpers for dealing with (matplotlib) colors
+# Author: Daniel Krajzewicz
+# Date:   27.05.2015
 #
 # This file is part of the "UrMoAC" accessibility tool
 # https://github.com/DLR-VF/UrMoAC
 # Licensed under the Eclipse Public License 2.0
 #
-# Copyright (c) 2015-2023 DLR Institute of Transport Research
+# Copyright (c) 2015-2024 Institute of Transport Research,
+#                         German Aerospace Center
 # All rights reserved.
-# =========================================================
+# =============================================================================
+"""Colors and colormap helper."""
+# =============================================================================
+
+# --- imported modules --------------------------------------------------------
 from pylab import *
 
 
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2015-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
+
+
+# --- function definitions ----------------------------------------------------
 def lighten(c1, c2):
-  c = "#"
-  for i in range(0, 3):
-    cc1 = int(c1[1+i*2:3+i*2], 16)
-    cc2 = int(c2[1+i*2:3+i*2], 16)
-    c = c + "%0.2x" % min(255, cc1 + cc2)
-    #c = c + hex(s)[2:]
-  return c
+    c = "#"
+    for i in range(0, 3):
+        cc1 = int(c1[1+i*2:3+i*2], 16)
+        cc2 = int(c2[1+i*2:3+i*2], 16)
+        c = c + "%0.2x" % min(255, cc1 + cc2)
+        #c = c + hex(s)[2:]
+    return c
 
 def toFloat(val):
     """Converts the given value (0-255) into its hexadecimal representation"""
@@ -44,7 +59,7 @@ def toColor(val, colormap):
             return "#" + toHex(r) + toHex(g) + toHex(b)
     return "#" + toHex(colormap[-1][1][0]) + toHex(colormap[-1][1][1]) + toHex(colormap[-1][1][2]) 
 
-  
+    
 def parseColorMap(mapDef):
     somedict = {}
     ret = { "red": [], "green":[], "blue":[] }
@@ -62,5 +77,5 @@ def parseColorMap(mapDef):
         lastValue = value
     colormap = matplotlib.colors.LinearSegmentedColormap("CUSTOM", ret, 1024)
     return colormap
-    
-      
+        
+            

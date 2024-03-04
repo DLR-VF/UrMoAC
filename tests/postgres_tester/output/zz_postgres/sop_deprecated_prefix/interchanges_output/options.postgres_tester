@@ -1,2 +1,2 @@
---interchanges-output db,jdbc:postgresql://localhost/urmoac_postgres_tests,simple_offset_plain.interchanges_output,urmoactests,urmoactests
+--interchanges-output db,jdbc:postgresql://localhost/urmoac_postgres_tests,sop_deprecated_prefix.interchanges_output,urmoactests,urmoactests
 

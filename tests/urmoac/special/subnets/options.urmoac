@@ -1,2 +1,2 @@
---from sources.csv --to destinations.csv --net network.csv --od-output od_output.csv --subnets-output subnets_output.csv --epsg 0 --mode bike --time 0
+--from sources.csv --to destinations.csv --net network.csv --subnets-output subnets_output.csv --epsg 0 --mode bike --time 0
 

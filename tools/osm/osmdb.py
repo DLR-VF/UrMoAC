@@ -1,141 +1,165 @@
-#!/usr/bin/env python
-# =========================================================
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# =============================================================================
 # osmdb.py
+#
+# Author: Daniel Krajzewicz
+# Date:   01.04.2016
+#
 # This file is part of the "UrMoAC" accessibility tool
 # https://github.com/DLR-VF/UrMoAC
 # Licensed under the Eclipse Public License 2.0
 #
-# Copyright (c) 2016-2023 DLR Institute of Transport Research
+# Copyright (c) 2016-2024 Institute of Transport Research,
+#                         German Aerospace Center
 # All rights reserved.
-# 
-# @author Daniel Krajzewicz, Simon Nieland
-# @date 01.04.2016
-# @copyright Institut fuer Verkehrsforschung, 
-#            Deutsches Zentrum fuer Luft- und Raumfahrt
-# @brief Helper methods for dealing with our OSM-database representation
-# =========================================================
+# =============================================================================
+"""OSM database representation."""
+# =============================================================================
 
-
-# --- imports ---------------------------------------------
+# --- imported modules --------------------------------------------------------
 import psycopg2
 
 
-# --- class definitions -----------------------------------
+# --- meta --------------------------------------------------------------------
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright (c) 2016-2024 Institute of Transport Research, German Aerospace Center"
+__credits__    = [ "Daniel Krajzewicz" ]
+__license__    = "EPL2.0"
+__version__    = "0.8"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Development"
+
+
+# --- class definitions -------------------------------------------------------
 class OSMDB:
-    """ @class OSMDB
-    @brief A connection to a database representation of an OSM area
-    """
+    """A connection to a database representation of an OSM area."""
   
-    # --- constructors ------------------------------------
     def __init__(self, schema, dbprefix, conn, cursor):
-        """ @brief Initialises the connection
-        @param self The class instance
-        @param schema The schema the OSM data is stored in
-        @param dbprefix The prefix of the tables the OSM data is stored in
-        @param conn The connection to the database
-        @param cursor The connection cursor
+        """Constructor
+        
+        Initialises the connection
+        :param schema: The database schema to write the data to
+        :type schema: str
+        :param dbprefix: The database prefix to write the data to
+        :type dbprefix: str
+        :param conn: The connection to the database
+        :type conn: psycopg2.extensions.connection
+        :param cursor: The cursor used to write to the database
+        :type cursor: psycopg2.extensions.cursor
         """
-        self.schema = schema
-        self.dbprefix = dbprefix
-        self.conn = conn
-        self.cursor = cursor
+        self._schema = schema
+        self._dbprefix = dbprefix
+        self._conn = conn
+        self._cursor = cursor
     
 
     
     # --- db helper ---------------------------------------
-    def fetchAllFromQuery(self, query):
-        """ @brief Executes the query and fetches all results
-        @param self The class instance
-        @param query The query to execute
-        @return The results of the query
+    def _execute_fetch_all(self, query):
+        """Executes the query and fetches all results
+        :param query: The query to execute
+        :type query: str
+        :return: The results of the query
+        :rtype: 
         """
-        self.cursor.execute(query)
-        return self.cursor.fetchall()      
+        self._cursor.execute(query)
+        return self._cursor.fetchall()      
 
 
-    def tableExists(self, schema, name):
-        """ @brief Returns whether the given table already exists
-        @param self The class instance
-        @param schema The schema the table is located in
-        @param name The name of the table
-        @return Whether the table already exists
+    def table_exists(self, schema, name):
+        """Returns whether the given table already exists
+        :param schema: The schema the table is located in
+        :type schema: str
+        :param dbprefix: The name of the table
+        :type dbprefix: str
+        :return: Whether the table already exists
+        :rtype: bool
         """
         # http://stackoverflow.com/questions/20582500/how-to-check-if-a-table-exists-in-a-given-schema
-        self.cursor.execute("""SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='%s' AND table_name ='%s');""" % (schema, name))
-        self.conn.commit()   
-        ret = self.cursor.fetchall()
+        self._cursor.execute("""SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='%s' AND table_name ='%s');""" % (schema, name))
+        self._conn.commit()   
+        ret = self._cursor.fetchall()
         return ret[0][0]
   
 
   
     # --- node i/o helper ---------------------------------
-    def getNode(self, nID):
-        """ @brief Returns the node defined by the given id
-        @param self The class instance
-        @param nID The ID of the node to retrieve
-        @return The node, given as id and position
+    def get_node(self, nID):
+        """Returns the node defined by the given id
+        :param nID: The ID of the node to retrieve
+        :type nID: int
+        :return: The node, given as ID and position
+        :rtype: 
         """
-        query = "SELECT * from %s.%s_node WHERE id='%s';" % (self.schema, self.dbprefix, nID)
-        return self.fetchAllFromQuery(query)
+        query = "SELECT * from %s.%s_node WHERE id='%s';" % (self._schema, self._dbprefix, nID)
+        return self._execute_fetch_all(query)
   
   
     def getNodeKV_forID(self, nid):
-        """ @brief Returns the parameter of a node
-        @param self The class instance
-        @param wID The ID of the node to retrieve
-        @return The parameter of the node as id/key/value tuples
+        """Returns the parameter of a node
+        :param nID: The ID of the node to retrieve
+        :type nID: int
+        :return: The parameter of the node as ID/key/value tuples
+        :rtype: 
         """
-        query = "SELECT * from %s.%s_ntag WHERE id='%s';" % (self.schema, self.dbprefix, nid)
-        return self.fetchAllFromQuery(query)
+        query = "SELECT * from %s.%s_ntag WHERE id='%s';" % (self._schema, self._dbprefix, nid)
+        return self._execute_fetch_all(query)
   
   
     def getNodeKV_withMatchingKey(self, key):
-        """ @brief Returns the ids and parameter of all ways with the given key
-        @param self The class instance
-        @param key The key to get the ids and parameter for
-        @return The ids and parameter with the given key as id/key/value tuples
+        """Returns the ids and parameter of all ways with the given key
+        :param key: The key to get the ids and parameter for
+        :type key: str
+        :return: The ids and parameter with the given key as id/key/value tuples
+        :rtype: 
         """
-        query = "SELECT * from %s.%s_ntag WHERE k='%s';" % (self.schema, self.dbprefix, key)
-        return self.fetchAllFromQuery(query)
+        query = "SELECT * from %s.%s_ntag WHERE k='%s';" % (self._schema, self._dbprefix, key)
+        return self._execute_fetch_all(query)
   
     
     def getNodeKV_withMatchingKeyValue(self, key, value):
-        """ @brief Returns the ids and parameter of all nodes with the given key and the given value
-        @param self The class instance
-        @param key The key to get the ids and parameter for
-        @param value The value to get the ids and parameter for
-        @return The ids and parameter with the given key and value as id/key/value tuples
+        """Returns the ids and parameter of all nodes with the given key and the given value
+        :param key: The key to get the ids and parameter for
+        :type key: str
+        :param key: The value to get the ids and parameter for
+        :type key: str
+        :return: The ids and parameter with the given key and value as id/key/value tuples
+        :rtype: 
         """
-        query = "SELECT * from %s.%s_ntag WHERE (k='%s' AND v='%s');" % (self.schema, self.dbprefix, key, value)
-        return self.fetchAllFromQuery(query)
+        query = "SELECT * from %s.%s_ntag WHERE (k='%s' AND v='%s');" % (self._schema, self._dbprefix, key, value)
+        return self._execute_fetch_all(query)
 
 
     def getNodesWGeom(self, nIDs):
-        """ @brief Returns the ids and positions of the given nodes
+        """Returns the IDs and positions of the given nodes
         
         The positions are returned as given in the database (usually WGS84).
                 
-        @param self The class instance
-        @param nIDs a list of node ids (usually numeric)
-        @return The ids and positions of the named nodes
+        :param nIDs: A list of node IDs
+        :type nIDs: list[int]
+        :return: The IDs and positions of the named nodes
+        :rtype: 
         """
-        query = "SELECT id,ST_AsText(pos) from %s.%s_node WHERE id in ("+','.join([str(x) for x in nIDs])+");" % (self.schema, self.dbprefix)
-        return self.fetchAllFromQuery(query)
+        query = "SELECT id,ST_AsText(pos) from %s.%s_node WHERE id in ("+','.join([str(x) for x in nIDs])+");" % (self._schema, self._dbprefix)
+        return self._execute_fetch_all(query)
   
   
     def getNodes_preserveOrder(self, nIDs):
-        """ @brief Returns the ids and positions of the given nodes preserving the given order
+        """Returns the IDs and positions of the given nodes preserving the given order
         
         The positions are returned as given in the database (usually WGS84).
                 
-        @param self The class instance
-        @param nIDs a list of node ids (usually numeric)
-        @return The ids and positions of the named nodes
+        :param nIDs: A list of node IDs
+        :type nIDs: list[int]
+        :return: The IDs and positions of the named nodes
+        :rtype: 
         """
         rep = ','.join([str(x) for x in nIDs])
         # http://stackoverflow.com/questions/866465/sql-order-by-the-in-value-list
-        query = "SELECT id, ST_AsText(pos) from %s.%s_node WHERE id in (%s);" % (self.schema, self.dbprefix, rep)
-        nodes = self.fetchAllFromQuery(query)
+        query = "SELECT id, ST_AsText(pos) from %s.%s_node WHERE id in (%s);" % (self._schema, self._dbprefix, rep)
+        nodes = self._execute_fetch_all(query)
         n2pos = {}
         for n in nodes:
             n2pos[n[0]] = n[1]
@@ -150,132 +174,102 @@ class OSMDB:
 
     
     # --- way i/o helper ----------------------------------
-    def getWay(self, wID):
-        """ @brief Returns the way defined by the given id
-        @param self The class instance
-        @param wID The ID of the way to retrieve
-        @return The way, given as id and referenced items
+    def get_way(self, wID):
+        """Returns the way defined by the given ID
+
+        :param wID: The ID of the way to retrieve
+        :type nID: int
+        :return: The way, given as id and referenced items
+        :rtype: 
         """
-        query = "SELECT id,refs from %s.%s_way WHERE id='%s';" % (self.schema, self.dbprefix, wID)
-        return self.fetchAllFromQuery(query)
+        query = "SELECT id,refs from %s.%s_way WHERE id='%s';" % (self._schema, self._dbprefix, wID)
+        return self._execute_fetch_all(query)
   
 
     def getWayKV_forID(self, wID):
-        """ @brief Returns the parameter of a way
-        @param self The class instance
-        @param wID The ID of the way to retrieve
-        @return The parameter of the way as id/key/value tuples
+        """Returns the parameter of a way
+        :param wID: The ID of the way to retrieve
+        :type wID: int
+        :return: The parameter of the way as id/key/value tuples
+        :rtype: 
         """
-        query = "SELECT * from %s.%s_wtag WHERE id='%s';" % (self.schema, self.dbprefix, wID)
-        return self.fetchAllFromQuery(query)
+        query = "SELECT * from %s.%s_wtag WHERE id='%s';" % (self._schema, self._dbprefix, wID)
+        return self._execute_fetch_all(query)
 
   
     def getWayKV_withMatchingKey(self, key):
-        """ @brief Returns the ids and parameter of all ways with the given key
-        @param self The class instance
-        @param key The key to get the ids and parameter for
-        @return The ids and parameter with the given key as id/key/value tuples
+        """Returns the IDs and parameter of all ways with the given key
+        :param key: The key to get the IDs and parameter for
+        :type key: str
+        :return: The IDs and parameter with the given key as id/key/value tuples
+        :rtype: 
         """
-        query = "SELECT * from %s.%s_wtag WHERE k='%s';" % (self.schema, self.dbprefix, key)
-        return self.fetchAllFromQuery(query)
+        query = "SELECT * from %s.%s_wtag WHERE k='%s';" % (self._schema, self._dbprefix, key)
+        return self._execute_fetch_all(query)
   
   
     def getWayKV_withMatchingKeyValue(self, key, value):
-        """ @brief Returns the ids and parameter of all ways with the given key and the given value
-        @param self The class instance
-        @param key The key to get the ids and parameter for
-        @param value The value to get the ids and parameter for
-        @return The ids and parameter with the given key and value as id/key/value tuples
+        """Returns the IDs and parameter of all ways with the given key and the given value
+        :param key: The key to get the IDs and parameter for
+        :type key: str
+        :param value: The value to get the IDs and parameter for
+        :type value: str
+        :return: The IDs and parameter with the given key and value as id/key/value tuples
+        :rtype: 
         """
-        query = "SELECT * from %s.%s_wtag WHERE k='%s' AND v='%s';" % (self.schema, self.dbprefix, key, value)
-        return self.fetchAllFromQuery(query)
+        query = "SELECT * from %s.%s_wtag WHERE k='%s' AND v='%s';" % (self._schema, self._dbprefix, key, value)
+        return self._execute_fetch_all(query)
 
 
   
     # --- releation i/o helper ----------------------------
     def getRelationKV_forID(self, wID):
-        """ @brief Returns the parameter of a relation
-        @param self The class instance
-        @param wID The ID of the relation to retrieve
-        @return The parameter of the node as id/key/value tuples
+        """Returns the parameter of a relation
+        :param wID: The ID of the relation to retrieve
+        :type wID: int
+        :return: The parameter of the node as id/key/value tuples
+        :rtype: 
         """
-        query = "SELECT * from %s.%s_rtag WHERE id='%s';" % (self.schema, self.dbprefix, wID)
-        return self.fetchAllFromQuery(query)
+        query = "SELECT * from %s.%s_rtag WHERE id='%s';" % (self._schema, self._dbprefix, wID)
+        return self._execute_fetch_all(query)
   
   
     def getRelationKV_withMatchingKey(self, key):
-        """ @brief Returns the ids and parameter of all relations with the given key
-        @param self The class instance
-        @param key The key to get the ids and parameter for
-        @return The ids and parameter with the given key as id/key/value tuples
+        """Returns the ids and parameter of all relations with the given key
+        :param key: The key to get the ids and parameter for
+        :type key: str
+        :return: The IDs and parameter with the given key as id/key/value tuples
+        :rtype: 
         """
-        query = "SELECT * from %s.%s_rtag WHERE k='%s';" % (self.schema, self.dbprefix, key)
-        return self.fetchAllFromQuery(query)
+        query = "SELECT * from %s.%s_rtag WHERE k='%s';" % (self._schema, self._dbprefix, key)
+        return self._execute_fetch_all(query)
   
 
     def getRelationKV_withMatchingKeyValue(self, key, value):
-        """ @brief Returns the ids and parameter of all relations with the given key and the given value
-        @param self The class instance
-        @param key The key to get the ids and parameter for
-        @param value The value to get the ids and parameter for
-        @return The ids and parameter with the given key and value as id/key/value tuples
+        """Returns the IDs and parameter of all relations with the given key and the given value
+        :param key: The key to get the IDs and parameter for
+        :type key: str
+        :param value: The value to get the IDs and parameter for
+        :type value: str
+        :return: The IDs and parameter with the given key and value as id/key/value tuples
+        :rtype: 
         """
-        query = "SELECT * from %s.%s_rtag WHERE k='%s' AND v='%s';" % (self.schema, self.dbprefix, key, value)
-        return self.fetchAllFromQuery(query)
+        query = "SELECT * from %s.%s_rtag WHERE k='%s' AND v='%s';" % (self._schema, self._dbprefix, key, value)
+        return self._execute_fetch_all(query)
   
 
     def getMembers_forID(self, rID):
-        """ @brief Returns the members of the relation with the given id
-        @param self The class instance
-        @param rID The id of the relation to get the members for
-        @return The members of the given relation
+        """Returns the members of the relation with the given id
+        :param rID: The ID of the relation to get the members for
+        :type rID: int
+        :return: The members of the given relation
+        :rtype: 
         """
-        query = "SELECT * from %s.%s_member WHERE rid=%s ORDER BY idx;" % (self.schema, self.dbprefix, rID)
-        return self.fetchAllFromQuery(query)
+        query = "SELECT * from %s.%s_member WHERE rid=%s ORDER BY idx;" % (self._schema, self._dbprefix, rID)
+        return self._execute_fetch_all(query)
 
   
 
-    # --- geometry i/o helper -----------------------------
-    def addPolygon(self, tableName, rID, rtype, rNodes, rGeom):
-        """ @brief Adds a polygon with the given parameters to the given table
-        @param self The class instance
-        @param tableName The name of the table to add the polygon to
-        @param rID The name of the polygon
-        @param rtype The MML-type of the polygon
-        @param rNodes The OSM nodes the polygon consists of
-        @param rGeom The list of vertices the polygon consists of
-        @todo Where is this needed?
-        """
-        self.cursor.execute("INSERT INTO %s.%s(id, type, nodes, shape) VALUES (%s, '%s', '{{%s}}', ST_GeomFromText('POLYGON((%s))', 4326));" % (self.schema, tableName, rID, rtype, ','.join([str(x) for x in rNodes]), rGeom))
-        self.conn.commit()       
-    
-
-    def addLineString(self, tableName, rID, rtype, rNodes, rGeom):
-        """ @brief Adds a linestring with the given parameters to the given table
-        @param self The class instance
-        @param tableName The name of the table to add the polygon to
-        @param rID The name of the linestring
-        @param rtype The MML-type of the linestring
-        @param rNodes The OSM nodes the linestring consists of
-        @param rGeom The list of vertices the linestring consists of
-        @todo Where is this needed?
-        """
-        self.cursor.execute("INSERT INTO %s.%s(id, type, nodes, shape) VALUES (%s, '%s', '{{%s}}', ST_GeomFromText('LINESTRING(%s)', 4326));" % (self.schema, tableName, rID, rtype, ','.join([str(x) for x in rNodes]), rGeom))
-        self.conn.commit()   
-    
-    def addPoI(self, tableName, rID, rtype, rNode, rGeom):
-        """ @brief Adds a PoI with the given parameters to the given table
-        @param self The class instance
-        @param tableName The name of the table to add the polygon to
-        @param rID The name of the PoI
-        @param rtype The MML-type of the PoI
-        @param rNodes The OSM node the PoI represents
-        @param rGeom The vertex of this PoI
-        @todo Where is this needed?
-        """
-        self.cursor.execute("INSERT INTO %s.%s(id, type, node, shape) VALUES (%s, '%s', %s, ST_GeomFromText('POINT(%s)', 4326));" % (self.schema, tableName, rID, rtype, rNode, rGeom))
-        self.conn.commit()   
-    
     
     
     

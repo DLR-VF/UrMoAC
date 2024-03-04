@@ -4,7 +4,7 @@
 Most of the visualisation we do is done using Python and matplotlib. But you may as well use usual geo information systems (GIS) for this purpose. This tutorial shows how to visualise UrMoAC results with [QGIS](https://www.qgis.org/).
 
 ## Prerequisites
-Let&apos;s assume you&apos;d have computed the accessibility from buildings to the next public transport halt as described within the tutorial &#8220;[Computing the accessibility to the next public transport halt](TutorialNextPTHalt)&#8221;.
+Let&apos;s assume you&apos;d have computed the accessibility from buildings to the next public transport halt as described within the tutorial &#8220;[Computing the accessibility to the next public transport halt](TutorialNextPTHalt.md)&#8221;.
 
 This means, you have the following tables:
 
