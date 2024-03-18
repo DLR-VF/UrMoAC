@@ -193,7 +193,7 @@ class OSMExtractor:
             #  print ("%s %s" % (subtype, o))
         # scan for duplicates
         print ("Scanning for duplicates")
-        have_next = 0
+        next_id = 0
         seenIDs = set()
         for subtype in ["node", "way", "rel"]:
             for id in self._objectIDs[subtype]:
@@ -202,11 +202,11 @@ class OSMExtractor:
                     continue
                 pid = id
                 while True:
-                    id = have_next
-                    have_next += 1
+                    id = next_id
+                    next_id += 1
                     if id not in seenIDs:
                         seenIDs.add(id)
-                        self._idMapping[subtype][id] = pid
+                        self._idMapping[subtype][pid] = id
                         print (" Found duplicate id '%s'. Renaming %s to '%s'." % (pid, subtype, id))
                         break
    
