@@ -59,7 +59,7 @@ You may note that the tool reports about unknown highway or railway tags. Usuall
 Use the tool [osmdb_buildStructures.py](./ImportScripts.md#using-openstreetmap-data-to-build-tables-of-certain-structures) to import buildings by calling:
 
 ```console
-...\tools\osm>python osmdb_buildStructures.py localhost,urmoac,berlin.osm20230428,<USER>,<PASSWD> structure_defs/def_buildings.txt localhost,urmoac,berlin,osm20230428_buildings,<USER>,<PASSWD>
+...\tools\osm>python osmdb_buildStructures.py localhost,urmoac,berlin.osm20230428,<USER>,<PASSWD> structure_defs/def_buildings.txt localhost,urmoac,berlin.osm20230428_buildings,<USER>,<PASSWD>
 ```
 
 You will obtain a table named &ldquo;osm20230428_buildings&rdquo; that includes the buildings. The process took about 1 minute on my computer.
@@ -68,7 +68,7 @@ You will obtain a table named &ldquo;osm20230428_buildings&rdquo; that includes 
 Again, you may use [osmdb_buildStructures.py](./ImportScripts.md#using-openstreetmap-data-to-build-tables-of-certain-structures) to import public transport halts. The call is:
 
 ```console
-...\tools\osm>python osmdb_buildStructures.py localhost,urmoac,berlin.osm20230428,<USER>,<PASSWD> structure_defs/def_pt_halts.txt localhost,urmoac,berlin,osm20230428_pthalts,<USER>,<PASSWD>
+...\tools\osm>python osmdb_buildStructures.py localhost,urmoac,berlin.osm20230428,<USER>,<PASSWD> structure_defs/def_pt_halts.txt localhost,urmoac,berlin.osm20230428_pthalts,<USER>,<PASSWD>
 ```
 
 You will obtain a table named &ldquo;osm20230428_pthalts&rdquo; that includes the public transport halts.
@@ -77,7 +77,7 @@ You will obtain a table named &ldquo;osm20230428_pthalts&rdquo; that includes th
 For a nicer visualisation, we need Berlin's boundary. Again,  [osmdb_buildStructures.py](./ImportScripts.md#using-openstreetmap-data-to-build-tables-of-certain-structures) is used. The call is:
 
 ```console
-...\tools\osm>python osmdb_buildStructures.py localhost,urmoac,berlin.osm20230428,<USER>,<PASSWD> structure_defs/def_city_boundaries.txt localhost,urmoac,berlin,osm20230428_boundary,<USER>,<PASSWD>
+...\tools\osm>python osmdb_buildStructures.py localhost,urmoac,berlin.osm20230428,<USER>,<PASSWD> structure_defs/def_city_boundaries.txt localhost,urmoac,berlin.osm20230428_boundary,<USER>,<PASSWD>
 ```
 
 You will obtain a table named &ldquo;osm20230428_boundary&rdquo; that includes the city boundaries.
@@ -98,12 +98,12 @@ The options mean the following:
 * __--to "jdbc:postgresql://localhost/urmoac,berlin.osm20230428_pthalts,&lt;USER&gt;,&lt;PASSWD&gt;"__: use the public transport halts stored in the database table berlin.osm20210310_buildings as destinations
 * __--to.geom centroid__: use the generated centroids as destinations' positions
 * __--net "jdbc:postgresql://localhost/urmoac,berlin.osm20230428_network,&lt;USER&gt;,&lt;PASSWD&gt;"__: use the network stored in berlin.osm20181028_network for routing
-* __--time 28800__: we do need the time definitions; eventually, this is irrelevant for most modes
+* __--time 28800__: we do need the time definition; eventually, this is irrelevant for most modes
 * __--mode foot__: define that we want to compute accessibilities for walking
 * __--epsg 25833__: define the projection
 * __--od-output "jdbc:postgresql://localhost/urmoac,berlin.osm20230428_houses2pthalts,&lt;USER&gt;,&lt;PASSWD&gt;"__: write a basic output to the database table osm20230428_houses2pthalts
 * __--verbose__: report what you do
-* __--shortest__: we want the access to the next public transport halt
+* __--shortest__: we want the access to the next public transport halt only
 
 Given this, the tool will generate the table &ldquo;berlin.osm20230428_houses2pthalts&rdquo; which contains the following information for each origin (building) stored row-by-row:
 

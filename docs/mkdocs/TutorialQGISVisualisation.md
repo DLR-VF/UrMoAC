@@ -30,7 +30,7 @@ Now, select the layer&#39;s visualisation tab &#8220;Symbology&#8221;. Choose &#
 
 # ![qgis_berlin_buildings25833colored.png](./images/qgis_berlin_buildings25833colored.png)
 
-Yes, most of the area is white&#8230; Let&#39;s zoom at our institute&#39;s location, add the road network, and the public transport halts&#8230;
+Yes, most of the area is white&#8230; Let&#39;s zoom at our institute&#39;s location, add the road network, and the public transport halts&#8230;. You will get a map that shows the time needed to access the next public transport halt by foot.
 
 # ![qgis_berlin_buildings25833colored_complete.png](./images/qgis_berlin_buildings25833colored_complete.png)
 

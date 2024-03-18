@@ -32,9 +32,9 @@ An origin or a destination is represented using the following attributes in the 
 | the_geom | PostGIS-Geometry | Defines the object&apos;s position in space |
 | N/A (optional) | double | Weights the object |
 
-To load objects from a database, you have to give the complete path to the according database table as well as the credentials needed to access it. As such, the call to load origins from a database looks like: __--from jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___, where:
+To load objects from a database, you have to give the complete path to the according database table as well as the credentials needed to access it. As such, the call to load origins from a database looks like: __--from jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___ where:
 
-* ___&lt;DB_HOST&gt;___ is the adress of the database server
+* ___&lt;DB\_HOST&gt;___ is the adress of the database server
 * ___&lt;SCHEMA&gt;___ is the database schema the table is located within
 * ___&lt;TABLE&gt;___ is the name of the database table
 * ___&lt;USER&gt;___ is the name of the user that can read the table
@@ -144,7 +144,7 @@ The file type is recognized by the extension, i.e. use __--from-agg _&lt;MYFILE&
 
 ### File (.wkt) Format
 
-You may load aggregation areas from .wkt-files. Here, every area is stored in one line individually. The geometry must be a polygon, stored as WKT. The following example defines an aggregation area with ID &ldquo;1000&rdquo; having a box shape between -200;-200 and 200;200:
+You may load aggregation areas from .wkt-files. Here, every area is stored in one line individually. The geometry must be a closed polygon, stored as WKT. The following example defines an aggregation area with ID &ldquo;1000&rdquo; having a box shape between -200;-200 and 200;200:
 
 ```1000;POLYGON((-200 -200, 200 -200, 200 200, -200 200, -200 -200))```
 
@@ -214,7 +214,7 @@ Use __--net jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_
 
 ### File (.csv) Format
 
-You may load networks from .csv-files. Within a network .csv-file, every road is stored in a single line. 
+You may load networks from .csv-files. Within a network .csv-file, every (always unidirectional) road is stored in a single line. 
 
 The following example defines a road with the ID &ldquo;10000&rdquo; connecting nodes 0 and 1, where all modes are allowed. The maximum velocity is 50 km/h, the length is 500 m. The geometry simply spans between the connected nodes.
 
@@ -222,7 +222,7 @@ The following example defines a road with the ID &ldquo;10000&rdquo; connecting 
 
 The boolean values for &ldquo;foot&rdquo;, &ldquo;bike&rdquo;, and &ldquo;car&rdquo; may be encodes as &ldquo;true&rdquo; or &ldquo;1&rdquo; when the respective mode is allowed, &ldquo;false&rdquo; or &ldquo;0&rdquo; otherwise.
 
-Please note that no projection is applied to aggregation areas stored in .csv files, thereby you should set __--epsg 0__.
+Please note that no projection is applied to networks stored in .csv files, thereby you should set __--epsg 0__.
 
 The file type is recognized by the extension, i.e. use __--net _&lt;MYFILE&gt;.csv___ to load a network from a .csv-file.
 
@@ -256,7 +256,7 @@ The file type is recognized by the extension, i.e. use __--net _&lt;MYFILE&gt;_.
 
 ## Speed Time Lines
 
-The average travel time when riding a vehicle depends on the current situation on the roads. Thereby, it is not sufficient to use the maximum allowed velocity. Instead, one should as well define speed time lines. Each entry in the according dataset defines the speed of a single road for a defined time span. Each entry has the following fields:
+The average travel time when driving a vehicle depends on the current situation on the roads. Thereby, it is not sufficient to use the maximum allowed velocity. Instead, one should as well define speed time lines. Each entry in the according dataset defines the speed of a single road for a defined time span. Each entry has the following fields:
 
 * edge ID: The ID of the edge as given in the network description
 * begin time: The begin of the time span in seconds
@@ -342,7 +342,7 @@ Use __--od-connections _&lt;MYFILE&gt;.csv;___ to load OD-connections from a .cs
 There are different rules for entraining own mobility options within public transport. E.g., it is allowed to take a bike on board of a city rail (S-Bahn) and metro (U-Bahn) as well as of a tram in Berlin, but not allowed to take it into a bus. The entrainment table contains entrainment possibilities. Each allowed entrainment is defined by the following attributes:
 
 * carrier: the major UrMoAC mode, yet usually &ldquo;pt&rdquo; for public transport;
-* carrier_subtype: a __numeric__ ID of the pt carrier type, not necessarily as defined in the GTFS standard for the &ldquo;route_type&rdquo; attribute stored in &ldquo;[routes.txt](https://gtfs.org/schedule/reference/#routestxt)&rdquo;;
+* carrier_subtype: a __numeric__ ID of the pt carrier type as defined by the &ldquo;route_type&rdquo; attribute stored in &ldquo;[routes.txt](https://gtfs.org/schedule/reference/#routestxt)&rdquo;; Please note that it may differ from the GTFS standard;
 * carried: the UrMoAC mode that may be entrained.
 
 The following options are used in combination with this data type:
