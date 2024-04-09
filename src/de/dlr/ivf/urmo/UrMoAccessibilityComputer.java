@@ -93,7 +93,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	long seenEdges = 0;
 	/// @brief Whether this runs in verbose mode
 	boolean verbose = false;
-	/// @brief The route weight computation function
+	/// @brief The route length computation function
 	AbstractRouteWeightFunction measure = null; // TODO: add documentation on github
 	/// @brief The results processor
 	DijkstraResultsProcessor resultsProcessor = null;
@@ -306,8 +306,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("subnets", "When set, unconnected network parts are not removed.");
 		
 		options.beginSection("Weighting Options");
-		options.add("weight", 'W', new Option_String(""));
-		options.setDescription("weight", "An optional weighting attribute for the origins.");
+		options.add("length", 'W', new Option_String(""));
+		options.setDescription("length", "An optional weighting attribute for the origins.");
 		options.add("variable", 'V', new Option_String(""));
 		options.setDescription("variable", "An optional destinations' variable to collect.");
 
@@ -329,9 +329,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("measure", new Option_String());
 		options.setDescription("measure", "The measure to use during the routing ['tt_mode', 'price_tt', 'interchanges_tt', 'maxinterchanges_tt'].");
 		options.add("measure-param1", new Option_Double());
-		options.setDescription("measure-param1", "First parameter of the chosen weight function.");
+		options.setDescription("measure-param1", "First parameter of the chosen length function.");
 		options.add("measure-param2", new Option_Double());
-		options.setDescription("measure-param2", "Second parameter of the chosen weight function.");
+		options.setDescription("measure-param2", "Second parameter of the chosen length function.");
 		
 		options.beginSection("Public Transport Options");
 		options.add("pt-boundary", new Option_String());
@@ -510,7 +510,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	
 	
 	/**
-	 * @brief Checks whether the needed route weight function parameter are set
+	 * @brief Checks whether the needed route length function parameter are set
 	 * @param options The options container to check
 	 * @param num The number of needed parameters
 	 * @return Whether the needed number of parameters has been defined
@@ -547,7 +547,6 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 * @param[in] options The options to use
 	 * @return Whether everything went good
 	 * @throws IOException When accessing a file failed
-	 * @throws ParseException 
 	 */
 	protected boolean init(OptionsCont options) throws IOException {
 		verbose = options.getBool("verbose");
@@ -607,8 +606,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		}
 		// -------- loading
 		boolean dismissWeight = !options.isSet("from-agg");
-		if(dismissWeight && !options.isDefault("weight")) {
-			System.out.println("Warning: the weight option is not used as no aggregation takes place.");
+		if(dismissWeight && !options.isDefault("length")) {
+			System.out.println("Warning: the length option is not used as no aggregation takes place.");
 		}
 
 		// net
@@ -633,7 +632,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 
 		// from
 		if (verbose) System.out.println("Reading origin places");
-		Layer fromLayer = InputReader.loadLayer(options, bounds, "from", "weight", dismissWeight, this, epsg); 
+		Layer fromLayer = InputReader.loadLayer(options, bounds, "from", "length", dismissWeight, this, epsg);
 		if (verbose) System.out.println(" " + fromLayer.getObjects().size() + " origin places loaded");
 		if (fromLayer.getObjects().size()==0) {
 			hadError = true;
@@ -731,7 +730,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				}
 				measure = new RouteWeightFunction_MaxInterchange_TT((int) options.getDouble("measure-param1"));
 			} else if(!"tt_mode".equals(t)) {
-				System.err.println("Error: the route weight function '" + t + "' is not known.");
+				System.err.println("Error: the route length function '" + t + "' is not known.");
 				hadError = true;
 			}
 		}
@@ -751,7 +750,6 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 * @return Whether everything went good
 	 * @throws SQLException When accessing the database failed
 	 * @throws IOException When accessing a file failed
-	 * @throws ParseException When an option could not been parsed
 	 */
 	protected boolean run(OptionsCont options) throws IOException {
 		int maxNumber = options.isSet("max-number") ? options.getInteger("max-number") : -1;

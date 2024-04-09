@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -140,7 +140,7 @@ public class InputReader {
 	 * @param bounds The bounds to clip the read thing to
 	 * @param base The layer/type ("from", "to") of the objects to load
 	 * @param varName Name of the variable field
-	 * @param dismissWeight Whether the weight shall be discarded
+	 * @param dismissWeight Whether the length shall be discarded
 	 * @param idGiver An instance to retrieve new ids from
 	 * @param epsg The used projection
 	 * @return The generated layer with the read objects
@@ -250,7 +250,7 @@ public class InputReader {
 	 * @param bounds The bounds to clip the read thing to
 	 * @param fileName The name of the file to read
 	 * @param idGiver A reference to something that supports a running ID
-	 * @param dismissWeight Whether the weight shall be discarded
+	 * @param dismissWeight Whether the length shall be discarded
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
@@ -289,7 +289,7 @@ public class InputReader {
 					} else {
 						if(!dismissWeightReported) {
 							dismissWeightReported = true;
-							System.out.println("Warning: the weight option is not used as no aggregation takes place.");
+							System.out.println("Warning: the length option is not used as no aggregation takes place.");
 						}
 					}
 				}
@@ -308,7 +308,7 @@ public class InputReader {
 	 * @param bounds The bounds to clip the read thing to
 	 * @param fileName The name of the file to read
 	 * @param idGiver A reference to something that supports a running ID
-	 * @param dismissWeight Whether the weight shall be discarded
+	 * @param dismissWeight Whether the length shall be discarded
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
@@ -332,7 +332,7 @@ public class InputReader {
 						} else {
 							if(!dismissWeightReported) {
 								dismissWeightReported = true;
-								System.out.println("Warning: the weight option is not used as no aggregation takes place.");
+								System.out.println("Warning: the length option is not used as no aggregation takes place.");
 							}
 						}
 					}

@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -27,7 +27,6 @@ import de.dlr.ivf.urmo.router.shapes.LayerObject;
  * @class PTODMeasuresGenerator
  * @brief Interprets a path to build an PTODSingleResult
  * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
- * @param <T>
  */
 public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult> {
 	/**
@@ -141,7 +140,7 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 			e.weightedEgressDistance = 0;
 			e.weightedEgressTravelTime = 0;
 		}
-		// apply weight
+		// apply length
 		e.weightedInterchangesNum = Math.max(0, (double) trips.size() - 1.);
 		e.weightedDistance = e.dist * e.val;
 		e.weightedTravelTime = e.tt * e.val;

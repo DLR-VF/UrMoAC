@@ -158,47 +158,47 @@ def commitRoads(conn, cursor, schema, dbprefix):
 # http://wiki.openstreetmap.org/wiki/OSM_tags_for_routing/Access-Restrictions#Germany
 highways = {
     """ @brief Default road / rail values """
-    "highway_motorway":{"mode":MOTORISED, "vmax":160, "oneway":True, "lanes":2},
-    "highway_motorway_link":{"mode":MOTORISED, "vmax":80, "oneway":True, "lanes":1},
-    "highway_trunk":{"mode":ALL, "vmax":100, "lanes":2},
-    "highway_trunk_link":{"mode":ALL, "vmax":80, "lanes":1},
-    "highway_primary":{"mode":ALL, "vmax":100, "lanes":2}, 
-    "highway_primary_link":{"mode":ALL, "vmax":80, "lanes":1},
-    "highway_secondary":{"mode":ALL, "vmax":100, "lanes":2}, 
-    "highway_secondary_link":{"mode":ALL, "vmax":80, "lanes":1},
-    "highway_tertiary":{"mode":ALL, "vmax":80, "lanes":1},
-    "highway_tertiary_link":{"mode":ALL, "vmax":80, "lanes":1},
-    "highway_unclassified":{"mode":ALL, "vmax":80, "lanes":1},
-    "highway_residential":{"mode":ALL, "vmax":50, "lanes":1},
-    "highway_living_street":{"mode":ALL, "vmax":10, "lanes":1},
-    "highway_road":{"mode":ALL, "vmax":30, "lanes":1},
-    #"highway_proposed":{"mode":ALL, "vmax":50, "lanes":1},
-    #"highway_construction":{"mode":ALL, "vmax":50, "lanes":1},
-    "highway_service":{"mode":DELIVERY, "vmax":20, "lanes":1},
-    "highway_track":{"mode":ALL, "vmax":20, "lanes":1},  # all only if destination (http://wiki.openstreetmap.org/wiki/OSM_tags_for_routing/Access-Restrictions#Germany)
-    "highway_services":{"mode":ALL, "vmax":30, "lanes":1},
-    "highway_unsurfaced":{"mode":ALL, "vmax":30, "lanes":1},
+    "highway_motorway":{"alternativeMode":MOTORISED, "vmax":160, "oneway":True, "lanes":2},
+    "highway_motorway_link":{"alternativeMode":MOTORISED, "vmax":80, "oneway":True, "lanes":1},
+    "highway_trunk":{"alternativeMode":ALL, "vmax":100, "lanes":2},
+    "highway_trunk_link":{"alternativeMode":ALL, "vmax":80, "lanes":1},
+    "highway_primary":{"alternativeMode":ALL, "vmax":100, "lanes":2},
+    "highway_primary_link":{"alternativeMode":ALL, "vmax":80, "lanes":1},
+    "highway_secondary":{"alternativeMode":ALL, "vmax":100, "lanes":2},
+    "highway_secondary_link":{"alternativeMode":ALL, "vmax":80, "lanes":1},
+    "highway_tertiary":{"alternativeMode":ALL, "vmax":80, "lanes":1},
+    "highway_tertiary_link":{"alternativeMode":ALL, "vmax":80, "lanes":1},
+    "highway_unclassified":{"alternativeMode":ALL, "vmax":80, "lanes":1},
+    "highway_residential":{"alternativeMode":ALL, "vmax":50, "lanes":1},
+    "highway_living_street":{"alternativeMode":ALL, "vmax":10, "lanes":1},
+    "highway_road":{"alternativeMode":ALL, "vmax":30, "lanes":1},
+    #"highway_proposed":{"alternativeMode":ALL, "vmax":50, "lanes":1},
+    #"highway_construction":{"alternativeMode":ALL, "vmax":50, "lanes":1},
+    "highway_service":{"alternativeMode":DELIVERY, "vmax":20, "lanes":1},
+    "highway_track":{"alternativeMode":ALL, "vmax":20, "lanes":1},  # all only if destination (http://wiki.openstreetmap.org/wiki/OSM_tags_for_routing/Access-Restrictions#Germany)
+    "highway_services":{"alternativeMode":ALL, "vmax":30, "lanes":1},
+    "highway_unsurfaced":{"alternativeMode":ALL, "vmax":30, "lanes":1},
 
-    # TODO: we should decide which of the following ones may be used by which mode
-    "highway_path":{"mode":SOFT, "vmax":10, "lanes":1},
-    "highway_bridleway":{"mode":HORSE, "vmax":10, "lanes":1},
-    "highway_cycleway":{"mode":BICYCLE|MOPED, "vmax":10, "lanes":1},
-    "highway_pedestrian":{"mode":FOOT, "vmax":10, "lanes":1},
-    "highway_footway":{"mode":FOOT, "vmax":10, "lanes":1},
-    "highway_step":{"mode":SOFT, "vmax":10, "lanes":1},
-    "highway_steps":{"mode":SOFT, "vmax":10, "lanes":1},
-    "highway_stairs":{"mode":SOFT, "vmax":10, "lanes":1},
-    "highway_bus_guideway":{"mode":BUS, "vmax":50, "lanes":1},
+    # TODO: we should decide which of the following ones may be used by which alternativeMode
+    "highway_path":{"alternativeMode":SOFT, "vmax":10, "lanes":1},
+    "highway_bridleway":{"alternativeMode":HORSE, "vmax":10, "lanes":1},
+    "highway_cycleway":{"alternativeMode":BICYCLE|MOPED, "vmax":10, "lanes":1},
+    "highway_pedestrian":{"alternativeMode":FOOT, "vmax":10, "lanes":1},
+    "highway_footway":{"alternativeMode":FOOT, "vmax":10, "lanes":1},
+    "highway_step":{"alternativeMode":SOFT, "vmax":10, "lanes":1},
+    "highway_steps":{"alternativeMode":SOFT, "vmax":10, "lanes":1},
+    "highway_stairs":{"alternativeMode":SOFT, "vmax":10, "lanes":1},
+    "highway_bus_guideway":{"alternativeMode":BUS, "vmax":50, "lanes":1},
   
     # 
-    "highway_raceway":{"mode":CLOSED, "vmax":160, "lanes":1},
-    "highway_ford":{"mode":CLOSED, "vmax":10, "lanes":1},
+    "highway_raceway":{"alternativeMode":CLOSED, "vmax":160, "lanes":1},
+    "highway_ford":{"alternativeMode":CLOSED, "vmax":10, "lanes":1},
 
-    "railway_rail":{"mode":RAIL, "vmax":300, "oneway":True, "lanes":1},
-    "railway_tram":{"mode":RAIL, "vmax":100, "oneway":True, "lanes":1},
-    "railway_light_rail":{"mode":RAIL, "vmax":100, "oneway":True, "lanes":1},
-    "railway_subway":{"mode":RAIL, "vmax":100, "oneway":True, "lanes":1},
-    "railway_preserved":{"mode":RAIL, "vmax":100, "oneway":True, "lanes":1}
+    "railway_rail":{"alternativeMode":RAIL, "vmax":300, "oneway":True, "lanes":1},
+    "railway_tram":{"alternativeMode":RAIL, "vmax":100, "oneway":True, "lanes":1},
+    "railway_light_rail":{"alternativeMode":RAIL, "vmax":100, "oneway":True, "lanes":1},
+    "railway_subway":{"alternativeMode":RAIL, "vmax":100, "oneway":True, "lanes":1},
+    "railway_preserved":{"alternativeMode":RAIL, "vmax":100, "oneway":True, "lanes":1}
 }
 
 
@@ -343,7 +343,7 @@ def getVMax(defaultSpeed, params):
 
 
 accessAllows = {
-    """ @brief A mapping of mode restrictions"""
+    """ @brief A mapping of alternativeMode restrictions"""
     "yes":True,
     "private":False,
     "no":False,
@@ -364,7 +364,7 @@ accessAllows = {
 
 
 def getModes(rid, defaultModes, params):
-    """ @brief Determines and returns the mode restrictions of this road
+    """ @brief Determines and returns the alternativeMode restrictions of this road
     @param rid The ID of this road
     @param defaultModes The modes allowed per default
     @param params The parameter of this road
@@ -400,7 +400,7 @@ def getModes(rid, defaultModes, params):
         else:  
             if not accessAllows[access]:
                 defaultModes = defaultModes & ~ALL
-    # - per mode
+    # - per alternativeMode
     for m in modes1:
         modeAccess = params.get(modes1[m]["mml"])
         params.consume(modes1[m]["mml"])
@@ -523,15 +523,15 @@ def main(argv):
                 # get and check params
                 params = getParams(db.getWayKV_forID(hID))
       
-                defaultModes = highways[htype]["mode"]
+                defaultModes = highways[htype]["alternativeMode"]
                 if upperType=="highway" and params.get("railway")!=None:
                     ut2 = "railway_" + params.get("railway")
                     if ut2 in highways:
-                        defaultModes = defaultModes | highways[ut2]["mode"] 
+                        defaultModes = defaultModes | highways[ut2]["alternativeMode"]
                 if upperType=="railway" and params.get("highway")!=None:
                     ut2 = "highway_" + params.get("highway")
                     if ut2 in highways:
-                        defaultModes = defaultModes | highways[ut2]["mode"] 
+                        defaultModes = defaultModes | highways[ut2]["alternativeMode"]
                 modes, cycleway, sidewalk = getModes(hID, defaultModes, params)
       
                 defaultOneway = "oneway" in highways[htype] and highways[htype]["oneway"] 

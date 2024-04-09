@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -57,7 +57,6 @@ class SUMONetHandler extends DefaultHandler {
 	
 	
 	/** @brief Constructor
-	 * @param layer The layer to add the read objects to
 	 */
 	public SUMONetHandler(DBNet net, long uModes) {
 		_net = net;

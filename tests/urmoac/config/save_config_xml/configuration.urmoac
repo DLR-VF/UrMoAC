@@ -2,7 +2,7 @@
    <from>sources.csv</from>
    <to>destinations.csv</to>
    <net>network.csv</net>
-   <mode>bicycle</mode>
+   <alternativeMode>bicycle</alternativeMode>
    <from-agg>agg_sources.csv</from-agg>
    <to-agg>agg_destinations.csv</to-agg>
    <epsg>0</epsg>

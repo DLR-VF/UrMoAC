@@ -19,24 +19,34 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.System.Logger.Level;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Vector;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import de.dlr.ivf.urmo.router.spring.mode.AlternativeMode;
+import de.dlr.ivf.urmo.router.spring.model.NetWrapper;
+import de.dlr.ivf.urmo.router.spring.net.Edge;
+import de.dlr.ivf.urmo.router.spring.net.Node;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
+import org.jgrapht.Graph;
+import org.jgrapht.Graphs;
+import org.jgrapht.alg.connectivity.ConnectivityInspector;
+import org.jgrapht.graph.AsSubgraph;
+import org.jgrapht.graph.DirectedWeightedPseudograph;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -49,7 +59,6 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
@@ -68,6 +77,8 @@ import de.dlr.ivf.urmo.router.shapes.IDGiver;
  * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
  */
 public class NetLoader {
+
+	private static System.Logger logger = System.getLogger(NetLoader.class.getName());
 	/** @brief Loads the road network
 	 * @param idGiver Instance supporting running ids 
 	 * @param def Source definition
@@ -139,7 +150,7 @@ public class NetLoader {
 				if(rs.getBoolean("mode_bike")) modes = modes | Modes.getMode("bicycle").id;
 				if(rs.getBoolean("mode_mit")) modes = modes | Modes.getMode("passenger").id;
 				modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
-				//if(rs.getBoolean("mode_walk") || rs.getBoolean("mode_bike")) modes = modes | Modes.getMode("e-scooter").id;
+				//if(rs.getBoolean("mode_walk") || rs.getBoolean("mode_bike")) modes = modes | Mode.getMode("e-scooter").id;
 				if(modes==0 && ((modes&uModes)==0)) {
 					continue;
 				}
@@ -186,7 +197,7 @@ public class NetLoader {
 				long modes = 0;
 				if("t".equals(vals[3].toLowerCase()) || "true".equals(vals[3].toLowerCase()) || "1".equals(vals[3])) modes = modes | Modes.getMode("foot").id;
 				if("t".equals(vals[4].toLowerCase()) || "true".equals(vals[4].toLowerCase()) || "1".equals(vals[4])) modes = modes | Modes.getMode("bicycle").id;
-				if("t".equals(vals[5].toLowerCase()) || "true".equals(vals[5].toLowerCase()) || "1".equals(vals[5])) modes = modes | Modes.getMode("passenger").id;
+				if("t".equals(vals[5].toLowerCase()) || "true".equals(vals[5].toLowerCase()) || "1".equals(vals[5])) modes = (modes | Modes.getMode("passenger").id) | Modes.getMode("bus").id;
 				modes = (modes&Modes.customAllowedAt)!=0 ? modes | Modes.getMode("custom").id : modes;
 				if(modes==0 && ((modes&uModes)==0)) {
 					continue;
@@ -209,8 +220,164 @@ public class NetLoader {
 		br.close();
 		return net;
 	}
-	
-	
+
+	public static NetWrapper newJGraphTNet(String fileName, int minGraphSize) throws IOException {
+
+		long nextId = 0;
+		DBNet net = new DBNet();
+
+		Map<AlternativeMode, Graph<Node,Edge>> modeNets = new HashMap<>();
+
+		modeNets.put(AlternativeMode.FOOT, new DirectedWeightedPseudograph<>(Edge.class));
+		modeNets.put(AlternativeMode.BIKESHARING, new DirectedWeightedPseudograph<>(Edge.class));
+		Graph<Node,Edge> mitNet = new DirectedWeightedPseudograph<>(Edge.class);
+		modeNets.put(AlternativeMode.CALLABUS, mitNet);
+		modeNets.put(AlternativeMode.CARPOOLING, mitNet);
+
+		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
+		BufferedReader br = new BufferedReader(new FileReader(fileName));
+		String line = null;
+		Map<Long,Node> nodeIdMap = new HashMap<>();
+		Map<Long,DBEdge> dbEdgeIdMap = new HashMap<>();
+
+		logger.log(Level.INFO, "Loading network file...");
+		do {
+			line = br.readLine();
+			if(line!=null && line.length()!=0 && line.charAt(0)!='#') {
+				Set<AlternativeMode> allowedModes = new HashSet<>();
+
+				String[] vals = line.split(";");
+				long modes = 0;
+				if("t".equals(vals[3].toLowerCase()) || "true".equals(vals[3].toLowerCase()) || "1".equals(vals[3])){
+					allowedModes.add(AlternativeMode.FOOT);
+					modes = modes | Modes.getMode("foot").id;
+				}
+				if("t".equals(vals[4].toLowerCase()) || "true".equals(vals[4].toLowerCase()) || "1".equals(vals[4])){
+					allowedModes.add(AlternativeMode.BIKESHARING);
+					modes = modes | Modes.getMode("bicycle").id;
+				}
+				if("t".equals(vals[5].toLowerCase()) || "true".equals(vals[5].toLowerCase()) || "1".equals(vals[5])){
+					allowedModes.add(AlternativeMode.CARPOOLING);
+					allowedModes.add(AlternativeMode.CALLABUS);
+					modes = (modes | Modes.getMode("passenger").id) | Modes.getMode("bus").id;
+				}
+
+				int num = vals.length - 8;
+				if((num % 2)!=0) {
+					throw new IOException("odd number for coordinates");
+				}
+				Coordinate[] coords = new Coordinate[(int) (num/2)];
+				int j = 0;
+				for(int i=8; i<vals.length; i+=2, ++j ) {
+					coords[j] = new Coordinate(Double.parseDouble(vals[i]), Double.parseDouble(vals[i+1]));
+				}
+				long edgeId = Long.parseLong(vals[0]);
+				long fromNodeId = Long.parseLong(vals[1]);
+				long toNodeId = Long.parseLong(vals[2]);
+				double maxSpeed = Double.parseDouble(vals[6]) / 3.6;
+				double length = Double.parseDouble(vals[7]);
+
+				DBNode fromNode = net.addNode(fromNodeId, coords[0]);
+				DBNode toNode = net.addNode(toNodeId, coords[coords.length - 1]);
+
+				LineString ls = gf.createLineString(coords);
+				dbEdgeIdMap.put(edgeId, new DBEdge(nextId++,String.valueOf(edgeId), fromNode, toNode, modes, maxSpeed, ls, length));
+				net.addEdge(nextId++, String.valueOf(edgeId), fromNode, toNode, modes, maxSpeed, ls, length);
+
+				Node fromGraphNode = new Node(fromNodeId);
+				Node toGraphNode = new Node(toNodeId);
+				nodeIdMap.putIfAbsent(fromNodeId, fromGraphNode);
+				nodeIdMap.putIfAbsent(toNodeId, toGraphNode);
+				Edge graphEdge = new Edge(edgeId, fromNodeId, toNodeId, length, maxSpeed);
+
+				for(AlternativeMode allowedMode : allowedModes){
+					var modeNet = modeNets.get(allowedMode);
+					modeNet.addVertex(fromGraphNode);
+					modeNet.addVertex(toGraphNode);
+
+					modeNet.addEdge(fromGraphNode,toGraphNode,graphEdge);
+				}
+
+			}
+		} while(line!=null);
+		br.close();
+
+
+		//now get rid of unconnected sub graphs and create the DBNet
+		logger.log(Level.INFO,"Analysing network graphs for each mode...");
+		var resultingModeGraphs = removeLooseGraphs(minGraphSize, modeNets);
+
+		logger.log(Level.INFO, "Initializing the UrMo network...");
+		var dbNet = generateDbNetFromJGraphTModeNets(dbEdgeIdMap, resultingModeGraphs);
+
+		return new NetWrapper(dbNet, modeNets, nodeIdMap);
+	}
+
+	private static DBNet generateDbNetFromJGraphTModeNets(Map<Long, DBEdge> dbEdgeIdMap, Map<AlternativeMode, Graph<Node, Edge>> resultingModeGraphs) {
+		Map<Long, DBEdge> visitedEdgesToDbNet = new HashMap<>();
+		resultingModeGraphs.forEach((k, v) ->{
+			var edges = v.edgeSet();
+			edges.forEach(edge -> visitedEdgesToDbNet.putIfAbsent(edge.edgeId(), dbEdgeIdMap.get(edge.edgeId())));
+		});
+
+		DBNet urmoNet = new DBNet();
+
+		visitedEdgesToDbNet.forEach((k,v) -> urmoNet.addEdge(v));
+		return urmoNet;
+	}
+
+	private static Map<AlternativeMode, Graph<Node,Edge>> removeLooseGraphs(int minGraphSize, Map<AlternativeMode, Graph<Node, Edge>> modeNets) {
+		Map<AlternativeMode, Graph<Node,Edge>> resultingModeGraphs = new HashMap<>();
+		modeNets.forEach((mode, graph) -> {
+
+			ConnectivityInspector<Node,Edge> ci = new ConnectivityInspector(graph);
+			//Test whether the graph is connected:
+			ci.isConnected();
+
+			List<Set<Node>> connectedNodesSets = ci.connectedSets();
+
+			int connectedNodesSetCount = connectedNodesSets.size();
+			int removedNodes = 0;
+			int removedSets = 0;
+			int remainingSetsCount = 0;
+			int biggestSetElementCount = 0;
+
+			Graph<Node,Edge> finalGraph = null;
+
+			for(Set<Node> nodeSet : connectedNodesSets){
+
+				int setSize = nodeSet.size();
+
+				if(setSize < minGraphSize){
+					removedSets++;
+					removedNodes += setSize;
+					continue;
+				}
+
+				remainingSetsCount++;
+
+				if(biggestSetElementCount < setSize){
+					biggestSetElementCount = setSize;
+				}
+
+				Graph<Node,Edge> subGraph = new AsSubgraph<>(graph, nodeSet);
+
+				if(finalGraph == null){
+					finalGraph = subGraph;
+				}else{
+					Graphs.addGraph(finalGraph, subGraph);
+				}
+			}
+
+			resultingModeGraphs.put(mode,finalGraph);
+
+			String logMessage = String.format("Graph for mode: %s contains %d loose graphs. After pruning: %d loose graphs and a total of %d nodes have been removed resulting in %d remaining sub graphs. Biggest graph contains %d nodes.",mode,connectedNodesSetCount, removedSets, removedNodes, remainingSetsCount,biggestSetElementCount);
+			logger.log(Level.INFO, logMessage);
+		});
+		return resultingModeGraphs;
+	}
+
+
 	/** @brief Reads the network from a WKT file
 	 * @param idGiver Instance supporting running ids 
 	 * @param fileName The file to read the network from

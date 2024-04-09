@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -25,7 +25,6 @@ import de.dlr.ivf.urmo.router.shapes.LayerObject;
  * @class EUMeasuresGenerator
  * @brief Interprets a path to build an EUSingleResult
  * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
- * @param <T>
  */
 public class EUMeasuresGenerator extends MeasurementGenerator<EUSingleResult> {
 	/**

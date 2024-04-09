@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -28,7 +28,7 @@ public class RouteWeightFunction_ExpInterchange_TT extends AbstractRouteWeightFu
 	
 	/** 
 	 * @brief Constructor
-	 * @param _scale1 Exponential weight
+	 * @param _scale1 Exponential length
 	 * @param _scale2 Factor
 	 */
 	public RouteWeightFunction_ExpInterchange_TT(double _scale1, double _scale2) {

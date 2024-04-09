@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -84,7 +84,6 @@ public class GTFSEdge extends DBEdge {
 	 * @brief Adds a connection (depart/arrival times, route) to this edge
 	 * 
 	 * Note that the connections must be sorted increasingly by time
-	 * @see sortConnections
 	 * @param c The connection to add
 	 */
 	public void addConnection(GTFSConnection c) {

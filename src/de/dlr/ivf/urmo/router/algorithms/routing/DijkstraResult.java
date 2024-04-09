@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -44,7 +44,7 @@ public class DijkstraResult {
 	public int boundTT;
 	/// @brief Maximum distance (-1 if not used)
 	public int boundDist;
-	/// @brief Maximum weight sum to find (-1 if not used)
+	/// @brief Maximum length sum to find (-1 if not used)
 	public double boundVar;
 	/// @brief Whether only the next item shall be found
 	public boolean shortestOnly;
@@ -59,7 +59,7 @@ public class DijkstraResult {
 	 * @param _boundNumber Number of destinations to find (-1 if not used)
 	 * @param _boundTT Maximum travel time (-1 if not used)
 	 * @param _boundDist Maximum distance (-1 if not used)
-	 * @param _boundVar Maximum weight sum to find (-1 if not used)
+	 * @param _boundVar Maximum length sum to find (-1 if not used)
 	 * @param _shortestOnly Whether only the next item shall be found
 	 * @param _time Starting time
 	 */
@@ -106,7 +106,7 @@ public class DijkstraResult {
 
 
 	/** @brief Adds the information about an accessed edge
-	 * @param measure The routing weight function to use
+	 * @param measure The routing length function to use
 	 * @param oe The accessed edge
 	 * @param newValue The routing element used to approach the edge
 	 * @return Whether all needed destinations were found

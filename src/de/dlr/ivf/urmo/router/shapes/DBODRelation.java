@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -16,13 +16,13 @@
 package de.dlr.ivf.urmo.router.shapes;
 
 /** @class DBODRelation
- * @brief A single origin/destination relation with a weight 
+ * @brief A single origin/destination relation with a length
  */
 public class DBODRelation {
 	/** @brief Constructor
 	 * @param o The origin
 	 * @param d The destination
-	 * @param w The weight
+	 * @param w The length
 	 */
 	public DBODRelation(long o, long d, double w) {
 		origin = o;
@@ -36,7 +36,7 @@ public class DBODRelation {
 	/// @brief The destination
 	public long destination;
 	
-	/// @brief The weight
+	/// @brief The length
 	public double weight;
 	
 

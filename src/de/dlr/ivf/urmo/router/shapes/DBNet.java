@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -59,6 +59,8 @@ public class DBNet {
 	/// @brief The id supplier to use
 	IDGiver idGiver;
 
+	public DBNet(){}
+
 
 	/**
 	 * @brief Constructor
@@ -104,8 +106,8 @@ public class DBNet {
 	 * @brief Adds an edge to the road network
 	 * @param e The edge to add
 	 */
-	private void addEdge(DBEdge e) {
-		name2edge.put(e.id, e);
+	public void addEdge(DBEdge e) {
+		name2edge.putIfAbsent(e.id, e);
 		Coordinate[] cs = e.getGeometry().getCoordinates();
 		for (int i = 0; i < cs.length; ++i) {
 			Coordinate c = cs[i];
@@ -149,6 +151,10 @@ public class DBNet {
 		nodes.put(id, n);
 		idGiver.hadExternID(id);
 		return n;
+	}
+
+	public DBNode addNode(long id, Coordinate pos){
+		return nodes.computeIfAbsent(id, k -> new DBNode(id,pos));
 	}
 
 
@@ -369,7 +375,6 @@ public class DBNet {
 
 	/**
 	 * @brief Extends the network by adding opposite edges for pedestrians
-	 * @param index The next edge id to use
 	 */
 	public void extendDirections() {
 		Vector<DBEdge> newEdges = new Vector<>();

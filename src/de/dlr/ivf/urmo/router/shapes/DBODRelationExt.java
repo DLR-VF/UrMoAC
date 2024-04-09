@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -18,14 +18,14 @@ package de.dlr.ivf.urmo.router.shapes;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 
 /** @class DBODRelationExt
- * @brief A single origin/destination relation with a weight, extended by information about mapped object(s) 
+ * @brief A single origin/destination relation with a length, extended by information about mapped object(s)
  * @see DBODRelation
  */
 public class DBODRelationExt extends DBODRelation {
 	/** @brief Constructor
 	 * @param o The origin
 	 * @param d The destination
-	 * @param w The weight
+	 * @param w The length
 	 */
 	public DBODRelationExt(long o, long d, double w) {
 		super(o, d, w);

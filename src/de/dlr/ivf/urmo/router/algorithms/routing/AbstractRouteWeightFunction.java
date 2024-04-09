@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -22,7 +22,7 @@ import de.dlr.ivf.urmo.router.gtfs.GTFSTrip;
 
 /**
  * @class AbstractRouteWeightFunction
- * @brief Base class for methods that weight paths.
+ * @brief Base class for methods that length paths.
  * @author Daniel Krajzewicz (c) 2018 German Aerospace Center, Institute of
  *         Transport Research
  */

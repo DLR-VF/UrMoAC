@@ -6,14 +6,14 @@ Usage:
   java -jar UrMoAC.jar --help
   java -jar UrMoAC.jar --from file;sources.csv --to file;destinations.csv
     --net file;network.csv --nm-output file;nm_output.csv
-    --mode bicycle --time 0
+    --alternativeMode bicycle --time 0
 
  Input Options
   -c, --config                   Defines the configuration to load.
   -f, --from                     Defines the data source of origins.
   -t, --to                       Defines the data source of destinations.
   -n, --net                      Defines the road network to load.
-  -m, --mode                     The mode to use ['passenger', 'foot',
+  -m, --alternativeMode                     The alternativeMode to use ['passenger', 'foot',
                                    'bicycle'].
   --from-agg                     Defines the data source of origin aggregation
                                    areas.
@@ -79,12 +79,12 @@ Usage:
   -E, --entrainment              Data source for entrainment description.
   --pt-restriction               Restrictions to usable GTFS carriers.
  Custom Mode Options
-  --custom.vmax                  Maximum velocity of the custom mode.
-  --custom.kkc-per-hour          kkc used per hour when using the custom mode.
+  --custom.vmax                  Maximum velocity of the custom alternativeMode.
+  --custom.kkc-per-hour          kkc used per hour when using the custom alternativeMode.
   --custom.co2-per-km            CO2 emitted per kilometer when using the custom
-                                   mode.
-  --custom.price-per-km          Price for using the custom mode per kilometre.
-  --custom.allowed               The type of roads the custom mode can use
+                                   alternativeMode.
+  --custom.price-per-km          Price for using the custom alternativeMode per kilometre.
+  --custom.allowed               The type of roads the custom alternativeMode can use
                                    (combination of 'foot', 'bike', 'passenger'
                                    divided by ';').
  Output Options

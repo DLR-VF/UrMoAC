@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraße 2
+ * RutherfordstraÃŸe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Vector;
 
 /**
- * @class Modes
+ * @class Mode
  * @brief Known modes of transport
  * @author Daniel Krajzewicz
  * (c) 2016 German Aerospace Center, Institute of Transport Research
@@ -52,7 +52,7 @@ public class Modes {
 		modes = new Vector<>();
 
 		// _id, _mml, _vmax, _maxDist, _kkcPerHour, _co2PerKm, _pricePerKm
-		// costs: Eisenmann, Christine und Kuhnimhof, Tobias (2017) Vehicle cost imputation in travel surveys: Gaining insight into the fundamentals of (auto-) mobility choices. 11th International Conference on Transport Survey Methods, 24.-29. Sept. 2017, Estérel, Kanada. 
+		// costs: Eisenmann, Christine und Kuhnimhof, Tobias (2017) Vehicle cost imputation in travel surveys: Gaining insight into the fundamentals of (auto-) mobility choices. 11th International Conference on Transport Survey Methods, 24.-29. Sept. 2017, Estï¿½rel, Kanada.
 		add(new Mode(1, "custom", 0, 300, 0, 0, 0));
 		add(new Mode(2, "foot", 3.6, 50, 280, 0, 0)); // kcal: 17190
 		add(new Mode(4, "bicycle", 13, 300, 510, 0, 0)); // kcal: 1020

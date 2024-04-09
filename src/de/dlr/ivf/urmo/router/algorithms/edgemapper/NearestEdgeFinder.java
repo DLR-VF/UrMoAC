@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -28,7 +28,6 @@ import org.locationtech.jts.index.strtree.STRtree;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.GeomHelper;
-import org.sqlite.core.DB;
 
 /**
  * @class NearestEdgeFinder
@@ -81,9 +80,9 @@ public class NearestEdgeFinder {
 		id2edge = _net.getID2EdgeForMode(modes);
 	}
 
-	public NearestEdgeFinder(DBNet _net, long _modes) {
+	public NearestEdgeFinder(DBNet _net, long modes) {
 		net = _net;
-		modes = _modes;
+		modes = modes;
 		found = null;
 		minDist = -1;
 		tree = _net.getModedSpatialIndex(modes);
@@ -119,7 +118,7 @@ public class NearestEdgeFinder {
 		return ret;
 	}
 
-	private MapResult getNearestEdge(EdgeMappable source){
+	public MapResult getNearestEdge(EdgeMappable source){
 
 		float viewDist = 10;
 		Point p = source.getPoint();
@@ -171,6 +170,59 @@ public class NearestEdgeFinder {
 		return mapResult;
 	}
 
+	public MapResult getNearestEdge(EdgeMappable source, long modes){
+
+		float viewDist = 10;
+		Point p = source.getPoint();
+		found = null;
+		minDist = -1;
+		minDir = 0;
+		while ((found == null && viewDist < Math.max(net.size.x, net.size.y)) || viewDist / 2. < minDist) {
+			Envelope env = new Envelope(new Coordinate(p.getX()-viewDist, p.getY()-viewDist), new Coordinate(p.getX()+viewDist, p.getY()+viewDist));
+			List objs = tree.query(env);
+			for(Object o : objs) {
+				DBEdge e = (DBEdge) o;
+				if (!e.allowsAll(modes)) {
+					continue;
+				}
+				double dist = p.distance(e.geom);
+				if (minDist < 0 || (minDist > dist && Math.abs(minDist-dist)>=.1)) {
+					minDist = dist;
+					minDir = getDirectionToPoint(e, p);
+					found = e;
+				} else if (Math.abs(minDist-dist)<.1) {
+					// get the current edge's direction (at minimum distance)
+					int dir = getDirectionToPoint(e, p);
+					if(dir==DIRECTION_RIGHT) {
+						// ok, the point is on the right side of this one
+						if(minDir!=DIRECTION_RIGHT || e.id.compareTo(found.id) > 0) {
+							// use this one either if the point was on the false side of the initially found one
+							// or sort by id
+							minDist = dist;
+							minDir = dir;
+							found = e;
+						}
+					} else if(minDir==DIRECTION_LEFT && e.id.compareTo(found.id) > 0) {
+						// the point is on the left; sort by id if the initially found was on the left side, too
+						minDist = dist;
+						minDir = dir;
+						found = e;
+					}
+				}
+			}
+			viewDist = viewDist * 2;
+		}
+
+		MapResult mapResult = null;
+
+		if(found!=null) {
+			Coordinate coord = new Coordinate(p.getX(), p.getY(), 0);
+			double posAtEdge = GeomHelper.getDistanceOnLineString(found, coord, p);
+
+			mapResult = new MapResult(source, found, minDist, posAtEdge);
+		}
+		return mapResult;
+	}
 
 	// -----------------------------------------------------------------------
 	// helper methods

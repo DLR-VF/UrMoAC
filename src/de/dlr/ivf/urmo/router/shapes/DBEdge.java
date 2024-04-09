@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -197,6 +197,10 @@ public class DBEdge {
 		return (modes & mode.id) != 0;
 	}
 
+	public boolean allowsAll(long modes){
+		return (this.modes & modes) == modes;
+	}
+
 
 	/**
 	 * @brief Returns whether the given mode of transport is allowed on this edge
@@ -204,7 +208,8 @@ public class DBEdge {
 	 * @return Whether this mode of transport is allowed
 	 */
 	public boolean allowsAny(long modes) {
-		return (this.modes & modes) != 0;
+		long x =this.modes & modes;
+		return x != 0;
 	}
 
 

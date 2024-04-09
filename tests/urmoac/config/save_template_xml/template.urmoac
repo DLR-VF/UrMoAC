@@ -3,7 +3,7 @@
    <from></from>
    <to></to>
    <net></net>
-   <mode></mode>
+   <alternativeMode></alternativeMode>
    <from-agg></from-agg>
    <to-agg></to-agg>
    <pt></pt>

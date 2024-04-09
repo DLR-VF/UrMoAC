@@ -1,2 +1,2 @@
---from sources.csv --to destinations.csv --net network.csv --epsg 0 --mode foot --time 0
+--from sources.csv --to destinations.csv --net network.csv --epsg 0 --alternativeMode foot --time 0
 

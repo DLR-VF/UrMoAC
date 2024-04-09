@@ -1,5 +1,5 @@
 
 done.
 creating simple_offset_existing_dropprevious.direct_output;
-Running UrMoAC with --from sources.csv --to destinations.csv --net network.csv --epsg 0 --mode foot --time 0 --dropprevious --direct-output jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_existing_dropprevious.direct_output;urmoactests;urmoactests
+Running UrMoAC with --from sources.csv --to destinations.csv --net network.csv --epsg 0 --alternativeMode foot --time 0 --dropprevious --direct-output jdbc:postgresql://localhost/urmoac_postgres_tests;simple_offset_existing_dropprevious.direct_output;urmoactests;urmoactests
 Collecting results

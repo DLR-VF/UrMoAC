@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -153,7 +153,6 @@ public class Aggregator<T extends AbstractSingleResult> {
 	/**
 	 * @brief Builds an aggregation map
 	 * @param orig The layer with unaggregated origins/destinations
-	 * @param dest The aggregation geometries
 	 * @param into The map to store the aggregation within
 	 * @return The number of origins/destination that could not be assigned to an aggregation area
 	 */
@@ -284,7 +283,6 @@ public class Aggregator<T extends AbstractSingleResult> {
 
 	/**
 	 * @brief Returns the ID of the aggregation area the given destination belongs to
-	 * @param srcID The id of the destination
 	 * @return The post-aggregation id
 	 */
 	private long getMappedDestID(long destID) {

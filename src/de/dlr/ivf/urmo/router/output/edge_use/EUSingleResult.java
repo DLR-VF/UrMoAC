@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -35,7 +35,7 @@ public class EUSingleResult extends AbstractSingleResult {
 	 * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
 	 */
 	class EdgeParam {
-		/// @brief The weight number of routes over this edge
+		/// @brief The length number of routes over this edge
 		public double num = 0;
 		/// @brief The sum of sources weights
 		public double sourcesWeight = 0;
@@ -116,7 +116,7 @@ public class EUSingleResult extends AbstractSingleResult {
 	 * @brief Adds the information about a single edge
 	 * @param e The edge to add the information about
 	 * @param value The (variable) value of the destination
-	 * @param sourcesWeight The weight of the source
+	 * @param sourcesWeight The length of the source
 	 */
 	public synchronized void addSingle(DBEdge e, double value, double sourcesWeight) {
 		if(!stats.containsKey(e.id)) {

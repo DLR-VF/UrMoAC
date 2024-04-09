@@ -8,7 +8,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -29,7 +29,9 @@ public interface EdgeMappable {
 	 * @brief Returns this thing's id
 	 * @return This thing's id
 	 */
-	public long getOuterID();
+	default long getOuterID(){
+		return -1;
+	}
 
 
 	/**
