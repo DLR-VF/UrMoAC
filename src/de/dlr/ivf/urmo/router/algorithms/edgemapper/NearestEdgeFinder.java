@@ -133,28 +133,28 @@ public class NearestEdgeFinder {
 			}
 			// check opposite
 			Point p = mappable.getPoint();
-			double minDist = p.distance(found.geom);
-			if(found.opposite!=null&&found.opposite.allowsAny(modes)/*&&!found.opposite.id.startsWith("opp_")*/) { // !!!
-				double dist = p.distance(found.opposite.geom);
+			double minDist = p.distance(found.getGeometry());
+			if(found.getOppositeEdge()!=null&&found.getOppositeEdge().allowsAny(modes)) {
+				double dist = p.distance(found.getOppositeEdge().getGeometry());
 				if(dist-minDist<.1) {
 					int minDir = parent.getDirectionToPoint(found, p);
 					// get the current edge's direction (at minimum distance)
-					int dir = parent.getDirectionToPoint(found.opposite, p);
+					int dir = parent.getDirectionToPoint(found.getOppositeEdge(), p);
 					if(dir==DIRECTION_RIGHT) {
 						// ok, the point is on the right side of this one
-						if(minDir!=DIRECTION_RIGHT || dist<minDist || found.opposite.id.compareTo(found.id) > 0) {
+						if(minDir!=DIRECTION_RIGHT || dist<minDist || found.getOppositeEdge().getID().compareTo(found.getID()) > 0) {
 							// use this one either if the point was on the false side of the initially found 
 							// one or sort by distance or id
 							minDist = dist;
 							minDir = dir;
-							found = found.opposite;
+							found = found.getOppositeEdge();
 						}
-					} else if(minDir==DIRECTION_LEFT && (dist<minDist || found.opposite.id.compareTo(found.id) > 0)) {
+					} else if(minDir==DIRECTION_LEFT && (dist<minDist || found.getOppositeEdge().getID().compareTo(found.getID()) > 0)) {
 						// the point is on the left and the previous one, too;
 						// sort by distance or id
 						minDist = dist;
 						minDir = dir;
-						found = found.opposite;
+						found = found.getOppositeEdge();
 					}
 				}
 			}
@@ -257,8 +257,8 @@ public class NearestEdgeFinder {
 	private int getDirectionToPoint(DBEdge e, Point p) {
 		double minDist = -1;
 		double minDir = 0;
-		int numPoints = e.geom.getNumPoints();
-		Coordinate tcoord[] = ((LineString) e.geom).getCoordinates();
+		int numPoints = e.getGeometry().getNumPoints();
+		Coordinate tcoord[] = ((LineString) e.getGeometry()).getCoordinates();
 		Coordinate coord[] = new Coordinate[2];
 		for(int i=0; i<numPoints-1; ++i) {
 			coord[0] = tcoord[i];

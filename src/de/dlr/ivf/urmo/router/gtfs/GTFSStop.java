@@ -65,7 +65,7 @@ public class GTFSStop extends DBNode implements EdgeMappable {
 	 */
 	@Override
 	public long getOuterID() {
-		return id;
+		return getID();
 	}
 
 
@@ -118,7 +118,7 @@ public class GTFSStop extends DBNode implements EdgeMappable {
 			if(em.carrier2carried.containsKey("pt"+route.type)) {
 				modes |= em.carrier2carried.get("pt"+route.type);
 			}
-			double length = this.pos.distance(to.pos);
+			double length = this.getCoordinate().distance(to.getCoordinate());
 			Coordinate coord[] = new Coordinate[2];
 			coord[0] = getCoordinate();
 			coord[1] = to.getCoordinate();

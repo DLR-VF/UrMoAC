@@ -28,13 +28,11 @@ import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
  */
 public class Layer {
 	/// @brief The layer's name
-	String name;
-	/// @brief Whether this layer is visible (unused!!!)
-	public boolean visible;
+	private String name;
 	/// @brief List of objects stored in this layer
-	Vector<EdgeMappable> objects;
+	private Vector<EdgeMappable> objects;
 	/// @brief The boundary to clip objects to
-	Geometry envelope;
+	private Geometry envelope;
 
 
 	/**
@@ -45,7 +43,6 @@ public class Layer {
 	public Layer(String _name, Geometry _envelope) {
 		name = _name;
 		objects = new Vector<>();
-		visible = true;
 		envelope = _envelope;
 		envelope = null;
 	}
@@ -54,13 +51,17 @@ public class Layer {
 	/**
 	 * @brief Adds an object to the layer
 	 * 
-	 * If a boundary was given, only objects which are (partially) within it, will be kept 
+	 * If a boundary was given, only objects which are (at least partially) within it, will be kept 
 	 * @param o The object to add
 	 */
 	public void addObject(LayerObject o) {
-		if(envelope==null || envelope.intersects(o.getGeometry())) {
-			objects.add(o);
+		if(envelope!=null) {
+			Geometry g = o.getGeometry();
+			if(!g.within(envelope)&&!g.crosses(envelope)) {
+				return;
+			}
 		}
+		objects.add(o);
 	}
 
 

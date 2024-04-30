@@ -72,12 +72,12 @@ public class NetClusterWriter extends BasicCombinedWriter {
 			for (DBEdge e : cluster) {
 				v.add(e);
 			}
-			v.sort(new Comparator<DBEdge>() { public int compare(DBEdge e1, DBEdge e2) { return e1.id.compareTo(e2.id); } });
+			v.sort(new Comparator<DBEdge>() { public int compare(DBEdge e1, DBEdge e2) { return e1.getID().compareTo(e2.getID()); } });
 			vClusters.add(v);
 		}
 		vClusters.sort(new Comparator<Vector<DBEdge>>() {
 		    public int compare(Vector<DBEdge> v1, Vector<DBEdge> v2) {
-		        if(v1.size()==v2.size()) { return ((DBEdge) (v1.get(0))).id.compareTo(((DBEdge) v2.get(0)).id); }
+		        if(v1.size()==v2.size()) { return ((DBEdge) (v1.get(0))).getID().compareTo(((DBEdge) v2.get(0)).getID()); }
 		    	return v1.size()<v2.size() ? 1 : -1;
 		    }
 		});
@@ -109,7 +109,7 @@ public class NetClusterWriter extends BasicCombinedWriter {
 		for(DBEdge e : cluster) {
 			if (intoDB()) {
 				try {
-					_ps.setString(1, e.id);
+					_ps.setString(1, e.getID());
 					_ps.setInt(2, id);
 					_ps.setInt(3, cluster.size());
 					_ps.addBatch();
@@ -123,7 +123,7 @@ public class NetClusterWriter extends BasicCombinedWriter {
 					throw new IOException(ex);
 				}
 			} else {
-				_fileWriter.append(e.id + ";" + id + ";" + cluster.size() + "\n");
+				_fileWriter.append(e.getID() + ";" + id + ";" + cluster.size() + "\n");
 			}
 		}
 	}

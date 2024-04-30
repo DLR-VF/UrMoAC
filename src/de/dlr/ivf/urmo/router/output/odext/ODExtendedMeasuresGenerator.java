@@ -57,23 +57,23 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 		boolean single = false;
 		if(from.edge==to.edge) {
 			if(from.pos>to.pos) {
-				factor = (from.pos - to.pos) / from.edge.length;
+				factor = (from.pos - to.pos) / from.edge.getLength();
 			} else {
-				factor = (to.pos - from.pos) / from.edge.length;				
+				factor = (to.pos - from.pos) / from.edge.getLength();				
 			}
 			single = true;
-		} else if(from.edge.opposite==to.edge) {
-			if(from.pos>(from.edge.length - to.pos)) {
-				factor = (from.pos - (from.edge.length - to.pos)) / from.edge.length;
+		} else if(from.edge.getOppositeEdge()==to.edge) {
+			if(from.pos>(from.edge.getLength() - to.pos)) {
+				factor = (from.pos - (from.edge.getLength() - to.pos)) / from.edge.getLength();
 			} else {
-				factor = ((from.edge.length - to.pos) - from.pos) / from.edge.length;				
+				factor = ((from.edge.getLength() - to.pos) - from.pos) / from.edge.getLength();				
 			}
 			single = true;
 		} else {
 			if(toEdgeEntry.wasOpposite) {
-				factor = (to.edge.length - to.pos) / to.edge.length;
+				factor = (to.edge.getLength() - to.pos) / to.edge.getLength();
 			} else {
-				factor = to.pos / to.edge.length;
+				factor = to.pos / to.edge.getLength();
 			}
 		}		
 		
@@ -85,10 +85,10 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 			double ttt = current.prev==null ? current.tt : current.tt - current.prev.tt;
 			if(current.prev==null&&!single) {
 				// compute offset to edge's begin / end if it's the first edge
-				if(current.e==from.edge.opposite) {
-					factor = from.pos / from.edge.length;
+				if(current.e==from.edge.getOppositeEdge()) {
+					factor = from.pos / from.edge.getLength();
 				} else {
-					factor = 1. - from.pos / from.edge.length;
+					factor = 1. - from.pos / from.edge.getLength();
 				}
 			}
 			//

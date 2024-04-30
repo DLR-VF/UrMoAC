@@ -36,7 +36,7 @@ import de.dlr.ivf.urmo.router.modes.Modes;
  */
 public class DBNet {
 	/// @brief Map from node ids to nodes
-	public HashMap<Long, DBNode> nodes = new HashMap<>();
+	private HashMap<Long, DBNode> nodes = new HashMap<>();
 	/// @brief Map of edge names to edges
 	private HashMap<String, DBEdge> name2edge = new HashMap<String, DBEdge>();
 	/// @brief Map of node names (if using strings) to nodes
@@ -96,7 +96,7 @@ public class DBNet {
 	 * @param e The edge to add
 	 */
 	private void addEdge(DBEdge e) {
-		name2edge.put(e.id, e);
+		name2edge.put(e.getID(), e);
 		Coordinate[] cs = e.getGeometry().getCoordinates();
 		for (int i = 0; i < cs.length; ++i) {
 			Coordinate c = cs[i];
@@ -111,7 +111,7 @@ public class DBNet {
 		}
 		// store geometry settings
 		if(geometryFactory==null) {
-			geometryFactory = e.geom.getFactory();
+			geometryFactory = e.getGeometry().getFactory();
 		}
 	}
 
@@ -121,7 +121,7 @@ public class DBNet {
 	 * @param node The node to add
 	 */
 	public void addNode(DBNode node) {
-		nodes.put(node.id, node);
+		nodes.put(node.getID(), node);
 	}
 
 
@@ -176,7 +176,7 @@ public class DBNet {
 	 * @param edge The edge to remove
 	 */
 	public void removeEdge(DBEdge edge) {
-		name2edge.remove(edge.id);
+		name2edge.remove(edge.getID());
 		edge.getFromNode().removeOutgoing(edge);
 		edge.getToNode().removeIncoming(edge);
 	}
@@ -360,12 +360,12 @@ public class DBNet {
 			Vector<DBEdge> edges2 = to.getOutgoing();
 			DBEdge opposite = null;
 			for(DBEdge e2 : edges2) {
-				if(e2.getToNode()==e.getFromNode() && Math.abs(e.length-e2.length)<1.) {
+				if(e2.getToNode()==e.getFromNode() && Math.abs(e.getLength()-e2.getLength())<1.) {
 					// check whether the edges are parallel
-					LineString eg = e.geom;
+					LineString eg = e.getGeometry();
 					boolean distant = false;
 					for(int i=0; i<eg.getNumPoints()&&!distant; ++i) {
-						if(e2.geom.distance(eg.getPointN(i))>.1) {
+						if(e2.getGeometry().distance(eg.getPointN(i))>.1) {
 							distant = true;
 						}
 					}
@@ -382,13 +382,13 @@ public class DBNet {
 			// add a reverse direction edge for pedestrians
 			if((opposite==null && e.allows(modeFoot)) || (opposite==e)) {
 				// todo: recheck whether opposite==e is correct - it happens, though maybe when using an external OSM importer
-				opposite = new DBEdge(getNextID(), "opp_"+e.id, e.to, e.from, modeFoot, e.vmax, (LineString) e.geom.reverse(), e.length);
+				opposite = new DBEdge(getNextID(), "opp_"+e.getID(), e.getToNode(), e.getFromNode(), modeFoot, e.getVMax(), (LineString) e.getGeometry().reverse(), e.getLength());
 				newEdges.add(opposite);
 			}
 			// add the information about the opposite edge
 			if(opposite!=null&&opposite!=e) {
-				opposite.opposite = e;
-				e.opposite = opposite;
+				opposite.setOppositeEdge(e);
+				e.setOppositeEdge(opposite);
 			}
 		}
 		for(DBEdge e : newEdges) {

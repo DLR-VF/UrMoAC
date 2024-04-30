@@ -26,13 +26,13 @@ import org.locationtech.jts.geom.Coordinate;
  */
 public class DBNode {
 	/// @brief The node's id
-	public long id;
+	private long id;
 	/// @brief The node's coordinates
-	public Coordinate pos;
+	private Coordinate pos;
 	/// @brief The list of edges that end at this node
-	public Vector<DBEdge> incoming = new Vector<>();
+	private Vector<DBEdge> incoming = new Vector<>();
 	/// @brief The list of edges that start at this node
-	public Vector<DBEdge> outgoing = new Vector<>();
+	private Vector<DBEdge> outgoing = new Vector<>();
 
 
 	/**
@@ -46,6 +46,15 @@ public class DBNode {
 	}
 
 
+	/**
+	 * @brief Returns the ID of this node
+	 * @return The id of this node
+	 */
+	public long getID() {
+		return id;
+	}
+
+	
 	/**
 	 * @brief Returns the list of edges that end at this node
 	 * @return Edges that end at this node

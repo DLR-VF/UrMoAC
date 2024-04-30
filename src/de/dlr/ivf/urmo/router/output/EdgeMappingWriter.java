@@ -93,11 +93,11 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 	            }});
 			for (MapResult o : ress) {
 				PointPairDistance ppd = new PointPairDistance();
-				DistanceToPointFinder.computeDistance(e.geom, o.em.getPoint().getCoordinate(), ppd);
+				DistanceToPointFinder.computeDistance(e.getGeometry(), o.em.getPoint().getCoordinate(), ppd);
 				if (intoDB()) {
 					try {
 						_ps.setLong(1, o.em.getOuterID());
-						_ps.setString(2, e.id);
+						_ps.setString(2, e.getID());
 						_ps.setFloat(3, (float) o.pos);
 						_ps.setFloat(4, (float) o.dist);
 						String p1 = ppd.getCoordinate(0).x + " " + ppd.getCoordinate(0).y;
@@ -108,7 +108,7 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 						throw new IOException(ex);
 					}
 				} else {
-					_fileWriter.append(o.em.getOuterID() + ";" + e.id + ";" 
+					_fileWriter.append(o.em.getOuterID() + ";" + e.getID() + ";" 
 							+ String.format(Locale.US, _FS, o.pos) + ";" 
 							+ String.format(Locale.US, _FS, o.dist) + ";" 
 							+ String.format(Locale.US, _FS, ppd.getCoordinate(0).x) + ";" 

@@ -53,7 +53,7 @@ public class InterchangeMeasuresGenerator extends MeasurementGenerator<Interchan
 			String currentLine = current.buildLineModeID();
 			String nextLine = next.buildLineModeID();
 			String key = InterchangeSingleResult.buildLinesKey(currentLine, nextLine);
-			String haltID = Long.toString(current.n.id);
+			String haltID = Long.toString(current.n.getID());
 			if(current.n instanceof GTFSStop) {
 				haltID = ((GTFSStop) current.n).mid;
 			}

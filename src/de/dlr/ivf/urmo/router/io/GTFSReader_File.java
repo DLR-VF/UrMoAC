@@ -212,7 +212,7 @@ public class GTFSReader_File extends AbstractGTFSReader {
 				// !!! projection
 				GTFSStop stop = new GTFSStop(_net.getNextID(), id, c, _net.getGeometryFactory().createPoint(c)); // !!! new id - the nodes should have a new id as well
 				_net.addNode(stop);
-				stops.put(stop.id, stop);
+				stops.put(stop.getID(), stop);
 				id2stop.put(stop.mid, stop);
 				stopsV.add(stop);
 			} catch (NumberFormatException | MismatchedDimensionException | TransformException e) {

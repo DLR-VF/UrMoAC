@@ -76,8 +76,8 @@ public class BoundDijkstra {
 		} 
 		
 		// consider starting in the opposite direction
-		if(startEdge.opposite!=null && startEdge.opposite.allows(usedMode)) {
-			DBEdge e = startEdge.opposite;
+		if(startEdge.getOppositeEdge()!=null && startEdge.getOppositeEdge().allows(usedMode)) {
+			DBEdge e = startEdge.getOppositeEdge();
 			tt = e.getTravelTime(usedMode.vmax, time);
 			nm = new DijkstraEntry(measure, null, e.getToNode(), e, availableModes, usedMode, e.getLength(), tt, null, tt, 0, true);
 			// originally, "startPos" was used - currently the offset of the mappable object
@@ -112,7 +112,7 @@ public class BoundDijkstra {
 				if (!oe.allows(usedMode)) {
 					// todo: pt should entrain bikes, foot, etc. be put on top of this
 					// (check also computation of the current line in outputs)
-					availableModes = availableModes & oe.modes;
+					availableModes = availableModes & oe.getModes();
 					if(availableModes==0) {
 						continue;
 					}
@@ -159,9 +159,9 @@ public class BoundDijkstra {
 				}
 				
 				// check opposite direction
-				if(oe.opposite!=null && oe.opposite.getAttachedObjectsNumber()!=0) {
-					DijkstraEntry newOppositeValue = new DijkstraEntry(measure, nns, n, oe.opposite, availableModes, usedMode, distance, tt, ptConnection, ttt, interchangeTT, true);
-					if(ret.addEdgeInfo(measure, oe.opposite, newOppositeValue)) {
+				if(oe.getOppositeEdge()!=null && oe.getOppositeEdge().getAttachedObjectsNumber()!=0) {
+					DijkstraEntry newOppositeValue = new DijkstraEntry(measure, nns, n, oe.getOppositeEdge(), availableModes, usedMode, distance, tt, ptConnection, ttt, interchangeTT, true);
+					if(ret.addEdgeInfo(measure, oe.getOppositeEdge(), newOppositeValue)) {
 						if(!hadExtension&&!ret.allFound()) {
 							boundTT = Math.max(boundTT, tt+newOppositeValue.first.ttt+ttt);
 							hadExtension = true;

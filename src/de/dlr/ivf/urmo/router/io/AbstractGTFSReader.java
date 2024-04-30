@@ -277,9 +277,9 @@ public abstract class AbstractGTFSReader {
 				continue;
 			}
 			Vector<MapResult> edgeStops = new Vector<MapResult>(edge2stops.get(e));
-			if(e.opposite!=null&&edge2stops.containsKey(e.opposite)) {
-				for(MapResult stop : edge2stops.get(e.opposite)) {
-					MapResult mr = new MapResult(stop.em, stop.edge, stop.dist, e.length-stop.pos);
+			if(e.getOppositeEdge()!=null&&edge2stops.containsKey(e.getOppositeEdge())) {
+				for(MapResult stop : edge2stops.get(e.getOppositeEdge())) {
+					MapResult mr = new MapResult(stop.em, stop.edge, stop.dist, e.getLength()-stop.pos);
 					edgeStops.add(mr);
 				}
 			}
@@ -307,12 +307,12 @@ public abstract class AbstractGTFSReader {
 			}
 			// go through the list, allocate stops
 			LineString lastGeom = e.getGeometry();
-			DBEdge opp = e.opposite;
+			DBEdge opp = e.getOppositeEdge();
 			double seen = 0;
 			LineString lastOppGeom = null;
-			if(e.opposite!=null) {
-				lastOppGeom = e.opposite.getGeometry();
-				seenOpposite.put(e.opposite, e);
+			if(e.getOppositeEdge()!=null) {
+				lastOppGeom = e.getOppositeEdge().getGeometry();
+				seenOpposite.put(e.getOppositeEdge(), e);
 			}
 			for(Vector<MapResult> mrv : stopClusters) {
 				LineString geom;
@@ -323,25 +323,25 @@ public abstract class AbstractGTFSReader {
 				DBNode intermediateNode = _net.getNode(_net.getNextID(), pos);
 				// build this side access
 				geom = GeomHelper.getGeomUntilDistance(lastGeom, stopEdgePos-seen);
-				if(!_net.addEdge(_net.getNextID(), e.id+"-"+stopID, e.from, intermediateNode, e.modes, e.vmax, geom, geom.getLength())) {
-					throw new ParseException("Could not allocate edge '" + e.id+"-"+stopID+ "'");
+				if(!_net.addEdge(_net.getNextID(), e.getID()+"-"+stopID, e.getFromNode(), intermediateNode, e.getModes(), e.getVMax(), geom, geom.getLength())) {
+					throw new ParseException("Could not allocate edge '" + e.getID()+"-"+stopID+ "'");
 				}
 				lastGeom = GeomHelper.getGeomBehindDistance(lastGeom, stopEdgePos-seen);
-				String nextEdgeName = stopID+"-"+e.id;
-				if(!_net.addEdge(_net.getNextID(), nextEdgeName, intermediateNode, e.to, e.modes, e.vmax, lastGeom, lastGeom.getLength())) {
-					throw new ParseException("Could not allocate edge '" +stopID+ "-"+e.id + "'");
+				String nextEdgeName = stopID+"-"+e.getID();
+				if(!_net.addEdge(_net.getNextID(), nextEdgeName, intermediateNode, e.getToNode(), e.getModes(), e.getVMax(), lastGeom, lastGeom.getLength())) {
+					throw new ParseException("Could not allocate edge '" +stopID+ "-"+e.getID() + "'");
 				}
 				// build (optional) opposite side access
 				String nextOppEdgeName = "";
 				if(opp!=null) {
-					lastOppGeom = GeomHelper.getGeomUntilDistance(opp.getGeometry(), opp.length-seen-stopEdgePos);
-					nextOppEdgeName = opp.id+"-"+stopID;
-					if(!_net.addEdge(_net.getNextID(), nextOppEdgeName, opp.from, intermediateNode, opp.modes, opp.vmax, lastOppGeom, lastOppGeom.getLength())) {
-						throw new ParseException("Could not allocate edge '" + opp.id+"-"+stopID + "'");
+					lastOppGeom = GeomHelper.getGeomUntilDistance(opp.getGeometry(), opp.getLength()-seen-stopEdgePos);
+					nextOppEdgeName = opp.getID()+"-"+stopID;
+					if(!_net.addEdge(_net.getNextID(), nextOppEdgeName, opp.getFromNode(), intermediateNode, opp.getModes(), opp.getVMax(), lastOppGeom, lastOppGeom.getLength())) {
+						throw new ParseException("Could not allocate edge '" + opp.getID()+"-"+stopID + "'");
 					}
-					geom = GeomHelper.getGeomBehindDistance(opp.getGeometry(), opp.length-seen-stopEdgePos);
-					if(!_net.addEdge(_net.getNextID(), stopID+"-"+opp.id, intermediateNode, opp.to, opp.modes, opp.vmax, geom, geom.getLength())) {
-						throw new ParseException("Could not allocate edge '" + stopID+"-"+opp.id + "'");
+					geom = GeomHelper.getGeomBehindDistance(opp.getGeometry(), opp.getLength()-seen-stopEdgePos);
+					if(!_net.addEdge(_net.getNextID(), stopID+"-"+opp.getID(), intermediateNode, opp.getToNode(), opp.getModes(), opp.getVMax(), geom, geom.getLength())) {
+						throw new ParseException("Could not allocate edge '" + stopID+"-"+opp.getID() + "'");
 					}
 				}
 				seen += stopDist;
@@ -349,15 +349,15 @@ public abstract class AbstractGTFSReader {
 				for(MapResult mr : mrv) {
 					GTFSStop stop = (GTFSStop) mr.em;
 					Coordinate[] edgeCoords = new Coordinate[2];
-					edgeCoords[0] = new Coordinate(intermediateNode.pos);
-					edgeCoords[1] = new Coordinate(stop.pos);
-					geom = e.geom.getFactory().createLineString(edgeCoords);
+					edgeCoords[0] = new Coordinate(intermediateNode.getCoordinate());
+					edgeCoords[1] = new Coordinate(stop.getCoordinate());
+					geom = e.getGeometry().getFactory().createLineString(edgeCoords);
 					if(!_net.addEdge(_net.getNextID(), "on-"+stop.mid, intermediateNode, stop, accessModes, 50, geom, Math.max(stopDist, 0.1))) {
 						throw new ParseException("Could not allocate edge '" + "on-"+stop.mid + "'");
 					}
-					edgeCoords[0] = new Coordinate(stop.pos);
-					edgeCoords[1] = new Coordinate(intermediateNode.pos);
-					geom = e.geom.getFactory().createLineString(edgeCoords);
+					edgeCoords[0] = new Coordinate(stop.getCoordinate());
+					edgeCoords[1] = new Coordinate(intermediateNode.getCoordinate());
+					geom = e.getGeometry().getFactory().createLineString(edgeCoords);
 					if(!_net.addEdge(_net.getNextID(), "off-"+stop.mid, stop, intermediateNode, accessModes, 50, geom, Math.max(stopDist, 0.1))) {
 						throw new ParseException("Could not allocate edge '" + "off-"+stop.mid + "'");
 					}

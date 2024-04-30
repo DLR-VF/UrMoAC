@@ -796,7 +796,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		int numThreads = options.getInteger("threads");
 		Vector<DBEdge> fromEdges = new Vector<DBEdge>();
 		fromEdges.addAll(nearestFromEdges.keySet());
-		Collections.sort(fromEdges, (a, b) -> a.id.compareTo(b.id));  
+		Collections.sort(fromEdges, (a, b) -> a.getID().compareTo(b.getID()));  
 		nextEdgePointer = fromEdges.iterator();
 		seenEdges = 0;
 		Vector<Thread> threads = new Vector<>();

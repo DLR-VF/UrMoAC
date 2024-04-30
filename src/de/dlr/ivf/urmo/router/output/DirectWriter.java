@@ -106,7 +106,7 @@ public class DirectWriter extends BasicCombinedWriter {
 				// go through entries
 				int index = 0;
 				for(DijkstraEntry current : entries) {
-					String id = Long.toString(current.n.id);
+					String id = Long.toString(current.n.getID());
 					if(current.n instanceof GTFSStop) {
 						id = ((GTFSStop) current.n).mid;
 					}
@@ -115,13 +115,13 @@ public class DirectWriter extends BasicCombinedWriter {
 						try {
 							_ps.setLong(1, from.em.getOuterID());
 							_ps.setLong(2, toObject.em.getOuterID());
-							_ps.setString(3, current.e.id);
+							_ps.setString(3, current.e.getID());
 							_ps.setString(4, routeID);
 							_ps.setString(5, current.usedMode.mml);
 							_ps.setDouble(6, current.ttt);
 							_ps.setString(7, id);
 							_ps.setInt(8, index);
-							_ps.setString(9, current.e.geom.toText());
+							_ps.setString(9, current.e.getGeometry().toText());
 							_ps.addBatch();
 							++batchCount;
 							if(batchCount>100) {
@@ -134,10 +134,10 @@ public class DirectWriter extends BasicCombinedWriter {
 						}
 					} else {
 						_fileWriter.append(from.em.getOuterID() + ";" + toObject.em.getOuterID() + ";" 
-								+ current.e.id + ";" + routeID + ";"
+								+ current.e.getID() + ";" + routeID + ";"
 								+ current.usedMode.mml + ";"  
 								+ String.format(Locale.US, _FS, current.ttt) + ";" + id + ";" + index + ";"
-								+ current.e.geom.toText() 
+								+ current.e.getGeometry().toText() 
 								+ "\n");
 					}
 					++index;

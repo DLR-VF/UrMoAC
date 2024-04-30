@@ -82,29 +82,29 @@ public class DBEdge {
 	
 	
 	/// @brief A numerical id of the edge (internal, used?!!!)
-	public long numID;
+	private long numID;
 	/// @brief The id of the edge as given in the db
-	public String id;
+	private String id;
 	/// @brief A reference to the node this edge starts at (A GTFStop instance)
-	public DBNode from;
+	private DBNode from;
 	/// @brief A reference to the node this edge ends at (A GTFStop instance)
-	public DBNode to;
+	private DBNode to;
 	/// @brief The allowed modes of transport
-	public long modes;
+	private long modes;
 	/// @brief The maximum velocity allowed at this edge
-	public double vmax;
+	private double vmax;
 	/// @brief The geometry of this edge
-	public LineString geom;
+	private LineString geom;
 	/// @brief The length of this edge
-	public double length;
+	private double length;
 	/// @brief Objects assigned to this edge
-	public HashSet<EdgeMappable> objects = null;
+	private HashSet<EdgeMappable> objects = null;
 	/// @brief The list of travel time informations for this edge
-	public Vector<V> speeds = null;
+	private Vector<V> speeds = null;
 	/// @brief The sum of attached values
-	public double attachedValuesSum = 0;
+	private double attachedValuesSum = 0;
 	/// @brief The opposite direction
-	public DBEdge opposite = null;
+	private DBEdge opposite = null;
 
 
 	/**
@@ -137,6 +137,15 @@ public class DBEdge {
 	 * @brief Returns the node this edge starts at
 	 * @return This edge's starting node
 	 */
+	public void setOppositeEdge(DBEdge e) {
+		opposite = e;
+	}
+
+
+	/**
+	 * @brief Returns the node this edge starts at
+	 * @return This edge's starting node
+	 */
 	public DBNode getFromNode() {
 		return from;
 	}
@@ -161,6 +170,24 @@ public class DBEdge {
 
 
 	/**
+	 * @brief Returns the modes allowed on this edge
+	 * @return The modes allowed on this edge
+	 */
+	public long getModes() {
+		return modes;
+	}
+
+
+	/**
+	 * @brief Returns the speed allowed on this edge
+	 * @return The speed allowed on this edge
+	 */
+	public double getVMax() {
+		return vmax;
+	}
+
+
+	/**
 	 * @brief Returns this edge's id
 	 * @return This edge's id
 	 */
@@ -175,6 +202,15 @@ public class DBEdge {
 	 */
 	public LineString getGeometry() {
 		return geom;
+	}
+
+
+	/**
+	 * @brief Returns this edge's opposite edge
+	 * @return This edge's opposite edge
+	 */
+	public DBEdge getOppositeEdge() {
+		return opposite;
 	}
 
 

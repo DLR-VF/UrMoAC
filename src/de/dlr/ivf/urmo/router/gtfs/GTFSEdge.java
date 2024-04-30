@@ -131,7 +131,7 @@ public class GTFSEdge extends DBEdge {
 	 */
 	@Override
 	public double getCO2(Mode usedMode) {
-		return Modes.getMode("bus").co2PerKm / 1000 * length;
+		return Modes.getMode("bus").co2PerKm / 1000 * getLength();
 	}
 
 		

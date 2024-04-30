@@ -120,7 +120,7 @@ public class GTFSReader_DB extends AbstractGTFSReader {
 					continue;
 				}
 				_net.addNode(stop);
-				stops.put(stop.id, stop);
+				stops.put(stop.getID(), stop);
 				id2stop.put(stop.mid, stop);
 				stopsV.add(stop);
 			}

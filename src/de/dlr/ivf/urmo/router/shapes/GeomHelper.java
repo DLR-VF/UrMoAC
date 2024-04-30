@@ -199,13 +199,14 @@ public class GeomHelper {
 		double minDist = -1;
 		double pos = 0;
 		double minPos = 0;
-		int numPoints = e.geom.getNumPoints();
-		Coordinate tcoord[] = e.geom.getCoordinates();
+		LineString edgeGeom = e.getGeometry();
+		int numPoints = edgeGeom.getNumPoints();
+		Coordinate tcoord[] = edgeGeom.getCoordinates();
 		Coordinate coord[] = new Coordinate[2];
 		for(int i=0; i<numPoints-1; ++i) {
 			coord[0] = tcoord[i];
 			coord[1] = tcoord[i+1];
-			LineString ls = e.geom.getFactory().createLineString(coord);
+			LineString ls = edgeGeom.getFactory().createLineString(coord);
 			double dist = opivot.distance(ls);
 			if(minDist<0 || minDist>dist) {
 				minDist = dist;
@@ -217,6 +218,6 @@ public class GeomHelper {
 			}
 			pos += ls.getLength();
 		}
-		return Math.max(0, Math.min(e.length, minPos));
+		return Math.max(0, Math.min(e.getLength(), minPos));
 	}
 }

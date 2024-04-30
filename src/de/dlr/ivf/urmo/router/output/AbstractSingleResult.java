@@ -75,31 +75,31 @@ public abstract class AbstractSingleResult {
 			} else {
 				dist = to.pos - from.pos;				
 			}
-			tt = tt / to.edge.length * dist;
-		} else if(from.edge.opposite==to.edge) {
+			tt = tt / to.edge.getLength() * dist;
+		} else if(from.edge.getOppositeEdge()==to.edge) {
 			tt = firstTT;
-			if(from.pos>(to.edge.length - to.pos)) {
-				dist = from.pos - (to.edge.length - to.pos);
+			if(from.pos>(to.edge.getLength() - to.pos)) {
+				dist = from.pos - (to.edge.getLength() - to.pos);
 			} else {
-				dist = (to.edge.length - to.pos) - from.pos;				
+				dist = (to.edge.getLength() - to.pos) - from.pos;				
 			}
-			tt = tt / to.edge.length * dist;
+			tt = tt / to.edge.getLength() * dist;
 		} else {
 			dist = toEdgeEntry.distance;
 			tt = toEdgeEntry.tt;
-			if(toEdgeEntry.first.e==from.edge.opposite) {
-				dist -= (from.edge.length - from.pos);
-				tt -= (firstTT - firstTT * from.pos / from.edge.length);
+			if(toEdgeEntry.first.e==from.edge.getOppositeEdge()) {
+				dist -= (from.edge.getLength() - from.pos);
+				tt -= (firstTT - firstTT * from.pos / from.edge.getLength());
 			} else {
 				dist -= from.pos;
-				tt -= (firstTT * from.pos / from.edge.length);
+				tt -= (firstTT * from.pos / from.edge.getLength());
 			}
 			if(toEdgeEntry.wasOpposite) {
 				dist -= to.pos;
-				tt -= toEdgeEntry.ttt * to.pos / to.edge.length;
+				tt -= toEdgeEntry.ttt * to.pos / to.edge.getLength();
 			} else {
-				dist -= (to.edge.length - to.pos);
-				tt -= (toEdgeEntry.ttt - toEdgeEntry.ttt * (to.pos / to.edge.length));
+				dist -= (to.edge.getLength() - to.pos);
+				tt -= (toEdgeEntry.ttt - toEdgeEntry.ttt * (to.pos / to.edge.getLength()));
 			}
 		}
 		if(dist<0&&dist>-.1) {

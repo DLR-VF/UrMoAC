@@ -100,7 +100,7 @@ public class DijkstraEntry {
 	 */
 	@Override
 	public String toString() {
-		return n.id + "(tt=" + tt + "; modes=" + availableModes + ")";
+		return n.getID() + "(tt=" + tt + "; modes=" + availableModes + ")";
 	}
 
 

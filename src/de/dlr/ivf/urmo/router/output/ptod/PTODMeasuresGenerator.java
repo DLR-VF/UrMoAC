@@ -58,29 +58,29 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 			} else {
 				dist = to.pos - from.pos;				
 			}
-			tt = tt / to.edge.length * dist;
+			tt = tt / to.edge.getLength() * dist;
 			step = 4;
-		} else if(from.edge.opposite==to.edge) {
+		} else if(from.edge.getOppositeEdge()==to.edge) {
 			tt = current.first.ttt;
-			if(from.pos>(to.edge.length - to.pos)) {
-				dist = from.pos - (to.edge.length - to.pos);
+			if(from.pos>(to.edge.getLength() - to.pos)) {
+				dist = from.pos - (to.edge.getLength() - to.pos);
 			} else {
-				dist = (to.edge.length - to.pos) - from.pos;				
+				dist = (to.edge.getLength() - to.pos) - from.pos;				
 			}
-			tt = tt / to.edge.length * dist;
+			tt = tt / to.edge.getLength() * dist;
 			step = 4;
 		} else {
 			if(current.wasOpposite) {
 				dist -= to.pos;
-				tt -= current.ttt * to.pos / to.edge.length;
+				tt -= current.ttt * to.pos / to.edge.getLength();
 			} else {
-				dist -= (to.edge.length - to.pos);
-				tt -= (current.ttt - current.ttt * (to.pos / to.edge.length));
+				dist -= (to.edge.getLength() - to.pos);
+				tt -= (current.ttt - current.ttt * (to.pos / to.edge.getLength()));
 			}
 			step = 0;
 			do {
 				e.weightedInterchangeTravelTime += current.interchangeTT;
-				dist += current.e.length;
+				dist += current.e.getLength();
 				tt += current.ttt;
 				DijkstraEntry prev = current.prev;
 				if(prev==null) {
@@ -121,11 +121,11 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 			current = dr.getEdgeInfo(to.edge);
 			double firstTT = current.first.ttt;
 			if(current.first.wasOpposite) {
-				dist -= (from.edge.length - from.pos);
-				tt -= (firstTT - firstTT * (from.pos / from.edge.length));
+				dist -= (from.edge.getLength() - from.pos);
+				tt -= (firstTT - firstTT * (from.pos / from.edge.getLength()));
 			} else {
 				dist -= from.pos;
-				tt -= (firstTT * (from.pos / from.edge.length));
+				tt -= (firstTT * (from.pos / from.edge.getLength()));
 			}
 		}
 		if(step!=4 && dist>0 && tt>0) {
