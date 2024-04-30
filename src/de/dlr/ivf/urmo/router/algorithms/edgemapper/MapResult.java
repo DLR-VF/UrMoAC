@@ -22,10 +22,9 @@ import java.util.Set;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 
 /**
- * @interface MapResult
+ * @class MapResult
  * @brief The result of mapping an EdgeMappable onto an edge
- * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of
- *         Transport Research
+ * @author Daniel Krajzewicz
  */
 public class MapResult {
 	/// @brief The located thing
