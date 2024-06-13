@@ -48,7 +48,6 @@ public class GTFSEdge extends DBEdge {
 
 	/**
 	 * @brief Constructor
-	 * @param _numID A numerical id of the edge (internal, used?!!!)
 	 * @param _id The id of the edge as given in the db
 	 * @param _from A reference to the node this edge starts at (A GTFStop instance)
 	 * @param _to A reference to the node this edge ends at (A GTFStop instance)
@@ -58,9 +57,9 @@ public class GTFSEdge extends DBEdge {
 	 * @param _length The length of this edge
 	 * @param _route The route that realises this connection between two nodes
 	 */
-	public GTFSEdge(long _numID, String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom,
+	public GTFSEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom,
 			double _length, GTFSRoute _route) {
-		super(_numID, _id, _from, _to, _modes, _vmax, _geom, _length);
+		super(_id, _from, _to, _modes, _vmax, _geom, _length);
 		route = _route;
 	}
 

@@ -158,12 +158,9 @@ public abstract class AbstractGTFSReader {
 	/** @brief Reads GTFS from the database
 	 * @param format The source format
 	 * @param inputParts The source definition
-	 * @param allowedCarrier The list of modes to load
-	 * @param date The date to use
 	 * @param bounds A geometric bounding box
-	 * @param net The used road network
 	 * @param entrainmentMap The entrainment map
-	 * @param epsg The projection
+	 * @param numThreads The number of threads to use for mapping halts to the road network
 	 * @param verbose Whether it shall run in verbose mode
 	 * @return The loaded GTFS net
 	 * @throws IOException When something fails
@@ -325,12 +322,12 @@ public abstract class AbstractGTFSReader {
 				DBNode intermediateNode = _net.getNode(_net.getNextID(), pos);
 				// build this side access
 				geom = GeomHelper.getGeomUntilDistance(lastGeom, stopEdgePos-seen);
-				if(!_net.addEdge(_net.getNextID(), e.getID()+"-"+stopID, e.getFromNode(), intermediateNode, e.getModes(), e.getVMax(), geom, geom.getLength())) {
+				if(!_net.addEdge(e.getID()+"-"+stopID, e.getFromNode(), intermediateNode, e.getModes(), e.getVMax(), geom, geom.getLength())) {
 					throw new ParseException("Could not allocate edge '" + e.getID()+"-"+stopID+ "'");
 				}
 				lastGeom = GeomHelper.getGeomBehindDistance(lastGeom, stopEdgePos-seen);
 				String nextEdgeName = stopID+"-"+e.getID();
-				if(!_net.addEdge(_net.getNextID(), nextEdgeName, intermediateNode, e.getToNode(), e.getModes(), e.getVMax(), lastGeom, lastGeom.getLength())) {
+				if(!_net.addEdge(nextEdgeName, intermediateNode, e.getToNode(), e.getModes(), e.getVMax(), lastGeom, lastGeom.getLength())) {
 					throw new ParseException("Could not allocate edge '" +stopID+ "-"+e.getID() + "'");
 				}
 				// build (optional) opposite side access
@@ -338,11 +335,11 @@ public abstract class AbstractGTFSReader {
 				if(opp!=null) {
 					lastOppGeom = GeomHelper.getGeomUntilDistance(opp.getGeometry(), opp.getLength()-seen-stopEdgePos);
 					nextOppEdgeName = opp.getID()+"-"+stopID;
-					if(!_net.addEdge(_net.getNextID(), nextOppEdgeName, opp.getFromNode(), intermediateNode, opp.getModes(), opp.getVMax(), lastOppGeom, lastOppGeom.getLength())) {
+					if(!_net.addEdge(nextOppEdgeName, opp.getFromNode(), intermediateNode, opp.getModes(), opp.getVMax(), lastOppGeom, lastOppGeom.getLength())) {
 						throw new ParseException("Could not allocate edge '" + opp.getID()+"-"+stopID + "'");
 					}
 					geom = GeomHelper.getGeomBehindDistance(opp.getGeometry(), opp.getLength()-seen-stopEdgePos);
-					if(!_net.addEdge(_net.getNextID(), stopID+"-"+opp.getID(), intermediateNode, opp.getToNode(), opp.getModes(), opp.getVMax(), geom, geom.getLength())) {
+					if(!_net.addEdge(stopID+"-"+opp.getID(), intermediateNode, opp.getToNode(), opp.getModes(), opp.getVMax(), geom, geom.getLength())) {
 						throw new ParseException("Could not allocate edge '" + stopID+"-"+opp.getID() + "'");
 					}
 				}
@@ -354,13 +351,13 @@ public abstract class AbstractGTFSReader {
 					edgeCoords[0] = new Coordinate(intermediateNode.getCoordinate());
 					edgeCoords[1] = new Coordinate(stop.getCoordinate());
 					geom = e.getGeometry().getFactory().createLineString(edgeCoords);
-					if(!_net.addEdge(_net.getNextID(), "on-"+stop.mid, intermediateNode, stop, accessModes, 50, geom, Math.max(stopDist, 0.1))) {
+					if(!_net.addEdge("on-"+stop.mid, intermediateNode, stop, accessModes, 50, geom, Math.max(stopDist, 0.1))) {
 						throw new ParseException("Could not allocate edge '" + "on-"+stop.mid + "'");
 					}
 					edgeCoords[0] = new Coordinate(stop.getCoordinate());
 					edgeCoords[1] = new Coordinate(intermediateNode.getCoordinate());
 					geom = e.getGeometry().getFactory().createLineString(edgeCoords);
-					if(!_net.addEdge(_net.getNextID(), "off-"+stop.mid, stop, intermediateNode, accessModes, 50, geom, Math.max(stopDist, 0.1))) {
+					if(!_net.addEdge("off-"+stop.mid, stop, intermediateNode, accessModes, 50, geom, Math.max(stopDist, 0.1))) {
 						throw new ParseException("Could not allocate edge '" + "off-"+stop.mid + "'");
 					}
 				}

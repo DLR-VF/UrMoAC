@@ -105,13 +105,12 @@ public class GTFSStop extends DBNode implements EdgeMappable {
 	 * @brief Returns the connection to the given stop (building it if not yet given)
 	 * !!! TODO: it may happen that one mode of transport operating between two subsequent halts allows entrainment while other does not!!!
 	 * @param to The destination stop
-	 * @param nextID A running id
 	 * @param route The route that realises this connection
 	 * @param em The enttrainment map
 	 * @param net The network, needed for obtaining the geometry factory
 	 * @return The built or already available edge
 	 */
-	public GTFSEdge getEdgeTo(GTFSStop to, long nextID, GTFSRoute route, EntrainmentMap em, DBNet net) {
+	public GTFSEdge getEdgeTo(GTFSStop to, GTFSRoute route, EntrainmentMap em, DBNet net) {
 		if (!connections.containsKey(to)) {
 			connections.put(to, new HashMap<GTFSRoute, GTFSEdge>());
 		}
@@ -126,7 +125,7 @@ public class GTFSStop extends DBNode implements EdgeMappable {
 			coord[0] = getCoordinate();
 			coord[1] = to.getCoordinate();
 			LineString ls = net.getGeometryFactory().createLineString(coord);
-			GTFSEdge e = new GTFSEdge(nextID, this.mid + "_to_" + to.mid + "_using_" + route.nameS, this, to, modes, 80, ls, length, route);
+			GTFSEdge e = new GTFSEdge(this.mid + "_to_" + to.mid + "_using_" + route.nameS, this, to, modes, 80, ls, length, route);
 			m.put(route, e);
 			return e;
 		}

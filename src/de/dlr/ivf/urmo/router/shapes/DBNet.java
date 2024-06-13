@@ -64,7 +64,6 @@ public class DBNet {
 
 	
 	/** @brief Adds an edge building it
-	 * @param _numID The numerical id of the edge
 	 * @param _id The string id of the edge
 	 * @param _from The starting node
 	 * @param _to The ending node
@@ -74,7 +73,7 @@ public class DBNet {
 	 * @param _length The length of the edge
 	 * @return The built edge
 	 */
-	public boolean addEdge(long _numID, String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length) {
+	public boolean addEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length) {
 		boolean hadError = false;
 		if(_length<=0) {
 			System.err.println("Edge '" + _id + "' has a length of 0.");
@@ -88,7 +87,7 @@ public class DBNet {
 			System.err.println("Edge '" + _id + "' already exists.");
 			hadError = true;
 		}
-		DBEdge e = new DBEdge(_numID, _id, _from, _to, _modes, _vmax, _geom, _length);
+		DBEdge e = new DBEdge(_id, _from, _to, _modes, _vmax, _geom, _length);
 		addEdge(e);
 		return !hadError;
 	}

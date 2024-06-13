@@ -37,7 +37,6 @@ public class DBEdge {
 	/**
 	 * @class V
 	 * @bried The information about the speed at this edge during an interval
-	 * @author dkrajzew
 	 */
 	class V {
 		/**
@@ -66,7 +65,6 @@ public class DBEdge {
 	
 	/**
 	 * @brief Compares intervals for sorting them in time
-	 * @author dkrajzew
 	 */
 	class VComparator implements Comparator<V> {
 		/**
@@ -83,8 +81,6 @@ public class DBEdge {
 	
 	
 	
-	/// @brief A numerical id of the edge (internal, used?!!!)
-	private long numID;
 	/// @brief The id of the edge as given in the db
 	private String id;
 	/// @brief A reference to the node this edge starts at (A GTFStop instance)
@@ -111,7 +107,6 @@ public class DBEdge {
 
 	/**
 	 * @brief Constructor
-	 * @param _numID A numerical id of the edge (internal, used?!!!)
 	 * @param _id The id of the edge as given in the db
 	 * @param _from A reference to the node this edge starts at (A GTFStop instance)
 	 * @param _to A reference to the node this edge ends at (A GTFStop instance)
@@ -120,9 +115,7 @@ public class DBEdge {
 	 * @param _geom The geometry of this edge
 	 * @param _length The length of this edge
 	 */
-	public DBEdge(long _numID, String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom,
-			double _length) {
-		numID = _numID;
+	public DBEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length) {
 		id = _id;
 		from = _from;
 		to = _to;
@@ -140,6 +133,9 @@ public class DBEdge {
 	 * @return This edge's starting node
 	 */
 	public void setOppositeEdge(DBEdge e) {
+		if(opposite!=null) {
+			throw new RuntimeException("opposite edge set twice"); // !!!
+		}
 		opposite = e;
 	}
 

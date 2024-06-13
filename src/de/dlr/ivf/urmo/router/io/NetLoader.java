@@ -144,7 +144,7 @@ public class NetLoader {
 				Coordinate[] cs = geom2.getCoordinates();
 				DBNode fromNode = net.getNode(rs.getLong("nodefrom"), cs[0]);
 				DBNode toNode = net.getNode(rs.getLong("nodeto"), cs[cs.length - 1]);
-				ok &= net.addEdge(net.getNextID(), rs.getString("oid"), fromNode, toNode, modes, rs.getDouble(vmax) / 3.6, geom2, rs.getDouble("length"));
+				ok &= net.addEdge(rs.getString("oid"), fromNode, toNode, modes, rs.getDouble(vmax) / 3.6, geom2, rs.getDouble("length"));
 			}
 			rs.close();
 			s.close();
@@ -197,7 +197,7 @@ public class NetLoader {
 			DBNode fromNode = net.getNode(Long.parseLong(vals[1]), coords[0]);
 			DBNode toNode = net.getNode(Long.parseLong(vals[2]), coords[coords.length - 1]);
 			LineString ls = gf.createLineString(coords);
-			ok &= net.addEdge(net.getNextID(), vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, ls, Double.parseDouble(vals[7]));
+			ok &= net.addEdge(vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, ls, Double.parseDouble(vals[7]));
 	    } while(line!=null);
 		br.close();
 		return ok ? net : null;
@@ -236,7 +236,7 @@ public class NetLoader {
 				Coordinate cs[] = geom.getCoordinates();
 				DBNode fromNode = net.getNode(Long.parseLong(vals[1]), cs[0]);
 				DBNode toNode = net.getNode(Long.parseLong(vals[2]), cs[cs.length - 1]);
-				ok &= net.addEdge(net.getNextID(), vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, geom, Double.parseDouble(vals[7]));
+				ok &= net.addEdge(vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, geom, Double.parseDouble(vals[7]));
 		    } while(line!=null);
 			br.close();
 			return ok ? net : null;
