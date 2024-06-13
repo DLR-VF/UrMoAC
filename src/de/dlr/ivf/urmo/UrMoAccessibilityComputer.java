@@ -642,7 +642,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		if (verbose) System.out.println(" " + net.getNumEdges() + " edges loaded (" + net.getNodes().size() + " nodes)");
 		if(!options.getBool("keep-subnets")) {
 			if (verbose) System.out.println("Checking for connectivity...");
-			Set<Set<DBEdge>> clusters = net.dismissUnconnectedEdges(options.getBool("subnets-summary"));
+			HashMap<Integer, Set<DBEdge>> clusters = net.dismissUnconnectedEdges(options.getBool("subnets-summary"));
 			if (options.isSet("subnets-output")) {
 				OutputBuilder.writeSubnets("subnets-output", options, clusters);
 			}

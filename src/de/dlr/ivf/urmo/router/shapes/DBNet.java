@@ -186,7 +186,7 @@ public class DBNet {
 
 	/**
 	 * @brief Builds and return a spatial index for the parts of the road
-	 *        network that may be travelled by the given transport modes
+	 *        network that may be traveled by the given transport modes
 	 * @param modes The available modes of transport
 	 * @return The network subparts compound of edges that may be traveled by the given modes
 	 */
@@ -224,9 +224,10 @@ public class DBNet {
 	 * @brief Checks which edges are not connected to the major part of the network and removes them
 	 * @param report Whether the removal of edges shall be reported
 	 */
-	public Set<Set<DBEdge>> dismissUnconnectedEdges(boolean report) {
-		HashMap<DBEdge, Set<DBEdge>> edge2cluster = new HashMap<>();
-		Set<Set<DBEdge>> clusters = new HashSet<>();
+	public HashMap<Integer, Set<DBEdge>> dismissUnconnectedEdges(boolean report) {
+		HashMap<DBEdge, Integer> edge2cluster = new HashMap<>();
+		HashMap<Integer, Set<DBEdge>> clusters = new HashMap<>();
+		int nextClusterIndex = 0;
 		for (DBEdge e : name2edge.values()) {
 			if (edge2cluster.containsKey(e)) {
 				// skip, it has already been visited
@@ -237,65 +238,52 @@ public class DBNet {
 			Vector<DBEdge> next = new Vector<>();
 			next.add(e);
 			Set<DBEdge> currCluster = new HashSet<>();
+			int clusterIndex = nextClusterIndex;
 			while (!next.isEmpty()) {
 				// get next edge to process from the list
-				DBEdge e2 = next.get(next.size() - 1);
-				next.remove(next.size() - 1);
+				DBEdge e2 = next.remove(next.size() - 1);
+				/*
 				if(edge2cluster.containsKey(e2)) {
 					continue;
 				}
+				*/
 				if(edge2cluster.containsKey(e2)) {
-					// ok, it already belongs to a cluster - join both and proceed
-					Set<DBEdge> prevCluster = edge2cluster.get(e2);
-					prevCluster.addAll(currCluster);
-					// update information for already set edges
-					for(DBEdge e3 : currCluster) {
-						edge2cluster.put(e3, prevCluster);
+					if(edge2cluster.get(e2)!=clusterIndex) {
+						// ok, it already belongs to a cluster - join both and proceed
+						int prevClusterIndex = edge2cluster.get(e2);
+						Set<DBEdge> prevCluster = clusters.get(prevClusterIndex);
+						prevCluster.addAll(currCluster);
+						// update information for already set edges
+						for(DBEdge e3 : currCluster) {
+							edge2cluster.put(e3, prevClusterIndex);
+						}
+						currCluster = prevCluster;
+						clusterIndex = prevClusterIndex;
 					}
-					currCluster = prevCluster;
 				} else {
 					// add to current cluster
 					currCluster.add(e2);
-					edge2cluster.put(e2, currCluster);
+					edge2cluster.put(e2, clusterIndex);
 				}
-				next.addAll(e2.getToNode().getOutgoing());
-			}
-			if(!clusters.contains(currCluster)) {
-				clusters.add(currCluster);
-			}
-		}
-			
-			
-		
-		
-		/*
-		Set<DBEdge> seen = new HashSet<>();
-		Set<Set<DBEdge>> clusters = new HashSet<>();
-		// go through edges, build clusters with connected ones
-		// currently, we assume networks are connected disregarding the direction information
-		for (DBEdge e : name2edge.values()) {
-			if (seen.contains(e)) {
-				continue;
-			}
-			Vector<DBEdge> next = new Vector<>();
-			next.add(e);
-			Set<DBEdge> cluster = new HashSet<>();
-			while (!next.isEmpty()) {
-				DBEdge e2 = next.get(next.size() - 1);
-				next.remove(next.size() - 1);
-				cluster.add(e2);
-				if(!seen.contains(e2)) {
-					seen.add(e2);
-					next.addAll(e2.getToNode().getOutgoing());
-					next.addAll(e2.getFromNode().getIncoming());
+				for(DBEdge e3 : e2.getFromNode().getIncoming()) {
+					if(!edge2cluster.containsKey(e3)) {
+						next.add(e3);
+					}
+				}
+				for(DBEdge e3 : e2.getToNode().getOutgoing()) {
+					if(!edge2cluster.containsKey(e3)) {
+						next.add(e3);
+					}
 				}
 			}
-			clusters.add(cluster);
+			if(clusterIndex==nextClusterIndex) {
+				clusters.put(clusterIndex, currCluster);
+			}
+			++nextClusterIndex;
 		}
-		*/
 		// determine major cluster
 		Set<DBEdge> major = null;
-		for (Set<DBEdge> c : clusters) {
+		for (Set<DBEdge> c : clusters.values()) {
 			if (major == null || major.size() < c.size()) {
 				major = c;
 			}
@@ -310,7 +298,7 @@ public class DBNet {
 			if(report) {
 				System.out.println(" Major cluster has " + major.size() + " edges.");
 				System.out.println(" Further clusters:");
-				for (Set<DBEdge> c : clusters) {
+				for (Set<DBEdge> c : clusters.values()) {
 					if(c==major) {
 						continue;
 					}
@@ -319,7 +307,7 @@ public class DBNet {
 			}
 		}
 		// remove edges from all clusters but the major one
-		for (Set<DBEdge> c : clusters) {
+		for (Set<DBEdge> c : clusters.values()) {
 			if (c == major) {
 				continue;
 			}

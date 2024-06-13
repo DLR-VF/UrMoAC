@@ -21,6 +21,7 @@ package de.dlr.ivf.urmo.router.output;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.Vector;
 
@@ -53,10 +54,10 @@ public class NetClusterWriter extends BasicCombinedWriter {
 	
 	/** @brief Get the insert statement string
 	 * @param[in] format The used output format
-	 * @param[in] rsid The used projection (not needed)
+	 * @param[in] epsg The used projection (not needed)
 	 * @return The insert statement string
 	 */
-	protected String getInsertStatement(Utils.Format format, int rsid) {
+	protected String getInsertStatement(Utils.Format format, int epsg) {
 		return "VALUES (?, ?, ?)";
 	}
 
@@ -64,13 +65,12 @@ public class NetClusterWriter extends BasicCombinedWriter {
 	/**
 	 * @brief Writes the information about network clusters
 	 * @param clusters The found clusters
-	 * @param major The major cluster
 	 * @throws IOException When something fails
 	 */
-	public synchronized void writeClusters(Set<Set<DBEdge>> clusters) throws IOException {
+	public synchronized void writeClusters(HashMap<Integer, Set<DBEdge>> clusters) throws IOException {
 		// convert to a sorted vector of sorted edge vectors 
 		Vector<Vector<DBEdge>> vClusters = new Vector<>();
-		for (Set<DBEdge> cluster : clusters) {
+		for (Set<DBEdge> cluster : clusters.values()) {
 			Vector<DBEdge> v = new Vector<>();
 			for (DBEdge e : cluster) {
 				v.add(e);

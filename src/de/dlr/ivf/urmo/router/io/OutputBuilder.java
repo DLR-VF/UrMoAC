@@ -224,7 +224,7 @@ public class OutputBuilder {
 	 * @param clusters The edge clusters to report
 	 * @throws IOException When something fails
 	 */
-	public static void writeSubnets(String outputName, OptionsCont options, Set<Set<DBEdge>> clusters) throws IOException {
+	public static void writeSubnets(String outputName, OptionsCont options, HashMap<Integer, Set<DBEdge>> clusters) throws IOException {
 		boolean dropPrevious = options.getBool("dropprevious");
 		String d = options.getString(outputName);
 		Utils.Format format = Utils.getFormat(d);
