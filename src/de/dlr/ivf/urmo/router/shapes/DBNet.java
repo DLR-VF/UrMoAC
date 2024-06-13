@@ -338,10 +338,10 @@ public class DBNet {
 
 
 	/**
-	 * @brief Extends the network by adding opposite edges for pedestrians
-	 * @param index The next edge id to use
+	 * @brief Extends the network by adding opposite edges
+	 * @param addOppositePedestrianEdges Whether backwards edges for pedestrians shall be added
 	 */
-	public void extendDirections() {
+	public void extendDirections(boolean addOppositePedestrianEdges) {
 		Vector<DBEdge> newEdges = new Vector<>();
 		long modeFoot = Modes.getMode("foot").id;
 		Collection<DBEdge> edges = name2edge.values(); 
@@ -370,9 +370,9 @@ public class DBNet {
 				}
 			}
 			// add a reverse direction edge for pedestrians
-			if((opposite==null && e.allows(modeFoot)) || (opposite==e)) {
+			if(addOppositePedestrianEdges && ((opposite==null && e.allows(modeFoot)) || (opposite==e))) {
 				// todo: recheck whether opposite==e is correct - it happens, though maybe when using an external OSM importer
-				opposite = new DBEdge(getNextID(), "opp_"+e.getID(), e.getToNode(), e.getFromNode(), modeFoot, e.getVMax(), (LineString) e.getGeometry().reverse(), e.getLength());
+				opposite = new DBEdge("opp_"+e.getID(), e.getToNode(), e.getFromNode(), modeFoot, e.getVMax(), (LineString) e.getGeometry().reverse(), e.getLength());
 				newEdges.add(opposite);
 			}
 			// add the information about the opposite edge
