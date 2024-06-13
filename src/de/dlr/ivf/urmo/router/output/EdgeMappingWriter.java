@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -34,7 +37,7 @@ import de.dlr.ivf.urmo.router.shapes.DBEdge;
 /**
  * @class EdgeMappingWriter
  * @brief Writes the results of the mapping of sources / destinations to edges
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class EdgeMappingWriter extends BasicCombinedWriter {
 	/**

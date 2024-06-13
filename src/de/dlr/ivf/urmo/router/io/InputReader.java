@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -8,7 +11,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -54,7 +57,7 @@ import de.dlr.ivf.urmo.router.shapes.LayerObject;
 /**
  * @class InputReader
  * @brief Methods for loading sources/destinations, entrainment data, geometries and O/D-connections 
- * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class InputReader {
 	// --------------------------------------------------------
@@ -171,8 +174,8 @@ public class InputReader {
 	 * @brief Loads a set of objects from the db
 	 * 
 	 * @param layerName The layer/type ("from", "to") of the objects to load
-	 * @param format The format of the source
 	 * @param bounds The bounds to clip the read thing to
+	 * @param format The format of the source
 	 * @param inputParts The definition of the source
 	 * @param filter A WHERE-clause statement (optional, empty string if not used)
 	 * @param varName The name of the attached variable

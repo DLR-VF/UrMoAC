@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -24,6 +27,7 @@ import java.sql.Statement;
 
 /** @class Utils
  * @brief Some helper methods for output building
+ * @author Daniel Krajzewicz
  */
 public class Utils {
 	/** @brief Known file formats / database connections

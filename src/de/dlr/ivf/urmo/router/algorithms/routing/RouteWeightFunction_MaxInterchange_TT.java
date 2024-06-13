@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -20,6 +23,7 @@ import java.util.HashMap;
 /**
  * @class RouteWeightFunction_MaxInterchange_TT
  * @brief Limits the number of interchanges - a path with more than a given number of interchanges is always the slower one
+ * @author Daniel Krajzewicz
  */
 public class RouteWeightFunction_MaxInterchange_TT extends AbstractRouteWeightFunction {
 	/// @brief The maximum number of interchanges
@@ -58,13 +62,6 @@ public class RouteWeightFunction_MaxInterchange_TT extends AbstractRouteWeightFu
 		} else if(pc1>scale1 && pc2<=scale1) {
 			return 1;
 		} else {
-			/*
-			if(pc1<pc2) {
-				return -1;
-			} else if(pc1>pc2) {
-				return 1;
-			}
-			*/
 			if(c1.tt<c2.tt) {
 				return -1;
 			} else if(c1.tt>c2.tt) {

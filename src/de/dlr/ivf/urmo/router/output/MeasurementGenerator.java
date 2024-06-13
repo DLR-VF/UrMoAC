@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -21,7 +24,7 @@ import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
 /**
  * @class MeasurementGenerator
  * @brief Something that interprets a path to build a specific result 
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  * @param <T>
  */
 public abstract class MeasurementGenerator<T extends AbstractSingleResult> {

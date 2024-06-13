@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -24,7 +27,7 @@ import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
 /**
  * @class Layer
  * @brief An object layer
- * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class Layer {
 	/// @brief The layer's name

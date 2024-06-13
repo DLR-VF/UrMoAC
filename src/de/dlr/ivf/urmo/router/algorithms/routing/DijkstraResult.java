@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -23,9 +26,11 @@ import de.dlr.ivf.urmo.router.shapes.DBNode;
 
 /**
  * @class DijkstraResult
- * @brief A storage for dijkstra results (1-to-many)
- * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of
- *         Transport Research
+ * @brief A storage for routing results (one source to multiple destinations)
+ * 
+ * The Dijkstra results stores subsequently filled access from a single origin to a set of destinations.
+ *  
+ * @author Daniel Krajzewicz
  */
 public class DijkstraResult {
 	/// @brief A map of nodes to their accessibility measures

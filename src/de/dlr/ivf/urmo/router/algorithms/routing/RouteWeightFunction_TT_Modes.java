@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -20,6 +23,7 @@ import java.util.HashMap;
 /**
  * @class RouteWeightFunction_TT_Modes
  * @brief Compares paths by the travel time, then by the number of remaining modes that can be used
+ * @author Daniel Krajzewicz
  */
 public class RouteWeightFunction_TT_Modes extends AbstractRouteWeightFunction {
 	/** @brief Returns the number of required parameters

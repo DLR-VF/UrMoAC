@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2021-2024 DLR Institute of Transport Research
+ * Copyright (c) 2021-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -30,9 +33,10 @@ import de.dlr.ivf.urmo.router.shapes.DBNode;
 
 /** @class SUMOLayerHandler
  * @brief Parses a SUMO-net-file 
- * @author Daniel Krajzewicz (c) 2021 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class SUMONetHandler extends DefaultHandler {
+	/// @brief The geometry factory to use
 	GeometryFactory _gf;
 	/// @brief The net to fill
 	private DBNet _net;

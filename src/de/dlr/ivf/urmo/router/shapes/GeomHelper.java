@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -21,6 +24,7 @@ import org.locationtech.jts.geom.Point;
 
 /** @class GeomHelper
  * @brief Some geometric help functions
+ * @author Daniel Krajzewicz
  */
 public class GeomHelper {
 	/**

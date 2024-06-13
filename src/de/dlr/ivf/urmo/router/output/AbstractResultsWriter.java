@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -22,7 +25,7 @@ import de.dlr.ivf.urmo.router.io.Utils;
 /**
  * @class AbstractResultsWriter
  * @brief Class with interfaces for writing results of different type to databases or files 
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  * @param <T>
  */
 public abstract class AbstractResultsWriter<T> extends BasicCombinedWriter {

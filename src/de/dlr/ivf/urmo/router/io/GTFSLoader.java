@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -29,8 +32,7 @@ import de.dlr.ivf.urmo.router.shapes.DBNet;
 /**
  * @class GTFSReader
  * @brief Reads a GTFS plan from a DB or a file
- * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of
- *         Transport Research
+ * @author Daniel Krajzewicz
  */
 public class GTFSLoader {
 	/** @brief Loads GTFS data from a database or a file
@@ -64,11 +66,9 @@ public class GTFSLoader {
 		case FORMAT_SQLITE:
 			reader = new GTFSReader_DB(net, epsg, options.getString("date"), allowedCarrier);
 			break;
-			//return loadGTFSFromDB(format, inputParts, allowedCarrier, options.getString("date"), bounds, net, entrainmentMap, epsg, numThreads, verbose);
 		case FORMAT_CSV:
 			reader = new GTFSReader_File(net, epsg, options.getString("date"), allowedCarrier);
 			break;
-			//return loadGTFSFromFile(inputParts[0], allowedCarrier, options.getString("date"), bounds, net, entrainmentMap, epsg, verbose);
 		case FORMAT_SHAPEFILE:
 		case FORMAT_SUMO:
 		case FORMAT_GEOPACKAGE:

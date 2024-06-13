@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -22,7 +25,6 @@ import java.util.Vector;
  * @class Modes
  * @brief Known modes of transport
  * @author Daniel Krajzewicz
- * (c) 2016 German Aerospace Center, Institute of Transport Research
  *         
  * kkcPerHour: 
  * * http://www.herz.at/meinlebensstil/Lifestyle/Tabelle_Kalorienverbrauch_bei_koerperlicher_Taetigkeit.htm
@@ -52,7 +54,7 @@ public class Modes {
 		modes = new Vector<>();
 
 		// _id, _mml, _vmax, _maxDist, _kkcPerHour, _co2PerKm, _pricePerKm
-		// costs: Eisenmann, Christine und Kuhnimhof, Tobias (2017) Vehicle cost imputation in travel surveys: Gaining insight into the fundamentals of (auto-) mobility choices. 11th International Conference on Transport Survey Methods, 24.-29. Sept. 2017, Estérel, Kanada. 
+		// costs: Eisenmann, Christine und Kuhnimhof, Tobias (2017) Vehicle cost imputation in travel surveys: Gaining insight into the fundamentals of (auto-) mobility choices. 11th International Conference on Transport Survey Methods, 24.-29. Sept. 2017, Estï¿½rel, Kanada. 
 		add(new Mode(1, "custom", 0, 300, 0, 0, 0));
 		add(new Mode(2, "foot", 3.6, 50, 280, 0, 0)); // kcal: 17190
 		add(new Mode(4, "bike", 13, 300, 510, 0, 0)); // kcal: 1020

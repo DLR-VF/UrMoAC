@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -23,15 +26,13 @@ import de.dlr.ivf.urmo.router.gtfs.GTFSTrip;
 /**
  * @class AbstractRouteWeightFunction
  * @brief Base class for methods that weight paths.
- * @author Daniel Krajzewicz (c) 2018 German Aerospace Center, Institute of
- *         Transport Research
+ * @author Daniel Krajzewicz
  */
 public abstract class AbstractRouteWeightFunction implements Comparator<DijkstraEntry> {
 	/** @brief Returns the number of required parameters
 	 * @return The number of required parameters
 	 */
 	public abstract int getParameterNumber();
-
 
 	
 	/**

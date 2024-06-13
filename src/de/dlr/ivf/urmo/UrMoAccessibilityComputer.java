@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -73,7 +76,8 @@ import de.dlr.ivf.urmo.router.shapes.Layer;
  *        mapped onto the road network. Distances and travel times between each
  *        member of set1 and each member of set2 are then computed using plain
  *        Dijkstra. The results (including the mapping of the objects onto the
- *        road network) are written into files.
+ *        road network) are written.
+ * @author Daniel Krajzewicz
  */
 public class UrMoAccessibilityComputer implements IDGiver {
 	// --------------------------------------------------------
@@ -95,7 +99,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	private AbstractRouteWeightFunction measure = null; // TODO: add documentation on github
 	/// @brief The results processor
 	private DijkstraResultsProcessor resultsProcessor = null;
-	/// @brief Starting time of computation
+	/// @brief Starting time for routing
 	private int time = -1;
 	/// @brief Allowed modes
 	private long modes = -1;

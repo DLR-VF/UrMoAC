@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -20,6 +23,7 @@ import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 /** @class DBODRelationExt
  * @brief A single origin/destination relation with a weight, extended by information about mapped object(s) 
  * @see DBODRelation
+ * @author Daniel Krajzewicz
  */
 public class DBODRelationExt extends DBODRelation {
 	/** @brief Constructor

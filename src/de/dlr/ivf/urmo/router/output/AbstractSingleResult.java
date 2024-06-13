@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -23,7 +26,7 @@ import de.dlr.ivf.urmo.router.shapes.LayerObject;
 /**
  * @class AbstractSingleResult
  * @brief The base class for routing results' interpretations
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public abstract class AbstractSingleResult {
 	/// @brief The id of the origin the represented trip starts at

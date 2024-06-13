@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -31,7 +34,7 @@ import de.dlr.ivf.urmo.router.io.Utils;
 /**
  * @class BasicCombinedWriter
  * @brief Base class for an output that writes to a database or a file
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public abstract class BasicCombinedWriter {
 	/// @{ db connection settings

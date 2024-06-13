@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -25,13 +28,12 @@ import de.dlr.ivf.urmo.router.output.AbstractSingleResult;
 /**
  * @class InterchangeSingleResult
  * @brief Interchanges usage interpretation of a route 
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class InterchangeSingleResult extends AbstractSingleResult {
 	/**
 	 * @class InterchangeParam
 	 * @brief Statistics about using an interchange
-	 * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
 	 */
 	class InterchangeParam {
 		/// @brief The number of interchanges of this type
@@ -40,7 +42,7 @@ public class InterchangeSingleResult extends AbstractSingleResult {
 		double weightedTT = 0;
 	}
 	
-	/// @brief A mpa from halt ID to (from, to, number, tt)
+	/// @brief A map from halt ID to (from, to, number, tt)
 	public Map<String, Map<String, InterchangeParam>> stats = new HashMap<>(); 
 	
 	
