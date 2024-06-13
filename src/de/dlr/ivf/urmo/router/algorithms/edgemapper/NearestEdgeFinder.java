@@ -72,13 +72,13 @@ public class NearestEdgeFinder {
 	 */
 	private static class ComputingThread implements Runnable {
 		/// @brief The parent to get information from
-		NearestEdgeFinder parent;
+		private NearestEdgeFinder parent;
 		/// @brief The spatial index of edges
-		STRtree tree;
+		private STRtree tree;
 		/// @brief A distance computation class
-		ItemDistance itemDist;
+		private ItemDistance itemDist;
 		/// @brief Whether the mappable should be added to the according edge
-		boolean addToEdge;
+		private boolean addToEdge;
 		/// @brief The transport modes to use
 		private long modes;
 
@@ -88,6 +88,7 @@ public class NearestEdgeFinder {
 		 * @param _parent The parent to get information from
 		 * @param _tree The spatial index to use to find edges
 		 * @param _addToEdge Whether the mappables should be added to the according edges
+		 * @param _modes The transport modes to use
 		 */
 		public ComputingThread(NearestEdgeFinder _parent, STRtree _tree, boolean _addToEdge, long _modes) {
 			super();
@@ -123,6 +124,28 @@ public class NearestEdgeFinder {
 		}
 
 
+		/// !!! Initial attempt to process areal destinations
+		/*
+		private void processMappable2(EdgeMappable mappable) {
+			List<Object> results = tree.query(mappable.getEnvelope());
+			boolean found = false; 
+			for(Object e : results) {
+				DBEdge edge = (DBEdge) e;
+				LineString geom = edge.getGeometry();
+				// completely included
+				if(mappable.getGeometry().contains(geom)) {
+					parent.addResult(new MapResult(mappable, edge, 0, -1));
+					found = true;
+				}
+				// crosses
+				if(mappable.getGeometry().crosses(geom)) {
+					parent.addResult(new MapResult(mappable, edge, 0, -1));
+					found = true;
+				}
+			}
+		}
+		*/
+		
 		/** 
 		 * @brief Determines the edge the mappable is allocated at
 		 * @param mappable The mappable to process
@@ -175,7 +198,7 @@ public class NearestEdgeFinder {
 	
 	
 	// -----------------------------------------------------------------------
-	// NearestEdgeFinde
+	// NearestEdgeFinder
 	// -----------------------------------------------------------------------
 	/**
 	 * @brief Constructor
@@ -195,7 +218,7 @@ public class NearestEdgeFinder {
 	 * @brief Adds the found mapping result to the results set
 	 * @param mapResult The computed mapping result
 	 */
-	public synchronized void addResult(MapResult mapResult) {
+	private synchronized void addResult(MapResult mapResult) {
 		DBEdge found = mapResult.edge;
 		if (!ret.containsKey(found)) {
 			ret.put(found, new Vector<>());
@@ -209,7 +232,7 @@ public class NearestEdgeFinder {
 	 * @brief Returns the next mappable to process
 	 * @return The next mappable to process
 	 */
-	public synchronized EdgeMappable getNextMappable() {
+	private synchronized EdgeMappable getNextMappable() {
 		EdgeMappable nextMappable = null;
 		while(nextMappable==null) {
 			if(!nextMappablePointer.hasNext()) {
