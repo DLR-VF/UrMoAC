@@ -23,7 +23,7 @@ import java.util.Set;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraEntry;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
+import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.output.MeasurementGenerator;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.LayerObject;
@@ -37,17 +37,17 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 	/**
 	 * @brief Interprets the path to build an ODSingleExtendedResult
 	 * @param beginTime The start time of the path
-	 * @param from The origin the path started at
-	 * @param to The destination accessed by this path
-	 * @param dr The routing result
+	 * @param result The processed path between the origin and the destination
 	 * @return An ODSingleExtendedResult computed using the given path
 	 */
-	public ODSingleExtendedResult buildResult(int beginTime, MapResult from, MapResult to, DijkstraResult dr) {
-		DijkstraEntry toEdgeEntry = dr.getEdgeInfo(to.edge);
-		ODSingleExtendedResult e = new ODSingleExtendedResult(from.em.getOuterID(), to.em.getOuterID(), from, to, dr);
+	public ODSingleExtendedResult buildResult(int beginTime, SingleODResult result) {
+		DijkstraEntry toEdgeEntry = result.path;//.getPath(to);//dr.getEdgeInfo(to.edge);
+		ODSingleExtendedResult e = new ODSingleExtendedResult(result);
+		MapResult from = result.origin;
+		MapResult to = result.destination;
 		e.weightedDistance = e.dist * e.val;
 		e.weightedTravelTime = e.tt * e.val;
-		e.weightedValue = ((LayerObject) to.em).getAttachedValue() * e.val;
+		e.weightedValue = ((LayerObject) result.destination.em).getAttachedValue() * e.val;
 		e.weightedWaitingTime = 0;
 		e.weightedInitialWaitingTime = 0;
 		e.weightedPTTravelTime = 0;
@@ -84,7 +84,7 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 		Set<String> seenLines = new HashSet<>();
 		// we go backwards through the list
 		do {
-			double ttt = current.prev==null ? current.tt : current.tt - current.prev.tt;
+			double ttt = current.e.getTravelTime(current.usedMode.vmax, current.tt+beginTime);//.prev==null ? current.tt : current.tt - current.prev.tt;
 			if(current.prev==null&&!single) {
 				// compute offset to edge's begin / end if it's the first edge
 				if(current.e==from.edge.getOppositeEdge()) {

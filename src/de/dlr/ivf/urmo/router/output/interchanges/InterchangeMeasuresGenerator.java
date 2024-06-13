@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -15,30 +18,26 @@
  */
 package de.dlr.ivf.urmo.router.output.interchanges;
 
-import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraEntry;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
+import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.gtfs.GTFSStop;
 import de.dlr.ivf.urmo.router.output.MeasurementGenerator;
 
 /**
  * @class InterchangeMeasuresGenerator
  * @brief Interprets a path to build an InterchangeSingleResult
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
- * @param <T>
+ * @author Daniel Krajzewicz
  */
 public class InterchangeMeasuresGenerator extends MeasurementGenerator<InterchangeSingleResult> {
 	/**
 	 * @brief Interprets the path to build an InterchangeSingleResult
 	 * @param beginTime The start time of the path
-	 * @param from The origin the path started at
-	 * @param to The destination accessed by this path
-	 * @param dr The routing result
+	 * @param result The processed path between the origin and the destination
 	 * @return An InterchangeSingleResult computed using the given path
 	 */
-	public InterchangeSingleResult buildResult(int beginTime, MapResult from, MapResult to, DijkstraResult dr) {
-		DijkstraEntry current = dr.getEdgeInfo(to.edge);
-		InterchangeSingleResult e = new InterchangeSingleResult(from.em.getOuterID(), to.em.getOuterID());
+	public InterchangeSingleResult buildResult(int beginTime, SingleODResult result) {
+		DijkstraEntry current = result.path; //dr.getPath(to);//getEdgeInfo(to.edge);
+		InterchangeSingleResult e = new InterchangeSingleResult(result.origin.em.getOuterID(), result.destination.em.getOuterID());
 		
 		do {
 			DijkstraEntry next = current;

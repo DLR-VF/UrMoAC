@@ -202,10 +202,11 @@ public class UrMoAccessibilityComputer implements IDGiver {
 						if(e==null) {
 							continue;
 						}
-						/// TODO: recheck whether routing is needed per source
-						DijkstraResult ret = BoundDijkstra.run(measure, time, e, initMode, modes, parent.nearestToEdges.keySet(), boundNumber, boundTT, boundDist, boundVar, shortestOnly);
 						Vector<MapResult> fromObjects = parent.nearestFromEdges.get(e);
 						for(MapResult mr : fromObjects) {
+							DijkstraResult ret = BoundDijkstra.run(mr, measure, time, 
+									initMode, modes, parent.nearestToEdges.keySet(), 
+									boundNumber, boundTT, boundDist, boundVar, shortestOnly, parent.nearestToEdges);
 							resultsProcessor.process(mr, ret, needsPT, -1);
 						}
 					} while(e!=null&&!parent.hadError);
@@ -219,7 +220,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 						/// TODO: recheck whether routing is needed per source
 						Set<DBEdge> destinations = new HashSet<>();
 						destinations.add(od.toEdge);
-						DijkstraResult ret = BoundDijkstra.run(measure, time, od.fromEdge, initMode, modes, destinations, boundNumber, boundTT, boundDist, boundVar, shortestOnly);
+						DijkstraResult ret = BoundDijkstra.run(od.fromMR, measure, time, 
+								initMode, modes, destinations, 
+								boundNumber, boundTT, boundDist, boundVar, shortestOnly, parent.nearestToEdges);
 						resultsProcessor.process(od.fromMR, ret, needsPT, od.destination);
 					} while(od!=null&&!parent.hadError);
 				}

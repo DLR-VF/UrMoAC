@@ -89,8 +89,8 @@ public class NetLoader {
 		if(net==null) {
 			throw new IOException("The network could not be loaded");
 		}
-		// add other directions to mode foot
-		net.extendDirections();
+		// set opposite edges; add opposite pedestrian edges if foot is used
+		net.extendDirections((uModes&Modes.getMode("foot").id)!=0);
 		return net;
 	}
 
@@ -99,7 +99,7 @@ public class NetLoader {
 	 * @param idGiver Instance supporting running ids 
 	 * @param format The source format
 	 * @param inputParts The source definition
-	 * @param vmaxAttr The attribute (column) to read the maximum velocity from 
+	 * @param vmax The attribute (column) to read the maximum velocity from 
 	 * @param epsg The projection
 	 * @param uModes The modes for which the network shall be loaded
 	 * @return The loaded net

@@ -20,7 +20,7 @@ package de.dlr.ivf.urmo.router.output;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraEntry;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
+import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
 /**
@@ -39,6 +39,8 @@ public abstract class AbstractSingleResult {
 	public double tt = 0;
 	/// @brief The value collected at this trip (at the destination)
 	public double val = 0;
+	/// @brief The path between the origin and the destination
+	public DijkstraEntry toEdgeEntry = null;
 	
 	
 	/**
@@ -58,63 +60,17 @@ public abstract class AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Computes the distance and the travel time
-	 * @param _srcID The id of the origin the represented trip starts at
-	 * @param _destID The id of the destination the represented trip ends at
-	 * @param from The mapped source
-	 * @param to The mapped destination
 	 * @param dr The path between the source and the destination
 	 */
-	public AbstractSingleResult(long _srcID, long _destID, MapResult from, MapResult to, DijkstraResult dr) {
-		srcID = _srcID;
-		destID = _destID;
-
-		DijkstraEntry toEdgeEntry = dr.getEdgeInfo(to.edge);
+	public AbstractSingleResult(SingleODResult result) {
+		MapResult from = result.origin;
+		MapResult to = result.destination;
+		srcID = ((LayerObject) from.em).getOuterID();
+		destID = ((LayerObject) to.em).getOuterID();
+		dist = result.dist;
+		tt = result.tt;
 		val = ((LayerObject) from.em).getAttachedValue();
-		double firstTT = toEdgeEntry.first.ttt;
-		if(from.edge==to.edge) {
-			tt = firstTT;
-			if(from.pos>to.pos) {
-				dist = from.pos - to.pos;
-			} else {
-				dist = to.pos - from.pos;				
-			}
-			tt = tt / to.edge.getLength() * dist;
-		} else if(from.edge.getOppositeEdge()==to.edge) {
-			tt = firstTT;
-			if(from.pos>(to.edge.getLength() - to.pos)) {
-				dist = from.pos - (to.edge.getLength() - to.pos);
-			} else {
-				dist = (to.edge.getLength() - to.pos) - from.pos;				
-			}
-			tt = tt / to.edge.getLength() * dist;
-		} else {
-			dist = toEdgeEntry.distance;
-			tt = toEdgeEntry.tt;
-			if(toEdgeEntry.first.e==from.edge.getOppositeEdge()) {
-				dist -= (from.edge.getLength() - from.pos);
-				tt -= (firstTT - firstTT * from.pos / from.edge.getLength());
-			} else {
-				dist -= from.pos;
-				tt -= (firstTT * from.pos / from.edge.getLength());
-			}
-			if(toEdgeEntry.wasOpposite) {
-				dist -= to.pos;
-				tt -= toEdgeEntry.ttt * to.pos / to.edge.getLength();
-			} else {
-				dist -= (to.edge.getLength() - to.pos);
-				tt -= (toEdgeEntry.ttt - toEdgeEntry.ttt * (to.pos / to.edge.getLength()));
-			}
-		}
-		if(dist<0&&dist>-.1) {
-			dist = 0;
-		}
-		if(tt<0&&tt>-.1) {
-			tt = 0;
-		}
-		
-		if(dist<0||tt<0) {
-			System.err.println("Negative distance or travel time occured between '" + from.em.getOuterID() + "' to '" + to.em.getOuterID() + "'.");
-		}
+		toEdgeEntry = result.path;//.getPath(to);//.getEdgeInfo(to.edge);
 	}
 	
 	

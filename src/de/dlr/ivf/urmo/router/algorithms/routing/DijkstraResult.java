@@ -18,11 +18,15 @@
  */
 package de.dlr.ivf.urmo.router.algorithms.routing;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Map;
+import java.util.Vector;
 
+import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
-import de.dlr.ivf.urmo.router.shapes.DBNode;
+import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
 /**
  * @class DijkstraResult
@@ -33,34 +37,30 @@ import de.dlr.ivf.urmo.router.shapes.DBNode;
  * @author Daniel Krajzewicz
  */
 public class DijkstraResult {
-	/// @brief A map of nodes to their accessibility measures
-	public HashMap<DBNode, HashMap<Long, DijkstraEntry> > nodeMap = new HashMap<DBNode, HashMap<Long, DijkstraEntry>>();
+	/// @brief The origin of routing
+	public MapResult origin;
 	/// @brief A map of edges to their accessibility measures
 	public HashMap<DBEdge, DijkstraEntry> edgeMap = new HashMap<>();
-	/// @brief The number of seen objects
-	public int seenObjects = 0;
 	/// @brief Sum of seen destination weights
 	public double seenVar = 0;
-	/// @brief List of edges to find/visit
-	public HashSet<DBEdge> toFind;
 	/// @brief Number of destinations to find (-1 if not used)
 	public int boundNumber;
 	/// @brief Maximum travel time (-1 if not used)
-	public int boundTT;
+	public double boundTT;
 	/// @brief Maximum distance (-1 if not used)
-	public int boundDist;
+	public double boundDist;
 	/// @brief Maximum weight sum to find (-1 if not used)
 	public double boundVar;
 	/// @brief Whether only the next item shall be found
 	public boolean shortestOnly;
 	/// @brief Starting time
 	public int time;
-	/// @brief The result seen as last
-	public DijkstraEntry lastSeen = null;
-
+	/// @brief Map of seen destinations to the paths to them
+	public Map<MapResult, SingleODResult> seen = new HashMap<>();
 	
-	/** @brief Contructor
-	 * @param _toFind List of edges to find/visit
+	
+	/** @brief Constructor
+	 * @param _toFind List of objects to find
 	 * @param _boundNumber Number of destinations to find (-1 if not used)
 	 * @param _boundTT Maximum travel time (-1 if not used)
 	 * @param _boundDist Maximum distance (-1 if not used)
@@ -68,47 +68,17 @@ public class DijkstraResult {
 	 * @param _shortestOnly Whether only the next item shall be found
 	 * @param _time Starting time
 	 */
-	public DijkstraResult(HashSet<DBEdge> _toFind, int _boundNumber, double _boundTT, double _boundDist, 
+	public DijkstraResult(MapResult _origin, int _boundNumber, double _boundTT, double _boundDist, 
 			double _boundVar, boolean _shortestOnly, int _time) {
-		toFind = _toFind;
+		origin = _origin;
 		boundNumber = _boundNumber;
+		boundTT = _boundTT;
+		boundDist = _boundDist;
 		boundVar = _boundVar;
 		shortestOnly = _shortestOnly;
 		time = _time;
 	}
 	
-
-	/** @brief Adds the information about an accessed node
-	 * @param node The seen node
-	 * @param availableModes The still available modes
-	 * @param m The routing result
-	 * @todo Recheck whether the mode is needed
-	 */
-	public void addNodeInfo(DBNode node, long availableModes, DijkstraEntry m) {
-		if(!nodeMap.containsKey(node)) {
-			nodeMap.put(node, new HashMap<Long, DijkstraEntry>());
-		}
-		HashMap<Long, DijkstraEntry> nodeVals = nodeMap.get(node);
-		nodeVals.put(availableModes, m);
-	}
-	
-	
-	/** @brief Returns the information about the prior node
-	 * @param node The accessed node
-	 * @param availableModes The still available modes
-	 * @return The prior node used to access the given one using the given modes
-	 */
-	public DijkstraEntry getPriorNodeInfo(DBNode node, long availableModes) {
-		if(!nodeMap.containsKey(node)) {
-			return null;
-		}
-		HashMap<Long, DijkstraEntry> nodeVals = nodeMap.get(node);
-		if(!nodeVals.containsKey(availableModes)) {
-			return null;
-		}
-		return nodeVals.get(availableModes); 
-	}
-
 
 	/** @brief Adds the information about an accessed edge
 	 * @param measure The routing weight function to use
@@ -116,62 +86,66 @@ public class DijkstraResult {
 	 * @param newValue The routing element used to approach the edge
 	 * @return Whether all needed destinations were found
 	 */
-	public boolean addEdgeInfo(AbstractRouteWeightFunction measure, DBEdge oe, DijkstraEntry newValue) {
+	public boolean visitEdge(AbstractRouteWeightFunction measure, DBEdge oe, DijkstraEntry newValue, HashMap<DBEdge, Vector<MapResult>> nearestToEdges) {
 		// check only edges that have attached destinations
 		if(oe.getAttachedObjectsNumber()==0) {
 			return false;
 		}
-		///
-		if(!toFind.contains(oe)) {
-			return false;
-		}
-		// add the fastest way to the edge, update seen objects and value if 
-		// the edge is visited for the first time 
-		if(!edgeMap.containsKey(oe)) {
+		// add the way to this edge if it's the first or the best one
+		boolean isUpdate = edgeMap.containsKey(oe);
+		if(!isUpdate || measure.compare(edgeMap.get(oe), newValue)>0) { // !!! on an edge base? 
 			edgeMap.put(oe, newValue);
-			seenObjects += oe.getAttachedObjectsNumber();
-			seenVar += oe.getAttachedValues();
-			toFind.remove(oe);
-			if (shortestOnly) {
-				return true;
+			Vector<MapResult> toObjects = nearestToEdges.get(oe);
+			for(MapResult mr : toObjects) {
+				LayerObject lo = (LayerObject) mr.em;
+				SingleODResult path = new SingleODResult(origin, mr, newValue, time);
+				seen.put(mr, path);
+				if(!isUpdate) {
+					seenVar += lo.getAttachedValue();
+				}
 			}
-			// nope, we do not have anything more to find
-			if (toFind.size() == 0) {
-				return true;
-			}
-			// nope, we have seen the wanted number of elements
-			if (boundNumber > 0 && seenObjects >= boundNumber) {
-				return true;
-			}
-			// nope, we have seen the number of values to find
-			if (boundVar > 0 && seenVar >= boundVar) {
-				return true;
-			}
-		} else if(measure.compare(edgeMap.get(oe), newValue)>0) {
-			// we've seen this already before...
-			// TODO !!!: eigentlich: fuer jede Quelle/Ziel-Beziehung pruefen, ob die Reisezeit hoeher als die vorherige ist oder nicht
-			edgeMap.put(oe, newValue);
 		}
-		lastSeen = newValue;
+		if (shortestOnly&&seen.size()>0) {
+			return true;
+		}
+		// nope, we have seen the wanted number of elements
+		if (boundNumber > 0 && seen.size() >= boundNumber) {
+			return true;
+		}
+		// nope, we have seen the number of values to find
+		if (boundVar > 0 && seenVar >= boundVar) {
+			return true;
+		}
 		return false;
 	}
 
 	
-	/** @brief Returns the information how the given edge was accessed
-	 * @param edge The approached edge
-	 * @return Information how this edge was approached 
+	/** @brief Returns the path to the given destination
+	 * 
+	 * @param to The destination to get the path to
+	 * @return The path to the given destination
 	 */
-	public DijkstraEntry getEdgeInfo(DBEdge edge) {
-		return edgeMap.get(edge);
+	public SingleODResult getResult(MapResult to) {
+		return seen.get(to);
 	}
 	
-	
-	/** @brief Returns whether all destination edges were found
-	 * @todo Why is this needed, but not other limits
-	 * @return Whether all destination edges were found
-	 */
-	public boolean allFound() {
-		return toFind.size()==0;
-	}
 
+	/** @brief Returns the seen destinations
+	 * 
+	 * @return All seen destinations
+	 */
+	public Vector<MapResult> getSeenDestinations() {
+		Vector<MapResult> ret = new Vector<>();
+		ret.addAll(seen.keySet());
+		Collections.sort(ret, new Comparator<MapResult>() {
+			@Override
+			public int compare(MapResult o1, MapResult o2) {
+				long id1 = o1.em.getOuterID();
+				long id2 = o2.em.getOuterID();
+				return id1 < id2 ? -1 : id1 > id2 ? 1 : 0;
+			}
+		});
+		return ret;
+	}
+	
 }

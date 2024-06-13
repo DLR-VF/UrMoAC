@@ -18,8 +18,7 @@
  */
 package de.dlr.ivf.urmo.router.output;
 
-import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
+import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 
 /**
  * @class MeasurementGenerator
@@ -31,12 +30,10 @@ public abstract class MeasurementGenerator<T extends AbstractSingleResult> {
 	/**
 	 * @brief Interprets the path to build a result
 	 * @param beginTime The start time of the path
-	 * @param from The origin the path started at
-	 * @param to The destination accessed by this path
-	 * @param dr The routing result
+	 * @param result The processed path between the origin and the destination
 	 * @return T - an abstract result type
 	 */
-	public abstract T buildResult(int beginTime, MapResult from, MapResult to, DijkstraResult dr);
+	public abstract T buildResult(int beginTime, SingleODResult result);
 	
 	
 	/**

@@ -70,13 +70,13 @@ public class OutputBuilder {
 	 * @param fromAggLayer The source aggregation data
 	 * @param toLayer  The destinations
 	 * @param toAggLayer The destination aggregation data
-	 * @param rsid The projection
+	 * @param epsg The projection
 	 * @return Built output devices
 	 * @throws IOException When something fails
 	 */
 	@SuppressWarnings("rawtypes")
 	public static Vector<Aggregator> buildOutputs(OptionsCont options, Layer fromLayer, Layer fromAggLayer, 
-			Layer toLayer, Layer toAggLayer, int rsid) throws IOException {
+			Layer toLayer, Layer toAggLayer, int epsg) throws IOException {
 		Vector<Aggregator> aggregators = new Vector<>();
 		boolean dropExistingTables = options.getBool("dropprevious");
 		boolean aggAllFrom = options.isSet("from-agg") && options.getString("from-agg").equals("all");
@@ -87,7 +87,7 @@ public class OutputBuilder {
 			try {
 				ODMeasuresGenerator mgNM = new ODMeasuresGenerator();
 				AbstractResultsWriter<ODSingleResult> writer = buildNMOutput(options.getString("od-output"), precision, dropExistingTables);
-				writer.createInsertStatement(rsid);
+				writer.createInsertStatement(epsg);
 				Aggregator<ODSingleResult> agg = buildAggregator(mgNM, options.getBool("shortest"), 
 						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 				aggregators.add(agg);
@@ -99,7 +99,7 @@ public class OutputBuilder {
 			try {
 				ODExtendedMeasuresGenerator mg = new ODExtendedMeasuresGenerator();
 				AbstractResultsWriter<ODSingleExtendedResult> writer = buildExtNMOutput(options.getString("ext-od-output"), precision, dropExistingTables);
-				writer.createInsertStatement(rsid);
+				writer.createInsertStatement(epsg);
 				Aggregator<ODSingleExtendedResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 				aggregators.add(agg);
@@ -111,7 +111,7 @@ public class OutputBuilder {
 			try {
 				ODStatsMeasuresGenerator mg = new ODStatsMeasuresGenerator();
 				AbstractResultsWriter<ODSingleStatsResult> writer = buildStatNMOutput(options.getString("stat-od-output"), precision, dropExistingTables);
-				writer.createInsertStatement(rsid);
+				writer.createInsertStatement(epsg);
 				Aggregator<ODSingleStatsResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 				aggregators.add(agg);
@@ -123,7 +123,7 @@ public class OutputBuilder {
 			try {
 				InterchangeMeasuresGenerator mg = new InterchangeMeasuresGenerator();
 				AbstractResultsWriter<InterchangeSingleResult> writer = buildInterchangeOutput(options.getString("interchanges-output"), precision, dropExistingTables);
-				writer.createInsertStatement(rsid);
+				writer.createInsertStatement(epsg);
 				Aggregator<InterchangeSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 				aggregators.add(agg);
@@ -135,7 +135,7 @@ public class OutputBuilder {
 			try {
 				EUMeasuresGenerator mg = new EUMeasuresGenerator();
 				AbstractResultsWriter<EUSingleResult> writer = buildEUOutput(options.getString("edges-output"), precision, dropExistingTables);
-				writer.createInsertStatement(rsid);
+				writer.createInsertStatement(epsg);
 				Aggregator<EUSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 				aggregators.add(agg);
@@ -147,7 +147,7 @@ public class OutputBuilder {
 			try {
 				PTODMeasuresGenerator mg = new PTODMeasuresGenerator();
 				AbstractResultsWriter<PTODSingleResult> writer = buildPTODOutput(options.getString("pt-output"), precision, dropExistingTables);
-				writer.createInsertStatement(rsid);
+				writer.createInsertStatement(epsg);
 				Aggregator<PTODSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
 						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 				aggregators.add(agg);
@@ -161,12 +161,12 @@ public class OutputBuilder {
 	
 	/** @brief Builds a "direct" output
 	 * @param options The options that include the output definition
-	 * @param rsid Used projection
+	 * @param epsg Used projection
 	 * @param nearestToEdges Information about the destination mapping
 	 * @return The direct output device
 	 * @throws IOException When something fails
 	 */
-	public static DirectWriter buildDirectOutput(OptionsCont options, int rsid, HashMap<DBEdge, Vector<MapResult>> nearestToEdges) throws IOException {
+	public static DirectWriter buildDirectOutput(OptionsCont options, int epsg, HashMap<DBEdge, Vector<MapResult>> nearestToEdges) throws IOException {
 		if (!options.isSet("direct-output")) {
 			return null;
 		}
@@ -175,8 +175,8 @@ public class OutputBuilder {
 			String d = options.getString("direct-output");
 			Utils.Format format = Utils.getFormat(d);
 			String[] inputParts = Utils.getParts(format, d, "direct-output");
-			DirectWriter dw = new DirectWriter(format, inputParts, precision, options.getBool("dropprevious"), rsid, nearestToEdges);
-			dw.createInsertStatement(rsid);
+			DirectWriter dw = new DirectWriter(format, inputParts, precision, options.getBool("dropprevious"), epsg, nearestToEdges);
+			dw.createInsertStatement(epsg);
 			if(options.getBool("comment")) {
 				dw.addComment(buildComment(options));
 			}

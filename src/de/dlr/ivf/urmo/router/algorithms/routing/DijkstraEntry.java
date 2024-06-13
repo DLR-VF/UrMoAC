@@ -69,7 +69,7 @@ public class DijkstraEntry {
 	 * @param _distance The overall distance
 	 * @param _tt The travel time on this edge
 	 * @param _line The used pt line
-	 * @param _ttt The overall travel tmie
+	 * @param _ttt The overall travel time
 	 * @param _interchangeTT Time needed for the interchange
 	 * @param _wasOpposite Whether it is the opposite direction of the current edge
 	 */
@@ -104,27 +104,6 @@ public class DijkstraEntry {
 		return n.getID() + "(tt=" + tt + "; modes=" + availableModes + ")";
 	}
 
-
-	/**
-	 * @brief Returns whether the given requirements are fulfilled
-	 * @param needsPT Whether the path must contain a PT element
-	 * @return Whether the given requirements are fulfilled
-	 */
-	public boolean matchesRequirements(boolean needsPT) {
-		if(!needsPT) {
-			return true;
-		}
-		DijkstraEntry current = this;
-		do {
-			if(current.e.isGTFSEdge()) {
-				return true;
-			}
-			current = current.prev;
-		} while(current!=null);
-		return false;
-	}
-
-
 	
 	/** 
 	 * @brief Returns the name for the used line
@@ -136,7 +115,6 @@ public class DijkstraEntry {
 		}
 		return line.trip.route.id;
 	}
-
 
 
 }

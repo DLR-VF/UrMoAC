@@ -18,11 +18,12 @@
  */
 package de.dlr.ivf.urmo.router.algorithms.routing;
 
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.Vector;
 
+import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.gtfs.GTFSConnection;
 import de.dlr.ivf.urmo.router.gtfs.GTFSEdge;
 import de.dlr.ivf.urmo.router.gtfs.GTFSStop;
@@ -38,13 +39,12 @@ import de.dlr.ivf.urmo.router.shapes.DBNode;
  */
 public class BoundDijkstra {
 	/**
-	 * @brief Computes a bound 1-to-many shortest paths using the Dijkstra
-	 *        algorithm
+	 * @brief Computes a bound 1-to-many shortest paths using the Dijkstra algorithm
 	 * 
-	 * @param measure The measure computer and comperator to use for routing
+	 * @param origin The origin to start routing at
+	 * @param measure The measure computer and comparator to use for routing
 	 * @param time The time the trip starts at
-	 * @param startEdge The starting road
-	 * @param usedModesIDs The first used mode
+	 * @param usedModeID The first used mode
 	 * @param modes Bitset of usable transport modes
 	 * @param ends A set of all destinations
 	 * @param boundNumber If >0 then the router will stop after this number of ends has been found
@@ -52,42 +52,42 @@ public class BoundDijkstra {
 	 * @param boundDist If >0 then the router will stop after this distance has been reached
 	 * @param boundVar If >0 then the router will stop after the bound variable reaches this limit
 	 * @param shortestOnly Whether the router shall end as soon as a sink was seen
+	 * @param nearestFromEdges The map of edges destinations are located at to the destinations
 	 * @return A results container
 	 * @see DijkstraResult
 	 */
-	public static DijkstraResult run(AbstractRouteWeightFunction measure, int time, DBEdge startEdge, long usedModesIDs, long modes, 
-			Set<DBEdge> ends, int boundNumber, double boundTT, double boundDist, double boundVar, boolean shortestOnly) {
+	public static DijkstraResult run(MapResult origin, AbstractRouteWeightFunction measure, int time, long usedModeID, long modes, 
+			Set<DBEdge> ends, int boundNumber, double boundTT, double boundDist, double boundVar, boolean shortestOnly,
+			HashMap<DBEdge, Vector<MapResult>> nearestFromEdges) {
 		
+		HashMap<DBNode, HashMap<Long, DijkstraEntry> > nodeMap = new HashMap<DBNode, HashMap<Long, DijkstraEntry>>();
 		boolean hadExtension = false;
 		long availableModes = modes;
-		Mode usedMode = Modes.getMode(usedModesIDs);
-		double tt = startEdge.getTravelTime(usedMode.vmax, time);
-		DijkstraResult ret = new DijkstraResult(new HashSet<>(ends), boundNumber, boundTT, boundDist, boundVar, shortestOnly, time);
+		Mode usedMode = Modes.getMode(usedModeID);
+		
+		DijkstraResult ret = new DijkstraResult(origin, boundNumber, boundTT, boundDist, boundVar, shortestOnly, time);
+		DBEdge startEdge = origin.edge;
+		double tt = startEdge.getTravelTime(usedMode.vmax, time) * (startEdge.getLength()-origin.pos) / startEdge.getLength();
 		PriorityQueue<DijkstraEntry> next = new PriorityQueue<DijkstraEntry>(1000, measure);
 		DijkstraEntry nm = new DijkstraEntry(measure, null, startEdge.getToNode(), startEdge, availableModes, usedMode,
-				startEdge.getLength(), tt, null, tt, 0, false);
-		// originally, "startPos" was used - currently the offset of the mappable object is not regarded in the 
-		// distance limit computation
+				(startEdge.getLength()-origin.pos), tt, null, tt, 0, false);
 		next.add(nm);
-		ret.addNodeInfo(startEdge.getToNode(), availableModes, nm);
-		if(ret.addEdgeInfo(measure, startEdge, nm)) {
-			if(!hadExtension&&!ret.allFound()) {
+		addNodeInfo(nodeMap, startEdge.getToNode(), availableModes, nm);
+		if(ret.visitEdge(measure, startEdge, nm, nearestFromEdges)) {
+			if(!hadExtension) {
 				boundTT = Math.max(boundTT, tt*2);
 				hadExtension = true;
 			}
 		} 
-		
 		// consider starting in the opposite direction
 		if(startEdge.getOppositeEdge()!=null && startEdge.getOppositeEdge().allows(usedMode)) {
 			DBEdge e = startEdge.getOppositeEdge();
-			tt = e.getTravelTime(usedMode.vmax, time);
-			nm = new DijkstraEntry(measure, null, e.getToNode(), e, availableModes, usedMode, e.getLength(), tt, null, tt, 0, true);
-			// originally, "startPos" was used - currently the offset of the mappable object
-			// is not regarded in the distance limit computation
+			tt = e.getTravelTime(usedMode.vmax, time) * (origin.pos) / e.getLength();
+			nm = new DijkstraEntry(measure, null, e.getToNode(), e, availableModes, usedMode, (origin.pos), tt, null, tt, 0, true);
 			next.add(nm);
-			ret.addNodeInfo(e.getToNode(), availableModes, nm);
-			if(ret.addEdgeInfo(measure, e, nm)) {
-				if(!hadExtension&&!ret.allFound()) {
+			addNodeInfo(nodeMap, e.getToNode(), availableModes, nm);
+			if(ret.visitEdge(measure, e, nm, nearestFromEdges)) {
+				if(!hadExtension) {
 					boundTT = Math.max(boundTT, tt*2);
 					hadExtension = true;
 				}
@@ -143,18 +143,18 @@ public class BoundDijkstra {
 				DBNode n = oe.getToNode();
 				double distance = nns.distance + oe.getLength();
 				tt = nns.tt + ttt;
-				DijkstraEntry oldValue = ret.getPriorNodeInfo(n, availableModes);
+				DijkstraEntry oldValue = getPriorNodeInfo(nodeMap, n, availableModes);
 				DijkstraEntry newValue = new DijkstraEntry(measure, nns, n, oe, availableModes, usedMode, distance, tt, ptConnection, ttt, interchangeTT, false);
 				if(oldValue==null) {
 					next.add(newValue);
-					ret.addNodeInfo(n, availableModes, newValue);
+					addNodeInfo(nodeMap, n, availableModes, newValue);
 				} else if(measure.compare(oldValue, newValue)>0) {
 					next.remove(oldValue);
 					next.add(newValue);
-					ret.addNodeInfo(n, availableModes, newValue);
+					addNodeInfo(nodeMap, n, availableModes, newValue);
 				}
-				if(ret.addEdgeInfo(measure, oe, newValue)) {
-					if(!hadExtension&&!ret.allFound()) {
+				if(ret.visitEdge(measure, oe, newValue, nearestFromEdges)) {
+					if(!hadExtension) {
 						boundTT = Math.max(boundTT, tt+newValue.first.ttt+ttt);
 						hadExtension = true;
 					}
@@ -163,8 +163,8 @@ public class BoundDijkstra {
 				// check opposite direction
 				if(oe.getOppositeEdge()!=null && oe.getOppositeEdge().getAttachedObjectsNumber()!=0) {
 					DijkstraEntry newOppositeValue = new DijkstraEntry(measure, nns, n, oe.getOppositeEdge(), availableModes, usedMode, distance, tt, ptConnection, ttt, interchangeTT, true);
-					if(ret.addEdgeInfo(measure, oe.getOppositeEdge(), newOppositeValue)) {
-						if(!hadExtension&&!ret.allFound()) {
+					if(ret.visitEdge(measure, oe.getOppositeEdge(), newOppositeValue, nearestFromEdges)) {
+						if(!hadExtension) {
 							boundTT = Math.max(boundTT, tt+newOppositeValue.first.ttt+ttt);
 							hadExtension = true;
 						}
@@ -175,6 +175,40 @@ public class BoundDijkstra {
 		}
 		return ret;
 	}
+	
+
+	/** @brief Adds the information about the access to a node
+	 * 
+	 * @param nodeMap The information storage
+	 * @param node The node to add the information about
+	 * @param availableModes The still available modes
+	 * @param m The path to the node
+	 */
+	public static void addNodeInfo(HashMap<DBNode, HashMap<Long, DijkstraEntry> > nodeMap, DBNode node, long availableModes, DijkstraEntry m) {
+		if(!nodeMap.containsKey(node)) {
+			nodeMap.put(node, new HashMap<Long, DijkstraEntry>());
+		}
+		HashMap<Long, DijkstraEntry> nodeVals = nodeMap.get(node);
+		nodeVals.put(availableModes, m);
+	}
+	
+	
+	/** @brief Returns the information about a previously visited node
+	 * @param node The accessed node
+	 * @param availableModes The still available modes
+	 * @return The prior node used to access the given one using the given modes
+	 */
+	public static DijkstraEntry getPriorNodeInfo(HashMap<DBNode, HashMap<Long, DijkstraEntry> > nodeMap, DBNode node, long availableModes) {
+		if(!nodeMap.containsKey(node)) {
+			return null;
+		}
+		HashMap<Long, DijkstraEntry> nodeVals = nodeMap.get(node);
+		if(!nodeVals.containsKey(availableModes)) {
+			return null;
+		}
+		return nodeVals.get(availableModes); 
+	}
+
 	
 	
 

@@ -23,7 +23,7 @@ import java.util.Set;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraEntry;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
+import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.output.MeasurementGenerator;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 
@@ -36,14 +36,14 @@ public class ODStatsMeasuresGenerator extends MeasurementGenerator<ODSingleStats
 	/**
 	 * @brief Interprets the path to build an ODSingleStatsResult
 	 * @param beginTime The start time of the path
-	 * @param from The origin the path started at
-	 * @param to The destination accessed by this path
-	 * @param dr The routing result
+	 * @param result The processed path between the origin and the destination
 	 * @return An ODSingleStatsResult computed using the given path
 	 */
-	public ODSingleStatsResult buildResult(int beginTime, MapResult from, MapResult to, DijkstraResult dr) {
-		DijkstraEntry toEdgeEntry = dr.getEdgeInfo(to.edge);
-		ODSingleStatsResult e = new ODSingleStatsResult(from.em.getOuterID(), to.em.getOuterID(), from, to, dr);
+	public ODSingleStatsResult buildResult(int beginTime, SingleODResult result) {
+		DijkstraEntry toEdgeEntry = result.path;//.getPath(to);//dr.getEdgeInfo(to.edge);
+		MapResult from = result.origin;
+		MapResult to = result.destination;
+		ODSingleStatsResult e = new ODSingleStatsResult(result);
 		double factor = 1.;
 		boolean single = false;
 		if(from.edge==to.edge) {
@@ -74,7 +74,7 @@ public class ODStatsMeasuresGenerator extends MeasurementGenerator<ODSingleStats
 		Set<String> seenLines = new HashSet<>();
 		DijkstraEntry current = toEdgeEntry;
 		do {
-			double ttt = current.prev==null ? current.tt : current.tt - current.prev.tt;
+			double ttt = current.e.getTravelTime(current.usedMode.vmax, current.tt+beginTime);//current.prev==null ? current.tt : current.tt - current.prev.tt;
 			if(current.prev==null&&!single) {
 				factor = 1. - from.pos / from.edge.getLength();
 			}

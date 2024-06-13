@@ -11,7 +11,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraﬂe 2
+ * Rutherfordstra√üe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -23,9 +23,10 @@ import java.util.HashMap;
 import java.util.Vector;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraEntry;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
+import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
+import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
 /**
  * @class DijkstraResultsProcessor
@@ -41,7 +42,9 @@ public class DijkstraResultsProcessor {
 	@SuppressWarnings("rawtypes")
 	public Vector<Aggregator> aggs;
 	/// @brief The results comparator to use
-	public AbstractSingleResultComparator_TT comparator = new AbstractSingleResultComparator_TT();
+	public SingleResultComparator_TT comparator = new SingleResultComparator_TT();
+	/// 
+	public SingleResultComparator_DestinationID sorter = new SingleResultComparator_DestinationID();
 	/// @brief An optional direct output
 	DirectWriter directWriter;
 	/// @brief The begin time of route computation
@@ -74,52 +77,57 @@ public class DijkstraResultsProcessor {
 	 * @param singleDestination If >0 only this destination shall be regarded
 	 * @throws IOException When something fails
 	 */
-	@SuppressWarnings("unchecked")
 	public void process(MapResult mr, DijkstraResult dr, boolean needsPT, long singleDestination) throws IOException {
-		if(directWriter!=null) {
-			directWriter.writeResult(dr, mr, needsPT, singleDestination);
+		Vector<SingleODResult> results = new Vector<>();
+		for(MapResult destination : dr.getSeenDestinations()) {
+			SingleODResult destPath = dr.getResult(destination);
+			if(destPath.origin.edge==destPath.destination.edge&&destPath.origin.edge.getOppositeEdge()==null&&destPath.origin.pos>destPath.destination.pos) {
+				continue;
+			}
+			if(!destPath.matchesRequirements(needsPT)) {
+				continue;
+			}
+			if(singleDestination<0||destination.em.getOuterID()==singleDestination) {
+				results.add(destPath);
+			}
 		}
+		results.sort(comparator);
+		Vector<SingleODResult> nresults = new Vector<>();
+		double var = 0;
+		int num = 0;
+		for(SingleODResult result : results) {
+			if(dr.boundTT>0&&result.tt>dr.boundTT) {
+				continue;
+			}
+			if(dr.boundDist>0&&result.dist>dr.boundDist) {
+				continue;
+			}
+			nresults.add(result);
+			if(dr.shortestOnly) {
+				break;
+			}
+			num += 1;
+			var += ((LayerObject) result.destination.em).getAttachedValue();
+			if(dr.boundNumber>0&&num>=dr.boundNumber) {
+				break;
+			}
+			if(dr.boundVar>0&&var>=dr.boundVar) {
+				break;
+			}
+		}
+		nresults.sort(sorter);
+		
 		// multiple sources and multiple destinations
+		for(SingleODResult result : nresults) {
+			for(@SuppressWarnings("rawtypes") Aggregator agg : aggs) {
+				agg.add(beginTime, result);
+			}
+			if(directWriter!=null) {
+				directWriter.writeResult(result.origin.em.getOuterID(), result.destination.em.getOuterID(), result.path);
+			}
+		}
 		for(@SuppressWarnings("rawtypes") Aggregator agg : aggs) {
-			Vector<AbstractSingleResult> results = new Vector<>();
-			for(DBEdge destEdge : dr.edgeMap.keySet()) {
-				DijkstraEntry toEdgeEntry = dr.getEdgeInfo(destEdge);
-				if(!toEdgeEntry.matchesRequirements(needsPT)) {
-					continue;
-				}
-				Vector<MapResult> toObjects = nearestToEdges.get(destEdge);
-				if(toObjects!=null) {
-					for(MapResult toObject : toObjects) {
-						if(singleDestination<0||toObject.em.getOuterID()==singleDestination) {
-							AbstractSingleResult result = agg.parent.buildResult(beginTime, mr, toObject, dr);
-							results.add(result);
-						}
-					}
-				}
-			}
-			results.sort(comparator);
-			double var = 0;
-			int num = 0;
-			for(AbstractSingleResult result : results) {
-				if(dr.boundTT>0&&result.tt>dr.boundTT) {
-					continue;
-				}
-				if(dr.boundDist>0&&result.dist>dr.boundDist) {
-					continue;
-				}
-				agg.add(result);
-				if(dr.shortestOnly) {
-					break;
-				}
-				num += 1;
-				var += result.val;
-				if(dr.boundNumber>0&&num>=dr.boundNumber) {
-					break;
-				}
-				if(dr.boundVar>0&&var>=dr.boundVar) {
-					break;
-				}
-			}
+			agg.endOrigin(mr.em.getOuterID());
 		}
 	}
 

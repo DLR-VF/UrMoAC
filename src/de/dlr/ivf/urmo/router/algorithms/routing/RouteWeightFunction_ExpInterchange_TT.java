@@ -26,8 +26,10 @@ import java.util.HashMap;
  * @author Daniel Krajzewicz
  */
 public class RouteWeightFunction_ExpInterchange_TT extends AbstractRouteWeightFunction {
-	/// @brief Weights for interchanges
-	double scale1, scale2;
+	/// @brief First weight for interchanges (exponential)
+	double scale1;
+	/// @brief Second weight for interchanges (factor)
+	double scale2;
 	
 	
 	/** 
@@ -88,7 +90,7 @@ public class RouteWeightFunction_ExpInterchange_TT extends AbstractRouteWeightFu
 	public double computeWeight(DijkstraEntry c) {
 		int pc = (Integer) c.measures.get("interchanges");
 		double pcE = (Math.exp((double) pc*scale1)-1.) * scale2;
-		return c.tt + pcE;
+		return c.tt + pcE; // !!!! potentially wrong tt in DijkstraEntry
 	}
 	
 };

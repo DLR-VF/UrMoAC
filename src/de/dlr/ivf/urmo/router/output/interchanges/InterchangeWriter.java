@@ -55,10 +55,10 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 
 	/** @brief Get the insert statement string
 	 * @param[in] format The used output format
-	 * @param[in] rsid The used projection
+	 * @param[in] epsg The used projection
 	 * @return The insert statement string
 	 */
-	protected String getInsertStatement(Utils.Format format, int rsid) {
+	protected String getInsertStatement(Utils.Format format, int epsg) {
 		return "VALUES (?, ?, ?, ?, ?, ?, ?)";
 	}
 

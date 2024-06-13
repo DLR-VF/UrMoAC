@@ -20,8 +20,7 @@ package de.dlr.ivf.urmo.router.output.odstats;
 
 import java.util.Vector;
 
-import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
+import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.output.AbstractSingleResult;
 
 /**
@@ -60,14 +59,10 @@ public class ODSingleStatsResult extends AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Computes the distance and the travel time
-	 * @param srcID The id of the origin the represented trip starts at
-	 * @param destID The id of the destination the represented trip ends at
-	 * @param from The mapped source
-	 * @param to The mapped destination
-	 * @param dr The path between the source and the destination
+	 * @param result The processed path between the origin and the destination
 	 */
-	public ODSingleStatsResult(long srcID, long destID, MapResult from, MapResult to, DijkstraResult dr) {
-		super(srcID, destID, from, to, dr);
+	public ODSingleStatsResult(SingleODResult result) {
+		super(result);
 	}
 
 	

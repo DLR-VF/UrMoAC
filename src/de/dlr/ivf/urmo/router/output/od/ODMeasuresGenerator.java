@@ -18,8 +18,7 @@
  */
 package de.dlr.ivf.urmo.router.output.od;
 
-import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
+import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.output.MeasurementGenerator;
 import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
@@ -32,16 +31,14 @@ public class ODMeasuresGenerator extends MeasurementGenerator<ODSingleResult> {
 	/**
 	 * @brief Interprets the path to build an ODSingleResult
 	 * @param beginTime The start time of the path
-	 * @param from The origin the path started at
-	 * @param to The destination accessed by this path
-	 * @param dr The routing result
+	 * @param result The processed path between the origin and the destination
 	 * @return An ODSingleResult computed using the given path
 	 */
-	public ODSingleResult buildResult(int beginTime, MapResult from, MapResult to, DijkstraResult dr) {
-		ODSingleResult e = new ODSingleResult(from.em.getOuterID(), to.em.getOuterID(), from, to, dr);
+	public ODSingleResult buildResult(int beginTime, SingleODResult result) {
+		ODSingleResult e = new ODSingleResult(result);
 		e.weightedDistance = e.dist * e.val;
 		e.weightedTravelTime = e.tt * e.val;
-		e.weightedValue = ((LayerObject) to.em).getAttachedValue() * e.val;
+		e.weightedValue = ((LayerObject) result.destination.em).getAttachedValue() * e.val;
 		e.connectionsWeightSum = e.val;
 		return e;
 	}

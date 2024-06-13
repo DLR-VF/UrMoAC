@@ -22,7 +22,7 @@ import java.util.HashSet;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraEntry;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
+import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.output.MeasurementGenerator;
 import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
@@ -35,15 +35,15 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 	/**
 	 * @brief Interprets the path to build an PTODSingleResult
 	 * @param beginTime The start time of the path
-	 * @param from The origin the path started at
-	 * @param to The destination accessed by this path
-	 * @param dr The routing result
+	 * @param result The processed path between the origin and the destination
 	 * @return An PTODSingleResult computed using the given path
 	 */
-	public PTODSingleResult buildResult(int beginTime, MapResult from, MapResult to, DijkstraResult dr) {
-		PTODSingleResult e = new PTODSingleResult(from.em.getOuterID(), to.em.getOuterID(), from, to, dr);
+	public PTODSingleResult buildResult(int beginTime, SingleODResult result) {
+		PTODSingleResult e = new PTODSingleResult(result);
 		int step = 0;
-		DijkstraEntry current = dr.getEdgeInfo(to.edge);
+		DijkstraEntry current = result.path;//.getPath(to);//dr.getEdgeInfo(to.edge);
+		MapResult from = result.origin;
+		MapResult to = result.destination;
 		double tt = 0;
 		double dist = 0;
 		HashSet<String> trips = new HashSet<>();
@@ -54,22 +54,24 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 			e.lines.add(current.usedMode.mml);
 		}
 		if(from.edge==to.edge) {
-			tt = current.first.ttt;
+			//tt = current.first.ttt;
 			if(from.pos>to.pos) {
 				dist = from.pos - to.pos;
 			} else {
 				dist = to.pos - from.pos;				
 			}
-			tt = tt / to.edge.getLength() * dist;
+			//tt = tt / to.edge.getLength() * dist;
+			tt = to.edge.getTravelTime(result.path.first.usedMode.vmax, beginTime) / to.edge.getLength() * dist;
 			step = 4;
 		} else if(from.edge.getOppositeEdge()==to.edge) {
-			tt = current.first.ttt;
+			//tt = current.first.ttt;
 			if(from.pos>(to.edge.getLength() - to.pos)) {
 				dist = from.pos - (to.edge.getLength() - to.pos);
 			} else {
 				dist = (to.edge.getLength() - to.pos) - from.pos;				
 			}
-			tt = tt / to.edge.getLength() * dist;
+			//tt = tt / to.edge.getLength() * dist;
+			tt = to.edge.getTravelTime(result.path.first.usedMode.vmax, beginTime) / to.edge.getLength() * dist;
 			step = 4;
 		} else {
 			if(current.wasOpposite) {
@@ -120,7 +122,7 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 				}
 				current = prev;
 			} while(current!=null);
-			current = dr.getEdgeInfo(to.edge);
+			current = result.path;//.getPath(to);//dr.getEdgeInfo(to.edge);
 			double firstTT = current.first.ttt;
 			if(current.first.wasOpposite) {
 				dist -= (from.edge.getLength() - from.pos);

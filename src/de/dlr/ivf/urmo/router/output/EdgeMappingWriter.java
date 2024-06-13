@@ -48,25 +48,24 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 	 * @param inputParts The definition of the input/output source/destination
 	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
-	 * @param rsid The RSID to use
+	 * @param epsg The EPSG to use
 	 * @throws IOException When something fails
 	 */
 	public EdgeMappingWriter(Utils.Format format, String[] inputParts, int precision, 
-			boolean dropPrevious, int rsid) throws IOException {
-		super(format, inputParts, "X-to-road-output", precision, dropPrevious, 
-				"(gid bigint, rid text, rpos real, dist real)");
-		addGeometryColumn("conn", rsid, "LINESTRING", 2);
+			boolean dropPrevious, int epsg) throws IOException {
+		super(format, inputParts, "X-to-road-output", precision, dropPrevious, "(gid bigint, rid text, rpos real, dist real)");
+		addGeometryColumn("conn", epsg, "LINESTRING", 2);
 	}
 
 
 	/** @brief Get the insert statement string
 	 * @param[in] format The used output format
-	 * @param[in] rsid The used projection
+	 * @param[in] epsg The used projection
 	 * @return The insert statement string
 	 */
-	protected String getInsertStatement(Utils.Format format, int rsid) {
+	protected String getInsertStatement(Utils.Format format, int epsg) {
 		if(format==Utils.Format.FORMAT_POSTGRES) {
-			return "VALUES (?, ?, ?, ?, ST_GeomFromText(?, " + rsid + "))";
+			return "VALUES (?, ?, ?, ?, ST_GeomFromText(?, " + epsg + "))";
 		}
 		return "VALUES (?, ?, ?, ?, ?)";
 	}
