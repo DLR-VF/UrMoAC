@@ -19,7 +19,6 @@
 package de.dlr.ivf.urmo;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.HashMap;
@@ -126,29 +125,29 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 */
 	private static class ComputingThread implements Runnable {
 		/// @brief The parent to get information from
-		UrMoAccessibilityComputer parent;
+		private UrMoAccessibilityComputer parent;
 		/// @brief The results processor to use
-		DijkstraResultsProcessor resultsProcessor;
+		private DijkstraResultsProcessor resultsProcessor;
 		/// @brief The routing measure to use
-		AbstractRouteWeightFunction measure;
+		private AbstractRouteWeightFunction measure;
 		/// @brief Whether only entries which contain a public transport part shall be processed 
-		boolean needsPT;
+		private boolean needsPT;
 		/// @brief The start time of routing
-		int time; 
+		private int time; 
 		/// @brief The mode of transport to use at the begin
-		long initMode;
+		private long initMode;
 		/// @brief The available transport modes
-		long modes;
+		private long modes;
 		/// @brief The maximum number of destinations to find
-		int boundNumber;
+		private int boundNumber;
 		/// @brief The maximum travel time to use
-		double boundTT;
+		private double boundTT;
 		/// @brief The maximum distance to pass
-		double boundDist;
+		private double boundDist;
 		/// @brief The maximum value to collect
-		double boundVar;
+		private double boundVar;
 		/// @brief Whether only the shortest connection shall be found 
-		boolean shortestOnly;
+		private boolean shortestOnly;
 		
 		
 		/**
@@ -241,15 +240,14 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 *        It also checks whether the needed (mandatory) options are given
 	 *        and whether the options have the proper type.
 	 * @param args The list of arguments given to the application
-	 * @return The parsed command line
+	 * @return The parsed options
 	 */
-	@SuppressWarnings("static-access")
 	private static OptionsCont getCMDOptions(String[] args) {
 		// set up options
 		OptionsCont options = new OptionsCont();
 		options.setHelpHeadAndTail("Urban Mobility Accessibility Computer (UrMoAC) v0.6\n  (c) German Aerospace Center (DLR), 2016-2021\n  https://github.com/DLR-VF/UrMoAC\n\nUsage:\n"
 				+"  java -jar UrMoAC.jar --help\n"
-				+"  java -jar UrMoAC.jar --from file;sources.csv --to file;destinations.csv\n    --net file;network.csv --od-output file;nm_output.csv\n    --mode bike --time 0\n", "");
+				+"  java -jar UrMoAC.jar --from sources.csv --to destinations.csv --net network.csv\n    --od-output nm_output.csv --mode bike --time 0\n", "");
 		
 		options.beginSection("Input Options");
 		options.add("config", 'c', new Option_String());
@@ -565,14 +563,13 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	
 	
 	/**
-	 * @brief Initialises the tool, mainly by reading options
+	 * @brief Initializes the tool, mainly by reading options
 	 * 
 	 * Reads options as defined in the command lines
 	 * 
 	 * @param[in] options The options to use
 	 * @return Whether everything went good
 	 * @throws IOException When accessing a file failed
-	 * @throws ParseException 
 	 */
 	protected boolean init(OptionsCont options) throws IOException {
 		verbose = options.getBool("verbose");
@@ -777,9 +774,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 * 
 	 * @param[in] options The options to use
 	 * @return Whether everything went good
-	 * @throws SQLException When accessing the database failed
-	 * @throws IOException When accessing a file failed
-	 * @throws ParseException When an option could not been parsed
+	 * @throws IOException When something failed
 	 */
 	protected boolean run(OptionsCont options) throws IOException {
 		int maxNumber = options.isSet("max-number") ? options.getInteger("max-number") : -1;
@@ -889,6 +884,13 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	
 	
 	
+	/** @brief Returns the edge the named object is allocated at
+	 * 
+	 * @param objID The ID of the object to find the edge for
+	 * @param mapping The previously generated mapping between objects and edges
+	 * @return The edge the named object is allocated at
+	 * @todo Recheck - iterates over all objects currently...
+	 */
 	private DBEdge getEdgeForObject(long objID, HashMap<DBEdge, Vector<MapResult>> mapping) {
 		for(DBEdge e : mapping.keySet()) {
 			Vector<MapResult> t = mapping.get(e);
@@ -900,7 +902,6 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		}
 		return null;
 	}
-
 	
 
 	/**
