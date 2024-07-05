@@ -85,7 +85,7 @@ public class DirectWriter extends BasicCombinedWriter {
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	public synchronized void writeResult(long originID, long destinationID, DijkstraEntry destPath) throws IOException {
+	public synchronized void writeResult(long originID, long destinationID, DijkstraEntry destPath, int beginTime) throws IOException {
 		// revert order
 		Vector<DijkstraEntry> entries = new Vector<>();
 		DijkstraEntry c = destPath;
@@ -94,6 +94,7 @@ public class DirectWriter extends BasicCombinedWriter {
 			c = c.prev;
 		} while(c!=null);
 		Collections.reverse(entries);
+		//
 		// go through entries
 		int index = 0;
 		for(DijkstraEntry current : entries) {
@@ -101,6 +102,7 @@ public class DirectWriter extends BasicCombinedWriter {
 			if(current.n instanceof GTFSStop) {
 				id = ((GTFSStop) current.n).mid;
 			}
+			double ttt = current.e.getTravelTime(current.usedMode.vmax, current.tt+beginTime);
 			String routeID = getLineID(current.line);
 			if (intoDB()) {
 				try {
@@ -109,7 +111,7 @@ public class DirectWriter extends BasicCombinedWriter {
 					_ps.setString(3, current.e.getID());
 					_ps.setString(4, routeID);
 					_ps.setString(5, current.usedMode.mml);
-					_ps.setDouble(6, current.ttt);
+					_ps.setDouble(6, ttt);
 					_ps.setString(7, id);
 					_ps.setInt(8, index);
 					_ps.setString(9, current.e.getGeometry().toText());

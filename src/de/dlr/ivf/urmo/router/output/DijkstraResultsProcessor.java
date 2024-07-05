@@ -123,7 +123,7 @@ public class DijkstraResultsProcessor {
 				agg.add(beginTime, result);
 			}
 			if(directWriter!=null) {
-				directWriter.writeResult(result.origin.em.getOuterID(), result.destination.em.getOuterID(), result.path);
+				directWriter.writeResult(result.origin.em.getOuterID(), result.destination.em.getOuterID(), result.path, beginTime);
 			}
 		}
 		for(@SuppressWarnings("rawtypes") Aggregator agg : aggs) {
