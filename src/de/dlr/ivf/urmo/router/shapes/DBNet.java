@@ -122,8 +122,12 @@ public class DBNet {
 	 * @brief Adds a node to this road network
 	 * @param node The node to add
 	 */
-	public void addNode(DBNode node) {
+	public boolean addNode(DBNode node) {
+		if(nodes.containsKey(node.getID())) {
+			return false;
+		}
 		nodes.put(node.getID(), node);
+		return true;
 	}
 
 
