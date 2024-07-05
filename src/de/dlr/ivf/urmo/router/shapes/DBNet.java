@@ -76,15 +76,15 @@ public class DBNet {
 	public boolean addEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length) {
 		boolean hadError = false;
 		if(_length<=0) {
-			System.err.println("Edge '" + _id + "' has a length of 0.");
+			System.err.println("Error: Edge '" + _id + "' has a length of 0.");
 			hadError = true;
 		}
 		if(_vmax<=0) {
-			System.err.println("Edge '" + _id + "' has a speed of 0.");
+			System.err.println("Error: Edge '" + _id + "' has a speed of 0.");
 			hadError = true;
 		}
 		if(name2edge.containsKey(_id)) {
-			System.err.println("Edge '" + _id + "' already exists.");
+			System.err.println("Error: Edge '" + _id + "' already exists.");
 			hadError = true;
 		}
 		DBEdge e = new DBEdge(_id, _from, _to, _modes, _vmax, _geom, _length);
@@ -98,6 +98,28 @@ public class DBNet {
 	 * @param e The edge to add
 	 */
 	private void addEdge(DBEdge e) {
+		// double edge check
+		if("b727580836#5".equals(e.getID())||"f727580838#6".equals(e.getID())) { //||"f37108035#2".equals(e.getID())||"b37108035#2".equals(e.getID())) {
+			int bla = 0;
+		}
+		DBNode fromNode = e.getFromNode();
+		DBNode toNode = e.getToNode();
+		Vector<DBEdge> outgoing = fromNode.getOutgoing();
+		for(DBEdge e2 : outgoing) {
+			if(e==e2||e2.getToNode()!=toNode) {
+				continue;
+			}
+			if(e2.maxDistanceTo(e)<.5) {//.getGeometry().equals(e.getGeometry())) {
+				e2.adapt(e);
+				removeEdge(e);
+				System.err.println("Warning: removed edge '" + e.getID() + "' as a duplicate of edge '" + e2.getID() + "'.");
+				return;
+			}
+			/** @todo: ok, this happens usually on circular roads that have been split.
+			 * But what if there were two edges, e.g. one for pedestrians and one for passenger vehicles over each other? 
+			 */
+		}
+		//
 		name2edge.put(e.getID(), e);
 		Coordinate[] cs = e.getGeometry().getCoordinates();
 		for (int i = 0; i < cs.length; ++i) {
@@ -356,14 +378,8 @@ public class DBNet {
 			for(DBEdge e2 : edges2) {
 				if(e2.getToNode()==e.getFromNode() && Math.abs(e.getLength()-e2.getLength())<1.) {
 					// check whether the edges are parallel
-					LineString eg = e.getGeometry();
-					boolean distant = false;
-					for(int i=0; i<eg.getNumPoints()&&!distant; ++i) {
-						if(e2.getGeometry().distance(eg.getPointN(i))>.1) {
-							distant = true;
-						}
-					}
-					if(!distant) {
+					double maxDistance = e.maxDistanceTo(e2);
+					if(maxDistance<.5) {
 						// opposite direction found
 						opposite = e2;
 						if(!e2.allows(modeFoot)&&e.allows(modeFoot)) {
@@ -374,7 +390,7 @@ public class DBNet {
 				}
 			}
 			// add a reverse direction edge for pedestrians
-			if(addOppositePedestrianEdges && ((opposite==null && e.allows(modeFoot)) || (opposite==e))) {
+			if(addOppositePedestrianEdges && ((opposite==null && e.allows(modeFoot)))) {// || (opposite==e))) {
 				// todo: recheck whether opposite==e is correct - it happens, though maybe when using an external OSM importer
 				opposite = new DBEdge("opp_"+e.getID(), e.getToNode(), e.getFromNode(), modeFoot, e.getVMax(), (LineString) e.getGeometry().reverse(), e.getLength());
 				newEdges.add(opposite);

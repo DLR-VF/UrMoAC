@@ -133,7 +133,7 @@ public class DBEdge {
 	 * @return This edge's starting node
 	 */
 	public void setOppositeEdge(DBEdge e) {
-		if(opposite!=null) {
+		if(opposite!=null&&opposite!=e) {
 			throw new RuntimeException("opposite edge set twice"); // !!!
 		}
 		opposite = e;
@@ -384,6 +384,27 @@ public class DBEdge {
 	 */
 	public void addMode(long mode) {
 		modes |= mode;
+	}
+
+
+	public void adapt(DBEdge e) {
+		// geometry is same...
+		modes = modes | e.modes;
+		vmax = Math.max(vmax, e.vmax);
+	}
+
+
+	public double maxDistanceTo(DBEdge e) {
+		double maxDistance = 0;
+		LineString eg = e.getGeometry();
+		for(int i=0; i<eg.getNumPoints(); ++i) {
+			maxDistance = Math.max(maxDistance, getGeometry().distance(eg.getPointN(i)));
+		}
+		eg = getGeometry();
+		for(int i=0; i<eg.getNumPoints(); ++i) {
+			maxDistance = Math.max(maxDistance, e.getGeometry().distance(eg.getPointN(i)));
+		}
+		return maxDistance;
 	}
 
 }
