@@ -59,6 +59,7 @@ import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.output.Aggregator;
 import de.dlr.ivf.urmo.router.output.DijkstraResultsProcessor;
 import de.dlr.ivf.urmo.router.output.DirectWriter;
+import de.dlr.ivf.urmo.router.output.NetErrorsWriter;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.DBODRelation;
@@ -381,7 +382,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("destinations-to-road-output", new Option_String());
 		options.setDescription("destinations-to-road-output", "Defines the output of the mapping between destinations and the network.");
 		options.add("write.subnets", new Option_String());
-		options.setDescription("write.subnets", "Defines the output of subnets.");
+		options.setDescription("write.subnets", "Defines the output for subnets.");
+		options.add("write.net-errors", new Option_String());
+		options.setDescription("write.net-errors", "Defines the output for network errors and warnings.");
 		options.add("dropprevious", new Option_Bool());
 		options.setDescription("dropprevious", "When set, previous output with the same name is replaced.");
 		options.add("precision", new Option_Integer(2));
@@ -641,7 +644,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			throw new IOException("A network must be given.");
 		}
 		if (verbose) System.out.println("Reading the road network");
-		DBNet net = NetLoader.loadNet(this, options.getString("net"), options.getString("net.vmax"), epsg, modes);
+		NetErrorsWriter netErrorsOutput = options.isSet("write.net-errors") 
+				? OutputBuilder.buildNetErrorsWriter(options.getString("write.net-errors"), options.getBool("dropprevious")) : null;  
+		DBNet net = NetLoader.loadNet(this, options.getString("net"), options.getString("net.vmax"), epsg, modes, netErrorsOutput);
 		if (verbose) System.out.println(" " + net.getNumEdges() + " edges loaded (" + net.getNodes().size() + " nodes)");
 		if(!options.getBool("keep-subnets")) {
 			if (verbose) System.out.println("Checking for connectivity...");

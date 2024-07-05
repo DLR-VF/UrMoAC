@@ -122,22 +122,5 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 		}
 	}
 	
-	
-	/**
-	 * @brief Adds a comment to the database
-	 * @param comment The comment to add
-	 * @throws IOException When something fails
-	 */
-	public void addComment(String comment) throws IOException {
-		if (_allowsComments) {
-			try {
-				String sql = "COMMENT ON TABLE " + _tableName + " IS '" + comment + "';";
-				Statement s = _connection.createStatement();
-				s.executeUpdate(sql);
-			} catch (SQLException ex) {
-				throw new IOException(ex);
-			}
-		}
-	}
 
 }

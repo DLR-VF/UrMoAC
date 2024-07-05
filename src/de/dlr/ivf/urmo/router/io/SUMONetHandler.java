@@ -18,6 +18,7 @@
  */
 package de.dlr.ivf.urmo.router.io;
 
+import java.io.IOException;
 import java.util.Vector;
 
 import org.locationtech.jts.geom.Coordinate;
@@ -159,7 +160,12 @@ public class SUMONetHandler extends DefaultHandler {
 				Coordinate[] cs = geom2.getCoordinates();
 				DBNode fromNode = _net.getNode(_from, cs[0]);
 				DBNode toNode = _net.getNode(_to, cs[cs.length - 1]);
-				_net.addEdge(_id, fromNode, toNode, modes, _maxLaneSpeed, geom2, length);
+				try {
+					_net.addEdge(_id, fromNode, toNode, modes, _maxLaneSpeed, geom2, length);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 	}

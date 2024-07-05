@@ -37,6 +37,7 @@ import de.dlr.ivf.urmo.router.output.DirectWriter;
 import de.dlr.ivf.urmo.router.output.EdgeMappingWriter;
 import de.dlr.ivf.urmo.router.output.MeasurementGenerator;
 import de.dlr.ivf.urmo.router.output.NetClusterWriter;
+import de.dlr.ivf.urmo.router.output.NetErrorsWriter;
 import de.dlr.ivf.urmo.router.output.edge_use.EUMeasuresGenerator;
 import de.dlr.ivf.urmo.router.output.edge_use.EUSingleResult;
 import de.dlr.ivf.urmo.router.output.edge_use.EUWriter;
@@ -238,6 +239,14 @@ public class OutputBuilder {
 		emw.close();
 	}
 
+	
+	public static NetErrorsWriter buildNetErrorsWriter(String d, boolean dropPrevious) throws IOException {
+		Utils.Format format = Utils.getFormat(d);
+		String[] inputParts = Utils.getParts(format, d, "pt-output");
+		return new NetErrorsWriter(format, inputParts, dropPrevious);
+	}
+	
+	
 
 	/**
 	 * @brief Builds a comment string that shows the set options

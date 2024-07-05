@@ -20,12 +20,14 @@ package de.dlr.ivf.urmo.router.io;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Locale;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -43,6 +45,8 @@ import org.postgresql.PGConnection;
 import org.xml.sax.SAXException;
 
 import de.dlr.ivf.urmo.router.modes.Modes;
+import de.dlr.ivf.urmo.router.output.BasicCombinedWriter;
+import de.dlr.ivf.urmo.router.output.NetErrorsWriter;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.DBNode;
@@ -63,23 +67,23 @@ public class NetLoader {
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	public static DBNet loadNet(IDGiver idGiver, String def, String vmaxAttr, int epsg, long uModes) throws IOException {
+	public static DBNet loadNet(IDGiver idGiver, String def, String vmaxAttr, int epsg, long uModes, NetErrorsWriter errorsWriter) throws IOException {
 		Utils.Format format = Utils.getFormat(def);
 		String[] inputParts = Utils.getParts(format, def, "net");
 		DBNet net = null;
 		switch(format) {
 		case FORMAT_POSTGRES:
 		case FORMAT_SQLITE:
-			net = loadNetFromDB(idGiver, format, inputParts, vmaxAttr, epsg, uModes);
+			net = loadNetFromDB(idGiver, format, inputParts, vmaxAttr, epsg, uModes, errorsWriter);
 			break;
 		case FORMAT_CSV:
-			net = loadNetFromCSVFile(idGiver, inputParts[0], uModes);
+			net = loadNetFromCSVFile(idGiver, inputParts[0], uModes, errorsWriter);
 			break;
 		case FORMAT_WKT:
-			net = loadNetFromWKTFile(idGiver, inputParts[0], uModes);
+			net = loadNetFromWKTFile(idGiver, inputParts[0], uModes, errorsWriter);
 			break;
 		case FORMAT_SUMO:
-			net = loadNetFromSUMOFile(idGiver, inputParts[0], uModes);
+			net = loadNetFromSUMOFile(idGiver, inputParts[0], uModes, errorsWriter);
 			break;
 		case FORMAT_GEOPACKAGE:
 			throw new IOException("Reading 'net' from " + Utils.getFormatMMLName(format) + " is not supported.");
@@ -105,7 +109,7 @@ public class NetLoader {
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromDB(IDGiver idGiver, Utils.Format format, String[] inputParts, String vmax, int epsg, long uModes) throws IOException {
+	private static DBNet loadNetFromDB(IDGiver idGiver, Utils.Format format, String[] inputParts, String vmax, int epsg, long uModes, NetErrorsWriter errorsWriter) throws IOException {
 		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
 		try {
 			Class.forName("org.sqlite.JDBC");
@@ -122,7 +126,7 @@ public class NetLoader {
 			Statement s = connection.createStatement();
 			ResultSet rs = s.executeQuery(query);
 			WKBReader wkbRead = new WKBReader();
-			DBNet net = new DBNet(idGiver);
+			DBNet net = new DBNet(idGiver, errorsWriter, false); // todo: implement report settings
 			boolean ok = true;
 			while (rs.next()) {
 				long modes = 0;
@@ -163,8 +167,8 @@ public class NetLoader {
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromCSVFile(IDGiver idGiver, String fileName, long uModes) throws IOException {
-		DBNet net = new DBNet(idGiver);
+	private static DBNet loadNetFromCSVFile(IDGiver idGiver, String fileName, long uModes, NetErrorsWriter errorsWriter) throws IOException {
+		DBNet net = new DBNet(idGiver, errorsWriter, false); // todo: implement report settings
 		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
 		// https://stackoverflow.com/questions/1388602/do-i-need-to-close-both-filereader-and-bufferedreader
 		@SuppressWarnings("resource")
@@ -211,9 +215,9 @@ public class NetLoader {
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromWKTFile(IDGiver idGiver, String fileName, long uModes) throws IOException {
+	private static DBNet loadNetFromWKTFile(IDGiver idGiver, String fileName, long uModes, NetErrorsWriter errorsWriter) throws IOException {
 		try {
-			DBNet net = new DBNet(idGiver);
+			DBNet net = new DBNet(idGiver, errorsWriter, false); // todo: implement report settings
 			WKTReader wktReader = new WKTReader();
 			BufferedReader br = new BufferedReader(new FileReader(fileName));
 			String line = null;
@@ -253,9 +257,9 @@ public class NetLoader {
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromSUMOFile(IDGiver idGiver, String fileName, long uModes) throws IOException {
+	private static DBNet loadNetFromSUMOFile(IDGiver idGiver, String fileName, long uModes, NetErrorsWriter errorsWriter) throws IOException {
 		try {
-			DBNet net = new DBNet(idGiver);
+			DBNet net = new DBNet(idGiver, errorsWriter, false); // todo: implement report settings
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 	        SAXParser saxParser = factory.newSAXParser();
 	        SUMONetHandler handler = new SUMONetHandler(net, uModes);

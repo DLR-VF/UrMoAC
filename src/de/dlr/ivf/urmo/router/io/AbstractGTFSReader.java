@@ -262,8 +262,9 @@ public abstract class AbstractGTFSReader {
 	 * @param accessModes The modes used to access the stops
 	 * @return How many stops could not be connected
 	 * @throws ParseException If a geometry could not been added
+	 * @throws IOException 
 	 */
-	protected int connectStops(HashMap<DBEdge, Vector<MapResult>> edge2stops, long accessModes) throws ParseException {
+	protected int connectStops(HashMap<DBEdge, Vector<MapResult>> edge2stops, long accessModes) throws ParseException, IOException {
 		int failed = 0;
 		HashMap<DBEdge, DBEdge> seenOpposite = new HashMap<DBEdge, DBEdge>();
 		for (DBEdge e : edge2stops.keySet()) {

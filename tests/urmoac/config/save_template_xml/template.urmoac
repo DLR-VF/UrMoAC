@@ -56,6 +56,7 @@
    <origins-to-road-output></origins-to-road-output>
    <destinations-to-road-output></destinations-to-road-output>
    <write.subnets></write.subnets>
+   <write.net-errors></write.net-errors>
    <dropprevious></dropprevious>
    <precision></precision>
    <comment></comment>

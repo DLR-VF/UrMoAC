@@ -104,7 +104,9 @@ Usage:
                                    sources and the network.
   --destinations-to-road-output  Defines the output of the mapping between
                                    destinations and the network.
-  --write.subnets                Defines the output of subnets.
+  --write.subnets                Defines the output for subnets.
+  --write.net-errors             Defines the output for network errors and
+                                   warnings.
   --dropprevious                 When set, previous output with the same name is
                                    replaced.
   --precision                    Defines the number of digits after the decimal

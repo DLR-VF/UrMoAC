@@ -18,6 +18,7 @@
  */
 package de.dlr.ivf.urmo.router.shapes;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,6 +32,7 @@ import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.index.strtree.STRtree;
 
 import de.dlr.ivf.urmo.router.modes.Modes;
+import de.dlr.ivf.urmo.router.output.NetErrorsWriter;
 
 /**
  * @class DBNet
@@ -52,14 +54,20 @@ public class DBNet {
 	private GeometryFactory geometryFactory = null;
 	/// @brief The id supplier to use
 	private IDGiver idGiver;
+	
+	NetErrorsWriter log;
+	boolean reportAllIssues;
+	boolean hadDuplicateConnection = false;
 
 
 	/**
 	 * @brief Constructor
 	 * @param _idGiver The id supplier to use
 	 */
-	public DBNet(IDGiver _idGiver) {
+	public DBNet(IDGiver _idGiver, NetErrorsWriter _log, boolean _reportAllIssues) {
 		idGiver = _idGiver;
+		log = _log;
+		reportAllIssues = _reportAllIssues;
 	}
 
 	
@@ -72,19 +80,23 @@ public class DBNet {
 	 * @param _geom The geometry of the edge
 	 * @param _length The length of the edge
 	 * @return The built edge
+	 * @throws IOException 
 	 */
-	public boolean addEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length) {
+	public boolean addEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length) throws IOException {
 		boolean hadError = false;
 		if(_length<=0) {
 			System.err.println("Error: Edge '" + _id + "' has a length of 0.");
+			if(log!=null) log.writeNoLength(_id);
 			hadError = true;
 		}
 		if(_vmax<=0) {
 			System.err.println("Error: Edge '" + _id + "' has a speed of 0.");
+			if(log!=null) log.writeNoSpeed(_id);
 			hadError = true;
 		}
 		if(name2edge.containsKey(_id)) {
 			System.err.println("Error: Edge '" + _id + "' already exists.");
+			if(log!=null) log.writeDuplicate(_id);
 			hadError = true;
 		}
 		DBEdge e = new DBEdge(_id, _from, _to, _modes, _vmax, _geom, _length);
@@ -96,12 +108,10 @@ public class DBNet {
 	/**
 	 * @brief Adds an edge to the road network
 	 * @param e The edge to add
+	 * @throws IOException 
 	 */
-	private void addEdge(DBEdge e) {
+	private void addEdge(DBEdge e) throws IOException {
 		// double edge check
-		if("b727580836#5".equals(e.getID())||"f727580838#6".equals(e.getID())) { //||"f37108035#2".equals(e.getID())||"b37108035#2".equals(e.getID())) {
-			int bla = 0;
-		}
 		DBNode fromNode = e.getFromNode();
 		DBNode toNode = e.getToNode();
 		Vector<DBEdge> outgoing = fromNode.getOutgoing();
@@ -112,7 +122,14 @@ public class DBNet {
 			if(e2.maxDistanceTo(e)<.5) {//.getGeometry().equals(e.getGeometry())) {
 				e2.adapt(e);
 				removeEdge(e);
-				System.err.println("Warning: removed edge '" + e.getID() + "' as a duplicate of edge '" + e2.getID() + "'.");
+				if (log!=null) log.writeEdgeReplacement(e.getID(), e2.getID());
+				if(reportAllIssues||!hadDuplicateConnection) {
+					hadDuplicateConnection = true;
+					System.err.println("Warning: removed edge '" + e.getID() + "' as a duplicate of edge '" + e2.getID() + "'.");
+					if(!reportAllIssues) {
+						System.err.println("Warning: Subsequent replacements will not be reported; use --write.net-errors to get the complete list.");
+					}
+				}
 				return;
 			}
 			/** @todo: ok, this happens usually on circular roads that have been split.
@@ -366,8 +383,9 @@ public class DBNet {
 	/**
 	 * @brief Extends the network by adding opposite edges
 	 * @param addOppositePedestrianEdges Whether backwards edges for pedestrians shall be added
+	 * @throws IOException 
 	 */
-	public void extendDirections(boolean addOppositePedestrianEdges) {
+	public void extendDirections(boolean addOppositePedestrianEdges) throws IOException {
 		Vector<DBEdge> newEdges = new Vector<>();
 		long modeFoot = Modes.getMode("foot").id;
 		Collection<DBEdge> edges = name2edge.values(); 
