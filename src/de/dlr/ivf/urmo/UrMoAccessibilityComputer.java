@@ -380,8 +380,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("origins-to-road-output", "Defines the output of the mapping between sources and the network.");
 		options.add("destinations-to-road-output", new Option_String());
 		options.setDescription("destinations-to-road-output", "Defines the output of the mapping between destinations and the network.");
-		options.add("subnets-output", new Option_String());
-		options.setDescription("subnets-output", "Defines the output of subnets.");
+		options.add("write.subnets", new Option_String());
+		options.setDescription("write.subnets", "Defines the output of subnets.");
 		options.add("dropprevious", new Option_Bool());
 		options.setDescription("dropprevious", "When set, previous output with the same name is replaced.");
 		options.add("precision", new Option_Integer(2));
@@ -646,8 +646,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		if(!options.getBool("keep-subnets")) {
 			if (verbose) System.out.println("Checking for connectivity...");
 			HashMap<Integer, Set<DBEdge>> clusters = net.dismissUnconnectedEdges(options.getBool("subnets-summary"));
-			if (options.isSet("subnets-output")) {
-				OutputBuilder.writeSubnets("subnets-output", options, clusters);
+			if (options.isSet("write.subnets")) {
+				OutputBuilder.writeSubnets("write.subnets", options, clusters);
 			}
 			if (verbose) System.out.println(" " + net.getNumEdges() + " remaining after removing unconnected ones.");
 		}

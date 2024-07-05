@@ -85,7 +85,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --direct-output _&lt;OUTPUT&gt;_<br>-d _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the direct output. |
 | --origins-to-road-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines output of the mapping between from-objects to the road. |
 | --destinations-to-road-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines output of the mapping between to-objects to the road. |
-| --subnets-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the output of subnets |
+| --write.subnets _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the output of subnets |
 | --dropprevious | N/A (optional) | When set, previous output with the same name is replaced. |
 | --precision _&lt;INTEGER&gt;_ | 2 | Defines the number of digits after the decimal point. |
 | --comment | N/A (optional) | Adds a comment with the used options into generated output dbs. |

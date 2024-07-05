@@ -55,7 +55,7 @@
    <direct-output></direct-output>
    <origins-to-road-output></origins-to-road-output>
    <destinations-to-road-output></destinations-to-road-output>
-   <subnets-output></subnets-output>
+   <write.subnets></write.subnets>
    <dropprevious></dropprevious>
    <precision></precision>
    <comment></comment>

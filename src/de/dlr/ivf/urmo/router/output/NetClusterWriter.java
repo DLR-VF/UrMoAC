@@ -48,7 +48,7 @@ public class NetClusterWriter extends BasicCombinedWriter {
 	 * @throws IOException When something fails
 	 */
 	public NetClusterWriter(Utils.Format format, String[] inputParts, boolean dropPrevious) throws IOException {
-		super(format, inputParts, "subnets-output", 2, dropPrevious, "(edge_id text, cell_id integer, cell_size integer)");
+		super(format, inputParts, "write.subnets", 2, dropPrevious, "(edge_id text, cell_id integer, cell_size integer)");
 	}
 	
 	

@@ -75,6 +75,7 @@
     * Option **--subnets** that keeps unconnected sub-networks was renamed to **--keep-subnets**
     * Added the option **--subnets-summary** that lists (very verbose) all found subnets
     * Added the option **--subnets-output *&lt;OUTPUT&gt;*** that writes the found subnets
+        * Renamed **--subnets-output *&lt;OUTPUT&gt;*** to **--write.subnets *&lt;OUTPUT&gt;***
 * [issue #1](https://github.com/DLR-VF/UrMoAC/issues/1) solved: the tool reports when an edge with a velocity or a length of 0 is loaded, as well when an edge id is used more than once
 * removed the **avg_v** field from nm-ext-output as it is too complicated to keep track of connection with dist=0 (same origin/destination) and the value can be easily computed from **avg_tt** and **avg_distance**
 
