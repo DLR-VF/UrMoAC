@@ -178,7 +178,7 @@ public abstract class AbstractGTFSReader {
 			// map stops to edges
 			long accessModes = Modes.getMode("foot").id|Modes.getMode("bike").id;
 			NearestEdgeFinder nef = new NearestEdgeFinder(stopsV, _net, accessModes);
-			HashMap<DBEdge, Vector<MapResult>> edge2stops = nef.getNearestEdges(false, numThreads);
+			HashMap<DBEdge, Vector<MapResult>> edge2stops = nef.getNearestEdges(false, false, numThreads);
 			// connect stops to network
 			if(verbose) System.out.println(" ... connecting stops ...");
 			int failed = connectStops(edge2stops, accessModes);
@@ -279,7 +279,7 @@ public abstract class AbstractGTFSReader {
 			Vector<MapResult> edgeStops = new Vector<MapResult>(edge2stops.get(e));
 			if(e.getOppositeEdge()!=null&&edge2stops.containsKey(e.getOppositeEdge())) {
 				for(MapResult stop : edge2stops.get(e.getOppositeEdge())) {
-					MapResult mr = new MapResult(stop.em, stop.edge, stop.dist, e.getLength()-stop.pos);
+					MapResult mr = new MapResult(stop.em, stop.edge, stop.dist, e.getLength()-stop.pos, false);
 					edgeStops.add(mr);
 				}
 			}
