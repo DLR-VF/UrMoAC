@@ -98,13 +98,13 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 			e.weightedKCal += edge.getKKC(current.usedMode, ttt) * factor;
 			e.weightedPrice += edge.getPrice(current.usedMode, seenLines) * factor;
 			e.weightedCO2 += edge.getCO2(current.usedMode) * factor;
-			if(current.line==null) {
+			if(current.ptConnection==null) {
 				if(lastPT==null) {
 					e.weightedEgress += ttt * factor;
 				}
 				e.weightedAccess += ttt * factor;
 			} else {
-				if(lastPT!=null&&!current.line.trip.tripID.equals(lastPT)) {
+				if(lastPT!=null&&!current.ptConnection.trip.tripID.equals(lastPT)) {
 					e.weightedInterchanges += 1.;
 					e.weightedInterchangeTime += e.weightedAccess;
 				}
@@ -112,17 +112,17 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 				e.weightedInterchangeTime += current.interchangeTT;
 				e.weightedAccess = 0;
 				e.weightedPTTravelTime += current.ttt;
-				if(current.prev==null || current.prev.line==null || !current.line.trip.equals(current.prev.line.trip)) {
-					double waitingTime = current.line.getWaitingTime(beginTime + current.prev.tt);
+				if(current.prev==null || current.prev.ptConnection==null || !current.ptConnection.trip.equals(current.prev.ptConnection.trip)) {
+					double waitingTime = current.ptConnection.getWaitingTime(beginTime + current.prev.tt);
 					e.weightedWaitingTime += waitingTime;
 					e.weightedInitialWaitingTime = waitingTime;
 					e.weightedPTTravelTime -= waitingTime;
 				}
 			}
-			if(current.line!=null) {
-				lastPT = current.line.trip.tripID;
-				e.lines.add(current.line.trip.route.id);
-				trips.add(current.line.trip.tripID);
+			if(current.ptConnection!=null) {
+				lastPT = current.ptConnection.trip.tripID;
+				e.lines.add(current.ptConnection.trip.route.id);
+				trips.add(current.ptConnection.trip.tripID);
 			} else {
 				e.lines.add(current.usedMode.mml);
 			}

@@ -130,7 +130,7 @@ public class BoundDijkstra {
 					if(ptConnection==null) {
 						ttt = 86400;
 					} else {
-						GTFSTrip prevTrip = nns.line!=null ? nns.line.trip : null;
+						GTFSTrip prevTrip = nns.ptConnection!=null ? nns.ptConnection.trip : null;
 						if(!ptConnection.trip.equals(prevTrip)) {
 							interchangeTT = ((GTFSStop) nns.n).getInterchangeTime(ptConnection.trip, prevTrip, 0);
 						}

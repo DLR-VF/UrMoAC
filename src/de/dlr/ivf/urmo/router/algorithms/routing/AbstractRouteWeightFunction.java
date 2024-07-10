@@ -54,16 +54,16 @@ public abstract class AbstractRouteWeightFunction implements Comparator<Dijkstra
 		int numInterchanges = 0;
 		if(prev!=null) {
 			numInterchanges = (Integer) prev.measures.get("interchanges");
-			if(current.line!=null) {
+			if(current.ptConnection!=null) {
 				GTFSTrip prevLastPT = (GTFSTrip) prev.measures.get("lastPT");
-				if(!current.line.trip.equals(prevLastPT)) {
+				if(!current.ptConnection.trip.equals(prevLastPT)) {
 					numInterchanges = numInterchanges + 1;
 				}
 			}
 		}
 		ret.put("interchanges", numInterchanges);
-		if(current.line!=null) {
-			ret.put("lastPT", current.line.trip);
+		if(current.ptConnection!=null) {
+			ret.put("lastPT", current.ptConnection.trip);
 		} else if(prev!=null) {
 			ret.put("lastPT", (GTFSTrip) prev.measures.get("lastPT"));
 		} else {

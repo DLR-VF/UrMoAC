@@ -47,9 +47,9 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 		double tt = 0;
 		double dist = 0;
 		HashSet<String> trips = new HashSet<>();
-		if(current.line!=null) {
-			e.lines.add(current.line.trip.route.id);
-			trips.add(current.line.trip.tripID);
+		if(current.ptConnection!=null) {
+			e.lines.add(current.ptConnection.trip.route.id);
+			trips.add(current.ptConnection.trip.tripID);
 		} else {
 			e.lines.add(current.usedMode.mml);
 		}
@@ -91,30 +91,30 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 					current = prev;
 					continue;
 				}
-				if(current.line!=null) {
-					e.lines.add(current.line.trip.route.id);
-					trips.add(current.line.trip.tripID);
+				if(current.ptConnection!=null) {
+					e.lines.add(current.ptConnection.trip.route.id);
+					trips.add(current.ptConnection.trip.tripID);
 				} else {
 					e.lines.add(current.usedMode.mml);
 				}
-				if( (prev.line==null&&current.line==null) || (prev.line!=null && current.line!=null && prev.line.trip.equals(current.line.trip)) ) {
+				if( (prev.ptConnection==null&&current.ptConnection==null) || (prev.ptConnection!=null && current.ptConnection!=null && prev.ptConnection.trip.equals(current.ptConnection.trip)) ) {
 					current = prev;
 					continue;
 				}
 				addStep(e, step, dist, tt);
 				tt = 0;
 				dist = 0;
-				if(prev.line==null) {
+				if(prev.ptConnection==null) {
 					// foot->pt; 
 					step = 2; // either interchange or access 
-					double waitingTime = current.line.getWaitingTime(beginTime + prev.tt);
+					double waitingTime = current.ptConnection.getWaitingTime(beginTime + prev.tt);
 					e.weightedWaitingTime += waitingTime;
 					e.weightedInitialWaitingTime = waitingTime;
 				} else {
 					// pt->foot|pt
-					if(current.line!=null) {
+					if(current.ptConnection!=null) {
 						// change from pt to pt
-						double waitingTime = current.line.getWaitingTime(beginTime + prev.tt);
+						double waitingTime = current.ptConnection.getWaitingTime(beginTime + prev.tt);
 						e.weightedWaitingTime += waitingTime;
 						e.weightedInitialWaitingTime = waitingTime;
 					}
