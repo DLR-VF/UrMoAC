@@ -27,13 +27,14 @@ import java.util.Vector;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraEntry;
+import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.gtfs.GTFSStop;
 import de.dlr.ivf.urmo.router.io.Utils;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 
 /**
  * @class DirectWriter
- * @brief Writes PTODSingleResult results to a database / file
+ * @brief Writes ODSingleResult results to a database / file
  * @author Daniel Krajzewicz
  */
 public class DirectWriter extends BasicCombinedWriter {
@@ -85,16 +86,18 @@ public class DirectWriter extends BasicCombinedWriter {
 	 * @throws SQLException When something fails
 	 * @throws IOException When something fails
 	 */
-	public synchronized void writeResult(long originID, long destinationID, DijkstraEntry destPath, int beginTime) throws IOException {
+	public synchronized void writeResult(SingleODResult result, int beginTime) throws IOException {
 		// revert order
 		Vector<DijkstraEntry> entries = new Vector<>();
-		DijkstraEntry c = destPath;
+		DijkstraEntry c = result.path;
 		do {
 			entries.add(c);
 			c = c.prev;
 		} while(c!=null);
 		Collections.reverse(entries);
 		//
+		long originID = result.origin.em.getOuterID();
+		long destinationID = result.destination.em.getOuterID();
 		// go through entries
 		int index = 0;
 		for(DijkstraEntry current : entries) {
@@ -102,8 +105,23 @@ public class DirectWriter extends BasicCombinedWriter {
 			if(current.n instanceof GTFSStop) {
 				id = ((GTFSStop) current.n).mid;
 			}
-			double ttt = current.e.getTravelTime(current.usedMode.vmax, current.tt+beginTime);
-			String routeID = getLineID(current.line);
+			double ttt = current.ttt;
+					
+					//current.e.getTravelTime(current.usedMode.vmax, current.tt+beginTime);
+			/*
+			DBEdge currentEdge = current.e;
+			if(currentEdge==result.origin.edge) {
+				ttt = ttt * (currentEdge.getLength() - result.origin.pos) / currentEdge.getLength();
+			} else if(currentEdge==result.origin.edge.getOppositeEdge()) {
+				ttt = ttt * result.origin.pos / currentEdge.getLength();
+			}
+			if(currentEdge==result.destination.edge) {
+				ttt = ttt * result.destination.pos / currentEdge.getLength();
+			} else if(currentEdge==result.destination.edge.getOppositeEdge()) {
+				ttt = ttt * (currentEdge.getLength() - result.destination.pos) / currentEdge.getLength();
+			}
+			*/
+			String routeID = getLineID(current.ptConnection);
 			if (intoDB()) {
 				try {
 					_ps.setLong(1, originID);

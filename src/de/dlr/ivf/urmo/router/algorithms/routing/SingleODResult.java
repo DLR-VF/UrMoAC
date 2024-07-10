@@ -35,7 +35,7 @@ public class SingleODResult {
 	public double tt = 0;
 	/// @brief The path that connects the origin and the destination
 	public DijkstraEntry path;
-
+	
 	
 	/** @brief Constructor
 	 * 
@@ -48,30 +48,25 @@ public class SingleODResult {
 		origin = _origin;
 		destination = _destination;
 		path = _path;
-		if(origin.edge==destination.edge) {
-			if(origin.pos>destination.pos) {
-				dist = origin.pos - destination.pos;
+		if(path.prev==null) {
+			// first edge
+			if(origin.edge==destination.edge) {
+				dist = Math.abs(destination.pos - origin.pos);
 			} else {
-				dist = destination.pos - origin.pos;				
-			}
-			tt = origin.edge.getTravelTime(path.first.usedMode.vmax, time) / destination.edge.getLength() * dist;
-		} else if(origin.edge.getOppositeEdge()==destination.edge) {
-			if(origin.pos>(destination.edge.getLength() - destination.pos)) {
-				dist = origin.pos - (destination.edge.getLength() - destination.pos);
-			} else {
-				dist = (destination.edge.getLength() - destination.pos) - origin.pos;				
+				dist = Math.abs(destination.pos - (origin.edge.getLength() - origin.pos));
 			}
 			tt = destination.edge.getTravelTime(path.first.usedMode.vmax, time) / destination.edge.getLength() * dist;
 		} else {
 			dist = path.distance;
 			tt = path.tt;
-			if(path.wasOpposite) {
-				dist -= destination.pos;
-				tt -= path.ttt * destination.pos / destination.edge.getLength();
+			double distOff = 0;
+			if(!path.wasOpposite) {
+				distOff = (destination.edge.getLength() - destination.pos);
 			} else {
-				dist -= (destination.edge.getLength() - destination.pos);
-				tt -= (path.ttt - path.ttt * (destination.pos / destination.edge.getLength()));
+				distOff = destination.pos;
 			}
+			dist -= distOff;
+			tt -= path.ttt * distOff / destination.edge.getLength();
 		}
 		if(dist<0&&dist>-.1) {
 			dist = 0;

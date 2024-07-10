@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
@@ -43,8 +42,6 @@ import de.dks.utils.options.OptionsTypedFileIO;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.NearestEdgeFinder;
 import de.dlr.ivf.urmo.router.algorithms.routing.AbstractRouteWeightFunction;
-import de.dlr.ivf.urmo.router.algorithms.routing.BoundDijkstra;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_ExpInterchange_TT;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_MaxInterchange_TT;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_Price_TT;
@@ -86,9 +83,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	/// @brief A running id for the loaded objects
 	private long runningID = 0;
 	/// @brief A mapping from an edge to allocated sources
-	private HashMap<DBEdge, Vector<MapResult>> nearestFromEdges;
+	HashMap<DBEdge, Vector<MapResult>> nearestFromEdges;
 	/// @brief A mapping from an edge to allocated destinations
-	private HashMap<DBEdge, Vector<MapResult>> nearestToEdges;
+	HashMap<DBEdge, Vector<MapResult>> nearestToEdges;
 	/// @brief A point to the currently processed source edge
 	private Iterator<DBEdge> nextEdgePointer = null;
 	/// @brief A counter for seen edges for reporting purposes
@@ -106,135 +103,16 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	/// @brief Initial mode
 	private long initMode = -1;
 	/// @brief list of connections to process
-	private Vector<DBODRelation> connections = null;
+	Vector<DBODRelation> connections = null;
 	/// @brief A point to the currently processed connection
 	private Iterator<DBODRelation> nextConnectionPointer = null;
 	/// @brief A counter for seen connections for reporting purposes
 	private long seenODs = 0;
 	/// @brief Whether an error occurred
-	private boolean hadError = false;
+	boolean hadError = false;
 
 	
 	
-	// --------------------------------------------------------
-	// inner classes
-	// --------------------------------------------------------
-	/** @class ComputingThread
-	 * 
-	 * A thread which polls for new sources, computes the accessibility and
-	 * writes the results before asking for the next one
-	 */
-	private static class ComputingThread implements Runnable {
-		/// @brief The parent to get information from
-		private UrMoAccessibilityComputer parent;
-		/// @brief The results processor to use
-		private DijkstraResultsProcessor resultsProcessor;
-		/// @brief The routing measure to use
-		private AbstractRouteWeightFunction measure;
-		/// @brief Whether only entries which contain a public transport part shall be processed 
-		private boolean needsPT;
-		/// @brief The start time of routing
-		private int time; 
-		/// @brief The mode of transport to use at the begin
-		private long initMode;
-		/// @brief The available transport modes
-		private long modes;
-		/// @brief The maximum number of destinations to find
-		private int boundNumber;
-		/// @brief The maximum travel time to use
-		private double boundTT;
-		/// @brief The maximum distance to pass
-		private double boundDist;
-		/// @brief The maximum value to collect
-		private double boundVar;
-		/// @brief Whether only the shortest connection shall be found 
-		private boolean shortestOnly;
-		
-		
-		/**
-		 * @brief Constructor
-		 * @param _parent The parent to get information from
-		 * @param _needsPT Whether only entries which contain a public transport part shall be processed 
-		 * @param _measure The routing measure to use
-		 * @param _resultsProcessor The results processor to use
-		 * @param _time The start time of routing
-		 * @param _initMode The mode of transport to use at the begin
-		 * @param _modes The available transport modes
-		 * @param _boundNumber The maximum number of destinations to find
-		 * @param _boundTT The maximum travel time to use
-		 * @param _boundDist The maximum distance to pass
-		 * @param _boundVar The maximum value to collect
-		 * @param _shortestOnly Whether only the shortest connection shall be found 
-		 */
-		public ComputingThread(UrMoAccessibilityComputer _parent, boolean _needsPT,
-				AbstractRouteWeightFunction _measure, DijkstraResultsProcessor _resultsProcessor,
-				int _time, long _initMode, 
-				long _modes, int _boundNumber, double _boundTT, 
-				double _boundDist, double _boundVar, boolean _shortestOnly) {
-			super();
-			parent = _parent;
-			resultsProcessor = _resultsProcessor;
-			measure = _measure;
-			needsPT = _needsPT;
-			time = _time; 
-			initMode = _initMode;
-			modes = _modes;
-			boundNumber = _boundNumber;
-			boundTT = _boundTT;
-			boundDist = _boundDist;
-			boundVar = _boundVar;
-			shortestOnly = _shortestOnly;
-		}
-		
-		
-		
-		/**
-		 * @brief Performs the computation
-		 * 
-		 * Iterates over edges or od-connections.
-		 * Builds the paths, first, then uses them to generate the results.
-		 */
-		public void run() {
-			try {
-				if(parent.connections==null) {
-					DBEdge e = null;
-					do {
-						e = parent.getNextStartingEdge();
-						if(e==null) {
-							continue;
-						}
-						Vector<MapResult> fromObjects = parent.nearestFromEdges.get(e);
-						for(MapResult mr : fromObjects) {
-							DijkstraResult ret = BoundDijkstra.run(mr, measure, time, 
-									initMode, modes, parent.nearestToEdges.keySet(), 
-									boundNumber, boundTT, boundDist, boundVar, shortestOnly, parent.nearestToEdges);
-							resultsProcessor.process(mr, ret, needsPT, -1);
-						}
-					} while(e!=null&&!parent.hadError);
-				} else {
-					DBODRelationExt od = null;
-					do {
-						od = parent.getNextOD();
-						if(od==null) {
-							continue;
-						}
-						/// TODO: recheck whether routing is needed per source
-						Set<DBEdge> destinations = new HashSet<>();
-						destinations.add(od.toEdge);
-						DijkstraResult ret = BoundDijkstra.run(od.fromMR, measure, time, 
-								initMode, modes, destinations, 
-								boundNumber, boundTT, boundDist, boundVar, shortestOnly, parent.nearestToEdges);
-						resultsProcessor.process(od.fromMR, ret, needsPT, od.destination);
-					} while(od!=null&&!parent.hadError);
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
-
-
 	// --------------------------------------------------------
 	// static methods
 	// --------------------------------------------------------
@@ -743,8 +621,14 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		Vector<Aggregator> aggregators = OutputBuilder.buildOutputs(options, fromLayer, fromAggLayer, toLayer, toAggLayer, epsg);
 		DirectWriter dw = OutputBuilder.buildDirectOutput(options, epsg, nearestToEdges);
 		time = options.getInteger("time");
-		resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, nearestFromEdges, nearestToEdges); 
-
+		int maxNumber = options.isSet("max-number") ? options.getInteger("max-number") : -1;
+		double maxTT = options.isSet("max-tt") ? options.getDouble("max-tt") : -1;
+		double maxDistance = options.isSet("max-distance") ? options.getDouble("max-distance") : -1;
+		double maxVar = options.isSet("max-variable-sum") ? options.getDouble("max-variable-sum") : -1;
+		boolean shortestOnly = options.getBool("shortest");
+		boolean needsPT = options.getBool("requirespt");
+		resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, maxNumber, maxTT, maxDistance, maxVar, shortestOnly, needsPT); 
+		
 		// -------- measure
 		measure = new RouteWeightFunction_TT_Modes();
 		if(options.isSet("measure")) {
@@ -790,7 +674,6 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		double maxDistance = options.isSet("max-distance") ? options.getDouble("max-distance") : -1;
 		double maxVar = options.isSet("max-variable-sum") ? options.getDouble("max-variable-sum") : -1;
 		boolean shortestOnly = options.getBool("shortest");
-		boolean needsPT = options.getBool("requirespt");
 		if (verbose) {
 			if(connections==null) {
 				System.out.println("Computing shortest paths between " + nearestFromEdges.size() + " origin and " + nearestToEdges.size() + " destination edges");
@@ -808,7 +691,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		seenEdges = 0;
 		Vector<Thread> threads = new Vector<>();
 		for (int i=0; i<numThreads; ++i) {
-			Thread t = new Thread(new ComputingThread(this, needsPT, measure, resultsProcessor, time, initMode, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly));
+			Thread t = new Thread(new ComputingThread(this, measure, resultsProcessor, time, initMode, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly));
 			threads.add(t);
 	        t.start();
 		}
