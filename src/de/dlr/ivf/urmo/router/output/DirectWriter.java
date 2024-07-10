@@ -65,7 +65,7 @@ public class DirectWriter extends BasicCombinedWriter {
 	}
 	
 	
-	/** @brief Get the insert statement string
+	/** @brief Returns the insert statement string
 	 * @param[in] format The used output format
 	 * @param[in] epsg The used projection
 	 * @return The insert statement string
