@@ -727,13 +727,13 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		// compute nearest edges
 		if (verbose) System.out.println("Computing access from the origins to the network");
 		NearestEdgeFinder nef1 = new NearestEdgeFinder(fromLayer.getObjects(), net, initMode);
-		nearestFromEdges = nef1.getNearestEdges(false, options.getInteger("threads"));
+		nearestFromEdges = nef1.getNearestEdges(false, false, options.getInteger("threads"));
 		if (options.isSet("origins-to-road-output")) {
 			OutputBuilder.writeEdgeAllocation("origins-to-road-output", options, nearestFromEdges, epsg);
 		}
 		if (verbose) System.out.println("Computing egress from the network to the destinations");
 		NearestEdgeFinder nef2 = new NearestEdgeFinder(toLayer.getObjects(), net, modes);
-		nearestToEdges = nef2.getNearestEdges(true, options.getInteger("threads"));
+		nearestToEdges = nef2.getNearestEdges(true, true, options.getInteger("threads"));
 		if (options.isSet("destinations-to-road-output")) {
 			OutputBuilder.writeEdgeAllocation("destinations-to-road-output", options, nearestToEdges, epsg);
 		}

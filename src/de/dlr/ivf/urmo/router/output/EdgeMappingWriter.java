@@ -20,7 +20,6 @@ package de.dlr.ivf.urmo.router.output;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -94,6 +93,9 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 	                return i1 > i2 ? 1 : i1 < i2 ? -1 : 0;
 	            }});
 			for (MapResult o : ress) {
+				if(o.onOpposite) {
+					continue;
+				}
 				PointPairDistance ppd = new PointPairDistance();
 				DistanceToPointFinder.computeDistance(e.getGeometry(), o.em.getPoint().getCoordinate(), ppd);
 				if (intoDB()) {

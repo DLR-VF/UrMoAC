@@ -18,15 +18,22 @@
  */
 package de.dlr.ivf.urmo.router.algorithms.edgemapper;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 
 /**
  * @class MapResult
- * @brief The result of mapping an EdgeMappable onto an edge
+ * @brief The result of mapping an EdgeMappable onto the road network
+ * 
+ * The MapResult describes the mapping of a origin or destination (or a public transport halt)
+ * to the road network. It consists of
+ * - a reference to the mapped object
+ * - a reference to the edge the object is mapped onto
+ * - the distance of the object and the edge
+ * - the position of the mapped object along the edge
+ * - whether this MapResult represents the assignment to the opposite edge
+ * 
+ * The information about being assigned to the opposite edge is used to dismiss these entries from the according outputs. 
+ * 
  * @author Daniel Krajzewicz
  */
 public class MapResult {
@@ -38,6 +45,8 @@ public class MapResult {
 	public double dist;
 	/// @brief The position along the edge
 	public double pos;
+	/// @brief Whether this is an assignment to the opposite edge
+	public boolean onOpposite;
 
 
 	/**
@@ -46,28 +55,16 @@ public class MapResult {
 	 * @param _e The edge the thing is located at
 	 * @param _dist The distance to the edge
 	 * @param _pos The position along the edge
+	 * @param _onOpposite Whether this MapResults represents an additional assignment to the opposite edge
+	 * @see de.dlr.ivf.urmo.router.output.EdgeMappingWriter
 	 */
-	public MapResult(EdgeMappable _em, DBEdge _e, double _dist, double _pos) {
+	public MapResult(EdgeMappable _em, DBEdge _e, double _dist, double _pos, boolean _onOpposite) {
 		em = _em;
 		edge = _e;
 		dist = _dist;
 		pos = _pos;
+		onOpposite = _onOpposite;
 	}
 
 
-	// -----------------------------------------------------------------------
-	// helper methods
-	// -----------------------------------------------------------------------
-	/**
-	 * @brief Returns the edges objects in the given map are mapped to
-	 * @param mapping A map of objects to edges
-	 * @return The list of the edges referenced by the mapped objects
-	 */
-	public static Set<DBEdge> results2edgeSet(HashMap<EdgeMappable, MapResult> mapping) {
-		Set<DBEdge> r = new HashSet<>();
-		for (MapResult res : mapping.values()) {
-			r.add(res.edge);
-		}
-		return r;
-	}
 }
