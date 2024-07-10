@@ -147,6 +147,7 @@ public class Modes {
 	 * @param availableModes
 	 * @return The chosen mode
 	 * @todo Play with this
+	 * @todo Try to use the first mode? Or iterate about possibilities?
 	 */
 	public static Mode selectModeFrom(long availableModes) {
 		Mode selected = null;

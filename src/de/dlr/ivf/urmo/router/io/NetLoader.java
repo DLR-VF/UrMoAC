@@ -20,14 +20,12 @@ package de.dlr.ivf.urmo.router.io;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Locale;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -45,7 +43,6 @@ import org.postgresql.PGConnection;
 import org.xml.sax.SAXException;
 
 import de.dlr.ivf.urmo.router.modes.Modes;
-import de.dlr.ivf.urmo.router.output.BasicCombinedWriter;
 import de.dlr.ivf.urmo.router.output.NetErrorsWriter;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
