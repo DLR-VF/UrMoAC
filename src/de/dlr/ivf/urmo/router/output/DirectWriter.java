@@ -21,16 +21,16 @@ package de.dlr.ivf.urmo.router.output;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Vector;
 
-import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
+import org.locationtech.jts.geom.LineString;
+
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraEntry;
 import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.gtfs.GTFSStop;
 import de.dlr.ivf.urmo.router.io.Utils;
-import de.dlr.ivf.urmo.router.shapes.DBEdge;
+import de.dlr.ivf.urmo.router.shapes.GeomHelper;
 
 /**
  * @class DirectWriter
@@ -40,8 +40,6 @@ import de.dlr.ivf.urmo.router.shapes.DBEdge;
 public class DirectWriter extends BasicCombinedWriter {
 	/// @brief Counter of results added to the database / file so far
 	private int batchCount = 0;
-	/// @brief A map of edges to assigned destinations
-	HashMap<DBEdge, Vector<MapResult>> nearestToEdges;
 
 	
 	/**
@@ -53,15 +51,12 @@ public class DirectWriter extends BasicCombinedWriter {
 	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
 	 * @param epsg The EPSG to use
-	 * @param _nearestToEdges A map of edges to assigned destinations
 	 * @throws IOException When something fails
 	 */
-	public DirectWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious, 
-			int epsg, HashMap<DBEdge, Vector<MapResult>> _nearestToEdges) throws IOException {
+	public DirectWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious, int epsg) throws IOException {
 		super(format, inputParts, "direct-output", precision, dropPrevious,
 				"(fid bigint, sid bigint, edge text, line text, mode text, tt real, node text, idx integer)");
 		addGeometryColumn("geom", epsg, "LINESTRING", 2);
-		nearestToEdges = _nearestToEdges;
 	}
 	
 	
@@ -106,21 +101,44 @@ public class DirectWriter extends BasicCombinedWriter {
 				id = ((GTFSStop) current.n).mid;
 			}
 			double ttt = current.ttt;
-					
-					//current.e.getTravelTime(current.usedMode.vmax, current.tt+beginTime);
-			/*
-			DBEdge currentEdge = current.e;
-			if(currentEdge==result.origin.edge) {
-				ttt = ttt * (currentEdge.getLength() - result.origin.pos) / currentEdge.getLength();
-			} else if(currentEdge==result.origin.edge.getOppositeEdge()) {
-				ttt = ttt * result.origin.pos / currentEdge.getLength();
+			LineString geom = current.e.getGeometry();
+			if(entries.size()==1) {
+				ttt = result.tt;
+				double beg = 0;
+				double end = 0;
+				if(result.origin.edge==result.destination.edge) {
+					beg = result.origin.pos;
+					end = result.destination.pos;
+					/*
+					if(beg>end) {
+						double tmp = beg;
+						beg = end;
+						end = tmp;
+					}
+					*/
+				} else {
+					beg = result.origin.edge.getLength() - result.origin.pos;
+					end = result.destination.pos;
+					geom = current.e.getOppositeEdge().getGeometry();
+				}
+				geom = GeomHelper.getSubGeom(geom, beg, end);
+			} else if(current==entries.lastElement()) {
+				double distOff = 0;
+				if(current.wasOpposite) {
+					distOff = (result.destination.edge.getLength() - result.destination.pos);
+				} else {
+					distOff = result.destination.pos;
+				}
+				ttt = current.ttt * distOff / result.destination.edge.getLength();
+				geom = GeomHelper.getGeomUntilDistance(geom, distOff);
+			} else if(current==entries.firstElement()) {
+				//ttt = current.ttt * result.origin.pos / result.origin.edge.getLength();
+				if(result.origin.edge!=current.e) {
+					geom = GeomHelper.getGeomBehindDistance(geom, result.origin.edge.getLength() - result.origin.pos);
+				} else {
+					geom = GeomHelper.getGeomBehindDistance(geom, result.origin.pos);
+				}
 			}
-			if(currentEdge==result.destination.edge) {
-				ttt = ttt * result.destination.pos / currentEdge.getLength();
-			} else if(currentEdge==result.destination.edge.getOppositeEdge()) {
-				ttt = ttt * (currentEdge.getLength() - result.destination.pos) / currentEdge.getLength();
-			}
-			*/
 			String routeID = getLineID(current.ptConnection);
 			if (intoDB()) {
 				try {
@@ -132,7 +150,7 @@ public class DirectWriter extends BasicCombinedWriter {
 					_ps.setDouble(6, ttt);
 					_ps.setString(7, id);
 					_ps.setInt(8, index);
-					_ps.setString(9, current.e.getGeometry().toText());
+					_ps.setString(9, geom.toText());
 					_ps.addBatch();
 					++batchCount;
 					if(batchCount>100) {
@@ -147,8 +165,8 @@ public class DirectWriter extends BasicCombinedWriter {
 				_fileWriter.append(originID + ";" + destinationID + ";" 
 						+ current.e.getID() + ";" + routeID + ";"
 						+ current.usedMode.mml + ";"  
-						+ String.format(Locale.US, _FS, current.ttt) + ";" + id + ";" + index + ";"
-						+ current.e.getGeometry().toText() 
+						+ String.format(Locale.US, _FS, ttt) + ";" + id + ";" + index + ";"
+						+ geom.toText()
 						+ "\n");
 			}
 			++index;

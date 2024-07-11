@@ -176,7 +176,7 @@ public class OutputBuilder {
 			String d = options.getString("direct-output");
 			Utils.Format format = Utils.getFormat(d);
 			String[] inputParts = Utils.getParts(format, d, "direct-output");
-			DirectWriter dw = new DirectWriter(format, inputParts, precision, options.getBool("dropprevious"), epsg, nearestToEdges);
+			DirectWriter dw = new DirectWriter(format, inputParts, precision, options.getBool("dropprevious"), epsg);
 			dw.createInsertStatement(epsg);
 			if(options.getBool("comment")) {
 				dw.addComment(buildComment(options));
