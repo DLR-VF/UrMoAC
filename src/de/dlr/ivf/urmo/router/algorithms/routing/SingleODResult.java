@@ -57,16 +57,14 @@ public class SingleODResult {
 			}
 			tt = destination.edge.getTravelTime(path.first.usedMode.vmax, time) / destination.edge.getLength() * dist;
 		} else {
-			dist = path.distance;
-			tt = path.tt;
 			double distOff = 0;
 			if(!path.wasOpposite) {
 				distOff = (destination.edge.getLength() - destination.pos);
 			} else {
 				distOff = destination.pos;
 			}
-			dist -= distOff;
-			tt -= path.ttt * distOff / destination.edge.getLength();
+			dist = path.distance - distOff;
+			tt = path.tt - (path.ttt * distOff / destination.edge.getLength());
 		}
 		if(dist<0&&dist>-.1) {
 			dist = 0;
