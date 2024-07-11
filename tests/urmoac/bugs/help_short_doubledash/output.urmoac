@@ -4,9 +4,8 @@ Urban Mobility Accessibility Computer (UrMoAC) v0.6
 
 Usage:
   java -jar UrMoAC.jar --help
-  java -jar UrMoAC.jar --from file;sources.csv --to file;destinations.csv
-    --net file;network.csv --od-output file;nm_output.csv
-    --mode bike --time 0
+  java -jar UrMoAC.jar --from sources.csv --to destinations.csv --net network.csv
+    --od-output nm_output.csv --mode bike --time 0
 
  Input Options
   -c, --config                   Defines the configuration to load.
