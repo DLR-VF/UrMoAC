@@ -122,7 +122,7 @@ public class DBNet {
 			if(e2.maxDistanceTo(e)<.5) {//.getGeometry().equals(e.getGeometry())) {
 				e2.adapt(e);
 				removeEdge(e);
-				if (log!=null) log.writeEdgeReplacement(e.getID(), e2.getID());
+				if (log!=null) log.writeEdgeReplacement(e2.getID(), e.getID());
 				if(reportAllIssues||!hadDuplicateConnection) {
 					hadDuplicateConnection = true;
 					System.err.println("Warning: removed edge '" + e.getID() + "' as a duplicate of edge '" + e2.getID() + "'.");
