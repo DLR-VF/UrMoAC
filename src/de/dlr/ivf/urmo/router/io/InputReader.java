@@ -56,7 +56,7 @@ import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
 /**
  * @class InputReader
- * @brief Methods for loading sources/destinations, entrainment data, geometries and O/D-connections 
+ * @brief Methods for loading origins/destinations, entrainment data, geometries and O/D-connections 
  * @author Daniel Krajzewicz
  */
 public class InputReader {

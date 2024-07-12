@@ -84,7 +84,7 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 	 * 
 	 * Opens the connection to a PostGIS database and builds the table
 	 * @param format The used format
-	 * @param inputParts The definition of the input/output source/destination
+	 * @param inputParts The definition of the input/output origin/destination
 	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
 	 * @throws IOException When something fails

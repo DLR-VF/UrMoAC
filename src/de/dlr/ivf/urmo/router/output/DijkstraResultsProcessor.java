@@ -132,7 +132,7 @@ public class DijkstraResultsProcessor {
 		}
 		nresults.sort(sorter);
 		
-		// multiple sources and multiple destinations
+		// multiple origins and multiple destinations
 		for(SingleODResult result : nresults) {
 			for(@SuppressWarnings("rawtypes") Aggregator agg : aggs) {
 				agg.add(beginTime, result);

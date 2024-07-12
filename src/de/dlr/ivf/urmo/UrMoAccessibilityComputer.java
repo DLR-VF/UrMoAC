@@ -82,11 +82,11 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	// --------------------------------------------------------
 	/// @brief A running id for the loaded objects
 	private long runningID = 0;
-	/// @brief A mapping from an edge to allocated sources
+	/// @brief A mapping from an edge to allocated origins
 	HashMap<DBEdge, Vector<MapResult>> nearestFromEdges;
 	/// @brief A mapping from an edge to allocated destinations
 	HashMap<DBEdge, Vector<MapResult>> nearestToEdges;
-	/// @brief A point to the currently processed source edge
+	/// @brief A point to the currently processed origin edge
 	private Iterator<DBEdge> nextEdgePointer = null;
 	/// @brief A counter for seen edges for reporting purposes
 	private long seenEdges = 0;
@@ -129,7 +129,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		OptionsCont options = new OptionsCont();
 		options.setHelpHeadAndTail("Urban Mobility Accessibility Computer (UrMoAC) v0.6\n  (c) German Aerospace Center (DLR), 2016-2021\n  https://github.com/DLR-VF/UrMoAC\n\nUsage:\n"
 				+"  java -jar UrMoAC.jar --help\n"
-				+"  java -jar UrMoAC.jar --from sources.csv --to destinations.csv --net network.csv\n    --od-output nm_output.csv --mode bike --time 0\n", "");
+				+"  java -jar UrMoAC.jar --from origins.csv --to destinations.csv --net network.csv\n    --od-output nm_output.csv --mode bike --time 0\n", "");
 		
 		options.beginSection("Input Options");
 		options.add("config", 'c', new Option_String());
@@ -207,7 +207,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("requirespt", new Option_Bool());
 		options.setDescription("requirespt", "When set, only information that contains a PT part are stored.");
 		options.add("clip-to-net", new Option_Bool());
-		options.setDescription("clip-to-net", "When set, sources, destinations, and pt is clipped at the network boundaries.");
+		options.setDescription("clip-to-net", "When set, origins, destinations, and pt is clipped at the network boundaries.");
 		options.add("measure", new Option_String());
 		options.setDescription("measure", "The measure to use during the routing ['tt_mode', 'price_tt', 'interchanges_tt', 'maxinterchanges_tt'].");
 		options.add("measure-param1", new Option_Double());
@@ -256,7 +256,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("direct-output", 'd', new Option_String());
 		options.setDescription("direct-output", "Defines the direct output to generate.");
 		options.add("origins-to-road-output", new Option_String());
-		options.setDescription("origins-to-road-output", "Defines the output of the mapping between sources and the network.");
+		options.setDescription("origins-to-road-output", "Defines the output of the mapping between origins and the network.");
 		options.add("destinations-to-road-output", new Option_String());
 		options.setDescription("destinations-to-road-output", "Defines the output of the mapping between destinations and the network.");
 		options.add("write.subnets", new Option_String());

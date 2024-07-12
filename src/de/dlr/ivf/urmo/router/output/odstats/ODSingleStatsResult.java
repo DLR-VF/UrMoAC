@@ -84,12 +84,12 @@ public class ODSingleStatsResult extends AbstractSingleResult {
 
 	/**
 	 * @brief Norms the computed measures
-	 * @param numSources The number of sources
-	 * @param sourcesWeight The sum of the sources' weights
+	 * @param numOrigins The number of origins
+	 * @param originsWeight The sum of the origins' weights
 	 * @return The normed result
 	 */
 	@Override
-	public AbstractSingleResult getNormed(int numSources, double sourcesWeight) {
+	public AbstractSingleResult getNormed(int numOrigins, double originsWeight) {
 		ODSingleStatsResult srnm = new ODSingleStatsResult(srcID, destID);
 		srnm.allDistances = new Vector<Double>(allDistances);
 		srnm.allTravelTimes = new Vector<Double>(allTravelTimes);

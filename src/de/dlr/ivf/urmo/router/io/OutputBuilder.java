@@ -67,8 +67,8 @@ import de.dlr.ivf.urmo.router.shapes.Layer;
 public class OutputBuilder {
 	/** @brief Builds outputs as defined in the given options
 	 * @param options The options to use for parsing
-	 * @param fromLayer The sources
-	 * @param fromAggLayer The source aggregation data
+	 * @param fromLayer The origins
+	 * @param fromAggLayer The origin aggregation data
 	 * @param toLayer  The destinations
 	 * @param toAggLayer The destination aggregation data
 	 * @param epsg The projection
@@ -293,7 +293,7 @@ public class OutputBuilder {
 	 * @brief Brief builds the results processing aggregator
 	 * @param measuresGenerator The measures generator to use
 	 * @param shortest Whether only the shortest connection shall be computed
-	 * @param aggAllFrom Whether all sources shall be aggregated
+	 * @param aggAllFrom Whether all origins shall be aggregated
 	 * @param aggAllTo Whether all destinations shall be aggregated
 	 * @param fromLayer The origins layer
 	 * @param fromAggLayer The origins aggregation layer

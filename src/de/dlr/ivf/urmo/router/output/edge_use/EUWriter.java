@@ -77,8 +77,8 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 						_ps.setLong(2, result.destID);
 						_ps.setString(3, id);
 						_ps.setFloat(4, (float) ep.num);
-						_ps.setFloat(5, (float) ep.sourcesWeight);
-						_ps.setFloat(6, (float) (ep.num / ep.sourcesWeight));
+						_ps.setFloat(5, (float) ep.originsWeight);
+						_ps.setFloat(6, (float) (ep.num / ep.originsWeight));
 						_ps.addBatch();
 						++batchCount;
 						if(batchCount>10000) {
@@ -94,8 +94,8 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 				EdgeParam ep = result.stats.get(id);
 				_fileWriter.append(result.srcID + ";" + result.destID + ";" + id + ";" 
 						+ String.format(Locale.US, _FS, ep.num) + ";" 
-						+ String.format(Locale.US, _FS, ep.sourcesWeight) + ";" 
-						+ String.format(Locale.US, _FS, (ep.num / ep.sourcesWeight)) + "\n");
+						+ String.format(Locale.US, _FS, ep.originsWeight) + ";" 
+						+ String.format(Locale.US, _FS, (ep.num / ep.originsWeight)) + "\n");
 			}
 		}
 	}

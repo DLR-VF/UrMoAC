@@ -60,7 +60,7 @@ public abstract class AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Computes the distance and the travel time
-	 * @param dr The path between the source and the destination
+	 * @param dr The path between the origin and the destination
 	 */
 	public AbstractSingleResult(SingleODResult result) {
 		MapResult from = result.origin;
@@ -83,10 +83,10 @@ public abstract class AbstractSingleResult {
 	
 	/**
 	 * @brief Norms the computed measures
-	 * @param numSources The number of sources
-	 * @param sourcesWeight The sum of the sources' weights
+	 * @param numOrigins The number of origins
+	 * @param originsWeight The sum of the origins' weights
 	 * @return The normed result
 	 */
-	public abstract AbstractSingleResult getNormed(int numSources, double sourcesWeight);
+	public abstract AbstractSingleResult getNormed(int numOrigins, double originsWeight);
 	
 }

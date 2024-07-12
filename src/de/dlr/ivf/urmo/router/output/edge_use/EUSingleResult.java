@@ -38,8 +38,8 @@ public class EUSingleResult extends AbstractSingleResult {
 	class EdgeParam {
 		/// @brief The weight number of routes over this edge
 		public double num = 0;
-		/// @brief The sum of sources weights
-		public double sourcesWeight = 0;
+		/// @brief The sum of origin weights
+		public double originsWeight = 0;
 
 	}
 	
@@ -84,7 +84,7 @@ public class EUSingleResult extends AbstractSingleResult {
 			EdgeParam ssstats = srnm.stats.get(id);
 			EdgeParam dsstats = stats.get(id);
 			dsstats.num += ssstats.num;
-			dsstats.sourcesWeight += ssstats.sourcesWeight;
+			dsstats.originsWeight += ssstats.originsWeight;
 		}
 	}
 	
@@ -103,7 +103,7 @@ public class EUSingleResult extends AbstractSingleResult {
 			EdgeParam ssstats = stats.get(id);
 			EdgeParam dsstats = srnm.stats.get(id);
 			dsstats.num += ssstats.num;
-			dsstats.sourcesWeight += ssstats.sourcesWeight;
+			dsstats.originsWeight += ssstats.originsWeight;
 		}
 		return srnm;
 	}
@@ -113,14 +113,14 @@ public class EUSingleResult extends AbstractSingleResult {
 	 * @brief Adds the information about a single edge
 	 * @param e The edge to add the information about
 	 * @param value The (variable) value of the destination
-	 * @param sourcesWeight The weight of the source
+	 * @param originWeight The weight of the origin
 	 */
-	public synchronized void addSingle(DBEdge e, double value, double sourcesWeight) {
+	public synchronized void addSingle(DBEdge e, double value, double originWeight) {
 		if(!stats.containsKey(e.getID())) {
 			stats.put(e.getID(), new EdgeParam());
 		}
 		EdgeParam curr = stats.get(e.getID());
 		curr.num += value;
-		curr.sourcesWeight = sourcesWeight;
+		curr.originsWeight = originWeight;
 	}
 }

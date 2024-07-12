@@ -94,12 +94,12 @@ public class InterchangeSingleResult extends AbstractSingleResult {
 	
 	/**
 	 * @brief Norms the computed measures
-	 * @param numSources The number of sources
-	 * @param sourcesWeight The sum of the sources' weights
+	 * @param numOrigins The number of origins
+	 * @param originsWeight The sum of the origins' weights
 	 * @return The normed result
 	 */
 	@Override
-	public AbstractSingleResult getNormed(int numSources, double sourcesWeight) {
+	public AbstractSingleResult getNormed(int numOrigins, double originsWeight) {
 		InterchangeSingleResult srnm = new InterchangeSingleResult(srcID, destID);
 		for(String id : stats.keySet()) {
 			srnm.stats.put(id, new HashMap<String, InterchangeParam>());
@@ -121,7 +121,7 @@ public class InterchangeSingleResult extends AbstractSingleResult {
 	 * @param haltID The id of the halt
 	 * @param linesKey The name of the lines interchange ("<FROM_LINE><-><TO_LINE>")
 	 * @param number The number of performed interchanges of this type
-	 * @param tt The travel time needed to perform an interachange of this type
+	 * @param tt The travel time needed to perform an interchange of this type
 	 * @return The computed InterchangeParam
 	 */
 	public InterchangeParam addSingle(String haltID, String linesKey, int number, double tt) {

@@ -57,7 +57,7 @@ import de.dlr.ivf.urmo.router.shapes.GeomHelper;
  */
 public class NearestEdgeFinder {
 	/// @brief The list of objects to allocate in the network
-	private Vector<EdgeMappable> source;
+	private Vector<EdgeMappable> objects;
 	/// @brief Pointer to the next mappable to process
 	private Iterator<EdgeMappable> nextMappablePointer;
 	/// @brief The results set
@@ -82,7 +82,7 @@ public class NearestEdgeFinder {
 	// -----------------------------------------------------------------------
 	/** @class ComputingThread
 	 * 
-	 * A thread which polls for new sources, computes the accessibility and
+	 * A thread which polls for new origins, computes the accessibility and
 	 * writes the results before asking for the next one
 	 */
 	private static class ComputingThread implements Runnable {
@@ -233,12 +233,12 @@ public class NearestEdgeFinder {
 	// -----------------------------------------------------------------------
 	/**
 	 * @brief Constructor
-	 * @param _source The list of objects to allocate in the network
+	 * @param _objects The list of objects to allocate in the network
 	 * @param _net The network to use
 	 * @param _modes Bitset of usable transport modes
 	 */
-	public NearestEdgeFinder(Vector<EdgeMappable> _source, DBNet _net, long _modes) {
-		source = _source;
+	public NearestEdgeFinder(Vector<EdgeMappable> _objects, DBNet _net, long _modes) {
+		objects = _objects;
 		modes = _modes;
 		tree = _net.getModedSpatialIndex(modes);
 		geometryFactory = _net.getGeometryFactory();
@@ -282,7 +282,7 @@ public class NearestEdgeFinder {
 	 */
 	public HashMap<DBEdge, Vector<MapResult>> getNearestEdges(boolean addToEdge, boolean withOpposites, int numThreads) {
 		// start threads
-		nextMappablePointer = source.iterator();
+		nextMappablePointer = objects.iterator();
 		Vector<Thread> threads = new Vector<>();
 		for (int i=0; i<numThreads; ++i) {
 			Thread t = new Thread(new ComputingThread(this, tree, addToEdge, withOpposites, modes));

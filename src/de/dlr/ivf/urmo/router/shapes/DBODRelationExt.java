@@ -36,10 +36,10 @@ public class DBODRelationExt extends DBODRelation {
 	}
 	
 	
-	/// @brief The edge the source is located at
+	/// @brief The edge the origin is located at
 	public DBEdge fromEdge;
 	
-	/// @brief Information about the mapped source
+	/// @brief Information about the mapped origin
 	public MapResult fromMR;
 	
 	/// @brief The edge the destination is located at

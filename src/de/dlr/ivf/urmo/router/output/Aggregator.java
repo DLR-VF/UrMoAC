@@ -54,14 +54,14 @@ public class Aggregator<T extends AbstractSingleResult> {
 	private Vector<AbstractResultsWriter<T>> writers = new Vector<>();
 	/// @brief The measurements generator to use
 	public MeasurementGenerator<T> parent; 
-	/// @brief The layer to retrieve all source objects from
+	/// @brief The layer to retrieve all origin objects from
 	private Layer fromLayer;
 
 
 	/**
 	 * @brief Constructor
 	 * @param _parent The measurements generator to use
-	 * @param _fromLayer The layer to retrieve all source objects from
+	 * @param _fromLayer The layer to retrieve all origin objects from
 	 * @param _shortest Whether only the shortest path shall be computed (@todo: explain why it's here)
 	 */
 	public Aggregator(MeasurementGenerator<T> _parent, Layer _fromLayer, boolean _shortest) {
@@ -211,26 +211,26 @@ public class Aggregator<T extends AbstractSingleResult> {
 	
 	/** @brief Closes the processing of an origin
 	 * 
-	 * @param srcID The origin ID
+	 * @param originID The origin ID
 	 * @throws IOException When something fails
 	 */
-	public void endOrigin(long srcID) throws IOException {
+	public void endOrigin(long originID) throws IOException {
 		if(origin2aggMap!=null||sumOrigins) {
-			// sources are aggregated - cannot flush
+			// origins are aggregated - cannot flush
 			return;
 		}
 		if (dest2aggMap==null&&!sumDestinations) {
 			// no destination aggregation - nothing to do
 			return;
 		}
-		// flush aggregation for the source
-		HashMap<Long, T> dests = measurements.get(srcID);
+		// flush aggregation for the origin
+		HashMap<Long, T> dests = measurements.get(originID);
 		for (Long destID : dests.keySet()) {
 			@SuppressWarnings("unchecked")
 			T normed = (T) dests.get(destID).getNormed(1, 1);
 			write(normed);
 		}
-		measurements.remove(srcID);
+		measurements.remove(originID);
 	}
 	
 
@@ -275,10 +275,10 @@ public class Aggregator<T extends AbstractSingleResult> {
 		}
 		// otherwise
 		if(origin2aggMap!=null || sumOrigins) {
-			Vector<EdgeMappable> sources = fromLayer.getObjects();
+			Vector<EdgeMappable> origins = fromLayer.getObjects();
 			HashMap<Long, Double> weights = new HashMap<>();
 			HashMap<Long, Integer> nums = new HashMap<>();
-			for (EdgeMappable o : sources) {
+			for (EdgeMappable o : origins) {
 				long aSrc = getMappedSrcID(o.getOuterID());
 				if(!weights.containsKey(aSrc)) {
 					weights.put(aSrc, 0.);

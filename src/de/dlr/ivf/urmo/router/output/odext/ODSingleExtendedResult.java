@@ -112,17 +112,17 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 
 	/**
 	 * @brief Norms the computed measures
-	 * @param numSources The number of sources
-	 * @param sourcesWeight The sum of the sources' weights
+	 * @param numOrigins The number of origins
+	 * @param originsWeight The sum of the origins' weights
 	 * @return The normed result
 	 */
 	@Override
-	public AbstractSingleResult getNormed(int numSources, double sourcesWeight) {
+	public AbstractSingleResult getNormed(int numOrigins, double originsWeight) {
 		ODSingleExtendedResult srnm = new ODSingleExtendedResult(srcID, destID);
 		srnm.weightedDistance = connectionsWeightSum!=0 ? weightedDistance / connectionsWeightSum : 0;
 		srnm.weightedTravelTime = connectionsWeightSum!=0 ? weightedTravelTime / connectionsWeightSum : 0;
-		srnm.connectionsWeightSum = sourcesWeight!=0 ? connectionsWeightSum / sourcesWeight : 0;
-		srnm.weightedValue = sourcesWeight!=0 ? weightedValue / sourcesWeight : 0;
+		srnm.connectionsWeightSum = originsWeight!=0 ? connectionsWeightSum / originsWeight : 0;
+		srnm.weightedValue = originsWeight!=0 ? weightedValue / originsWeight : 0;
 		srnm.weightedKCal = connectionsWeightSum!=0 ? weightedKCal / connectionsWeightSum : 0;
 		srnm.weightedPrice = connectionsWeightSum!=0 ? weightedPrice / connectionsWeightSum : 0;
 		srnm.weightedCO2 = connectionsWeightSum!=0 ? weightedCO2 / connectionsWeightSum : 0;

@@ -14,7 +14,7 @@ import de.dlr.ivf.urmo.router.shapes.DBODRelationExt;
 
 /** @class ComputingThread
  * 
- * A thread which polls for new sources, computes the accessibility and
+ * A thread which polls for new origins, computes the accessibility and
  * writes the results before asking for the next one
  * @author Daniel Krajzewicz
  * @todo refactor - od-connections and usual use cases should use own according computation classes
