@@ -302,7 +302,7 @@ public class BoundDijkstra {
 		}
 		// add the way to this edge if it's the first or the best one
 		boolean isUpdate = edgeMap.containsKey(oe);
-		if(!isUpdate || measure.compare(edgeMap.get(oe), newValue)>0) { // !!! on an edge base? 
+		if(!isUpdate || measure.compare(edgeMap.get(oe), newValue)>=0) { // !!! on an edge base? 
 			edgeMap.put(oe, newValue);
 			Vector<MapResult> toObjects = nearestToEdges.get(oe);
 			for(MapResult mr : toObjects) {
