@@ -47,11 +47,11 @@ public class ODSingleStatsResult extends AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Generates an empty entry.
-	 * @param srcID The id of the origin the represented trip starts at
+	 * @param originID The id of the origin the represented trip starts at
 	 * @param destID The id of the destination the represented trip ends at
 	 */
-	public ODSingleStatsResult(long srcID, long destID) {
-		super(srcID, destID);
+	public ODSingleStatsResult(long originID, long destID) {
+		super(originID, destID);
 	}
 	
 	
@@ -90,7 +90,7 @@ public class ODSingleStatsResult extends AbstractSingleResult {
 	 */
 	@Override
 	public AbstractSingleResult getNormed(int numOrigins, double originsWeight) {
-		ODSingleStatsResult srnm = new ODSingleStatsResult(srcID, destID);
+		ODSingleStatsResult srnm = new ODSingleStatsResult(originID, destID);
 		srnm.allDistances = new Vector<Double>(allDistances);
 		srnm.allTravelTimes = new Vector<Double>(allTravelTimes);
 		srnm.allValues = new Vector<Double>(allValues);

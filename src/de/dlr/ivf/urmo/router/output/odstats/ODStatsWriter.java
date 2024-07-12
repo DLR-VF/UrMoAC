@@ -127,7 +127,7 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 		Stats CO2D = new Stats(result.allCO2s);
 		if (intoDB()) {
 			try {
-				_ps.setLong(1, result.srcID);
+				_ps.setLong(1, result.originID);
 				_ps.setLong(2, result.destID);
 				_ps.setLong(3, result.allCO2s.size());
 				insertIntoPS(_ps, distD, 4);
@@ -146,7 +146,7 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 				throw new IOException(ex);
 			}
 		} else {
-			_fileWriter.append(result.srcID + ";" + result.destID + ";" + result.allCO2s.size()
+			_fileWriter.append(result.originID + ";" + result.destID + ";" + result.allCO2s.size()
 					+ ";" + String.format(Locale.US, _FS, distD.avg) + ";" + String.format(Locale.US, _FS, ttD.avg) + ";" + String.format(Locale.US, _FS, valuesD.avg) + ";" + String.format(Locale.US, _FS, kcalsD.avg) + ";" + String.format(Locale.US, _FS, pricesD.avg) + ";" + String.format(Locale.US, _FS, CO2D.avg)
 					+ ";" + String.format(Locale.US, _FS, distD.med) + ";" + String.format(Locale.US, _FS, ttD.med) + ";" + String.format(Locale.US, _FS, valuesD.med) + ";" + String.format(Locale.US, _FS, kcalsD.med) + ";" + String.format(Locale.US, _FS, pricesD.med) + ";" + String.format(Locale.US, _FS, CO2D.med)
 					+ ";" + String.format(Locale.US, _FS, distD.min) + ";" + String.format(Locale.US, _FS, ttD.min) + ";" + String.format(Locale.US, _FS, valuesD.min) + ";" + String.format(Locale.US, _FS, kcalsD.min) + ";" + String.format(Locale.US, _FS, pricesD.min) + ";" + String.format(Locale.US, _FS, CO2D.min)

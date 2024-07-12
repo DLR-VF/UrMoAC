@@ -38,10 +38,10 @@ public abstract class MeasurementGenerator<T extends AbstractSingleResult> {
 	
 	/**
 	 * @brief Builds an empty entry of type T
-	 * @param srcID The id of the origin the path started at
+	 * @param originID The id of the origin the path started at
 	 * @param destID The id of the destination accessed by this path
 	 * @return An empty entry type T
 	 */
-	public abstract T buildEmptyEntry(long srcID, long destID);
+	public abstract T buildEmptyEntry(long originID, long destID);
 
 }

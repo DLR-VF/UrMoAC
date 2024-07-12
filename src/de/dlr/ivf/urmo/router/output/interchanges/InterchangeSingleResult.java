@@ -49,11 +49,11 @@ public class InterchangeSingleResult extends AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Generates an empty entry.
-	 * @param srcID The id of the origin the represented trip starts at
+	 * @param originID The id of the origin the represented trip starts at
 	 * @param destID The id of the destination the represented trip ends at
 	 */
-	public InterchangeSingleResult(long srcID, long destID) {
-		super(srcID, destID);
+	public InterchangeSingleResult(long originID, long destID) {
+		super(originID, destID);
 	}
 	
 	
@@ -100,7 +100,7 @@ public class InterchangeSingleResult extends AbstractSingleResult {
 	 */
 	@Override
 	public AbstractSingleResult getNormed(int numOrigins, double originsWeight) {
-		InterchangeSingleResult srnm = new InterchangeSingleResult(srcID, destID);
+		InterchangeSingleResult srnm = new InterchangeSingleResult(originID, destID);
 		for(String id : stats.keySet()) {
 			srnm.stats.put(id, new HashMap<String, InterchangeParam>());
 			Map<String, InterchangeParam> ssstats = stats.get(id);

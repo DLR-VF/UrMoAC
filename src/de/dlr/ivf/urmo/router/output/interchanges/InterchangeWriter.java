@@ -76,7 +76,7 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 					Map<String, InterchangeParam> ssstats = result.stats.get(id);
 					for(String id2 : ssstats.keySet()) {
 						String[] lineIDs = InterchangeSingleResult.splitLinesKey(id2);
-							_ps.setLong(1, result.srcID);
+							_ps.setLong(1, result.originID);
 							_ps.setLong(2, result.destID);
 							_ps.setString(3, id);
 							_ps.setString(4, lineIDs[0]);
@@ -99,7 +99,7 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 				Map<String, InterchangeParam> ssstats = result.stats.get(id);
 				for(String id2 : ssstats.keySet()) {
 					String[] lineIDs = InterchangeSingleResult.splitLinesKey(id2);
-					_fileWriter.append(result.srcID + ";" + result.destID + ";" + id + ";" + 
+					_fileWriter.append(result.originID + ";" + result.destID + ";" + id + ";" + 
 							lineIDs[0] + ";" + lineIDs[1] + ";" 
 							+ ssstats.get(id2).number + ";" 
 							+ String.format(Locale.US, _FS, ssstats.get(id2).weightedTT) + "\n");

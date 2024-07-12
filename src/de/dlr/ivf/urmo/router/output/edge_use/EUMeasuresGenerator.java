@@ -50,12 +50,12 @@ public class EUMeasuresGenerator extends MeasurementGenerator<EUSingleResult> {
 	
 	/**
 	 * @brief Builds an empty entry of type EUSingleResult
-	 * @param srcID The id of the origin the path started at
+	 * @param originID The id of the origin the path started at
 	 * @param destID The id of the destination accessed by this path
 	 * @return An empty entry type EUSingleResult
 	 */
-	public EUSingleResult buildEmptyEntry(long srcID, long destID) {
-		return new EUSingleResult(srcID, destID);
+	public EUSingleResult buildEmptyEntry(long originID, long destID) {
+		return new EUSingleResult(originID, destID);
 	}
 
 	

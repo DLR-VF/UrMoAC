@@ -131,20 +131,20 @@ public class Aggregator<T extends AbstractSingleResult> {
 		}
 		HashMap<Long, T> destMap = new HashMap<>();
 		for (EdgeMappable d : dest.getObjects()) {
-			long destID = getMappedDestID(d.getOuterID());
+			long destID = getMappedDestinationID(d.getOuterID());
 			if(!destMap.containsKey(destID)) {
 				destMap.put(destID, parent.buildEmptyEntry(-1, -1));
 			}
 		}
 		for (EdgeMappable o : orig.getObjects()) {
-			long srcID = getMappedSrcID(o.getOuterID());
+			long originID = getMappedOriginID(o.getOuterID());
 			// add
-			if (!measurements.containsKey(srcID)) {
+			if (!measurements.containsKey(originID)) {
 				HashMap<Long, T> nDestMap = new HashMap<>();
 				for(Long l : destMap.keySet()) {
-					nDestMap.put(l, parent.buildEmptyEntry(srcID, l));
+					nDestMap.put(l, parent.buildEmptyEntry(originID, l));
 				}
-				measurements.put(srcID, nDestMap);
+				measurements.put(originID, nDestMap);
 			}
 		}
 	}
@@ -201,10 +201,10 @@ public class Aggregator<T extends AbstractSingleResult> {
 			return;
 		}
 		// aggregation;
-		entry.srcID = getMappedSrcID(entry.srcID);
-		entry.destID = getMappedDestID(entry.destID);
+		entry.originID = getMappedOriginID(entry.originID);
+		entry.destID = getMappedDestinationID(entry.destID);
 		// TODO: check if we could write directly if no origin aggregation and destination=="all" add
-		HashMap<Long, T> destMap = measurements.get(entry.srcID);
+		HashMap<Long, T> destMap = measurements.get(entry.originID);
 		destMap.get(entry.destID).addCounting(entry);
 	}
 	
@@ -264,8 +264,8 @@ public class Aggregator<T extends AbstractSingleResult> {
 	public void finish() throws IOException {
 		// check if only destinations are aggregated
 		if(origin2aggMap==null && !sumOrigins) {
-			for (Long srcID : measurements.keySet()) {
-				HashMap<Long, T> dests = measurements.get(srcID);
+			for (Long originID : measurements.keySet()) {
+				HashMap<Long, T> dests = measurements.get(originID);
 				for (Long destID : dests.keySet()) {
 					@SuppressWarnings("unchecked")
 					T normed = (T) dests.get(destID).getNormed(1, 1);
@@ -279,20 +279,20 @@ public class Aggregator<T extends AbstractSingleResult> {
 			HashMap<Long, Double> weights = new HashMap<>();
 			HashMap<Long, Integer> nums = new HashMap<>();
 			for (EdgeMappable o : origins) {
-				long aSrc = getMappedSrcID(o.getOuterID());
-				if(!weights.containsKey(aSrc)) {
-					weights.put(aSrc, 0.);
-					nums.put(aSrc, 0);
+				long aOrigin= getMappedOriginID(o.getOuterID());
+				if(!weights.containsKey(aOrigin)) {
+					weights.put(aOrigin, 0.);
+					nums.put(aOrigin, 0);
 				}
-				weights.put(aSrc, weights.get(aSrc) + ((LayerObject) o).getAttachedValue());
-				nums.put(aSrc, nums.get(aSrc) + 1);
+				weights.put(aOrigin, weights.get(aOrigin) + ((LayerObject) o).getAttachedValue());
+				nums.put(aOrigin, nums.get(aOrigin) + 1);
 			}
-			for (Long srcID : measurements.keySet()) {
+			for (Long originID : measurements.keySet()) {
 				// build normed results
-				HashMap<Long, T> dests = measurements.get(srcID);
+				HashMap<Long, T> dests = measurements.get(originID);
 				for (Long destID : dests.keySet()) {
 					@SuppressWarnings("unchecked")
-					T normed = (T) dests.get(destID).getNormed(nums.get(srcID), weights.get(srcID));
+					T normed = (T) dests.get(destID).getNormed(nums.get(originID), weights.get(originID));
 					write(normed);
 				}
 			}
@@ -306,29 +306,29 @@ public class Aggregator<T extends AbstractSingleResult> {
 
 	/**
 	 * @brief Returns the ID of the aggregation area the given origin belongs to
-	 * @param srcID The id of the origin
+	 * @param originID The id of the origin
 	 * @return The post-aggregation id
 	 */
-	private long getMappedSrcID(long srcID) {
+	private long getMappedOriginID(long originID) {
 		if (sumOrigins) {
 			return -1;
 		} else if (origin2aggMap != null) {
-			if(origin2aggMap.containsKey(srcID)) {
-				return origin2aggMap.get(srcID);
+			if(origin2aggMap.containsKey(originID)) {
+				return origin2aggMap.get(originID);
 			} else {
 				return -1;
 			}
 		}
-		return srcID;
+		return originID;
 	}
 
 
 	/**
 	 * @brief Returns the ID of the aggregation area the given destination belongs to
-	 * @param srcID The id of the destination
+	 * @param destID The id of the destination
 	 * @return The post-aggregation id
 	 */
-	private long getMappedDestID(long destID) {
+	private long getMappedDestinationID(long destID) {
 		if (sumDestinations) {
 			return -1;
 		} else if (dest2aggMap != null) {

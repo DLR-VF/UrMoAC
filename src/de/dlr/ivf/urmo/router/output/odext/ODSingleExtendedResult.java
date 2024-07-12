@@ -66,11 +66,11 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Generates an empty entry.
-	 * @param srcID The id of the origin the represented trip starts at
+	 * @param originID The id of the origin the represented trip starts at
 	 * @param destID The id of the destination the represented trip ends at
 	 */
-	public ODSingleExtendedResult(long srcID, long destID) {
-		super(srcID, destID);
+	public ODSingleExtendedResult(long originID, long destID) {
+		super(originID, destID);
 	}
 	
 	
@@ -118,7 +118,7 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 	 */
 	@Override
 	public AbstractSingleResult getNormed(int numOrigins, double originsWeight) {
-		ODSingleExtendedResult srnm = new ODSingleExtendedResult(srcID, destID);
+		ODSingleExtendedResult srnm = new ODSingleExtendedResult(originID, destID);
 		srnm.weightedDistance = connectionsWeightSum!=0 ? weightedDistance / connectionsWeightSum : 0;
 		srnm.weightedTravelTime = connectionsWeightSum!=0 ? weightedTravelTime / connectionsWeightSum : 0;
 		srnm.connectionsWeightSum = originsWeight!=0 ? connectionsWeightSum / originsWeight : 0;

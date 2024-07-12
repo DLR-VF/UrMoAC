@@ -30,7 +30,7 @@ import de.dlr.ivf.urmo.router.shapes.LayerObject;
  */
 public abstract class AbstractSingleResult {
 	/// @brief The id of the origin the represented trip starts at
-	public long srcID;
+	public long originID;
 	/// @brief The id of the destination the represented trip ends at
 	public long destID;
 	/// @brief The overall distance of this trip
@@ -47,11 +47,11 @@ public abstract class AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Generates an empty entry.
-	 * @param _srcID The id of the origin the represented trip starts at
+	 * @param _originID The id of the origin the represented trip starts at
 	 * @param _destID The id of the destination the represented trip ends at
 	 */
-	public AbstractSingleResult(long _srcID, long _destID) {
-		srcID = _srcID;
+	public AbstractSingleResult(long _originID, long _destID) {
+		originID = _originID;
 		destID = _destID;
 	}
 	
@@ -65,7 +65,7 @@ public abstract class AbstractSingleResult {
 	public AbstractSingleResult(SingleODResult result) {
 		MapResult from = result.origin;
 		MapResult to = result.destination;
-		srcID = ((LayerObject) from.em).getOuterID();
+		originID = ((LayerObject) from.em).getOuterID();
 		destID = ((LayerObject) to.em).getOuterID();
 		dist = result.dist;
 		tt = result.tt;

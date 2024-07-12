@@ -46,12 +46,12 @@ public class ODMeasuresGenerator extends MeasurementGenerator<ODSingleResult> {
 	
 	/**
 	 * @brief Builds an empty entry of type ODSingleResult
-	 * @param srcID The id of the origin the path started at
+	 * @param originID The id of the origin the path started at
 	 * @param destID The id of the destination accessed by this path
 	 * @return An empty entry type ODSingleResult
 	 */
-	public ODSingleResult buildEmptyEntry(long srcID, long destID) {
-		return new ODSingleResult(srcID, destID);
+	public ODSingleResult buildEmptyEntry(long originID, long destID) {
+		return new ODSingleResult(originID, destID);
 	}
 
 	

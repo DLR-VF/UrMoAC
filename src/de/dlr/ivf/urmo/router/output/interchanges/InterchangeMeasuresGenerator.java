@@ -98,12 +98,12 @@ public class InterchangeMeasuresGenerator extends MeasurementGenerator<Interchan
 	
 	/**
 	 * @brief Builds an empty entry of type InterchangeSingleResult
-	 * @param srcID The id of the origin the path started at
+	 * @param originID The id of the origin the path started at
 	 * @param destID The id of the destination accessed by this path
 	 * @return An empty entry type InterchangeSingleResult
 	 */
-	public InterchangeSingleResult buildEmptyEntry(long srcID, long destID) {
-		return new InterchangeSingleResult(srcID, destID);
+	public InterchangeSingleResult buildEmptyEntry(long originID, long destID) {
+		return new InterchangeSingleResult(originID, destID);
 	}
 
 	

@@ -68,11 +68,11 @@ public class PTODSingleResult extends AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Generates an empty entry.
-	 * @param srcID The id of the origin the represented trip starts at
+	 * @param originID The id of the origin the represented trip starts at
 	 * @param destID The id of the destination the represented trip ends at
 	 */
-	public PTODSingleResult(long srcID, long destID) {
-		super(srcID, destID);
+	public PTODSingleResult(long originID, long destID) {
+		super(originID, destID);
 	}
 	
 	
@@ -120,7 +120,7 @@ public class PTODSingleResult extends AbstractSingleResult {
 	 */
 	@Override
 	public AbstractSingleResult getNormed(int numOrigins, double originsWeight) {
-		PTODSingleResult srnm = new PTODSingleResult(srcID, destID);
+		PTODSingleResult srnm = new PTODSingleResult(originID, destID);
 		srnm.weightedDistance = connectionsWeightSum!=0 ? weightedDistance / connectionsWeightSum : 0;
 		srnm.weightedTravelTime = connectionsWeightSum!=0 ? weightedTravelTime / connectionsWeightSum : 0;
 		srnm.weightedAccessDistance = connectionsWeightSum!=0 ? weightedAccessDistance / connectionsWeightSum : 0;

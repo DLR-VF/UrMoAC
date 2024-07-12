@@ -48,7 +48,7 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 	 */
 	public EUWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious) throws IOException {
 		super(format, inputParts, "edges-output", precision, dropPrevious, 
-				"(fid bigint, sid bigint, eid text, num real, srcweight real, normed real)");
+				"(fid bigint, sid bigint, eid text, num real, origins_weight real, normed real)");
 	}
 
 
@@ -73,7 +73,7 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 			try {
 				for(String id : result.stats.keySet()) {
 					EdgeParam ep = result.stats.get(id);
-						_ps.setLong(1, result.srcID);
+						_ps.setLong(1, result.originID);
 						_ps.setLong(2, result.destID);
 						_ps.setString(3, id);
 						_ps.setFloat(4, (float) ep.num);
@@ -92,7 +92,7 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 		} else {
 			for(String id : result.stats.keySet()) {
 				EdgeParam ep = result.stats.get(id);
-				_fileWriter.append(result.srcID + ";" + result.destID + ";" + id + ";" 
+				_fileWriter.append(result.originID + ";" + result.destID + ";" + id + ";" 
 						+ String.format(Locale.US, _FS, ep.num) + ";" 
 						+ String.format(Locale.US, _FS, ep.originsWeight) + ";" 
 						+ String.format(Locale.US, _FS, (ep.num / ep.originsWeight)) + "\n");

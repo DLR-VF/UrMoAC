@@ -73,7 +73,7 @@ public class PTODWriter extends AbstractResultsWriter<PTODSingleResult> {
 	public void writeResult(PTODSingleResult result) throws IOException {
 		if (intoDB()) {
 			try {
-				_ps.setLong(1, result.srcID);
+				_ps.setLong(1, result.originID);
 				_ps.setLong(2, result.destID);
 				_ps.setFloat(3, (float) result.weightedDistance);
 				_ps.setFloat(4, (float) result.weightedTravelTime);
@@ -100,7 +100,7 @@ public class PTODWriter extends AbstractResultsWriter<PTODSingleResult> {
 				throw new IOException(ex);
 			}
 		} else {
-			_fileWriter.append(result.srcID + ";" + result.destID + ";" 
+			_fileWriter.append(result.originID + ";" + result.destID + ";" 
 					+ String.format(Locale.US, _FS, result.weightedDistance) + ";" 
 					+ String.format(Locale.US, _FS, result.weightedTravelTime) + ";"
 					+ String.format(Locale.US, _FS, result.weightedAccessDistance) + ";" 

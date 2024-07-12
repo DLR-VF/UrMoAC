@@ -168,12 +168,12 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 	
 	/**
 	 * @brief Builds an empty entry of type ODSingleStatsResult
-	 * @param srcID The id of the origin the path started at
+	 * @param originID The id of the origin the path started at
 	 * @param destID The id of the destination accessed by this path
 	 * @return An empty entry type ODSingleStatsResult
 	 */
-	public PTODSingleResult buildEmptyEntry(long srcID, long destID) {
-		return new PTODSingleResult(srcID, destID);
+	public PTODSingleResult buildEmptyEntry(long originID, long destID) {
+		return new PTODSingleResult(originID, destID);
 	}
 
 	

@@ -51,11 +51,11 @@ public class EUSingleResult extends AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Generates an empty entry.
-	 * @param srcID The id of the origin the represented trip starts at
+	 * @param originID The id of the origin the represented trip starts at
 	 * @param destID The id of the destination the represented trip ends at
 	 */
-	public EUSingleResult(long srcID, long destID) {
-		super(srcID, destID);
+	public EUSingleResult(long originID, long destID) {
+		super(originID, destID);
 	}
 	
 	
@@ -97,7 +97,7 @@ public class EUSingleResult extends AbstractSingleResult {
 	 */
 	@Override
 	public synchronized AbstractSingleResult getNormed(int numSources, double sourcesWeight) {
-		EUSingleResult srnm = new EUSingleResult(srcID, destID);
+		EUSingleResult srnm = new EUSingleResult(originID, destID);
 		for(String id : stats.keySet()) {
 			srnm.stats.put(id, new EdgeParam());
 			EdgeParam ssstats = stats.get(id);
