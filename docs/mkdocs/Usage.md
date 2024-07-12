@@ -8,8 +8,8 @@ Below, you may find a brief explanation about how to use UrMoAC.
 * The tool reads data from **files** or a [PostGIS](https://postgis.net/)-enabled SQL-database. We usually use [PostgreSQL](https://www.postgresql.org/) with [PostGIS](https://postgis.net/) extensions.
 * The tool requires at least the following data when started: 
 
-    1. a list of (at least one) origins, see [Input Data Formats/Sources and Destinations](./InputDataFormats.md#origins-and-destinations);
-    2. a list of (at least one) destinations, see [Input Data Formats/Sources and Destinations](./InputDataFormats.md#origins-and-destinations);
+    1. a list of (at least one) origins, see [Input Data Formats/Origins and Destinations](./InputDataFormats.md#origins-and-destinations);
+    2. a list of (at least one) destinations, see [Input Data Formats/Origins and Destinations](./InputDataFormats.md#origins-and-destinations);
     3. a road network, see [Input Data Formats/Road Networks](./InputDataFormats.md#road-network);
     4. the mode of transport to use, defined on the command line;
     5. the time of the day for which the accessibility measures shall be computed, defined on the command line;

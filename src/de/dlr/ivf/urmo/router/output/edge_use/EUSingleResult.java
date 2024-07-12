@@ -91,12 +91,12 @@ public class EUSingleResult extends AbstractSingleResult {
 	
 	/**
 	 * @brief Norms the computed measures
-	 * @param numSources The number of sources
-	 * @param sourcesWeight The sum of the sources' weights
+	 * @param numOrigins The number of sources
+	 * @param originsWeight The sum of the sources' weights
 	 * @return The normed result
 	 */
 	@Override
-	public synchronized AbstractSingleResult getNormed(int numSources, double sourcesWeight) {
+	public synchronized AbstractSingleResult getNormed(int numOrigins, double originsWeight) {
 		EUSingleResult srnm = new EUSingleResult(originID, destID);
 		for(String id : stats.keySet()) {
 			srnm.stats.put(id, new EdgeParam());
