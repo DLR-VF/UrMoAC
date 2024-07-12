@@ -1,5 +1,2 @@
-Error: The 'from' parameter is missing.
-Error: The 'to' parameter is missing.
-Error: The 'net' parameter is missing.
-Error: The 'mode' parameter is missing.
-Error: The 'time' parameter is missing.
+Error: no options given.
+

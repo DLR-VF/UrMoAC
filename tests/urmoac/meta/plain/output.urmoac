@@ -1,0 +1,125 @@
+Urban Mobility Accessibility Computer (UrMoAC) v0.6
+  (c) German Aerospace Center (DLR), 2016-2021
+  https://github.com/DLR-VF/UrMoAC
+
+Usage:
+  java -jar UrMoAC.jar --help
+  java -jar UrMoAC.jar --from origins.csv --to destinations.csv --net network.csv
+    --od-output nm_output.csv --mode bike --time 0
+
+ Input Options
+  -c, --config                   Defines the configuration to load.
+  -f, --from                     Defines the data source of origins.
+  -t, --to                       Defines the data source of destinations.
+  -n, --net                      Defines the road network to load.
+  -m, --mode                     The mode to use ['car', 'foot', 'bike'].
+  --from-agg                     Defines the data source of origin aggregation
+                                   areas.
+  --to-agg                       Defines the data source of destination
+                                   aggregation areas.
+  -p, --pt                       Defines the GTFS-based public transport
+                                   representation.
+  --traveltimes                  Defines the data source of traveltimes.
+  --epsg                         The EPSG projection to use.
+  --time                         The time the trips start at in seconds.
+  --od-connections               The OD connections to compute.
+
+ Input Adaptation
+  -F, --from.filter              Defines a filter for origins to load.
+  --from.id                      Defines the column name of the origins' ids.
+  --from.geom                    Defines the column name of the origins'
+                                   geometries.
+  -T, --to.filter                Defines a filter for destinations to load.
+  --to.id                        Defines the column name of the destinations'
+                                   ids.
+  --to.geom                      Defines the column name of the destinations'
+                                   geometries.
+  --from-agg.filter              Defines a filter for origin aggregation areas
+                                   to load.
+  --from-agg.id                  Defines the column name of the origins
+                                   aggregation areas' ids.
+  --from-agg.geom                Defines the column name of the origins
+                                   aggregation areas' geometries.
+  --to-agg.filter                Defines a filter for destination aggregation
+                                   areas to load.
+  --to-agg.id                    Defines the column name of the destination
+                                   aggregation areas' ids.
+  --to-agg.geom                  Defines the column name of the destination
+                                   aggregation areas' geometries.
+  --net.vmax                     Defines the column name of networks's vmax
+                                   attribute.
+  --keep-subnets                 When set, unconnected network parts are not
+                                   removed.
+
+ Weighting Options
+  -W, --weight                   An optional weighting attribute for the
+                                   origins.
+  -V, --variable                 An optional destinations' variable to collect.
+
+ Routing Options
+  --max-number                   The maximum number of destinations to visit.
+  --max-distance                 The maximum distance to check.
+  --max-tt                       The maximum travel time to check.
+  --max-variable-sum             The maximum sum of variable's values to
+                                   collect.
+  --shortest                     Searches only one destination per origin.
+  --requirespt                   When set, only information that contains a PT
+                                   part are stored.
+  --clip-to-net                  When set, origins, destinations, and pt is
+                                   clipped at the network boundaries.
+  --measure                      The measure to use during the routing
+                                   ['tt_mode', 'price_tt', 'interchanges_tt',
+                                   'maxinterchanges_tt'].
+  --measure-param1               First parameter of the chosen weight function.
+  --measure-param2               Second parameter of the chosen weight function.
+
+ Public Transport Options
+  --pt-boundary                  Defines the data source of the boundary for the
+                                   PT offer.
+  --date                         The date for which the accessibilities shall be
+                                   computed.
+  -E, --entrainment              Data source for entrainment description.
+  --pt-restriction               Restrictions to usable GTFS carriers.
+
+ Custom Mode Options
+  --custom.vmax                  Maximum velocity of the custom mode.
+  --custom.kkc-per-hour          kkc used per hour when using the custom mode.
+  --custom.co2-per-km            CO2 emitted per kilometer when using the custom
+                                   mode.
+  --custom.price-per-km          Price for using the custom mode per kilometre.
+  --custom.allowed               The type of roads the custom mode can use
+                                   (combination of 'foot', 'bike', 'car' divided
+                                   by ';').
+
+ Output Options
+  -o, --od-output                Defines the simple o/d-output to generate.
+  --ext-od-output                Defines the extended o/d-output to generate.
+  --stat-od-output               Defines the o/d statistics output to generate.
+  -i, --interchanges-output      Defines the interchanges output to generate.
+  -e, --edges-output             Defines the edges output to generate.
+  --pt-output                    Defines the public transport output to
+                                   generate.
+  -d, --direct-output            Defines the direct output to generate.
+  --origins-to-road-output       Defines the output of the mapping between
+                                   origins and the network.
+  --destinations-to-road-output  Defines the output of the mapping between
+                                   destinations and the network.
+  --write.subnets                Defines the output for subnets.
+  --write.net-errors             Defines the output for network errors and
+                                   warnings.
+  --dropprevious                 When set, previous output with the same name is
+                                   replaced.
+  --precision                    Defines the number of digits after the decimal
+                                   point.
+  --comment                      Adds a comment with the used options into
+                                   generated output dbs.
+
+ Process Options
+  --threads                      The number of threads to use.
+  -v, --verbose                  Prints what is being done.
+  --subnets-summary              Prints a summary on found subnets.
+  --save-config                  Saves the set options as a configuration file.
+  --save-template                Saves a configuration template to add options
+                                   to.
+  -?, --help                     Prints the help screen.
+

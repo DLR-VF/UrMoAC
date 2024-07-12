@@ -284,6 +284,13 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("help", '?', new Option_Bool());
 		options.setDescription("help", "Prints the help screen.");
 
+		// 
+		if (args.length==0) {
+			System.err.println("Error: no options given.");
+			System.err.println("");
+			OptionsIO.printHelp(System.out, options, 80, 2, 2, 1, 1);
+			return null;
+		}
 		// parse options
 		OptionsTypedFileIO optionsIO = new OptionsFileIO_XML(); 
 		try {
