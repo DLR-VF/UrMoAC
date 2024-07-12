@@ -29,13 +29,9 @@ nav:
         - Tutorial List: Tutorials.md
         - Computing the accessibility to the next public transport halt: TutorialNextPTHalt.md
         - Using QGIS to visualise UrMoAC results: TutorialQGISVisualisation.md
-#    - Subtopics:
-#        - Subtopics List: Methods.md
-#        - Projection: Subtopic_Projection.md
-#        - Mapping To Net: Subtopic_Mapping.md
-#        - Networks: Subtopic_Networks.md
-#        - OpenStreetMap: Subtopic_OSM.md
-#        - GTFS: Subtopic_GTFS.md
+    - Subtopics:
+        - Subtopics List: Subtopics.md
+        - Mapping To Net: Subtopic_Mapping.md
     - FAQ: FAQ.md
     - ChangeLog: ChangeLog.md
     - Links: Links.md
