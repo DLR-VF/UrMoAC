@@ -70,7 +70,7 @@ public abstract class AbstractSingleResult {
 		dist = result.dist;
 		tt = result.tt;
 		val = ((LayerObject) from.em).getAttachedValue();
-		toEdgeEntry = result.path;//.getPath(to);//.getEdgeInfo(to.edge);
+		toEdgeEntry = result.path;
 	}
 	
 	

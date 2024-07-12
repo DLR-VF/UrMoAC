@@ -60,6 +60,10 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 	public double weightedInterchangeTime = 0;
 	/// @brief The used lines
 	public Set<String> lines = new HashSet<>();
+	/// @brief The weighted beeline distance
+	public double weightedBeelineDistance = 0;
+	/// @brief The weighted manhattan distance
+	public double weightedManhattenDistance = 0;
 	
 	
 	/**
@@ -106,6 +110,8 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 		weightedInitialWaitingTime += srnm.weightedInitialWaitingTime;
 		weightedPTTravelTime += srnm.weightedPTTravelTime;
 		weightedInterchangeTime += srnm.weightedInterchangeTime;
+		weightedBeelineDistance += srnm.weightedBeelineDistance;
+		weightedManhattenDistance += srnm.weightedManhattenDistance;
 		lines.addAll(srnm.lines);
 	}
 
@@ -133,6 +139,8 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 		srnm.weightedInitialWaitingTime = connectionsWeightSum!=0 ? weightedInitialWaitingTime / connectionsWeightSum : 0;
 		srnm.weightedPTTravelTime = connectionsWeightSum!=0 ? weightedPTTravelTime / connectionsWeightSum : 0;
 		srnm.weightedInterchangeTime = connectionsWeightSum!=0 ? weightedInterchangeTime / connectionsWeightSum : 0;
+		srnm.weightedBeelineDistance = connectionsWeightSum!=0 ? weightedBeelineDistance / connectionsWeightSum : 0;
+		srnm.weightedManhattenDistance = connectionsWeightSum!=0 ? weightedManhattenDistance / connectionsWeightSum : 0;
 		srnm.lines.addAll(lines);
 		return srnm;
 	}

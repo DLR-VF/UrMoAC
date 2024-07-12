@@ -21,11 +21,14 @@ package de.dlr.ivf.urmo.router.output.odext;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.locationtech.jts.geom.Point;
+
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraEntry;
 import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.output.MeasurementGenerator;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
+import de.dlr.ivf.urmo.router.shapes.GeomHelper;
 import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
 /**
@@ -41,7 +44,7 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 	 * @return An ODSingleExtendedResult computed using the given path
 	 */
 	public ODSingleExtendedResult buildResult(int beginTime, SingleODResult result) {
-		DijkstraEntry toEdgeEntry = result.path;//.getPath(to);//dr.getEdgeInfo(to.edge);
+		DijkstraEntry toEdgeEntry = result.path;
 		ODSingleExtendedResult e = new ODSingleExtendedResult(result);
 		MapResult from = result.origin;
 		MapResult to = result.destination;
@@ -53,6 +56,10 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 		e.weightedPTTravelTime = 0;
 		e.weightedInterchangeTime = 0;
 		e.connectionsWeightSum = e.val;
+		Point p1 = result.origin.em.getPoint();
+		Point p2 = result.destination.em.getPoint();
+		e.weightedBeelineDistance = GeomHelper.distance(p1, p2) * e.val;
+		e.weightedManhattenDistance = (Math.abs(p1.getX()-p2.getX()) + Math.abs(p1.getY()-p2.getY())) * e.val;
 
 		HashSet<String> trips = new HashSet<>();
 		double factor = 1.;

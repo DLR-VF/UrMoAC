@@ -49,7 +49,8 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 		super(format, inputParts, "ext-od-output", precision, dropPrevious, 
 				"(fid bigint, sid bigint, avg_distance real, avg_tt real, avg_num real, avg_value real, "
 				+ "avg_kcal real, avg_price real, avg_co2 real, avg_interchanges real, avg_access real, avg_egress real, "
-				+ "avg_waiting_time real, avg_init_waiting_time real, avg_pt_tt real, avg_pt_interchange_time real, modes text)");
+				+ "avg_waiting_time real, avg_init_waiting_time real, avg_pt_tt real, avg_pt_interchange_time real, modes text,"
+				+ "beeline_distance real, manhattan_distance real)");
 	}
 
 
@@ -59,9 +60,9 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 	 * @return The insert statement string
 	 */
 	protected String getInsertStatement(Utils.Format format, int epsg) {
-		return "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		return "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	}
-	
+
 	
 	/** 
 	 * @brief Writes the results to the open database / file
@@ -89,6 +90,8 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 				_ps.setFloat(15, (float) result.weightedPTTravelTime);
 				_ps.setFloat(16, (float) result.weightedInterchangeTime);
 				_ps.setString(17, result.lines.toString()); // modes
+				_ps.setFloat(18, (float) result.weightedBeelineDistance);
+				_ps.setFloat(19, (float) result.weightedManhattenDistance);
 				_ps.addBatch();
 				++batchCount;
 				if(batchCount>10000) {
@@ -114,7 +117,10 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 					+ String.format(Locale.US, _FS, result.weightedInitialWaitingTime) + ";"
 					+ String.format(Locale.US, _FS, result.weightedPTTravelTime) + ";" 
 					+ String.format(Locale.US, _FS, result.weightedInterchangeTime) + ";" 
-					+ result.lines.toString() + "\n");
+					+ result.lines.toString() + ";"
+					+ String.format(Locale.US, _FS, result.weightedBeelineDistance) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedManhattenDistance) 
+					+ "\n");
 		}
 	}
 
