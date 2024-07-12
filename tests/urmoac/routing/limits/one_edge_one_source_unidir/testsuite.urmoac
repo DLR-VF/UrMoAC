@@ -1,0 +1,130 @@
+# one edge, one source, foot, no limits
+foot_nolimits
+
+
+# one edge, one source, foot, limit traveltime to 10s
+foot_tt10
+
+# one edge, one source, foot, limit traveltime to 50s
+foot_tt50
+
+# one edge, one source, foot, limit traveltime to 300s
+foot_tt300
+
+
+# one edge, one source, foot, limit distance to 10m
+foot_dist10
+
+# one edge, one source, foot, limit distance to 50m
+foot_dist50
+
+# one edge, one source, foot, limit distance to 300m
+foot_dist300
+
+
+# one edge, one source, foot, limit number to 2
+foot_num2
+
+# one edge, one source, foot, limit number to 4
+foot_num4
+
+
+# one edge, one source, foot, limit variable sum to 1
+foot_value1
+
+# one edge, one source, foot, limit variable sum to 4
+foot_value4
+
+
+# one edge, one source, foot, shortest only
+foot_shortest
+
+
+
+
+# one edge, one source, bike, no limits
+bike_nolimits
+
+
+# one edge, one source, bike, limit traveltime to 10s
+bike_tt10
+
+# one edge, one source, bike, limit traveltime to 50s
+bike_tt50
+
+# one edge, one source, bike, limit traveltime to 300s
+bike_tt300
+
+
+# one edge, one source, bike, limit distance to 10m
+bike_dist10
+
+# one edge, one source, bike, limit distance to 50m
+bike_dist50
+
+# one edge, one source, bike, limit distance to 300m
+bike_dist300
+
+
+# one edge, one source, bike, limit number to 2
+bike_num2
+
+# one edge, one source, bike, limit number to 4
+bike_num4
+
+
+# one edge, one source, bike, limit variable sum to 1
+bike_value1
+
+# one edge, one source, bike, limit variable sum to 4
+bike_value4
+
+
+# one edge, one source, bike, shortest only
+bike_shortest
+
+
+
+
+
+# one edge, one source, car, no limits
+car_nolimits
+
+
+# one edge, one source, car, limit traveltime to 10s
+car_tt10
+
+# one edge, one source, car, limit traveltime to 50s
+car_tt50
+
+# one edge, one source, car, limit traveltime to 300s
+car_tt300
+
+
+# one edge, one source, car, limit distance to 10s
+car_dist10
+
+# one edge, one source, car, limit distance to 50s
+car_dist50
+
+# one edge, one source, car, limit distance to 300s
+car_dist300
+
+
+# one edge, one source, car, limit number to 2
+car_num2
+
+# one edge, one source, car, limit number to 4
+car_num4
+
+
+# one edge, one source, car, limit variable sum to 1
+car_value1
+
+# one edge, one source, car, limit variable sum to 4
+car_value4
+
+
+# one edge, one source, car, shortest only
+car_shortest
+
