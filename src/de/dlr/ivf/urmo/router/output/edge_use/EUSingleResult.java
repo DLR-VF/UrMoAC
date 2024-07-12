@@ -116,11 +116,15 @@ public class EUSingleResult extends AbstractSingleResult {
 	 * @param originWeight The weight of the origin
 	 */
 	public synchronized void addSingle(DBEdge e, double value, double originWeight) {
-		if(!stats.containsKey(e.getID())) {
-			stats.put(e.getID(), new EdgeParam());
+		String eID = e.getID();
+		if(eID.startsWith("opp_")) {
+			eID = eID.substring(4); // @todo: give added edges an explicit boolean marker
 		}
-		EdgeParam curr = stats.get(e.getID());
+		if(!stats.containsKey(eID)) {
+			stats.put(eID, new EdgeParam());
+		}
+		EdgeParam curr = stats.get(eID);
 		curr.num += value;
-		curr.originsWeight = originWeight;
+		curr.originsWeight += originWeight;
 	}
 }

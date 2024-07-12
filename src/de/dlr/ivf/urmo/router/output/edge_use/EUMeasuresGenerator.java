@@ -36,7 +36,7 @@ public class EUMeasuresGenerator extends MeasurementGenerator<EUSingleResult> {
 	 * @return An EUSingleResult computed using the given path
 	 */
 	public EUSingleResult buildResult(int beginTime, SingleODResult result) {
-		DijkstraEntry current = result.path;//.getPath(to);//dr.getEdgeInfo(to.edge);
+		DijkstraEntry current = result.path;
 		EUSingleResult e = new EUSingleResult(result);
 		double value = ((LayerObject) result.destination.em).getAttachedValue() * e.val;
 		do {
