@@ -4,7 +4,7 @@ Urban Mobility Accessibility Computer (UrMoAC) v0.6
 
 Usage:
   java -jar UrMoAC.jar --help
-  java -jar UrMoAC.jar --from sources.csv --to destinations.csv --net network.csv
+  java -jar UrMoAC.jar --from origins.csv --to destinations.csv --net network.csv
     --od-output nm_output.csv --mode bike --time 0
 
  Input Options
@@ -65,7 +65,7 @@ Usage:
   --shortest                     Searches only one destination per origin.
   --requirespt                   When set, only information that contains a PT
                                    part are stored.
-  --clip-to-net                  When set, sources, destinations, and pt is
+  --clip-to-net                  When set, origins, destinations, and pt is
                                    clipped at the network boundaries.
   --measure                      The measure to use during the routing
                                    ['tt_mode', 'price_tt', 'interchanges_tt',
@@ -101,7 +101,7 @@ Usage:
                                    generate.
   -d, --direct-output            Defines the direct output to generate.
   --origins-to-road-output       Defines the output of the mapping between
-                                   sources and the network.
+                                   origins and the network.
   --destinations-to-road-output  Defines the output of the mapping between
                                    destinations and the network.
   --write.subnets                Defines the output for subnets.
