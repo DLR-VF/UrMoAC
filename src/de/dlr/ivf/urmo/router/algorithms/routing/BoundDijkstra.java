@@ -135,10 +135,10 @@ public class BoundDijkstra {
 		while (!next.isEmpty()) {
 			DijkstraEntry nns = next.poll();
 			// check bounds
-			if (boundTT > 0 && nns.tt >= boundTT) {
+			if (boundTT > 0 && nns.tt > boundTT) {
 				continue;
 			}
-			if (boundDist > 0 && nns.distance >= boundDist) {
+			if (boundDist > 0 && nns.distance > boundDist) {
 				continue;
 			}
 			Vector<DBEdge> oes = nns.n.getOutgoing();
