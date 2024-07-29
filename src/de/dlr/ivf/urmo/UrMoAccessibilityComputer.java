@@ -186,7 +186,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("net.vmax", "Defines the column name of networks's vmax attribute.");
 		options.add("keep-subnets", new Option_Bool());
 		options.setDescription("keep-subnets", "When set, unconnected network parts are not removed.");
-		
+		options.add("net.boundary", new Option_String());
+		options.setDescription("net.boundary", "Defines a boundary for the network.");
+
 		options.beginSection("Weighting Options");
 		options.add("weight", 'W', new Option_String(""));
 		options.setDescription("weight", "An optional weighting attribute for the origins.");
@@ -531,7 +533,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		if (verbose) System.out.println("Reading the road network");
 		NetErrorsWriter netErrorsOutput = options.isSet("write.net-errors") 
 				? OutputBuilder.buildNetErrorsWriter(options.getString("write.net-errors"), options.getBool("dropprevious")) : null;  
-		DBNet net = NetLoader.loadNet(this, options.getString("net"), options.getString("net.vmax"), epsg, modes, netErrorsOutput);
+		String netBoundary = options.isSet("net.boundary") ? options.getString("net.boundary") : null;  
+		DBNet net = NetLoader.loadNet(this, options.getString("net"), netBoundary, options.getString("net.vmax"), epsg, modes, netErrorsOutput);
 		if (verbose) System.out.println(" " + net.getNumEdges() + " edges loaded (" + net.getNodes().size() + " nodes)");
 		if(!options.getBool("keep-subnets")) {
 			if (verbose) System.out.println("Checking for connectivity...");

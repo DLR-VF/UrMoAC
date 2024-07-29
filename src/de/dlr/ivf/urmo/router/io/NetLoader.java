@@ -64,14 +64,14 @@ public class NetLoader {
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	public static DBNet loadNet(IDGiver idGiver, String def, String vmaxAttr, int epsg, long uModes, NetErrorsWriter errorsWriter) throws IOException {
+	public static DBNet loadNet(IDGiver idGiver, String def, String netBoudary, String vmaxAttr, int epsg, long uModes, NetErrorsWriter errorsWriter) throws IOException {
 		Utils.Format format = Utils.getFormat(def);
 		String[] inputParts = Utils.getParts(format, def, "net");
 		DBNet net = null;
 		switch(format) {
 		case FORMAT_POSTGRES:
 		case FORMAT_SQLITE:
-			net = loadNetFromDB(idGiver, format, inputParts, vmaxAttr, epsg, uModes, errorsWriter);
+			net = loadNetFromDB(idGiver, format, inputParts, netBoudary, vmaxAttr, epsg, uModes, errorsWriter);
 			break;
 		case FORMAT_CSV:
 			net = loadNetFromCSVFile(idGiver, inputParts[0], uModes, errorsWriter);
@@ -106,7 +106,7 @@ public class NetLoader {
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromDB(IDGiver idGiver, Utils.Format format, String[] inputParts, String vmax, int epsg, long uModes, NetErrorsWriter errorsWriter) throws IOException {
+	private static DBNet loadNetFromDB(IDGiver idGiver, Utils.Format format, String[] inputParts, String netBoudary, String vmax, int epsg, long uModes, NetErrorsWriter errorsWriter) throws IOException {
 		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
 		try {
 			Class.forName("org.sqlite.JDBC");
@@ -119,7 +119,11 @@ public class NetLoader {
 			connection.setAutoCommit(true);
 			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 			((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-			String query = "SELECT oid,nodefrom,nodeto,mode_walk,mode_bike,mode_mit,"+vmax+",length,ST_AsBinary(ST_TRANSFORM(the_geom," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, "net") + ";";
+			String query = "SELECT oid,nodefrom,nodeto,mode_walk,mode_bike,mode_mit,"+vmax+",length,ST_AsBinary(ST_TRANSFORM(the_geom," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, "net");
+			if(netBoudary!=null) {
+				query += " WHERE ST_Within(ST_TRANSFORM(the_geom," + epsg + "), " + netBoudary + ")";
+			}
+			query += ";";
 			Statement s = connection.createStatement();
 			ResultSet rs = s.executeQuery(query);
 			WKBReader wkbRead = new WKBReader();

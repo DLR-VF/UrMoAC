@@ -50,6 +50,7 @@ Usage:
                                    attribute.
   --keep-subnets                 When set, unconnected network parts are not
                                    removed.
+  --net.boundary                 Defines a boundary for the network.
 
  Weighting Options
   -W, --weight                   An optional weighting attribute for the

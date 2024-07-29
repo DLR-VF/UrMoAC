@@ -36,6 +36,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --to-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;the_geom&rdquo; | Defines the column name of the destination aggregations&apos; geometries. |
 | --net.vmax _&lt;COLUMN_NAME&gt;_ | &ldquo;vmax&rdquo; | Defines the column name of networks&apos;s vmax attribute. |
 | --keep-subnets | N/A (optional) | When set, unconnected network parts are not removed. |
+| --net.boundary _&lt;POSTGIS_GEOMETRY&gt;_ | N/A (optional)| Defines a boundary for the network. Please note that this option is experimental and works with networks loaded from PostGIS only. |
 
 ## Weighting options
 | Option  | Default | Explanation |

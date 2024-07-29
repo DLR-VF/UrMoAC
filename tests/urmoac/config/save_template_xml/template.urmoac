@@ -25,6 +25,7 @@
    <to-agg.geom></to-agg.geom>
    <net.vmax></net.vmax>
    <keep-subnets></keep-subnets>
+   <net.boundary></net.boundary>
    <weight></weight>
    <variable></variable>
    <max-number></max-number>
