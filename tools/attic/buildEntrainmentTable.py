@@ -1,33 +1,33 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# =============================================================================
-# osmdb.py
-#
-# Author: Daniel Krajzewicz
-# Date:   01.04.2018
-#
-# This file is part of the "UrMoAC" accessibility tool
-# https://github.com/DLR-VF/UrMoAC
-# Licensed under the Eclipse Public License 2.0
-#
-# Copyright (c) 2018-2024 Institute of Transport Research,
-#                         German Aerospace Center
-# All rights reserved.
-# =============================================================================
-"""This is a very simple tool to demonstrate how an 
-entrainment table looks like.
+from __future__ import print_function
+# ===========================================================================
+"""This is a very simple tool to demonstrate how an entrainment table
+looks like.
 
 In principle, it is outdated a bot as well as entrainment
 tables may as well be given as csv-files."""
-# =============================================================================
+# ===========================================================================
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright 2018-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__credits__    = ["Daniel Krajzewicz"]
+__license__    = "EPL 2.0"
+__version__    = "0.8.0"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Production"
+# ===========================================================================
+# - https://github.com/DLR-VF/UrMoAC
+# - https://www.dlr.de/vf
+# ===========================================================================
 
-# --- imported modules --------------------------------------------------------
-import sys, psycopg2
+
+# --- imports ---------------------------------------------------------------
+import sys
+import psycopg2
 
 
-
-
-# --- functionality ---------------------------------------
+# --- functionality ---------------------------------------------------------
 conn = psycopg2.connect("dbname='XXX' user='XXX' host='XXX' password='XXX'")
 cursor = conn.cursor()
 cursor.execute("""CREATE TABLE public.entrainment (

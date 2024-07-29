@@ -1,26 +1,27 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# =============================================================================
-# osmdb_buildWays.py
-#
-# Author: Daniel Krajzewicz, Simon Nieland
-# Date:   01.04.2016
-#
-# This file is part of the "UrMoAC" accessibility tool
-# https://github.com/DLR-VF/UrMoAC
-# Licensed under the Eclipse Public License 2.0
-#
-# Copyright (c) 2016-2024 Institute of Transport Research,
-#                         German Aerospace Center
-# All rights reserved.
-# =============================================================================
+from __future__ import print_function
+# ===========================================================================
 """Builds an road network table using  an OSM-database representation.
 
 Call with
   osmdb_buildWays <HOST>,<DB>,<SCHEMA>.<PREFIX>,<USER>,<PASSWD>"""
-# =============================================================================
+# ===========================================================================
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright 2016-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__credits__    = ["Daniel Krajzewicz"]
+__license__    = "EPL 2.0"
+__version__    = "0.8.0"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Production"
+# ===========================================================================
+# - https://github.com/DLR-VF/UrMoAC
+# - https://www.dlr.de/vf
+# ===========================================================================
 
-# --- imported modules --------------------------------------------------------
+
+# --- imports ---------------------------------------------------------------
 import os, string, sys, io
 import datetime
 from xml.sax import saxutils, make_parser, handler
@@ -28,19 +29,7 @@ import psycopg2, osmdb
 from osmmodes import *
 
 
-# --- meta --------------------------------------------------------------------
-__author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright (c) 2016-2024 Institute of Transport Research, German Aerospace Center"
-__credits__    = [ "Daniel Krajzewicz" ]
-__license__    = "EPL2.0"
-__version__    = "0.8"
-__maintainer__ = "Daniel Krajzewicz"
-__email__      = "daniel.krajzewicz@dlr.de"
-__status__     = "Development"
-
-
-
-# --- class definitions -------------------------------------------------------
+# --- class definitions -----------------------------------------------------
 class Params:
     """Stores the parameter of a OSM-object and controls their usage."""
     
@@ -98,7 +87,7 @@ class Params:
 
 
 
-# --- function definitions ----------------------------------------------------
+# --- function definitions --------------------------------------------------
 def parse_point(which):
     """Parses and returns a single position
     :param which: The wkt-description of the position

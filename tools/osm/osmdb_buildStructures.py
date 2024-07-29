@@ -1,19 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# =============================================================================
-# osmdb_buildStructures.py
-#
-# Author: Daniel Krajzewicz, Simon Nieland
-# Date:   01.04.2016
-#
-# This file is part of the "UrMoAC" accessibility tool
-# https://github.com/DLR-VF/UrMoAC
-# Licensed under the Eclipse Public License 2.0
-#
-# Copyright (c) 2016-2024 Institute of Transport Research,
-#                         German Aerospace Center
-# All rights reserved.
-# =============================================================================
+from __future__ import print_function
+# ===========================================================================
 """Builds a table with defined structures (not the network) using an 
 OSM-database representation.
 
@@ -24,10 +12,24 @@ where <INPUT_TABLES_PREFIX> is defined as:
 and <OUTPUT_TABLE> is defined as:
   <HOST>,<DB>,<SCHEMA>,<NAME>,<USER>,<PASSWD>  
 """
-# =============================================================================
+# ===========================================================================
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright 2016-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__credits__    = ["Daniel Krajzewicz"]
+__license__    = "EPL 2.0"
+__version__    = "0.8.0"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Production"
+# ===========================================================================
+# - https://github.com/DLR-VF/UrMoAC
+# - https://www.dlr.de/vf
+# ===========================================================================
 
-# --- imported modules --------------------------------------------------------
-import sys, os
+
+# --- imports ---------------------------------------------------------------
+import sys
+import os
 import psycopg2
 import datetime
 import math
@@ -40,19 +42,7 @@ from wkt import *
 from geom_helper import *
 
 
-# --- meta --------------------------------------------------------------------
-__author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright (c) 2016-2024 Institute of Transport Research, German Aerospace Center"
-__credits__    = [ "Daniel Krajzewicz" ]
-__license__    = "EPL2.0"
-__version__    = "0.8"
-__maintainer__ = "Daniel Krajzewicz"
-__email__      = "daniel.krajzewicz@dlr.de"
-__status__     = "Development"
-
-
-
-# --- data definitions --------------------------------------------------------
+# --- data definitions ------------------------------------------------------
 """A map from a data type to the respective tags"""
 subtype2tag = {
     "node": "ntag",
@@ -61,7 +51,7 @@ subtype2tag = {
 }
 
 
-# --- class definitions -------------------------------------------------------
+# --- class definitions -----------------------------------------------------
 class OSMExtractor:
     """A class for extracting defined structures from OSM
   
@@ -209,7 +199,7 @@ class OSMExtractor:
                         self._idMapping[subtype][pid] = id
                         print (" Found duplicate id '%s'. Renaming %s to '%s'." % (pid, subtype, id))
                         break
-   
+        print (self._objectIDs)
    
    
     
@@ -427,7 +417,7 @@ class OSMExtractor:
                     fd.write("%s;%s;%s\n" % (type, self._idMapping[type][id], id))
 
 
-# --- function definitions ----------------------------------------------------
+# --- function definitions --------------------------------------------------
 # --- main
 def main(srcdb, deffile, dstdb):       
     t1 = datetime.datetime.now()

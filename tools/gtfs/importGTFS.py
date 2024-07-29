@@ -1,19 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# =============================================================================
-# importGTFS.py
-#
-# Author: Daniel Krajzewicz
-# Date:   01.04.2016
-#
-# This file is part of the "UrMoAC" accessibility tool
-# https://github.com/DLR-VF/UrMoAC
-# Licensed under the Eclipse Public License 2.0
-#
-# Copyright (c) 2016-2024 Institute of Transport Research,
-#                         German Aerospace Center
-# All rights reserved.
-# =============================================================================
+from __future__ import print_function
+# ===========================================================================
 """Imports a GTFS data set into a database
 
 Call with
@@ -21,26 +9,31 @@ Call with
 where
     <TARGET_DB_DEFINITION> is <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>
 """
-# =============================================================================
+# ===========================================================================
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright 2016-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__credits__    = ["Daniel Krajzewicz"]
+__license__    = "EPL 2.0"
+__version__    = "0.8.0"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Production"
+# ===========================================================================
+# - https://github.com/DLR-VF/UrMoAC
+# - https://www.dlr.de/vf
+# ===========================================================================
 
-# --- imported modules --------------------------------------------------------
+
+# --- imports ---------------------------------------------------------------
 from enum import IntEnum
-import psycopg2, sys, os.path, io
+import psycopg2
+import sys
+import os.path
+import io
 import gtfs_defs
 
 
-# --- meta --------------------------------------------------------------------
-__author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright (c) 2016-2024 Institute of Transport Research, German Aerospace Center"
-__credits__    = [ "Daniel Krajzewicz" ]
-__license__    = "EPL2.0"
-__version__    = "0.8"
-__maintainer__ = "Daniel Krajzewicz"
-__email__      = "daniel.krajzewicz@dlr.de"
-__status__     = "Development"
-
-
-# --- data definitions --------------------------------------------------------
+# --- data definitions ------------------------------------------------------
 """! @brief A map from GTFS data types to Postgres datatypes"""
 gtfs2postgres = {
     gtfs_defs.FieldType.COLOR : "text",
@@ -63,7 +56,7 @@ gtfs2postgres = {
 }
 
 
-# --- class definitions -------------------------------------------------------
+# --- class definitions -----------------------------------------------------
 class GTFSImporter:
     """A class for importing GTFS data into a database"""
 
@@ -289,7 +282,7 @@ class GTFSImporter:
             self._conn.commit()
 
 
-# --- function definitions ----------------------------------------------------
+# --- function definitions --------------------------------------------------
 # -- main
 def import_gtfs(input_folder, target_db):
     """Main method"""
