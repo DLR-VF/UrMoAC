@@ -2,7 +2,7 @@
 
 UrMoAC reads information about the origins, destinations, aggregation areas, the road network, the public transport system, as well as entrainment options from a database or from files. Below, you may find the definitions of the data formats used for these data types.
 
-**Please note that we currently advice the usage of a database. Here, no projection issues occur as projection to the chosen coordinate system is done using the database&#39;s native methods. Handling of files with different projections is not yet solved, all have to contain positions encoded in the same metric coordinate system. In addition, using a database offers the biggest flexibility in terms of filtering and processing data.**
+**Please note that we currently advice the use of a database. Here, no projection issues occur as projection to the chosen coordinate system is done using the database&#39;s native methods. Handling of files with different projections is not yet solved, all have to contain positions encoded in the same metric coordinate system. In addition, using a database offers the biggest flexibility in terms of filtering and processing data.**
 
 
 ## Origins and Destinations

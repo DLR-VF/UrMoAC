@@ -208,7 +208,7 @@ The generated database table has the following format:
 | tt | real | The travel time needed to pass this edge |
 | node | text | The ID of the current node |
 | idx | text | The index of this element within this route |
-| geom | PostGIS LINESTRING | The shape of this edge |
+| geom | PostGIS LINESTRING | The shape of this edge - may be pruned when being the first / last edge |
 
 When writing to a file, these attributes are stored in a single line, separated by &lsquo;;&rsquo;.
 

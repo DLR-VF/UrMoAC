@@ -7,6 +7,8 @@ docs_dir: ./mkdocs
 repo_url: https://github.com/DLR-VF/UrMoAC.git
 edit_uri: ""
 
+
+
 theme:
     name: material
     highlightjs: true
@@ -29,9 +31,15 @@ nav:
         - Tutorial List: Tutorials.md
         - Computing the accessibility to the next public transport halt: TutorialNextPTHalt.md
         - Using QGIS to visualise UrMoAC results: TutorialQGISVisualisation.md
-    - Subtopics:
-        - Subtopics List: Subtopics.md
-        - Mapping To Net: Subtopic_Mapping.md
+#    - Subtopics:
+#        - Subtopics List: Subtopics.md
+#        - Projection: Subtopic_Projection.md
+#        - Routing: Subtopic_Routing.md
+#        - Mapping To Net: Subtopic_Mapping.md
+#        - Boundary Issues: Subtopic_BoundaryIssues.md
+#        - Networks: Subtopic_Networks.md
+#        - OpenStreetMap: Subtopic_OSM.md
+#        - GTFS: Subtopic_GTFS.md
     - FAQ: FAQ.md
     - ChangeLog: ChangeLog.md
     - Links: Links.md
@@ -50,11 +58,18 @@ nav:
         - Disclaimer: Disclaimer.md
         - Impressum: Impressum.md
 
+
+extra_javascript: 
+    - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+
 markdown_extensions:
     - admonition
     - sane_lists
+    - mdx_math
   
 copyright: "&copy; Copyright 2016&ndash;2023 German Aerospace Center, Institute of Transport Research, all rights reserved."
+
+use_directory_urls: false
 
 plugins:
     - search
