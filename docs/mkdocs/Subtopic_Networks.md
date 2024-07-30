@@ -23,7 +23,16 @@ Road networks in UrMoAC are represented as line strings with the following attri
 * geometry (line string)
 
 ## Determining the opposite direction
-!!!
+
+One of UrMoAC's features is the inclusion of destination allocated at opposite side of an accessed road.
+
+One step within for achieving this functionality is the correct determination of the edge that represents the opposite direction, for each edge. Currently, this is done in a post-processing step performed after loading the network.
+
+It turns out that this is not as easy as expected. Only looking at the combination of the nodes an edge starts and ends at and selecting the edge that connects both nodes in the opposite direction is not sufficient. One may, e.g. find a lane with parking lots adjacent to an edge (12.629690,53.500018). Issues may as well occure on edges which start and end at the same node and well, yes, you may simply find duplicate edges in OSM (187925375, 187925376).
+
+In the future, one should think about moving some of these functionalities into the OSM import module - this module inserts two edges with opposite directions into the network representation as soon as it encounters a bi-directional edge. As such, the information about the opposite edge is already available herein.
+
+* Split circular roads more than once to omit the isue of not recognizing edges that connect same nodes
 
 ## Loops
 
