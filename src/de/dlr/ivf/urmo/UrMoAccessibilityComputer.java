@@ -331,23 +331,27 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		// check options
 		boolean check = true;
 		if(!options.isSet("from")) {
-			System.err.println("Error: The 'from' parameter is missing.");
+			System.err.println("Error: The mandatory 'from' parameter is missing.");
 			check = false;
 		}
 		if(!options.isSet("to")) {
-			System.err.println("Error: The 'to' parameter is missing.");
+			System.err.println("Error: The mandatory 'to' parameter is missing.");
 			check = false;
 		}
 		if(!options.isSet("net")) {
-			System.err.println("Error: The 'net' parameter is missing.");
+			System.err.println("Error: The mandatory 'net' parameter is missing.");
 			check = false;
 		}
 		if(!options.isSet("mode")) {
-			System.err.println("Error: The 'mode' parameter is missing.");
+			System.err.println("Error: The mandatory 'mode' parameter is missing.");
 			check = false;
 		}
 		if(!options.isSet("time")) {
-			System.err.println("Error: The 'time' parameter is missing.");
+			System.err.println("Error: The mandatory 'time' parameter is missing.");
+			check = false;
+		}
+		if(!options.isSet("epsg")) {
+			System.err.println("Error: The mandatory 'epsg' parameter is missing.");
 			check = false;
 		}
 		//
@@ -503,13 +507,10 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			Modes.setCustomMode(custom_vmax, custom_kkc, custom_co2, custom_price, allowedModes);
 		}
 		// -------- projection
-		int epsg;
-		if(options.isSet("epsg")) {
-			epsg = options.getInteger("epsg");
-		} else {
-			System.err.println("An EPSG to use for projection must be given.");
-			return false;
+		if(!options.isSet("epsg")) {
+			throw new IOException("An EPSG to use for projection must be given.");
 		}
+		int epsg = options.getInteger("epsg");
 		// -------- loading
 		boolean dismissWeight = !options.isSet("from-agg");
 		if(dismissWeight && !options.isDefault("weight")) {
