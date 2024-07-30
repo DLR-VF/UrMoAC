@@ -2,7 +2,7 @@
 
 ## UrMoAC-0.8.0 (to come)
 
-### Changes in options
+### Changes in options and defaults
 
 * mode names consolidation (you will get a deprecation warning when using old names):
     * "bicycle" is now "bike"
@@ -18,13 +18,18 @@
     * within UrMoAC
     * within included Python-scripts (please note that all fields are now divided using a ',')
 * __references to database are now defined on the command line like: *&lt;HOST&gt;*,*&lt;DB&gt;*,*&lt;SCHEMA&gt;*.*&lt;TABLE&gt;*,*&lt;USER&gt;*,*&lt;PASSWD&gt;*__ - schema and table name are divided using a '.', all other fields using a ','
+* The default for ID columng of database objects is now "id", no longer "gid"
+* The default for the geometry column of database objects is now "geom", no longer "the_geom"
 
-### Debugging and Improvements
+### Debugging and improvements
 
 * patched several documentation issues
 * more verbose error handling
 * The script "plot_area.py" now supports disaggregated, aggregated, and filled contours visualisations
 
+### Changes in computation
+
+* we moved from edge-based to origin-based computation. This solved some oddities and inexact results, but slowed down the computation. We will try to improve the speed back again, keeping the current quality.
 
 
 

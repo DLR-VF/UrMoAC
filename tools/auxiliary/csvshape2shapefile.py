@@ -80,7 +80,7 @@ def csvshape2shapefile(input_file, output_prefix):
     else:
         type = shapefile.POINT
     w = shapefile.Writer(output_prefix, type)
-    w.field('gid', 'N', 10, 0)
+    w.field('id', 'N', 10, 0)
     if withVar!=0:
         w.field('var', 'N', 10, 0)
     for o in objects:

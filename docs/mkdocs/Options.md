@@ -23,17 +23,17 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
 | --from.filter _&lt;FILTER&gt;_<br>-F _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for origins to load. |
-| --from.id _&lt;COLUMN_NAME&gt;_ | &ldquo;gid&rdquo; | Defines the column name of the origins&apos; ids. |
-| --from.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;the_geom&rdquo; | Defines the column name of the origins&apos; geometries. |
+| --from.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the origins&apos; ids. |
+| --from.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the origins&apos; geometries. |
 | --to.filter _&lt;FILTER&gt;_<br>-T _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for destinations to load. |
-| --to.id _&lt;COLUMN_NAME&gt;_ | &ldquo;gid&rdquo; | Defines the column name of the destinations&apos; ids. |
-| --to.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;the_geom&rdquo; | Defines the column name of the destinations&apos; geometries. |
+| --to.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the destinations&apos; ids. |
+| --to.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the destinations&apos; geometries. |
 | --from-agg.filter _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for origins aggregations&apos; to load. |
-| --from-agg.id _&lt;COLUMN_NAME&gt;_ | &ldquo;gid&rdquo; | Defines the column name of the origins aggregations&apos; ids. |
-| --from-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;the_geom&rdquo; | Defines the column name of the origins aggregations&apos; geometries. |
+| --from-agg.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the origins aggregations&apos; ids. |
+| --from-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the origins aggregations&apos; geometries. |
 | --to-agg.filter _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for destination aggregations&apos; to load. |
-| --to-agg.id _&lt;COLUMN_NAME&gt;_ | &ldquo;gid&rdquo; | Defines the column name of the destination aggregations&apos; ids. |
-| --to-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;the_geom&rdquo; | Defines the column name of the destination aggregations&apos; geometries. |
+| --to-agg.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the destination aggregations&apos; ids. |
+| --to-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the destination aggregations&apos; geometries. |
 | --net.vmax _&lt;COLUMN_NAME&gt;_ | &ldquo;vmax&rdquo; | Defines the column name of networks&apos;s vmax attribute. |
 | --keep-subnets | N/A (optional) | When set, unconnected network parts are not removed. |
 | --net.boundary _&lt;POSTGIS_GEOMETRY&gt;_ | N/A (optional)| Defines a boundary for the network. Please note that this option is experimental and works with networks loaded from PostGIS only. |

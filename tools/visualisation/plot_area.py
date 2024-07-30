@@ -160,7 +160,7 @@ def add_colorbar(fig, ax, colmap, sm, levels, logarithmic, measurelabel):
 def parse_options(args):
     optParser = OptionParser(usage="""usage: %prog [options].""")
     optParser.add_option("-f", "--from", dest="objects",default=None, help="Defines the objects (origins) to load")
-    optParser.add_option("--from.id", dest="objectsID", default="gid", help="Defines the name of the field to read the object ids from")
+    optParser.add_option("--from.id", dest="objectsID", default="id", help="Defines the name of the field to read the object ids from")
     optParser.add_option("--from.geom", dest="objectsGeom",default="polygon", help="Defines the name of the field to read the object geometries from")
     optParser.add_option("--from.filter", dest="objectsFilter",default=None, help="Defines a SQL WHERE-clause parameter to filter the origins to read")
     optParser.add_option("-m", "--measures", dest="measures", default=None, help="Defines the measures' table to load")
@@ -206,7 +206,7 @@ def parse_options(args):
     return options, remaining_args
 
 
-def load_shapes(source, projection, asCentroid=False, idField="gid", geomField="polygon", geomFilter=None):
+def load_shapes(source, projection, asCentroid=False, idField="id", geomField="polygon", geomFilter=None):
     (host, db, tableFull, user, password) = source.split(",")
     (schema, table) = tableFull.split(".")
     where = ""

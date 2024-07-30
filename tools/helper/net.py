@@ -142,7 +142,7 @@ def _loadNetFromDB(d, proj, stringData=[], vmaxS="vmax"):
     add = ""
     if stringData:
         add = "," + ",".join(stringData)
-    cursor.execute("SELECT oid,ST_AsText(ST_TRANSFORM(the_geom, %s))%s FROM %s;" % (proj, add, dbd[2]))
+    cursor.execute("SELECT oid,ST_AsText(ST_TRANSFORM(geom, %s))%s FROM %s;" % (proj, add, dbd[2]))
     net = Net()
     for r in cursor.fetchall():
         data = {}

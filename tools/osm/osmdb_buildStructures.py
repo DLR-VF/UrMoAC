@@ -316,7 +316,7 @@ class OSMExtractor:
         if len(entries)==0:
             return
         args = ','.join(cursor.mogrify("(%s, %s, ST_GeomFromText(%s, 4326), ST_GeomFromText(%s, 4326), ST_Centroid(ST_ConvexHull(ST_GeomFromText(%s, 4326))))", i).decode('utf-8') for i in entries)
-        cursor.execute("INSERT INTO %s.%s(gid, type, polygon, geom_collection, centroid) VALUES " % (schema, name) + (args))
+        cursor.execute("INSERT INTO %s.%s(id, type, polygon, geom_collection, centroid) VALUES " % (schema, name) + (args))
         conn.commit()
         del entries[:]
         
@@ -445,7 +445,7 @@ def main(srcdb, deffile, dstdb):
     cursor2 = conn2.cursor()
     # --- build tables
     cursor2.execute("DROP TABLE IF EXISTS %s.%s" % (schema, name))
-    cursor2.execute("CREATE TABLE %s.%s ( gid bigint, type varchar(4) );" % (schema, name))
+    cursor2.execute("CREATE TABLE %s.%s ( id bigint, type varchar(4) );" % (schema, name))
     cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'centroid', 4326, 'POINT', 2);" % (schema, name))
     cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'polygon', 4326, 'MULTIPOLYGON', 2);" % (schema, name))
     cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'geom_collection', 4326, 'GEOMETRYCOLLECTION', 2);" % (schema, name))

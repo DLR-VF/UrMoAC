@@ -610,7 +610,7 @@ public class InputReader {
 			connection.setAutoCommit(true);
 			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 			((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-			String query = "SELECT ST_AsBinary(ST_TRANSFORM(the_geom," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, what) + ";";
+			String query = "SELECT ST_AsBinary(ST_TRANSFORM(geom," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, what) + ";";
 			Statement s = connection.createStatement();
 			ResultSet rs = s.executeQuery(query);
 			Geometry geom = null;

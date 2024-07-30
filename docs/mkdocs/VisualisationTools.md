@@ -41,8 +41,8 @@ The following table lists the options of **plot_area.py**.
 | --from _&lt;DB_SOURCE&gt;_<br>-f _&lt;DB_SOURCE&gt;_ | N/A (mandatory) | Defines the objects (origins) to load. |
 | --measures _&lt;DB_SOURCE&gt;_<br>-m _&lt;DB_SOURCE&gt;_ | N/A (mandatory) | Defines the measures' table to load. |
 | --value _&lt;VALUE_NAME&gt;_<br>-i _&lt;VALUE_NAME&gt;_ | &ldquo;avg_tt&rdquo; | Defines the name of the value to load from the measures. |
-| --from.id _&lt;COLUMN_NAME&gt;_ | &ldquo;gid&rdquo; | Defines the name of the field to read the object ids from. |
-| --from.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;the_geom&rdquo; | Defines the name of the field to read the object geometries from. |
+| --from.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the name of the field to read the object ids from. |
+| --from.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the name of the field to read the object geometries from. |
 | --from.filter _&lt;WHERE_PARAMETER&gt;_ | N/A (optional) | Defines a SQL WHERE-clause parameter to filter the origins to read. |
 | --projection _&lt;EPSG_CODE&gt;_<br>-p _&lt;EPSG_CODE&gt;_ | 25833 | Sets the projection EPSG number. |
 | --border _&lt;DB_SOURCE&gt;_<br>-b _&lt;DB_SOURCE&gt;_ | N/A (optional) | Defines the border geometry to load. |

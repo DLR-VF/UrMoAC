@@ -78,7 +78,7 @@ def commitRoads(conn, cursor, schema, table):
             s[1] = float(s[1]) + 660658.02
             nshape.append("%s %s" % (s[0], s[1]))    
         nshape = ",".join(nshape)
-        cursor.execute("INSERT INTO %s.%s(oid, nodefrom, nodeto, numlanes, length, vmax, mode_walk, mode_bike, mode_pt, mode_mit, modes, nodes, name, the_geom) VALUES('%s', %s, %s, %s, %s, %s, '%s', '%s', '%s', '%s', %s, '{%s}', '%s', ST_Transform(ST_GeomFromText('MULTILINESTRING((%s))', 32618), 4326))" % (schema, table, sr["id"], sr["fromNode"], sr["toNode"], sr["lanes"], sr["length"], sr["vmax"], mode_ped, mode_bic, mode_pt, mode_mit, sr["modes"], sr["nodes"], sr["name"], nshape))
+        cursor.execute("INSERT INTO %s.%s(oid, nodefrom, nodeto, numlanes, length, vmax, mode_walk, mode_bike, mode_pt, mode_mit, modes, nodes, name, geom) VALUES('%s', %s, %s, %s, %s, %s, '%s', '%s', '%s', '%s', %s, '{%s}', '%s', ST_Transform(ST_GeomFromText('MULTILINESTRING((%s))', 32618), 4326))" % (schema, table, sr["id"], sr["fromNode"], sr["toNode"], sr["lanes"], sr["length"], sr["vmax"], mode_ped, mode_bic, mode_pt, mode_mit, sr["modes"], sr["nodes"], sr["name"], nshape))
     conn.commit()
     del storedRoads[:]
 
@@ -205,7 +205,7 @@ cursor.execute("""CREATE TABLE %s.%s (
     nodes bigint[],
     name text        
 );""" % (schema, table))
-cursor.execute("""SELECT AddGeometryColumn('%s', '%s', 'the_geom', 4326, 'MULTILINESTRING', 2);""" % (schema, table))
+cursor.execute("""SELECT AddGeometryColumn('%s', '%s', 'geom', 4326, 'MULTILINESTRING', 2);""" % (schema, table))
 conn.commit()
 
 

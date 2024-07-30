@@ -119,9 +119,9 @@ public class NetLoader {
 			connection.setAutoCommit(true);
 			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 			((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-			String query = "SELECT oid,nodefrom,nodeto,mode_walk,mode_bike,mode_mit,"+vmax+",length,ST_AsBinary(ST_TRANSFORM(the_geom," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, "net");
+			String query = "SELECT oid,nodefrom,nodeto,mode_walk,mode_bike,mode_mit,"+vmax+",length,ST_AsBinary(ST_TRANSFORM(geom," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, "net");
 			if(netBoudary!=null) {
-				query += " WHERE ST_Within(ST_TRANSFORM(the_geom," + epsg + "), " + netBoudary + ")";
+				query += " WHERE ST_Within(ST_TRANSFORM(geom," + epsg + "), " + netBoudary + ")";
 			}
 			query += ";";
 			Statement s = connection.createStatement();

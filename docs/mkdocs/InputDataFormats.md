@@ -28,8 +28,8 @@ An origin or a destination is represented using the following attributes in the 
 
 | Default Column Name | Type | Purpose |
 | ---- | ---- | ---- |
-| gid | long | Names the object |
-| the_geom | PostGIS-Geometry | Defines the object&apos;s position in space |
+| id | long | Names the object |
+| geom | PostGIS-Geometry | Defines the object&apos;s position in space |
 | N/A (optional) | double | Weights the object |
 
 To load objects from a database, you have to give the complete path to the according database table as well as the credentials needed to access it. As such, the call to load origins from a database looks like: __--from jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___ where:
@@ -45,8 +45,8 @@ The information where to read the &ldquo;weight&rdquo; of an object can be defin
 When loading origins / destinations from a database, additional options can be used to change some defaults:
 
 * __--from.filter _&lt;FILTER&gt;___: defines a filter that is added to the select statement as a `WHERE`-clause.
-* __--from.id _&lt;COLUMN_NAME&gt;___: sets the name of the database column to read the object ID from (default is __gid__).
-* __--from.geom _&lt;COLUMN_NAME&gt;___: sets the name of the database column to read the object geometry from (default is __the_geom__).
+* __--from.id _&lt;COLUMN_NAME&gt;___: sets the name of the database column to read the object ID from (default is __id__).
+* __--from.geom _&lt;COLUMN_NAME&gt;___: sets the name of the database column to read the object geometry from (default is __geom__).
 
 The same options are available for destinations (__--to.filter _&lt;FILTER&gt;___, __--to.id _&lt;COLUMN_NAME&gt;___, __--to.geom _&lt;COLUMN_NAME&gt;___), origin aggregation areas (__--from-agg.filter _&lt;FILTER&gt;___, __--from-agg.id _&lt;COLUMN_NAME&gt;___, __--from-agg.geom _&lt;COLUMN_NAME&gt;___), and destination aggregation areas (__--to-agg.filter _&lt;FILTER&gt;___, __--to-agg.id _&lt;COLUMN_NAME&gt;___, __--to-agg.geom _&lt;COLUMN_NAME&gt;___).
 
@@ -123,8 +123,8 @@ An aggregation area is represented using the following attributes in a database:
 
 | Default Column Name | Type | Purpose |
 | ---- | ---- | ---- | 
-| gid | int/long | Names the area |
-| the_geom | PostGIS-Polygon | Defines the area&apos;s shape |
+| id | int/long | Names the area |
+| geom | PostGIS-Polygon | Defines the area&apos;s shape |
 
 Use __--from-agg jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___ to load origin aggregation areas from a database. See [Sources and Destinations](./InputDataFormats.md#/#origins-and-destinations) for an explanation.
 
@@ -200,7 +200,7 @@ A road network is defined by the roads it consists of, and each road is represen
 | Column Name | Type | Purpose | 
 | ---- | ---- | ---- |
 | oid | String | The name of the road | 
-| the_geom | PostGIS MultiLineString | The shape of the road | 
+| geom | PostGIS MultiLineString | The shape of the road | 
 | nodefrom | long | The ID of the node the road starts at | 
 | nodeto | long | The ID of the node the road ends at | 
 | mode_walk | boolean | Whether the road can be used by the mode &ldquo;walking&rdquo;/&ldquo;foot&rdquo; | 

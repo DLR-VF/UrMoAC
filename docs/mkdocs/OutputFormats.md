@@ -221,7 +221,7 @@ The generated database table has the following format:
 
 | Column Name | Type | Content |
 | ---- | ---- | ---- |
-| gid | bigint | The ID of the origin / destination object |
+| id | bigint | The ID of the origin / destination object |
 | rid | text | The name of the road the origin / destination is mapped on |
 | rpos | real | The position along the edge the objects is mappend to |
 | dist | real | The distance between the object and the edge |
