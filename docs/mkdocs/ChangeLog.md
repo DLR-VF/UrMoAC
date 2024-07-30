@@ -20,6 +20,9 @@
 * __references to database are now defined on the command line like: *&lt;HOST&gt;*,*&lt;DB&gt;*,*&lt;SCHEMA&gt;*.*&lt;TABLE&gt;*,*&lt;USER&gt;*,*&lt;PASSWD&gt;*__ - schema and table name are divided using a '.', all other fields using a ','
 * The default for ID columng of database objects is now "id", no longer "gid"
 * The default for the geometry column of database objects is now "geom", no longer "the_geom"
+    * If you cannot use your old networks, try to add the option --net.geom=the_geom
+    * If you cannot use your old origins, try to add the option --from.geom=the_geom
+    * If you cannot use your old destinations, try to add the option --to.geom=the_geom
 
 ### Debugging and improvements
 

@@ -184,10 +184,12 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("to-agg.geom", "Defines the column name of the destination aggregation areas' geometries.");
 		options.add("net.vmax", new Option_String("vmax"));
 		options.setDescription("net.vmax", "Defines the column name of networks's vmax attribute.");
-		options.add("keep-subnets", new Option_Bool());
-		options.setDescription("keep-subnets", "When set, unconnected network parts are not removed.");
+		options.add("net.geom", new Option_String("geom"));
+		options.setDescription("net.geom", "Defines the column name of the network's geometries.");
 		options.add("net.boundary", new Option_String());
 		options.setDescription("net.boundary", "Defines a boundary for the network.");
+		options.add("keep-subnets", new Option_Bool());
+		options.setDescription("keep-subnets", "When set, unconnected network parts are not removed.");
 
 		options.beginSection("Weighting Options");
 		options.add("weight", 'W', new Option_String(""));
@@ -505,20 +507,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		if(options.isSet("epsg")) {
 			epsg = options.getInteger("epsg");
 		} else {
-			// automatic epsg-value
-			epsg = InputReader.findUTMZone(options);
-			if(epsg==-1) {
-				System.out.println("Could not find a valid UTM-zone. Quitting");
-				return false;
-			} else {
-				String utmZone;
-				if(epsg>32600) { //northern hemisphere
-					utmZone = Integer.toString(epsg%100)+"N";
-				} else { // southern hemisphere
-					utmZone = Integer.toString(epsg%100)+"S";
-				}
-				System.out.println("Using UTM-zone "+utmZone+", EPSG-code: " + epsg);
-			}
+			System.err.println("An EPSG to use for projection must be given.");
+			return false;
 		}
 		// -------- loading
 		boolean dismissWeight = !options.isSet("from-agg");
@@ -534,7 +524,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		NetErrorsWriter netErrorsOutput = options.isSet("write.net-errors") 
 				? OutputBuilder.buildNetErrorsWriter(options.getString("write.net-errors"), options.getBool("dropprevious")) : null;  
 		String netBoundary = options.isSet("net.boundary") ? options.getString("net.boundary") : null;  
-		DBNet net = NetLoader.loadNet(this, options.getString("net"), netBoundary, options.getString("net.vmax"), epsg, modes, netErrorsOutput);
+		DBNet net = NetLoader.loadNet(this, options.getString("net"), netBoundary, options.getString("net.vmax"), options.getString("net.geom"), epsg, modes, netErrorsOutput);
 		if (verbose) System.out.println(" " + net.getNumEdges() + " edges loaded (" + net.getNodes().size() + " nodes)");
 		if(!options.getBool("keep-subnets")) {
 			if (verbose) System.out.println("Checking for connectivity...");

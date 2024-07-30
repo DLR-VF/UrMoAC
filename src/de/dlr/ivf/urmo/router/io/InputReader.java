@@ -61,65 +61,6 @@ import de.dlr.ivf.urmo.router.shapes.LayerObject;
  */
 public class InputReader {
 	// --------------------------------------------------------
-	// epsg determination
-	// --------------------------------------------------------
-	/**
-	 * @brief Finds the correct UTM-zone for the given net. Reference is the most south most west point in the from-locations.
-	 * 
-	 * The calculation is based on utm-zones for longitudes from -180 to 180 degrees.
-	 * The latitude is only valid from -84 to 84 degrees.
-	 * The returned UTM-zones start with 32500 for the southern hemisphere and with 32600 for the northern hemisphere.
-	 * @param[in] options The command line options 
-	 * @return The epsg-code of the UTM-zone or -1 of no UTM-zone could be found (e.g. north-pole )
-	 * @throws IOException 
-	 */
-	public static int findUTMZone(OptionsCont options) throws IOException {
-		Utils.Format format = Utils.getFormat(options.getString("from"));
-		if (format!=Utils.Format.FORMAT_POSTGRES) {
-			return 0;
-		}
-		try {
-			String[] inputParts = Utils.getParts(format, options.getString("from"), "from");
-			Connection connection = Utils.getConnection(format, inputParts, "from");
-			connection.setAutoCommit(true);
-			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
-			((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-			String table = Utils.getTableName(format, inputParts, "from");
-			String geomString = options.getString("from.geom");
-			String query = "SELECT min(ST_X(ST_TRANSFORM("+geomString+",4326)))as lon, min(ST_Y(ST_TRANSFORM("+geomString+",4326)))as lat FROM " + table + ";";
-			Statement s = connection.createStatement();
-			ResultSet rs = s.executeQuery(query);
-			int epsg=-1;
-			double lon, lat;
-			while (rs.next()) {
-				lon = rs.getDouble("lon");
-				lat = rs.getDouble("lat");
-				if(lat>84.0 || lat<-84.0) {
-					//around north or south-pole!
-					break;
-				}
-				if(lon>180.0 || lon<-180.0) {
-					//invalid longitude!
-					break;
-				}
-				if(lat>=0) { //northern hemisphere
-					epsg = 32600;
-				} else { //southern hemisphere
-					epsg = 32500;
-				}
-				epsg += ((180.0 + lon) / 6.) + 1;
-			}
-			rs.close();
-			s.close();
-			return epsg;
-		} catch (SQLException e) {
-			throw new IOException(e);
-		}
-	}
-	
-	
-
-	// --------------------------------------------------------
 	// loading layers
 	// --------------------------------------------------------
 	/**
