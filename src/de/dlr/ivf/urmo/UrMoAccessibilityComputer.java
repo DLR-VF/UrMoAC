@@ -127,7 +127,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	private static OptionsCont getCMDOptions(String[] args) {
 		// set up options
 		OptionsCont options = new OptionsCont();
-		options.setHelpHeadAndTail("Urban Mobility Accessibility Computer (UrMoAC) v0.6\n  (c) German Aerospace Center (DLR), 2016-2021\n  https://github.com/DLR-VF/UrMoAC\n\nUsage:\n"
+		options.setHelpHeadAndTail("Urban Mobility Accessibility Computer (UrMoAC) v0.8.0\n  (c) German Aerospace Center (DLR), 2016-2021\n  https://github.com/DLR-VF/UrMoAC\n\nUsage:\n"
 				+"  java -jar UrMoAC.jar --help\n"
 				+"  java -jar UrMoAC.jar --from origins.csv --to destinations.csv --net network.csv\n    --od-output nm_output.csv --mode bike --time 0\n", "");
 		
