@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -15,6 +18,7 @@
  */
 package de.dlr.ivf.urmo.router.shapes;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,15 +32,16 @@ import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.index.strtree.STRtree;
 
 import de.dlr.ivf.urmo.router.modes.Modes;
+import de.dlr.ivf.urmo.router.output.NetErrorsWriter;
 
 /**
  * @class DBNet
  * @brief A transportation network
- * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class DBNet {
 	/// @brief Map from node ids to nodes
-	public HashMap<Long, DBNode> nodes = new HashMap<>();
+	private HashMap<Long, DBNode> nodes = new HashMap<>();
 	/// @brief Map of edge names to edges
 	private HashMap<String, DBEdge> name2edge = new HashMap<String, DBEdge>();
 	/// @brief Map of node names (if using strings) to nodes
@@ -49,19 +54,24 @@ public class DBNet {
 	private GeometryFactory geometryFactory = null;
 	/// @brief The id supplier to use
 	private IDGiver idGiver;
+	
+	NetErrorsWriter log;
+	boolean reportAllIssues;
+	boolean hadDuplicateConnection = false;
 
 
 	/**
 	 * @brief Constructor
 	 * @param _idGiver The id supplier to use
 	 */
-	public DBNet(IDGiver _idGiver) {
+	public DBNet(IDGiver _idGiver, NetErrorsWriter _log, boolean _reportAllIssues) {
 		idGiver = _idGiver;
+		log = _log;
+		reportAllIssues = _reportAllIssues;
 	}
 
 	
 	/** @brief Adds an edge building it
-	 * @param _numID The numerical id of the edge
 	 * @param _id The string id of the edge
 	 * @param _from The starting node
 	 * @param _to The ending node
@@ -70,22 +80,26 @@ public class DBNet {
 	 * @param _geom The geometry of the edge
 	 * @param _length The length of the edge
 	 * @return The built edge
+	 * @throws IOException 
 	 */
-	public boolean addEdge(long _numID, String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length) {
+	public boolean addEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length) throws IOException {
 		boolean hadError = false;
 		if(_length<=0) {
-			System.err.println("Edge '" + _id + "' has a length of 0.");
+			System.err.println("Error: Edge '" + _id + "' has a length of 0.");
+			if(log!=null) log.writeNoLength(_id);
 			hadError = true;
 		}
 		if(_vmax<=0) {
-			System.err.println("Edge '" + _id + "' has a speed of 0.");
+			System.err.println("Error: Edge '" + _id + "' has a speed of 0.");
+			if(log!=null) log.writeNoSpeed(_id);
 			hadError = true;
 		}
 		if(name2edge.containsKey(_id)) {
-			System.err.println("Edge '" + _id + "' already exists.");
+			System.err.println("Error: Edge '" + _id + "' already exists.");
+			if(log!=null) log.writeDuplicate(_id);
 			hadError = true;
 		}
-		DBEdge e = new DBEdge(_numID, _id, _from, _to, _modes, _vmax, _geom, _length);
+		DBEdge e = new DBEdge(_id, _from, _to, _modes, _vmax, _geom, _length);
 		addEdge(e);
 		return !hadError;
 	}
@@ -94,9 +108,36 @@ public class DBNet {
 	/**
 	 * @brief Adds an edge to the road network
 	 * @param e The edge to add
+	 * @throws IOException 
 	 */
-	private void addEdge(DBEdge e) {
-		name2edge.put(e.id, e);
+	private void addEdge(DBEdge e) throws IOException {
+		// double edge check
+		DBNode fromNode = e.getFromNode();
+		DBNode toNode = e.getToNode();
+		Vector<DBEdge> outgoing = fromNode.getOutgoing();
+		for(DBEdge e2 : outgoing) {
+			if(e==e2||e2.getToNode()!=toNode) {
+				continue;
+			}
+			if(e2.maxDistanceTo(e)<.5) {//.getGeometry().equals(e.getGeometry())) {
+				e2.adapt(e);
+				removeEdge(e);
+				if (log!=null) log.writeEdgeReplacement(e2.getID(), e.getID());
+				if(reportAllIssues||!hadDuplicateConnection) {
+					hadDuplicateConnection = true;
+					System.err.println("Warning: removed edge '" + e.getID() + "' as a duplicate of edge '" + e2.getID() + "'.");
+					if(!reportAllIssues) {
+						System.err.println("Warning: Subsequent replacements will not be reported; use --write.net-errors to get the complete list.");
+					}
+				}
+				return;
+			}
+			/** @todo: ok, this happens usually on circular roads that have been split.
+			 * But what if there were two edges, e.g. one for pedestrians and one for passenger vehicles over each other? 
+			 */
+		}
+		//
+		name2edge.put(e.getID(), e);
 		Coordinate[] cs = e.getGeometry().getCoordinates();
 		for (int i = 0; i < cs.length; ++i) {
 			Coordinate c = cs[i];
@@ -111,7 +152,7 @@ public class DBNet {
 		}
 		// store geometry settings
 		if(geometryFactory==null) {
-			geometryFactory = e.geom.getFactory();
+			geometryFactory = e.getGeometry().getFactory();
 		}
 	}
 
@@ -120,8 +161,12 @@ public class DBNet {
 	 * @brief Adds a node to this road network
 	 * @param node The node to add
 	 */
-	public void addNode(DBNode node) {
-		nodes.put(node.id, node);
+	public boolean addNode(DBNode node) {
+		if(nodes.containsKey(node.getID())) {
+			return false;
+		}
+		nodes.put(node.getID(), node);
+		return true;
 	}
 
 
@@ -176,7 +221,7 @@ public class DBNet {
 	 * @param edge The edge to remove
 	 */
 	public void removeEdge(DBEdge edge) {
-		name2edge.remove(edge.id);
+		name2edge.remove(edge.getID());
 		edge.getFromNode().removeOutgoing(edge);
 		edge.getToNode().removeIncoming(edge);
 	}
@@ -184,7 +229,7 @@ public class DBNet {
 
 	/**
 	 * @brief Builds and return a spatial index for the parts of the road
-	 *        network that may be travelled by the given transport modes
+	 *        network that may be traveled by the given transport modes
 	 * @param modes The available modes of transport
 	 * @return The network subparts compound of edges that may be traveled by the given modes
 	 */
@@ -222,9 +267,10 @@ public class DBNet {
 	 * @brief Checks which edges are not connected to the major part of the network and removes them
 	 * @param report Whether the removal of edges shall be reported
 	 */
-	public Set<Set<DBEdge>> dismissUnconnectedEdges(boolean report) {
-		HashMap<DBEdge, Set<DBEdge>> edge2cluster = new HashMap<>();
-		Set<Set<DBEdge>> clusters = new HashSet<>();
+	public HashMap<Integer, Set<DBEdge>> dismissUnconnectedEdges(boolean report) {
+		HashMap<DBEdge, Integer> edge2cluster = new HashMap<>();
+		HashMap<Integer, Set<DBEdge>> clusters = new HashMap<>();
+		int nextClusterIndex = 0;
 		for (DBEdge e : name2edge.values()) {
 			if (edge2cluster.containsKey(e)) {
 				// skip, it has already been visited
@@ -235,65 +281,52 @@ public class DBNet {
 			Vector<DBEdge> next = new Vector<>();
 			next.add(e);
 			Set<DBEdge> currCluster = new HashSet<>();
+			int clusterIndex = nextClusterIndex;
 			while (!next.isEmpty()) {
 				// get next edge to process from the list
-				DBEdge e2 = next.get(next.size() - 1);
-				next.remove(next.size() - 1);
+				DBEdge e2 = next.remove(next.size() - 1);
+				/*
 				if(edge2cluster.containsKey(e2)) {
 					continue;
 				}
+				*/
 				if(edge2cluster.containsKey(e2)) {
-					// ok, it already belongs to a cluster - join both and proceed
-					Set<DBEdge> prevCluster = edge2cluster.get(e2);
-					prevCluster.addAll(currCluster);
-					// update information for already set edges
-					for(DBEdge e3 : currCluster) {
-						edge2cluster.put(e3, prevCluster);
+					if(edge2cluster.get(e2)!=clusterIndex) {
+						// ok, it already belongs to a cluster - join both and proceed
+						int prevClusterIndex = edge2cluster.get(e2);
+						Set<DBEdge> prevCluster = clusters.get(prevClusterIndex);
+						prevCluster.addAll(currCluster);
+						// update information for already set edges
+						for(DBEdge e3 : currCluster) {
+							edge2cluster.put(e3, prevClusterIndex);
+						}
+						currCluster = prevCluster;
+						clusterIndex = prevClusterIndex;
 					}
-					currCluster = prevCluster;
 				} else {
 					// add to current cluster
 					currCluster.add(e2);
-					edge2cluster.put(e2, currCluster);
+					edge2cluster.put(e2, clusterIndex);
 				}
-				next.addAll(e2.getToNode().getOutgoing());
-			}
-			if(!clusters.contains(currCluster)) {
-				clusters.add(currCluster);
-			}
-		}
-			
-			
-		
-		
-		/*
-		Set<DBEdge> seen = new HashSet<>();
-		Set<Set<DBEdge>> clusters = new HashSet<>();
-		// go through edges, build clusters with connected ones
-		// currently, we assume networks are connected disregarding the direction information
-		for (DBEdge e : name2edge.values()) {
-			if (seen.contains(e)) {
-				continue;
-			}
-			Vector<DBEdge> next = new Vector<>();
-			next.add(e);
-			Set<DBEdge> cluster = new HashSet<>();
-			while (!next.isEmpty()) {
-				DBEdge e2 = next.get(next.size() - 1);
-				next.remove(next.size() - 1);
-				cluster.add(e2);
-				if(!seen.contains(e2)) {
-					seen.add(e2);
-					next.addAll(e2.getToNode().getOutgoing());
-					next.addAll(e2.getFromNode().getIncoming());
+				for(DBEdge e3 : e2.getFromNode().getIncoming()) {
+					if(!edge2cluster.containsKey(e3)) {
+						next.add(e3);
+					}
+				}
+				for(DBEdge e3 : e2.getToNode().getOutgoing()) {
+					if(!edge2cluster.containsKey(e3)) {
+						next.add(e3);
+					}
 				}
 			}
-			clusters.add(cluster);
+			if(clusterIndex==nextClusterIndex) {
+				clusters.put(clusterIndex, currCluster);
+			}
+			++nextClusterIndex;
 		}
-		*/
 		// determine major cluster
 		Set<DBEdge> major = null;
-		for (Set<DBEdge> c : clusters) {
+		for (Set<DBEdge> c : clusters.values()) {
 			if (major == null || major.size() < c.size()) {
 				major = c;
 			}
@@ -308,7 +341,7 @@ public class DBNet {
 			if(report) {
 				System.out.println(" Major cluster has " + major.size() + " edges.");
 				System.out.println(" Further clusters:");
-				for (Set<DBEdge> c : clusters) {
+				for (Set<DBEdge> c : clusters.values()) {
 					if(c==major) {
 						continue;
 					}
@@ -317,7 +350,7 @@ public class DBNet {
 			}
 		}
 		// remove edges from all clusters but the major one
-		for (Set<DBEdge> c : clusters) {
+		for (Set<DBEdge> c : clusters.values()) {
 			if (c == major) {
 				continue;
 			}
@@ -348,10 +381,11 @@ public class DBNet {
 
 
 	/**
-	 * @brief Extends the network by adding opposite edges for pedestrians
-	 * @param index The next edge id to use
+	 * @brief Extends the network by adding opposite edges
+	 * @param addOppositePedestrianEdges Whether backwards edges for pedestrians shall be added
+	 * @throws IOException 
 	 */
-	public void extendDirections() {
+	public void extendDirections(boolean addOppositePedestrianEdges) throws IOException {
 		Vector<DBEdge> newEdges = new Vector<>();
 		long modeFoot = Modes.getMode("foot").id;
 		Collection<DBEdge> edges = name2edge.values(); 
@@ -360,16 +394,10 @@ public class DBNet {
 			Vector<DBEdge> edges2 = to.getOutgoing();
 			DBEdge opposite = null;
 			for(DBEdge e2 : edges2) {
-				if(e2.getToNode()==e.getFromNode() && Math.abs(e.length-e2.length)<1.) {
+				if(e2.getToNode()==e.getFromNode() && Math.abs(e.getLength()-e2.getLength())<1.) {
 					// check whether the edges are parallel
-					LineString eg = e.geom;
-					boolean distant = false;
-					for(int i=0; i<eg.getNumPoints()&&!distant; ++i) {
-						if(e2.geom.distance(eg.getPointN(i))>.1) {
-							distant = true;
-						}
-					}
-					if(!distant) {
+					double maxDistance = e.maxDistanceTo(e2);
+					if(maxDistance<.5) {
 						// opposite direction found
 						opposite = e2;
 						if(!e2.allows(modeFoot)&&e.allows(modeFoot)) {
@@ -380,15 +408,15 @@ public class DBNet {
 				}
 			}
 			// add a reverse direction edge for pedestrians
-			if((opposite==null && e.allows(modeFoot)) || (opposite==e)) {
+			if(addOppositePedestrianEdges && ((opposite==null && e.allows(modeFoot)))) {// || (opposite==e))) {
 				// todo: recheck whether opposite==e is correct - it happens, though maybe when using an external OSM importer
-				opposite = new DBEdge(getNextID(), "opp_"+e.id, e.to, e.from, modeFoot, e.vmax, (LineString) e.geom.reverse(), e.length);
+				opposite = new DBEdge("opp_"+e.getID(), e.getToNode(), e.getFromNode(), modeFoot, e.getVMax(), (LineString) e.getGeometry().reverse(), e.getLength());
 				newEdges.add(opposite);
 			}
 			// add the information about the opposite edge
 			if(opposite!=null&&opposite!=e) {
-				opposite.opposite = e;
-				e.opposite = opposite;
+				opposite.setOppositeEdge(e);
+				e.setOppositeEdge(opposite);
 			}
 		}
 		for(DBEdge e : newEdges) {

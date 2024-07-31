@@ -1,34 +1,24 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# =============================================================================
-# net.py
-#
-# Author: Daniel Krajzewicz
-# Date:   01.07.2023
-#
-# This file is part of the "UrMoAC" accessibility tool
-# https://github.com/DLR-VF/UrMoAC
-# Licensed under the Eclipse Public License 2.0
-#
-# Copyright (c) 2023-2024 Institute of Transport Research,
-#                         German Aerospace Center
-# All rights reserved.
-# =============================================================================
+from __future__ import print_function
+# ===========================================================================
 """A network representation."""
-# =============================================================================
-
-# --- meta --------------------------------------------------------------------
+# ===========================================================================
 __author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright (c) 2023-2024 Institute of Transport Research, German Aerospace Center"
-__credits__    = [ "Daniel Krajzewicz" ]
-__license__    = "EPL2.0"
-__version__    = "0.8"
+__copyright__  = "Copyright 2023-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__credits__    = ["Daniel Krajzewicz"]
+__license__    = "EPL 2.0"
+__version__    = "0.8.0"
 __maintainer__ = "Daniel Krajzewicz"
 __email__      = "daniel.krajzewicz@dlr.de"
-__status__     = "Development"
+__status__     = "Production"
+# ===========================================================================
+# - https://github.com/DLR-VF/UrMoAC
+# - https://www.dlr.de/vf
+# ===========================================================================
 
 
-# --- class definitions -------------------------------------------------------
+# --- class definitions -----------------------------------------------------
 class Edge:
     def __init__(self, id, geom, data=None):
         self._id = id
@@ -152,7 +142,7 @@ def _loadNetFromDB(d, proj, stringData=[], vmaxS="vmax"):
     add = ""
     if stringData:
         add = "," + ",".join(stringData)
-    cursor.execute("SELECT oid,ST_AsText(ST_TRANSFORM(the_geom, %s))%s FROM %s;" % (proj, add, dbd[2]))
+    cursor.execute("SELECT oid,ST_AsText(ST_TRANSFORM(geom, %s))%s FROM %s;" % (proj, add, dbd[2]))
     net = Net()
     for r in cursor.fetchall():
         data = {}

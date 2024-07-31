@@ -53,8 +53,8 @@ The generated database table has the following format:
 | ---- | ---- | ---- |
 | fid | bigint | The ID of the origin object |
 | sid | bigint | The ID of the destination object |
-| avg_distance | real| The average distance between the origin(s) and the origin(s) |
-| avg_tt | real | The average travel time to get from the origin(s) to the origin(s) |
+| avg_distance | real| The average distance between the origin(s) and the destination(s) |
+| avg_tt | real | The average travel time to get from the origin(s) to the destination(s) |
 | avg_num | real | The average number of collected destination(s) |
 | avg_value | real | The average value of the collected destination(s) |
 | avg_kcal | real | The average kilocalories consumed when travelling from the origin(s) to the destination(s) |
@@ -65,9 +65,12 @@ The generated database table has the following format:
 | avg_egress | real | The average egress time |
 | avg_waiting_time | real | The average waiting time for the next public transport connection |
 | avg_init_waiting_time | real | The average initial waiting time for the first public transport connection |
-| avg_pt_tt| real | The average time spent in public transport |
+| avg_pt_tt | real | The average time spent in public transport |
 | avg_pt_interchange_time | real | The average time needed to change between different public transport lines |
 | modes | text | The used modes |
+| beeline_distance | real | The beeline distance between the origin(s) and the destination(s) |
+| manhattan_distance | real | The manhattan distance between the origin(s) and the destination(s) |
+| avg_pt_interchange_time | real | The average time needed to change between different public transport lines |
 
 When writing to a file, these attributes are stored in a single line, separated by &lsquo;;&rsquo;.
 
@@ -183,7 +186,7 @@ The generated database table has the following format:
 | sid | bigint | The ID of the destination object |
 | eid | text | The id of the described edge |
 | num | real | The number of times this edge was used |
-| srcweight | real | The sum of the weight(s) of the origin(s)&apos; that used this road  |
+| origins_weight | real | The sum of the weight(s) of the origin(s)&apos; that used this road  |
 | normed | real | The number of times this edge was used normed by the origin(s)&apos; weight(s) |
 
 When writing to a file, these attributes are stored in a single line, separated by &lsquo;;&rsquo;.
@@ -199,13 +202,13 @@ The generated database table has the following format:
 | ---- | ---- | ---- |
 | fid | bigint | The ID of the origin object |
 | sid | bigint | The ID of the destination object |
-| edge | text | The ID of this edge |
+| edge | text | The ID of the current edge |
 | line | text | The ID of the line used to pass this edge |
 | mode | text | The mode used to pass this edge |
 | tt | real | The travel time needed to pass this edge |
 | node | text | The ID of the current node |
 | idx | text | The index of this element within this route |
-| geom | PostGIS LINESTRING | The shape of this edge |
+| geom | PostGIS LINESTRING | The shape of this edge - may be pruned when being the first / last edge |
 
 When writing to a file, these attributes are stored in a single line, separated by &lsquo;;&rsquo;.
 
@@ -213,18 +216,18 @@ When writing to a file, these attributes are stored in a single line, separated 
 
 ## Origins / Destinations Mapping output
 
-These outputs gives the mapping of origin and destination locations to the road network. It is enabled using the option __--origins-to-road-output _&lt;OUTPUT&gt;___ for origins or using __--destinations-to-road-output _&lt;OUTPUT&gt;___ for destinations. It is rather used for debugging.
+These outputs give the mapping of origin and destination locations to the road network. They are enabled using the option __--origins-to-road-output _&lt;OUTPUT&gt;___ for origins or using __--destinations-to-road-output _&lt;OUTPUT&gt;___ for destinations. It is rather used for debugging or visualisation.
 The generated database table has the following format:
 
 | Column Name | Type | Content |
 | ---- | ---- | ---- |
-| gid | bigint | The ID of the origin / destination object |
+| id | bigint | The ID of the origin / destination object |
 | rid | text | The name of the road the origin / destination is mapped on |
 | rpos | real | The position along the edge the objects is mappend to |
 | dist | real | The distance between the object and the edge |
 | conn | LINESTRING | A geometrical representation of the connection between the object and the position on the edge it is mapped to |
 
-The geometry always contains of a line between two points &mdash; the origin or respectively the destination position and the position on the network this origin / destination is mapped to.
+The geometry is always contains a line between two points &mdash; the origin or respectively the destination position and the position on the network this origin / destination is mapped to.
 
 When writing to a file, these attributes are stored in a single line, separated by &lsquo;;&rsquo;. The geometry is represented as `x1;y1;x2;y2` within the csv output.
 

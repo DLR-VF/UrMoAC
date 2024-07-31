@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -19,98 +22,99 @@ import java.util.HashSet;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraEntry;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
+import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.output.MeasurementGenerator;
 import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
 /**
  * @class PTODMeasuresGenerator
  * @brief Interprets a path to build an PTODSingleResult
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
- * @param <T>
+ * @author Daniel Krajzewicz
  */
 public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult> {
 	/**
 	 * @brief Interprets the path to build an PTODSingleResult
 	 * @param beginTime The start time of the path
-	 * @param from The origin the path started at
-	 * @param to The destination accessed by this path
-	 * @param dr The routing result
+	 * @param result The processed path between the origin and the destination
 	 * @return An PTODSingleResult computed using the given path
 	 */
-	public PTODSingleResult buildResult(int beginTime, MapResult from, MapResult to, DijkstraResult dr) {
-		PTODSingleResult e = new PTODSingleResult(from.em.getOuterID(), to.em.getOuterID(), from, to, dr);
+	public PTODSingleResult buildResult(int beginTime, SingleODResult result) {
+		PTODSingleResult e = new PTODSingleResult(result);
 		int step = 0;
-		DijkstraEntry current = dr.getEdgeInfo(to.edge);
+		DijkstraEntry current = result.path;//.getPath(to);//dr.getEdgeInfo(to.edge);
+		MapResult from = result.origin;
+		MapResult to = result.destination;
 		double tt = 0;
 		double dist = 0;
 		HashSet<String> trips = new HashSet<>();
-		if(current.line!=null) {
-			e.lines.add(current.line.trip.route.id);
-			trips.add(current.line.trip.tripID);
+		if(current.ptConnection!=null) {
+			e.lines.add(current.ptConnection.trip.route.id);
+			trips.add(current.ptConnection.trip.tripID);
 		} else {
 			e.lines.add(current.usedMode.mml);
 		}
 		if(from.edge==to.edge) {
-			tt = current.first.ttt;
+			//tt = current.first.ttt;
 			if(from.pos>to.pos) {
 				dist = from.pos - to.pos;
 			} else {
 				dist = to.pos - from.pos;				
 			}
-			tt = tt / to.edge.length * dist;
+			//tt = tt / to.edge.getLength() * dist;
+			tt = to.edge.getTravelTime(result.path.first.usedMode.vmax, beginTime) / to.edge.getLength() * dist;
 			step = 4;
-		} else if(from.edge.opposite==to.edge) {
-			tt = current.first.ttt;
-			if(from.pos>(to.edge.length - to.pos)) {
-				dist = from.pos - (to.edge.length - to.pos);
+		} else if(from.edge.getOppositeEdge()==to.edge) {
+			//tt = current.first.ttt;
+			if(from.pos>(to.edge.getLength() - to.pos)) {
+				dist = from.pos - (to.edge.getLength() - to.pos);
 			} else {
-				dist = (to.edge.length - to.pos) - from.pos;				
+				dist = (to.edge.getLength() - to.pos) - from.pos;				
 			}
-			tt = tt / to.edge.length * dist;
+			//tt = tt / to.edge.getLength() * dist;
+			tt = to.edge.getTravelTime(result.path.first.usedMode.vmax, beginTime) / to.edge.getLength() * dist;
 			step = 4;
 		} else {
 			if(current.wasOpposite) {
 				dist -= to.pos;
-				tt -= current.ttt * to.pos / to.edge.length;
+				tt -= current.ttt * to.pos / to.edge.getLength();
 			} else {
-				dist -= (to.edge.length - to.pos);
-				tt -= (current.ttt - current.ttt * (to.pos / to.edge.length));
+				dist -= (to.edge.getLength() - to.pos);
+				tt -= (current.ttt - current.ttt * (to.pos / to.edge.getLength()));
 			}
 			step = 0;
 			do {
 				e.weightedInterchangeTravelTime += current.interchangeTT;
-				dist += current.e.length;
+				dist += current.e.getLength();
 				tt += current.ttt;
 				DijkstraEntry prev = current.prev;
 				if(prev==null) {
 					current = prev;
 					continue;
 				}
-				if(current.line!=null) {
-					e.lines.add(current.line.trip.route.id);
-					trips.add(current.line.trip.tripID);
+				if(current.ptConnection!=null) {
+					e.lines.add(current.ptConnection.trip.route.id);
+					trips.add(current.ptConnection.trip.tripID);
 				} else {
 					e.lines.add(current.usedMode.mml);
 				}
-				if( (prev.line==null&&current.line==null) || (prev.line!=null && current.line!=null && prev.line.trip.equals(current.line.trip)) ) {
+				if( (prev.ptConnection==null&&current.ptConnection==null) || (prev.ptConnection!=null && current.ptConnection!=null && prev.ptConnection.trip.equals(current.ptConnection.trip)) ) {
 					current = prev;
 					continue;
 				}
 				addStep(e, step, dist, tt);
 				tt = 0;
 				dist = 0;
-				if(prev.line==null) {
+				if(prev.ptConnection==null) {
 					// foot->pt; 
 					step = 2; // either interchange or access 
-					double waitingTime = current.line.getWaitingTime(beginTime + prev.tt);
+					double waitingTime = current.ptConnection.getWaitingTime(beginTime + prev.tt);
 					e.weightedWaitingTime += waitingTime;
 					e.weightedInitialWaitingTime = waitingTime;
 				} else {
 					// pt->foot|pt
-					if(current.line!=null) {
+					if(current.ptConnection!=null) {
 						// change from pt to pt
-						double waitingTime = current.line.getWaitingTime(beginTime + prev.tt);
+						double waitingTime = current.ptConnection.getWaitingTime(beginTime + prev.tt);
 						e.weightedWaitingTime += waitingTime;
 						e.weightedInitialWaitingTime = waitingTime;
 					}
@@ -118,14 +122,14 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 				}
 				current = prev;
 			} while(current!=null);
-			current = dr.getEdgeInfo(to.edge);
+			current = result.path;//.getPath(to);//dr.getEdgeInfo(to.edge);
 			double firstTT = current.first.ttt;
 			if(current.first.wasOpposite) {
-				dist -= (from.edge.length - from.pos);
-				tt -= (firstTT - firstTT * (from.pos / from.edge.length));
+				dist -= (from.edge.getLength() - from.pos);
+				tt -= (firstTT - firstTT * (from.pos / from.edge.getLength()));
 			} else {
 				dist -= from.pos;
-				tt -= (firstTT * (from.pos / from.edge.length));
+				tt -= (firstTT * (from.pos / from.edge.getLength()));
 			}
 		}
 		if(step!=4 && dist>0 && tt>0) {
@@ -164,12 +168,12 @@ public class PTODMeasuresGenerator extends MeasurementGenerator<PTODSingleResult
 	
 	/**
 	 * @brief Builds an empty entry of type ODSingleStatsResult
-	 * @param srcID The id of the origin the path started at
+	 * @param originID The id of the origin the path started at
 	 * @param destID The id of the destination accessed by this path
 	 * @return An empty entry type ODSingleStatsResult
 	 */
-	public PTODSingleResult buildEmptyEntry(long srcID, long destID) {
-		return new PTODSingleResult(srcID, destID);
+	public PTODSingleResult buildEmptyEntry(long originID, long destID) {
+		return new PTODSingleResult(originID, destID);
 	}
 
 	

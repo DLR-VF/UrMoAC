@@ -1,19 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# =============================================================================
-# osmdb_buildStructures.py
-#
-# Author: Daniel Krajzewicz, Simon Nieland
-# Date:   01.04.2016
-#
-# This file is part of the "UrMoAC" accessibility tool
-# https://github.com/DLR-VF/UrMoAC
-# Licensed under the Eclipse Public License 2.0
-#
-# Copyright (c) 2016-2024 Institute of Transport Research,
-#                         German Aerospace Center
-# All rights reserved.
-# =============================================================================
+from __future__ import print_function
+# ===========================================================================
 """Builds a table with defined structures (not the network) using an 
 OSM-database representation.
 
@@ -24,10 +12,24 @@ where <INPUT_TABLES_PREFIX> is defined as:
 and <OUTPUT_TABLE> is defined as:
   <HOST>,<DB>,<SCHEMA>,<NAME>,<USER>,<PASSWD>  
 """
-# =============================================================================
+# ===========================================================================
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright 2016-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__credits__    = ["Daniel Krajzewicz"]
+__license__    = "EPL 2.0"
+__version__    = "0.8.0"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Production"
+# ===========================================================================
+# - https://github.com/DLR-VF/UrMoAC
+# - https://www.dlr.de/vf
+# ===========================================================================
 
-# --- imported modules --------------------------------------------------------
-import sys, os
+
+# --- imports ---------------------------------------------------------------
+import sys
+import os
 import psycopg2
 import datetime
 import math
@@ -40,19 +42,7 @@ from wkt import *
 from geom_helper import *
 
 
-# --- meta --------------------------------------------------------------------
-__author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright (c) 2016-2024 Institute of Transport Research, German Aerospace Center"
-__credits__    = [ "Daniel Krajzewicz" ]
-__license__    = "EPL2.0"
-__version__    = "0.8"
-__maintainer__ = "Daniel Krajzewicz"
-__email__      = "daniel.krajzewicz@dlr.de"
-__status__     = "Development"
-
-
-
-# --- data definitions --------------------------------------------------------
+# --- data definitions ------------------------------------------------------
 """A map from a data type to the respective tags"""
 subtype2tag = {
     "node": "ntag",
@@ -61,7 +51,7 @@ subtype2tag = {
 }
 
 
-# --- class definitions -------------------------------------------------------
+# --- class definitions -----------------------------------------------------
 class OSMExtractor:
     """A class for extracting defined structures from OSM
   
@@ -193,7 +183,7 @@ class OSMExtractor:
             #  print ("%s %s" % (subtype, o))
         # scan for duplicates
         print ("Scanning for duplicates")
-        have_next = 0
+        next_id = 0
         seenIDs = set()
         for subtype in ["node", "way", "rel"]:
             for id in self._objectIDs[subtype]:
@@ -202,14 +192,14 @@ class OSMExtractor:
                     continue
                 pid = id
                 while True:
-                    id = have_next
-                    have_next += 1
+                    id = next_id
+                    next_id += 1
                     if id not in seenIDs:
                         seenIDs.add(id)
-                        self._idMapping[subtype][id] = pid
+                        self._idMapping[subtype][pid] = id
                         print (" Found duplicate id '%s'. Renaming %s to '%s'." % (pid, subtype, id))
                         break
-   
+        print (self._objectIDs)
    
    
     
@@ -326,7 +316,7 @@ class OSMExtractor:
         if len(entries)==0:
             return
         args = ','.join(cursor.mogrify("(%s, %s, ST_GeomFromText(%s, 4326), ST_GeomFromText(%s, 4326), ST_Centroid(ST_ConvexHull(ST_GeomFromText(%s, 4326))))", i).decode('utf-8') for i in entries)
-        cursor.execute("INSERT INTO %s.%s(gid, type, polygon, geom_collection, centroid) VALUES " % (schema, name) + (args))
+        cursor.execute("INSERT INTO %s.%s(id, type, polygon, geom_collection, centroid) VALUES " % (schema, name) + (args))
         conn.commit()
         del entries[:]
         
@@ -427,7 +417,7 @@ class OSMExtractor:
                     fd.write("%s;%s;%s\n" % (type, self._idMapping[type][id], id))
 
 
-# --- function definitions ----------------------------------------------------
+# --- function definitions --------------------------------------------------
 # --- main
 def main(srcdb, deffile, dstdb):       
     t1 = datetime.datetime.now()
@@ -455,7 +445,7 @@ def main(srcdb, deffile, dstdb):
     cursor2 = conn2.cursor()
     # --- build tables
     cursor2.execute("DROP TABLE IF EXISTS %s.%s" % (schema, name))
-    cursor2.execute("CREATE TABLE %s.%s ( gid bigint, type varchar(4) );" % (schema, name))
+    cursor2.execute("CREATE TABLE %s.%s ( id bigint, type varchar(4) );" % (schema, name))
     cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'centroid', 4326, 'POINT', 2);" % (schema, name))
     cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'polygon', 4326, 'MULTIPOLYGON', 2);" % (schema, name))
     cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'geom_collection', 4326, 'GEOMETRYCOLLECTION', 2);" % (schema, name))

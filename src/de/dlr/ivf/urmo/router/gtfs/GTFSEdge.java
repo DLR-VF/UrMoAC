@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -34,7 +37,7 @@ import de.dlr.ivf.urmo.router.shapes.DBNode;
  * This class is a subclass of DBEdge (a usual transport network edge),
  * mainly extended by operating types and accordingly changed travel time
  * function.
- * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class GTFSEdge extends DBEdge {
 	/// @brief The route that realises this connection
@@ -45,7 +48,6 @@ public class GTFSEdge extends DBEdge {
 
 	/**
 	 * @brief Constructor
-	 * @param _numID A numerical id of the edge (internal, used?!!!)
 	 * @param _id The id of the edge as given in the db
 	 * @param _from A reference to the node this edge starts at (A GTFStop instance)
 	 * @param _to A reference to the node this edge ends at (A GTFStop instance)
@@ -55,9 +57,9 @@ public class GTFSEdge extends DBEdge {
 	 * @param _length The length of this edge
 	 * @param _route The route that realises this connection between two nodes
 	 */
-	public GTFSEdge(long _numID, String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom,
+	public GTFSEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom,
 			double _length, GTFSRoute _route) {
-		super(_numID, _id, _from, _to, _modes, _vmax, _geom, _length);
+		super(_id, _from, _to, _modes, _vmax, _geom, _length);
 		route = _route;
 	}
 
@@ -131,7 +133,7 @@ public class GTFSEdge extends DBEdge {
 	 */
 	@Override
 	public double getCO2(Mode usedMode) {
-		return Modes.getMode("bus").co2PerKm / 1000 * length;
+		return Modes.getMode("bus").co2PerKm / 1000 * getLength();
 	}
 
 		

@@ -1,45 +1,37 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# =============================================================================
-# osm2db.py
-#
-# Author: Daniel Krajzewicz
-# Date:   01.04.2016
-#
-# This file is part of the "UrMoAC" accessibility tool
-# https://github.com/DLR-VF/UrMoAC
-# Licensed under the Eclipse Public License 2.0
-#
-# Copyright (c) 2016-2024 Institute of Transport Research,
-#                         German Aerospace Center
-# All rights reserved.
-# =============================================================================
+from __future__ import print_function
+# ===========================================================================
 """Imports an OSM-file into the database.
 
 Call with
    osm2db.py <HOST>,<DB>,<SCHEMA>.<PREFIX>,<USER>,<PASSWD> <FILE>"""
-# =============================================================================
+# ===========================================================================
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright 2016-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__credits__    = ["Daniel Krajzewicz"]
+__license__    = "EPL 2.0"
+__version__    = "0.8.0"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Production"
+# ===========================================================================
+# - https://github.com/DLR-VF/UrMoAC
+# - https://www.dlr.de/vf
+# ===========================================================================
 
-# --- imported modules --------------------------------------------------------
-import os, string, sys
+
+# --- imports ---------------------------------------------------------------
+import os
+import string
+import sys
 import datetime
 from xml.sax import saxutils, make_parser, handler
 import psycopg2
 import osm
 
 
-# --- meta --------------------------------------------------------------------
-__author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright (c) 2016-2024 Institute of Transport Research, German Aerospace Center"
-__credits__    = [ "Daniel Krajzewicz" ]
-__license__    = "EPL2.0"
-__version__    = "0.8"
-__maintainer__ = "Daniel Krajzewicz"
-__email__      = "daniel.krajzewicz@dlr.de"
-__status__     = "Development"
-
-
-# --- class definitions -------------------------------------------------------
+# --- class definitions -----------------------------------------------------
 # --- OSMReader
 class OSMReader(handler.ContentHandler):
     """A reader that parses an OSM XML file and writes it to a database."""
@@ -191,7 +183,7 @@ class OSMReader(handler.ContentHandler):
         self._relations = []
     
 
-# --- function definitions ----------------------------------------------------
+# --- function definitions --------------------------------------------------
 # --- main 
 def osm2db(db_def, input_file):
     """Main method

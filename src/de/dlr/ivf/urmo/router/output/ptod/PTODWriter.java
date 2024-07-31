@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -25,7 +28,7 @@ import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
 /**
  * @class PTODWriter
  * @brief Writes PTODSingleResult results to a database / file
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class PTODWriter extends AbstractResultsWriter<PTODSingleResult> {
 	/// @brief Counter of results added to the database / file so far
@@ -37,7 +40,7 @@ public class PTODWriter extends AbstractResultsWriter<PTODSingleResult> {
 	 * 
 	 * Opens the connection to a PostGIS database and builds the table
 	 * @param format The used format
-	 * @param inputParts The definition of the input/output source/destination
+	 * @param inputParts The definition of the input/output origin/destination
 	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
 	 * @throws IOException When something fails
@@ -53,10 +56,10 @@ public class PTODWriter extends AbstractResultsWriter<PTODSingleResult> {
 
 	/** @brief Get the insert statement string
 	 * @param[in] format The used output format
-	 * @param[in] rsid The used projection
+	 * @param[in] epsg The used projection
 	 * @return The insert statement string
 	 */
-	protected String getInsertStatement(Utils.Format format, int rsid) {
+	protected String getInsertStatement(Utils.Format format, int epsg) {
 		return "VALUES (?, ?,  ?, ?,  ?, ?, ?, ?,  ?, ?, ?, ?,  ?, ?, ?, ?, ?)";
 	}
 
@@ -70,7 +73,7 @@ public class PTODWriter extends AbstractResultsWriter<PTODSingleResult> {
 	public void writeResult(PTODSingleResult result) throws IOException {
 		if (intoDB()) {
 			try {
-				_ps.setLong(1, result.srcID);
+				_ps.setLong(1, result.originID);
 				_ps.setLong(2, result.destID);
 				_ps.setFloat(3, (float) result.weightedDistance);
 				_ps.setFloat(4, (float) result.weightedTravelTime);
@@ -97,7 +100,7 @@ public class PTODWriter extends AbstractResultsWriter<PTODSingleResult> {
 				throw new IOException(ex);
 			}
 		} else {
-			_fileWriter.append(result.srcID + ";" + result.destID + ";" 
+			_fileWriter.append(result.originID + ";" + result.destID + ";" 
 					+ String.format(Locale.US, _FS, result.weightedDistance) + ";" 
 					+ String.format(Locale.US, _FS, result.weightedTravelTime) + ";"
 					+ String.format(Locale.US, _FS, result.weightedAccessDistance) + ";" 

@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -28,14 +31,12 @@ import de.dlr.ivf.urmo.router.modes.Mode;
 /**
  * @class DBEdge
  * @brief An edge in the transportation network
- * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of
- *         Transport Research
+ * @author Daniel Krajzewicz
  */
 public class DBEdge {
 	/**
 	 * @class V
 	 * @bried The information about the speed at this edge during an interval
-	 * @author dkrajzew
 	 */
 	class V {
 		/**
@@ -64,7 +65,6 @@ public class DBEdge {
 	
 	/**
 	 * @brief Compares intervals for sorting them in time
-	 * @author dkrajzew
 	 */
 	class VComparator implements Comparator<V> {
 		/**
@@ -81,35 +81,32 @@ public class DBEdge {
 	
 	
 	
-	/// @brief A numerical id of the edge (internal, used?!!!)
-	public long numID;
 	/// @brief The id of the edge as given in the db
-	public String id;
+	private String id;
 	/// @brief A reference to the node this edge starts at (A GTFStop instance)
-	public DBNode from;
+	private DBNode from;
 	/// @brief A reference to the node this edge ends at (A GTFStop instance)
-	public DBNode to;
+	private DBNode to;
 	/// @brief The allowed modes of transport
-	public long modes;
+	private long modes;
 	/// @brief The maximum velocity allowed at this edge
-	public double vmax;
+	private double vmax;
 	/// @brief The geometry of this edge
-	public LineString geom;
+	private LineString geom;
 	/// @brief The length of this edge
-	public double length;
+	private double length;
 	/// @brief Objects assigned to this edge
-	public HashSet<EdgeMappable> objects = null;
+	private HashSet<EdgeMappable> objects = null;
 	/// @brief The list of travel time informations for this edge
-	public Vector<V> speeds = null;
+	private Vector<V> speeds = null;
 	/// @brief The sum of attached values
-	public double attachedValuesSum = 0;
+	private double attachedValuesSum = 0;
 	/// @brief The opposite direction
-	public DBEdge opposite = null;
+	private DBEdge opposite = null;
 
 
 	/**
 	 * @brief Constructor
-	 * @param _numID A numerical id of the edge (internal, used?!!!)
 	 * @param _id The id of the edge as given in the db
 	 * @param _from A reference to the node this edge starts at (A GTFStop instance)
 	 * @param _to A reference to the node this edge ends at (A GTFStop instance)
@@ -118,9 +115,7 @@ public class DBEdge {
 	 * @param _geom The geometry of this edge
 	 * @param _length The length of this edge
 	 */
-	public DBEdge(long _numID, String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom,
-			double _length) {
-		numID = _numID;
+	public DBEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length) {
 		id = _id;
 		from = _from;
 		to = _to;
@@ -130,6 +125,18 @@ public class DBEdge {
 		length = _length;
 		_from.addOutgoing(this);
 		_to.addIncoming(this);
+	}
+
+
+	/**
+	 * @brief Returns the node this edge starts at
+	 * @return This edge's starting node
+	 */
+	public void setOppositeEdge(DBEdge e) {
+		if(opposite!=null&&opposite!=e) {
+			throw new RuntimeException("opposite edge set twice"); // !!!
+		}
+		opposite = e;
 	}
 
 
@@ -161,6 +168,24 @@ public class DBEdge {
 
 
 	/**
+	 * @brief Returns the modes allowed on this edge
+	 * @return The modes allowed on this edge
+	 */
+	public long getModes() {
+		return modes;
+	}
+
+
+	/**
+	 * @brief Returns the speed allowed on this edge
+	 * @return The speed allowed on this edge
+	 */
+	public double getVMax() {
+		return vmax;
+	}
+
+
+	/**
 	 * @brief Returns this edge's id
 	 * @return This edge's id
 	 */
@@ -175,6 +200,15 @@ public class DBEdge {
 	 */
 	public LineString getGeometry() {
 		return geom;
+	}
+
+
+	/**
+	 * @brief Returns this edge's opposite edge
+	 * @return This edge's opposite edge
+	 */
+	public DBEdge getOppositeEdge() {
+		return opposite;
 	}
 
 
@@ -350,6 +384,27 @@ public class DBEdge {
 	 */
 	public void addMode(long mode) {
 		modes |= mode;
+	}
+
+
+	public void adapt(DBEdge e) {
+		// geometry is same...
+		modes = modes | e.modes;
+		vmax = Math.max(vmax, e.vmax);
+	}
+
+
+	public double maxDistanceTo(DBEdge e) {
+		double maxDistance = 0;
+		LineString eg = e.getGeometry();
+		for(int i=0; i<eg.getNumPoints(); ++i) {
+			maxDistance = Math.max(maxDistance, getGeometry().distance(eg.getPointN(i)));
+		}
+		eg = getGeometry();
+		for(int i=0; i<eg.getNumPoints(); ++i) {
+			maxDistance = Math.max(maxDistance, e.getGeometry().distance(eg.getPointN(i)));
+		}
+		return maxDistance;
 	}
 
 }

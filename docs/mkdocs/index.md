@@ -3,7 +3,7 @@
 [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.79406006-blue)](https://doi.org/10.5281/zenodo.7940600)
 [![Documentation Status](https://readthedocs.org/projects/urmoac/badge/?version=latest)](https://urmoac.readthedocs.io/en/latest/?badge=latest)
 
-&ldquo;Urban Mobility Accessibility Computer&rdquo; or &ldquo;UrMoAC&rdquo; is a tool for computing accessibility measures, supporting aggregation, variable limits, and intermodality. It is a scientific tool.
+&ldquo;Urban Mobility Accessibility Computer&rdquo; or &ldquo;UrMoAC&rdquo; is a tool for computing accessibility measures, supporting aggregation, variable limits, and intermodal paths. It is a scientific tool.
 
 While a large variety of accessibility measures exists, the tool computes only so-called &ldquo;contour measures&rdquo;. Basically, contour measures describe how many activity places can be accessed starting at a given location within a given amount of time. Even though the tool includes different limits and options, the computed measures still belong to the class of contour measures.
 
@@ -25,7 +25,7 @@ The tool has been developed at the [Institute of Transport Research](http://www.
 
 Its methods are comprehensively described in [[1]](Publications.md#1), yet this document might be outdated. We hope to include further documentation at these pages.
 
-Please note that this documentation describes the github-version (master branch) of this tool. It may differ from the past release. We highly advice you to use one of the past, stable releases. A documentation should be included.
+<norelease>Please note that this documentation describes the github-version (master branch) of this tool. It may differ from the past release. We highly advice you to use one of the past, stable releases. A documentation should be included.</norelease>
 
 **When using it, you should cite it as:**
 

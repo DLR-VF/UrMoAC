@@ -1,26 +1,27 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# =============================================================================
-# osmdb_buildWays.py
-#
-# Author: Daniel Krajzewicz, Simon Nieland
-# Date:   01.04.2016
-#
-# This file is part of the "UrMoAC" accessibility tool
-# https://github.com/DLR-VF/UrMoAC
-# Licensed under the Eclipse Public License 2.0
-#
-# Copyright (c) 2016-2024 Institute of Transport Research,
-#                         German Aerospace Center
-# All rights reserved.
-# =============================================================================
+from __future__ import print_function
+# ===========================================================================
 """Builds an road network table using  an OSM-database representation.
 
 Call with
   osmdb_buildWays <HOST>,<DB>,<SCHEMA>.<PREFIX>,<USER>,<PASSWD>"""
-# =============================================================================
+# ===========================================================================
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright 2016-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__credits__    = ["Daniel Krajzewicz"]
+__license__    = "EPL 2.0"
+__version__    = "0.8.0"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Production"
+# ===========================================================================
+# - https://github.com/DLR-VF/UrMoAC
+# - https://www.dlr.de/vf
+# ===========================================================================
 
-# --- imported modules --------------------------------------------------------
+
+# --- imports ---------------------------------------------------------------
 import os, string, sys, io
 import datetime
 from xml.sax import saxutils, make_parser, handler
@@ -28,19 +29,7 @@ import psycopg2, osmdb
 from osmmodes import *
 
 
-# --- meta --------------------------------------------------------------------
-__author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright (c) 2016-2024 Institute of Transport Research, German Aerospace Center"
-__credits__    = [ "Daniel Krajzewicz" ]
-__license__    = "EPL2.0"
-__version__    = "0.8"
-__maintainer__ = "Daniel Krajzewicz"
-__email__      = "daniel.krajzewicz@dlr.de"
-__status__     = "Development"
-
-
-
-# --- class definitions -------------------------------------------------------
+# --- class definitions -----------------------------------------------------
 class Params:
     """Stores the parameter of a OSM-object and controls their usage."""
     
@@ -98,7 +87,7 @@ class Params:
 
 
 
-# --- function definitions ----------------------------------------------------
+# --- function definitions --------------------------------------------------
 def parse_point(which):
     """Parses and returns a single position
     :param which: The wkt-description of the position
@@ -187,7 +176,7 @@ def commit_roads(conn, cursor, schema, dbprefix):
             mode_mit = 't'
         else:
             mode_mit = 'f'
-        cursor.execute("INSERT INTO %s.%s_network(oid, nodefrom, nodeto, numlanes, length, vmax, street_type, capacity, mode_walk, mode_bike, mode_pt, mode_mit, modes, nodes, sidewalk, cycleway, surface, lit, name, the_geom) VALUES('%s', %s, %s, %s, %s, %s, '%s', -1, '%s', '%s', '%s', '%s', %s, '{%s}', '%s', '%s', '%s', '%s', '%s', ST_GeomFromText('MULTILINESTRING((%s))', 4326))" % (schema, dbprefix, sr["id"], sr["fromNode"], sr["toNode"], sr["lanes"], -1, sr["vmax"], sr["osm_type"], mode_ped, mode_bic, mode_pt, mode_mit, sr["modes"], sr["nodes"], sr["sidewalk"], sr["cycleway"], sr["surface"], sr["lit"], sr["name"], sr["shape"]))
+        cursor.execute("INSERT INTO %s.%s_network(oid, nodefrom, nodeto, numlanes, length, vmax, street_type, capacity, mode_walk, mode_bike, mode_pt, mode_mit, modes, nodes, sidewalk, cycleway, surface, lit, name, geom) VALUES('%s', %s, %s, %s, %s, %s, '%s', -1, '%s', '%s', '%s', '%s', %s, '{%s}', '%s', '%s', '%s', '%s', '%s', ST_GeomFromText('MULTILINESTRING((%s))', 4326))" % (schema, dbprefix, sr["id"], sr["fromNode"], sr["toNode"], sr["lanes"], -1, sr["vmax"], sr["osm_type"], mode_ped, mode_bic, mode_pt, mode_mit, sr["modes"], sr["nodes"], sr["sidewalk"], sr["cycleway"], sr["surface"], sr["lit"], sr["name"], sr["shape"]))
     conn.commit()
     del storedRoads[:]
 
@@ -515,7 +504,7 @@ def main(srcdb):
         name text,
         slope real    
     );""" % (schema, prefix))
-    cursor.execute("""SELECT AddGeometryColumn('%s', '%s_network', 'the_geom', 4326, 'MULTILINESTRING', 2);""" % (schema, prefix))
+    cursor.execute("""SELECT AddGeometryColumn('%s', '%s_network', 'geom', 4326, 'MULTILINESTRING', 2);""" % (schema, prefix))
     conn.commit()
 
     # get roads and railroads with some typical classes
@@ -655,7 +644,7 @@ def main(srcdb):
             if len(storedRoads)>10000:
                 commit_roads(db._conn, db._cursor, schema, prefix)
     commit_roads(db._conn, db._cursor, schema, prefix)
-    cursor.execute("UPDATE %s.%s_network SET length=ST_Length(the_geom::geography);" % (schema, prefix))
+    cursor.execute("UPDATE %s.%s_network SET length=ST_Length(geom::geography);" % (schema, prefix))
     conn.commit()
     fdo1.close()
     fdo2.close()

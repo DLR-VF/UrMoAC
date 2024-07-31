@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -17,7 +20,6 @@ package de.dlr.ivf.urmo.router.output;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -33,8 +35,8 @@ import de.dlr.ivf.urmo.router.shapes.DBEdge;
 
 /**
  * @class EdgeMappingWriter
- * @brief Writes the results of the mapping of sources / destinations to edges
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @brief Writes the results of the mapping of origins / destinations to edges
+ * @author Daniel Krajzewicz
  */
 public class EdgeMappingWriter extends BasicCombinedWriter {
 	/**
@@ -42,28 +44,27 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 	 * 
 	 * Opens the connection to a PostGIS database and builds the table
 	 * @param format The used format
-	 * @param inputParts The definition of the input/output source/destination
+	 * @param inputParts The definition of the input/output origin/destination
 	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
-	 * @param rsid The RSID to use
+	 * @param epsg The EPSG to use
 	 * @throws IOException When something fails
 	 */
 	public EdgeMappingWriter(Utils.Format format, String[] inputParts, int precision, 
-			boolean dropPrevious, int rsid) throws IOException {
-		super(format, inputParts, "X-to-road-output", precision, dropPrevious, 
-				"(gid bigint, rid text, rpos real, dist real)");
-		addGeometryColumn("conn", rsid, "LINESTRING", 2);
+			boolean dropPrevious, int epsg) throws IOException {
+		super(format, inputParts, "X-to-road-output", precision, dropPrevious, "(id bigint, rid text, rpos real, dist real)");
+		addGeometryColumn("conn", epsg, "LINESTRING", 2);
 	}
 
 
 	/** @brief Get the insert statement string
 	 * @param[in] format The used output format
-	 * @param[in] rsid The used projection
+	 * @param[in] epsg The used projection
 	 * @return The insert statement string
 	 */
-	protected String getInsertStatement(Utils.Format format, int rsid) {
+	protected String getInsertStatement(Utils.Format format, int epsg) {
 		if(format==Utils.Format.FORMAT_POSTGRES) {
-			return "VALUES (?, ?, ?, ?, ST_GeomFromText(?, " + rsid + "))";
+			return "VALUES (?, ?, ?, ?, ST_GeomFromText(?, " + epsg + "))";
 		}
 		return "VALUES (?, ?, ?, ?, ?)";
 	}
@@ -92,12 +93,15 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 	                return i1 > i2 ? 1 : i1 < i2 ? -1 : 0;
 	            }});
 			for (MapResult o : ress) {
+				if(o.onOpposite) {
+					continue;
+				}
 				PointPairDistance ppd = new PointPairDistance();
-				DistanceToPointFinder.computeDistance(e.geom, o.em.getPoint().getCoordinate(), ppd);
+				DistanceToPointFinder.computeDistance(e.getGeometry(), o.em.getPoint().getCoordinate(), ppd);
 				if (intoDB()) {
 					try {
 						_ps.setLong(1, o.em.getOuterID());
-						_ps.setString(2, e.id);
+						_ps.setString(2, e.getID());
 						_ps.setFloat(3, (float) o.pos);
 						_ps.setFloat(4, (float) o.dist);
 						String p1 = ppd.getCoordinate(0).x + " " + ppd.getCoordinate(0).y;
@@ -108,7 +112,7 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 						throw new IOException(ex);
 					}
 				} else {
-					_fileWriter.append(o.em.getOuterID() + ";" + e.id + ";" 
+					_fileWriter.append(o.em.getOuterID() + ";" + e.getID() + ";" 
 							+ String.format(Locale.US, _FS, o.pos) + ";" 
 							+ String.format(Locale.US, _FS, o.dist) + ";" 
 							+ String.format(Locale.US, _FS, ppd.getCoordinate(0).x) + ";" 
@@ -120,22 +124,5 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 		}
 	}
 	
-	
-	/**
-	 * @brief Adds a comment to the database
-	 * @param comment The comment to add
-	 * @throws IOException When something fails
-	 */
-	public void addComment(String comment) throws IOException {
-		if (_allowsComments) {
-			try {
-				String sql = "COMMENT ON TABLE " + _tableName + " IS '" + comment + "';";
-				Statement s = _connection.createStatement();
-				s.executeUpdate(sql);
-			} catch (SQLException ex) {
-				throw new IOException(ex);
-			}
-		}
-	}
 
 }

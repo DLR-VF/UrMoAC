@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -17,17 +20,17 @@ package de.dlr.ivf.urmo.router.output;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraEntry;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
+import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
 /**
  * @class AbstractSingleResult
  * @brief The base class for routing results' interpretations
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public abstract class AbstractSingleResult {
 	/// @brief The id of the origin the represented trip starts at
-	public long srcID;
+	public long originID;
 	/// @brief The id of the destination the represented trip ends at
 	public long destID;
 	/// @brief The overall distance of this trip
@@ -36,17 +39,19 @@ public abstract class AbstractSingleResult {
 	public double tt = 0;
 	/// @brief The value collected at this trip (at the destination)
 	public double val = 0;
+	/// @brief The path between the origin and the destination
+	public DijkstraEntry toEdgeEntry = null;
 	
 	
 	/**
 	 * @brief Constructor 
 	 * 
 	 * Generates an empty entry.
-	 * @param _srcID The id of the origin the represented trip starts at
+	 * @param _originID The id of the origin the represented trip starts at
 	 * @param _destID The id of the destination the represented trip ends at
 	 */
-	public AbstractSingleResult(long _srcID, long _destID) {
-		srcID = _srcID;
+	public AbstractSingleResult(long _originID, long _destID) {
+		originID = _originID;
 		destID = _destID;
 	}
 	
@@ -55,63 +60,17 @@ public abstract class AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Computes the distance and the travel time
-	 * @param _srcID The id of the origin the represented trip starts at
-	 * @param _destID The id of the destination the represented trip ends at
-	 * @param from The mapped source
-	 * @param to The mapped destination
-	 * @param dr The path between the source and the destination
+	 * @param dr The path between the origin and the destination
 	 */
-	public AbstractSingleResult(long _srcID, long _destID, MapResult from, MapResult to, DijkstraResult dr) {
-		srcID = _srcID;
-		destID = _destID;
-
-		DijkstraEntry toEdgeEntry = dr.getEdgeInfo(to.edge);
+	public AbstractSingleResult(SingleODResult result) {
+		MapResult from = result.origin;
+		MapResult to = result.destination;
+		originID = ((LayerObject) from.em).getOuterID();
+		destID = ((LayerObject) to.em).getOuterID();
+		dist = result.dist;
+		tt = result.tt;
 		val = ((LayerObject) from.em).getAttachedValue();
-		double firstTT = toEdgeEntry.first.ttt;
-		if(from.edge==to.edge) {
-			tt = firstTT;
-			if(from.pos>to.pos) {
-				dist = from.pos - to.pos;
-			} else {
-				dist = to.pos - from.pos;				
-			}
-			tt = tt / to.edge.length * dist;
-		} else if(from.edge.opposite==to.edge) {
-			tt = firstTT;
-			if(from.pos>(to.edge.length - to.pos)) {
-				dist = from.pos - (to.edge.length - to.pos);
-			} else {
-				dist = (to.edge.length - to.pos) - from.pos;				
-			}
-			tt = tt / to.edge.length * dist;
-		} else {
-			dist = toEdgeEntry.distance;
-			tt = toEdgeEntry.tt;
-			if(toEdgeEntry.first.e==from.edge.opposite) {
-				dist -= (from.edge.length - from.pos);
-				tt -= (firstTT - firstTT * from.pos / from.edge.length);
-			} else {
-				dist -= from.pos;
-				tt -= (firstTT * from.pos / from.edge.length);
-			}
-			if(toEdgeEntry.wasOpposite) {
-				dist -= to.pos;
-				tt -= toEdgeEntry.ttt * to.pos / to.edge.length;
-			} else {
-				dist -= (to.edge.length - to.pos);
-				tt -= (toEdgeEntry.ttt - toEdgeEntry.ttt * (to.pos / to.edge.length));
-			}
-		}
-		if(dist<0&&dist>-.1) {
-			dist = 0;
-		}
-		if(tt<0&&tt>-.1) {
-			tt = 0;
-		}
-		
-		if(dist<0||tt<0) {
-			System.err.println("Negative distance or travel time occured between '" + from.em.getOuterID() + "' to '" + to.em.getOuterID() + "'.");
-		}
+		toEdgeEntry = result.path;
 	}
 	
 	
@@ -124,10 +83,10 @@ public abstract class AbstractSingleResult {
 	
 	/**
 	 * @brief Norms the computed measures
-	 * @param numSources The number of sources
-	 * @param sourcesWeight The sum of the sources' weights
+	 * @param numOrigins The number of origins
+	 * @param originsWeight The sum of the origins' weights
 	 * @return The normed result
 	 */
-	public abstract AbstractSingleResult getNormed(int numSources, double sourcesWeight);
+	public abstract AbstractSingleResult getNormed(int numOrigins, double originsWeight);
 	
 }

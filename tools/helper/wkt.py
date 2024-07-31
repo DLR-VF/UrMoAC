@@ -1,38 +1,28 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# =============================================================================
-# wkt.py
-#
-# Author: Daniel Krajzewicz
-# Date:   23.06.2022
-#
-# This file is part of the "UrMoAC" accessibility tool
-# https://github.com/DLR-VF/UrMoAC
-# Licensed under the Eclipse Public License 2.0
-#
-# Copyright (c) 2022-2024 Institute of Transport Research,
-#                         German Aerospace Center
-# All rights reserved.
-# =============================================================================
+from __future__ import print_function
+# ===========================================================================
 """Defines geometry objects and parses WKT."""
-# =============================================================================
+# ===========================================================================
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright 2022-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__credits__    = ["Daniel Krajzewicz"]
+__license__    = "EPL 2.0"
+__version__    = "0.8.0"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Production"
+# ===========================================================================
+# - https://github.com/DLR-VF/UrMoAC
+# - https://www.dlr.de/vf
+# ===========================================================================
 
-# --- imported modules --------------------------------------------------------
+
+# --- imports ---------------------------------------------------------------
 from enum import IntEnum
 
 
-# --- meta --------------------------------------------------------------------
-__author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright (c) 2022-2024 Institute of Transport Research, German Aerospace Center"
-__credits__    = [ "Daniel Krajzewicz" ]
-__license__    = "EPL2.0"
-__version__    = "0.8"
-__maintainer__ = "Daniel Krajzewicz"
-__email__      = "daniel.krajzewicz@dlr.de"
-__status__     = "Development"
-
-
-# --- enum definitions --------------------------------------------------------
+# --- enum definitions ------------------------------------------------------
 class GeometryType(IntEnum):
     """An enumeration of known geometry types"""
     POINT = 0
@@ -43,7 +33,7 @@ class GeometryType(IntEnum):
     GEOMETRYCOLLECTION = 5
 
 
-# --- method definitions ------------------------------------------------------
+# --- method definitions ----------------------------------------------------
 def patchify(polys, **kwargs):
     """Returns a matplotlib patch representing the polygon with holes.
 
@@ -123,7 +113,7 @@ def encode_complex_polygon(polys, close):
 
 
 
-# --- class definitions -------------------------------------------------------
+# --- class definitions -----------------------------------------------------
 class Geometry:
     """An abstract geometry"""
 
@@ -327,7 +317,7 @@ class MultiPolygon(Geometry):
         return bounds
 
     
-# --- function definitions ----------------------------------------------------
+# --- function definitions --------------------------------------------------
 def parse_POINT2D(which):
     """Parses the given geometry assuming it's a 2D POINT
     

@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -18,20 +21,18 @@ package de.dlr.ivf.urmo.router.output.interchanges;
 import java.util.HashMap;
 import java.util.Map;
 
-import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
+import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.output.AbstractSingleResult;
 
 /**
  * @class InterchangeSingleResult
  * @brief Interchanges usage interpretation of a route 
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class InterchangeSingleResult extends AbstractSingleResult {
 	/**
 	 * @class InterchangeParam
 	 * @brief Statistics about using an interchange
-	 * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
 	 */
 	class InterchangeParam {
 		/// @brief The number of interchanges of this type
@@ -40,7 +41,7 @@ public class InterchangeSingleResult extends AbstractSingleResult {
 		double weightedTT = 0;
 	}
 	
-	/// @brief A mpa from halt ID to (from, to, number, tt)
+	/// @brief A map from halt ID to (from, to, number, tt)
 	public Map<String, Map<String, InterchangeParam>> stats = new HashMap<>(); 
 	
 	
@@ -48,11 +49,11 @@ public class InterchangeSingleResult extends AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Generates an empty entry.
-	 * @param srcID The id of the origin the represented trip starts at
+	 * @param originID The id of the origin the represented trip starts at
 	 * @param destID The id of the destination the represented trip ends at
 	 */
-	public InterchangeSingleResult(long srcID, long destID) {
-		super(srcID, destID);
+	public InterchangeSingleResult(long originID, long destID) {
+		super(originID, destID);
 	}
 	
 	
@@ -60,14 +61,10 @@ public class InterchangeSingleResult extends AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Computes the distance and the travel time
-	 * @param srcID The id of the origin the represented trip starts at
-	 * @param destID The id of the destination the represented trip ends at
-	 * @param from The mapped source
-	 * @param to The mapped destination
-	 * @param dr The path between the source and the destination
+	 * @param result The processed path between the origin and the destination
 	 */
-	public InterchangeSingleResult(long srcID, long destID, MapResult from, MapResult to, DijkstraResult dr) {
-		super(srcID, destID, from, to, dr);
+	public InterchangeSingleResult(SingleODResult result) {
+		super(result);
 	}
 	
 	
@@ -97,13 +94,13 @@ public class InterchangeSingleResult extends AbstractSingleResult {
 	
 	/**
 	 * @brief Norms the computed measures
-	 * @param numSources The number of sources
-	 * @param sourcesWeight The sum of the sources' weights
+	 * @param numOrigins The number of origins
+	 * @param originsWeight The sum of the origins' weights
 	 * @return The normed result
 	 */
 	@Override
-	public AbstractSingleResult getNormed(int numSources, double sourcesWeight) {
-		InterchangeSingleResult srnm = new InterchangeSingleResult(srcID, destID);
+	public AbstractSingleResult getNormed(int numOrigins, double originsWeight) {
+		InterchangeSingleResult srnm = new InterchangeSingleResult(originID, destID);
 		for(String id : stats.keySet()) {
 			srnm.stats.put(id, new HashMap<String, InterchangeParam>());
 			Map<String, InterchangeParam> ssstats = stats.get(id);
@@ -124,7 +121,7 @@ public class InterchangeSingleResult extends AbstractSingleResult {
 	 * @param haltID The id of the halt
 	 * @param linesKey The name of the lines interchange ("<FROM_LINE><-><TO_LINE>")
 	 * @param number The number of performed interchanges of this type
-	 * @param tt The travel time needed to perform an interachange of this type
+	 * @param tt The travel time needed to perform an interchange of this type
 	 * @return The computed InterchangeParam
 	 */
 	public InterchangeParam addSingle(String haltID, String linesKey, int number, double tt) {

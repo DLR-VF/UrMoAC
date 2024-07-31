@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2021-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -23,7 +26,7 @@ import de.dlr.ivf.urmo.router.shapes.DBNet;
 
 /** @class SUMOLayerHandler
  * @brief Parses a SUMO-edge dump-file 
- * @author Daniel Krajzewicz (c) 2021 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class SUMOEdgeDumpHandler extends DefaultHandler {
 	/// @brief The net to fill

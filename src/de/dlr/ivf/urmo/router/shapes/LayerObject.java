@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -28,7 +31,7 @@ import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
  * The object consists of a unique id, the original (database) id, an
  * optionally attached value and a geometry (usually the position).
  * 
- * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class LayerObject implements EdgeMappable {
 	/// @brief The application's running object id

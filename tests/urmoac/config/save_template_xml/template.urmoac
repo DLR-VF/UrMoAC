@@ -24,6 +24,8 @@
    <to-agg.id></to-agg.id>
    <to-agg.geom></to-agg.geom>
    <net.vmax></net.vmax>
+   <net.geom></net.geom>
+   <net.boundary></net.boundary>
    <keep-subnets></keep-subnets>
    <weight></weight>
    <variable></variable>
@@ -55,7 +57,8 @@
    <direct-output></direct-output>
    <origins-to-road-output></origins-to-road-output>
    <destinations-to-road-output></destinations-to-road-output>
-   <subnets-output></subnets-output>
+   <write.subnets></write.subnets>
+   <write.net-errors></write.net-errors>
    <dropprevious></dropprevious>
    <precision></precision>
    <comment></comment>

@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -21,6 +24,7 @@ import java.util.HashSet;
 /**
  * @class RouteWeightFunction_Price_TT
  * @brief Compares paths by price, then by the travel time
+ * @author Daniel Krajzewicz
  */
 public class RouteWeightFunction_Price_TT extends AbstractRouteWeightFunction {
 	/** @brief Returns the number of required parameters

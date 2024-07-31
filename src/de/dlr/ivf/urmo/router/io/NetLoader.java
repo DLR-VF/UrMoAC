@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -40,6 +43,7 @@ import org.postgresql.PGConnection;
 import org.xml.sax.SAXException;
 
 import de.dlr.ivf.urmo.router.modes.Modes;
+import de.dlr.ivf.urmo.router.output.NetErrorsWriter;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.DBNode;
@@ -48,7 +52,7 @@ import de.dlr.ivf.urmo.router.shapes.IDGiver;
 /**
  * @class NetLoader
  * @brief Loads the road network stored in a database or files
- * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class NetLoader {
 	/** @brief Loads the road network
@@ -60,23 +64,23 @@ public class NetLoader {
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	public static DBNet loadNet(IDGiver idGiver, String def, String vmaxAttr, int epsg, long uModes) throws IOException {
+	public static DBNet loadNet(IDGiver idGiver, String def, String netBoudary, String vmaxAttr, String geomS, int epsg, long uModes, NetErrorsWriter errorsWriter) throws IOException {
 		Utils.Format format = Utils.getFormat(def);
 		String[] inputParts = Utils.getParts(format, def, "net");
 		DBNet net = null;
 		switch(format) {
 		case FORMAT_POSTGRES:
 		case FORMAT_SQLITE:
-			net = loadNetFromDB(idGiver, format, inputParts, vmaxAttr, epsg, uModes);
+			net = loadNetFromDB(idGiver, format, inputParts, netBoudary, vmaxAttr, geomS, epsg, uModes, errorsWriter);
 			break;
 		case FORMAT_CSV:
-			net = loadNetFromCSVFile(idGiver, inputParts[0], uModes);
+			net = loadNetFromCSVFile(idGiver, inputParts[0], uModes, errorsWriter);
 			break;
 		case FORMAT_WKT:
-			net = loadNetFromWKTFile(idGiver, inputParts[0], uModes);
+			net = loadNetFromWKTFile(idGiver, inputParts[0], uModes, errorsWriter);
 			break;
 		case FORMAT_SUMO:
-			net = loadNetFromSUMOFile(idGiver, inputParts[0], uModes);
+			net = loadNetFromSUMOFile(idGiver, inputParts[0], uModes, errorsWriter);
 			break;
 		case FORMAT_GEOPACKAGE:
 			throw new IOException("Reading 'net' from " + Utils.getFormatMMLName(format) + " is not supported.");
@@ -86,8 +90,8 @@ public class NetLoader {
 		if(net==null) {
 			throw new IOException("The network could not be loaded");
 		}
-		// add other directions to mode foot
-		net.extendDirections();
+		// set opposite edges; add opposite pedestrian edges if foot is used
+		net.extendDirections((uModes&Modes.getMode("foot").id)!=0);
 		return net;
 	}
 
@@ -96,13 +100,13 @@ public class NetLoader {
 	 * @param idGiver Instance supporting running ids 
 	 * @param format The source format
 	 * @param inputParts The source definition
-	 * @param vmaxAttr The attribute (column) to read the maximum velocity from 
+	 * @param vmax The attribute (column) to read the maximum velocity from 
 	 * @param epsg The projection
 	 * @param uModes The modes for which the network shall be loaded
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromDB(IDGiver idGiver, Utils.Format format, String[] inputParts, String vmax, int epsg, long uModes) throws IOException {
+	private static DBNet loadNetFromDB(IDGiver idGiver, Utils.Format format, String[] inputParts, String netBoudary, String vmax, String geomS, int epsg, long uModes, NetErrorsWriter errorsWriter) throws IOException {
 		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
 		try {
 			Class.forName("org.sqlite.JDBC");
@@ -115,12 +119,17 @@ public class NetLoader {
 			connection.setAutoCommit(true);
 			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 			((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-			String query = "SELECT oid,nodefrom,nodeto,mode_walk,mode_bike,mode_mit,"+vmax+",length,ST_AsBinary(ST_TRANSFORM(the_geom," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, "net") + ";";
+			String query = "SELECT oid,nodefrom,nodeto,mode_walk,mode_bike,mode_mit,"+vmax+",length,ST_AsBinary(ST_TRANSFORM(" + geomS + "," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, "net");
+			if(netBoudary!=null) {
+				query += " WHERE ST_Within(ST_TRANSFORM(" + geomS + "," + epsg + "), " + netBoudary + ")";
+			}
+			query += ";";
 			Statement s = connection.createStatement();
 			ResultSet rs = s.executeQuery(query);
 			WKBReader wkbRead = new WKBReader();
-			DBNet net = new DBNet(idGiver);
+			DBNet net = new DBNet(idGiver, errorsWriter, false); // todo: implement report settings
 			boolean ok = true;
+			boolean warnedDeprecatedGeom = false;
 			while (rs.next()) {
 				long modes = 0;
 				if(rs.getBoolean("mode_walk")) modes = modes | Modes.getMode("foot").id;
@@ -133,15 +142,25 @@ public class NetLoader {
 				ResultSetMetaData rsmd = rs.getMetaData();
 				//double length = rs.getDouble(rsmd.getColumnCount());
 				Geometry geom = wkbRead.read(rs.getBytes(rsmd.getColumnCount()));
-				// !!! hack - for some reasons, edge geometries are stored as MultiLineStrings in the database 
-				if(geom.getNumGeometries()!=1) {
-					System.err.println("Edge '" + rs.getString("oid") + "' has a multi geometries...");
+				LineString geom2 = null;
+				if(geom instanceof org.locationtech.jts.geom.MultiLineString) {
+					if(geom.getNumGeometries()!=1) {
+						System.err.println("Edge '" + rs.getString("oid") + "' has a multi geometries...");
+						ok = false;
+						continue;
+					}
+					if(!warnedDeprecatedGeom) {
+						System.err.println("Your edges use a deprecated geometry of MultiLineStrings. You should reimport your network.");
+						warnedDeprecatedGeom = true;
+					}
+					geom2 = (LineString) geom.getGeometryN(0);
+				} else {
+					geom2 = (LineString) geom;
 				}
-				LineString geom2 = (LineString) geom.getGeometryN(0);
 				Coordinate[] cs = geom2.getCoordinates();
 				DBNode fromNode = net.getNode(rs.getLong("nodefrom"), cs[0]);
 				DBNode toNode = net.getNode(rs.getLong("nodeto"), cs[cs.length - 1]);
-				ok &= net.addEdge(net.getNextID(), rs.getString("oid"), fromNode, toNode, modes, rs.getDouble(vmax) / 3.6, geom2, rs.getDouble("length"));
+				ok &= net.addEdge(rs.getString("oid"), fromNode, toNode, modes, rs.getDouble(vmax) / 3.6, geom2, rs.getDouble("length"));
 			}
 			rs.close();
 			s.close();
@@ -160,8 +179,8 @@ public class NetLoader {
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromCSVFile(IDGiver idGiver, String fileName, long uModes) throws IOException {
-		DBNet net = new DBNet(idGiver);
+	private static DBNet loadNetFromCSVFile(IDGiver idGiver, String fileName, long uModes, NetErrorsWriter errorsWriter) throws IOException {
+		DBNet net = new DBNet(idGiver, errorsWriter, false); // todo: implement report settings
 		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
 		// https://stackoverflow.com/questions/1388602/do-i-need-to-close-both-filereader-and-bufferedreader
 		@SuppressWarnings("resource")
@@ -194,7 +213,7 @@ public class NetLoader {
 			DBNode fromNode = net.getNode(Long.parseLong(vals[1]), coords[0]);
 			DBNode toNode = net.getNode(Long.parseLong(vals[2]), coords[coords.length - 1]);
 			LineString ls = gf.createLineString(coords);
-			ok &= net.addEdge(net.getNextID(), vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, ls, Double.parseDouble(vals[7]));
+			ok &= net.addEdge(vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, ls, Double.parseDouble(vals[7]));
 	    } while(line!=null);
 		br.close();
 		return ok ? net : null;
@@ -208,9 +227,9 @@ public class NetLoader {
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromWKTFile(IDGiver idGiver, String fileName, long uModes) throws IOException {
+	private static DBNet loadNetFromWKTFile(IDGiver idGiver, String fileName, long uModes, NetErrorsWriter errorsWriter) throws IOException {
 		try {
-			DBNet net = new DBNet(idGiver);
+			DBNet net = new DBNet(idGiver, errorsWriter, false); // todo: implement report settings
 			WKTReader wktReader = new WKTReader();
 			BufferedReader br = new BufferedReader(new FileReader(fileName));
 			String line = null;
@@ -233,7 +252,7 @@ public class NetLoader {
 				Coordinate cs[] = geom.getCoordinates();
 				DBNode fromNode = net.getNode(Long.parseLong(vals[1]), cs[0]);
 				DBNode toNode = net.getNode(Long.parseLong(vals[2]), cs[cs.length - 1]);
-				ok &= net.addEdge(net.getNextID(), vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, geom, Double.parseDouble(vals[7]));
+				ok &= net.addEdge(vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, geom, Double.parseDouble(vals[7]));
 		    } while(line!=null);
 			br.close();
 			return ok ? net : null;
@@ -250,9 +269,9 @@ public class NetLoader {
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromSUMOFile(IDGiver idGiver, String fileName, long uModes) throws IOException {
+	private static DBNet loadNetFromSUMOFile(IDGiver idGiver, String fileName, long uModes, NetErrorsWriter errorsWriter) throws IOException {
 		try {
-			DBNet net = new DBNet(idGiver);
+			DBNet net = new DBNet(idGiver, errorsWriter, false); // todo: implement report settings
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 	        SAXParser saxParser = factory.newSAXParser();
 	        SUMONetHandler handler = new SUMONetHandler(net, uModes);

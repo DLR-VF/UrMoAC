@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -25,9 +28,7 @@ import de.dlr.ivf.urmo.router.shapes.DBNode;
 /**
  * @class DijkstraEntry
  * @brief A single Dijkstra step
- * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
- *         
- * - Weight is always at least the number of starting points         
+ * @author Daniel Krajzewicz
  */
 public class DijkstraEntry {
 	/// @brief Previous entry
@@ -41,7 +42,7 @@ public class DijkstraEntry {
 	/// @brief The modes used as last
 	public Mode usedMode;
 	/// @brief Used GTFS connection
-	public GTFSConnection line;
+	public GTFSConnection ptConnection;
 	/// @brief The traveled distance from the starting point
 	public double distance;
 	/// @brief The travel time since the begin of the route
@@ -67,13 +68,13 @@ public class DijkstraEntry {
 	 * @param _usedMode The currently used mode
 	 * @param _distance The overall distance
 	 * @param _tt The travel time on this edge
-	 * @param _line The used pt line
-	 * @param _ttt The overall travel tmie
+	 * @param _ptConnection The used pt line
+	 * @param _ttt The overall travel time
 	 * @param _interchangeTT Time needed for the interchange
 	 * @param _wasOpposite Whether it is the opposite direction of the current edge
 	 */
 	public DijkstraEntry(AbstractRouteWeightFunction measure, DijkstraEntry _prev, DBNode _n, DBEdge _e, long _availableModes, Mode _usedMode, 
-			double _distance, double _tt, GTFSConnection _line, double _ttt, double _interchangeTT, boolean _wasOpposite) {
+			double _distance, double _tt, GTFSConnection _ptConnection, double _ttt, double _interchangeTT, boolean _wasOpposite) {
 		prev = _prev;
 		n = _n;
 		e = _e;
@@ -82,7 +83,7 @@ public class DijkstraEntry {
 		ttt = _ttt;
 		availableModes = _availableModes;
 		usedMode = _usedMode;
-		line = _line;
+		ptConnection = _ptConnection;
 		interchangeTT = _interchangeTT;
 		wasOpposite = _wasOpposite;
 		measures = measure.buildMeasures(_prev, this);
@@ -93,49 +94,17 @@ public class DijkstraEntry {
 		}
 	}
 
-
-	/** 
-	 * @brief Returns the string representation
-	 * @return The string representation
-	 */
-	@Override
-	public String toString() {
-		return n.id + "(tt=" + tt + "; modes=" + availableModes + ")";
-	}
-
-
-	/**
-	 * @brief Returns whether the given requirements are fulfilled
-	 * @param needsPT Whether the path must contain a PT element
-	 * @return Whether the given requirements are fulfilled
-	 */
-	public boolean matchesRequirements(boolean needsPT) {
-		if(!needsPT) {
-			return true;
-		}
-		DijkstraEntry current = this;
-		do {
-			if(current.e.isGTFSEdge()) {
-				return true;
-			}
-			current = current.prev;
-		} while(current!=null);
-		return false;
-	}
-
-
 	
 	/** 
 	 * @brief Returns the name for the used line
 	 * @return The name of the used line
 	 */
 	public String buildLineModeID() {
-		if(line==null) {
+		if(ptConnection==null) {
 			return usedMode.mml;
 		}
-		return line.trip.route.id;
+		return ptConnection.trip.route.id;
 	}
-
 
 
 }

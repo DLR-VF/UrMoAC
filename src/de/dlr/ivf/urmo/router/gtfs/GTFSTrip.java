@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -18,8 +21,7 @@ package de.dlr.ivf.urmo.router.gtfs;
 /**
  * @class GTFSTrip
  * @brief A trip as stored in GTFS
- * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of
- *         Transport Research
+ * @author Daniel Krajzewicz
  */
 public class GTFSTrip {
 	/// @brief The id of the trip

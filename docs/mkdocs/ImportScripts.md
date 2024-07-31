@@ -1,4 +1,4 @@
-Currently, only scripts that import data into a [PostGIS](https://postgis.net/)-enabled SQL-database.
+Currently, only scripts that import data into a [PostGIS](https://postgis.net/)-enabled SQL-database are available.
 
 As such, you need a running [PostgreSQL](https://www.postgresql.org/) database with [PostGIS](https://postgis.net/) extensions.
 
@@ -9,16 +9,16 @@ Importing shapefiles is done using the tools brought by PostgreSQL:
 ```shp2pgsql -s <SRID> -W <ENCODING> <SHAPEFILE> | psql -h <HOST> -d <DBNAME> -U <USERNAME>```
 
 ## Importing OpenStreetMap
-We assume you have downloaded the area of your interest as a plain [OpenStreetMap](http://www.openstreetmap.org) XML file. Other formats are currently not supported.
+We assume you have downloaded the area of your interest as a plain [OpenStreetMap](http://www.openstreetmap.org) XML file (*.osm). Other formats are currently not supported.
 
-In a first step, you have to write this data into a database. This is done using the script &ldquo;[osm2db.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osm2db.py)&rdquo;. Then, you probably want to build a road network from this data. This is done using the script &ldquo;[osmdb_buildWays.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osmdb_buildWays.py)&rdquo;.
+In a first step, you have to write this data into a database. This is done using the script &ldquo;[osm2db.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osm2db.py)&rdquo;. Then, you probably want to build a road network from this data. This is done using the script &ldquo;[osmdb_buildWays.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osmdb_buildWays.py)&rdquo;. You may as well extract origins and destinations from your OSM database using the script &ldquo;[osmdb_buildStructures.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osmdb_buildStructures.py)&rdquo;.
 
 ### Importing OpenStreetMap into the database
 The purpose of the [osm2db.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osm2db.py) tool is to store the contents of a given OSM XML file into a PostGIS-enabled PostgreSQL database.
 
 The [osm2db.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osm2db.py) tool gets two parameter on the command line:
 
-* The definition of the database and the access to it that shall be used to store the data;
+* The definition of the database that shall be used to store the data and the access information;
 * The OSM XML file to get the data from.
 
 Consequently, the call is:
@@ -66,7 +66,7 @@ The script [osmdb_buildStructures.py](https://github.com/DLR-VF/UrMoAC/blob/mast
 
 Some structures can be represented in different ways within [OpenStreetMap](http://www.openstreetmap.org). The script [osmdb_buildStructures.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osmdb_buildStructures.py) tries to offer a simple way to gather the information about all instances of specific structures and store them into a single table, independent to their original representation within [OpenStreetMap](http://www.openstreetmap.org).
 
-For this purpose, [osmdb_buildStructures.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osmdb_buildStructures.py) reads a definition file that describes which nodes, ways, or relations, defined by their tags, belong to a specific kind of structures. This is done by reading a definitions file. The format of the definitions file is:
+For this purpose, [osmdb_buildStructures.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osmdb_buildStructures.py) reads a definition file that describes which nodes, ways, or relations, defined by their tags, belong to a specific kind of structures. The format of the definitions file is:
 
 ```
 [<OSM_DATATYPE>]
@@ -75,7 +75,7 @@ For this purpose, [osmdb_buildStructures.py](https://github.com/DLR-VF/UrMoAC/bl
 <FILTER>
 ```
 
-The ___&lt;OSM_DATATYPE&gt;___ is one of &ldquo;node&rdquo;, &ldquo;way&rdquo;, and &ldquo;relation&rdquo;. After this data type definition, the filtering options are given that describe which elements of this data type shall be included. Each line describes a single set and the sets will be merged. A ___&lt;FILTER&gt;___ includes one or more key/value pairs. If more than one is given, they are divided by a &lsquo;&&rsquo;. An element needs to match all of the key/value pairs within a line for being included.
+The ___&lt;OSM\_DATATYPE&gt;___ is one of &ldquo;node&rdquo;, &ldquo;way&rdquo;, and &ldquo;relation&rdquo;. After this data type definition, the filtering options are given that describe which elements of this data type shall be included. Each line describes a single set and the sets will be merged. A ___&lt;FILTER&gt;___ includes one or more key/value pairs. If more than one is given, they are divided by a &lsquo;&&rsquo;. An element needs to match all of the key/value pairs within a line for being included.
 
 Some examples:
 
@@ -101,7 +101,7 @@ The call is:
 Where:
 
 * ***&lt;INPUT_TABLES_PREFIX&gt;***: definition of the database to find the imported OSM data at;
-* ***&lt;DEF_FILE&gt;***: path to the definition file to use;
+* ***&lt;DEF_FILE&gt;***: path to the definitions file to use;
 * ***&lt;OUTPUT_TABLE&gt;***: definition of the database table to generate.
 
 ***&lt;INPUT_TABLES_PREFIX&gt;*** is defined as following: ***&lt;HOST&gt;***,***&lt;DB&gt;***,***&lt;SCHEMA&gt;***.***&lt;PREFIX&gt;***,***&lt;USER&gt;***,***&lt;PASSWD&gt;***
@@ -129,7 +129,7 @@ Where:
 
 ## Importing GTFS
 
-If accessibilities for using public transport shall be computed, UrMoAC requires the representation of the public transport offer within the region in form of [GTFS](https://developers.google.com/transit/gtfs/) data. [GTFS](https://developers.google.com/transit/gtfs/) data comes as text files. For using it with UrMoAC, it has to be imported into the database. The script [importGTFS.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/importGTFS.py) does this.
+If accessibility measures for public transport shall be computed, UrMoAC requires the representation of the public transport offer within the region in form of [GTFS](https://developers.google.com/transit/gtfs/) data. [GTFS](https://developers.google.com/transit/gtfs/) data comes as text files. For using it with UrMoAC, it has to be imported into the database. The script [importGTFS.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/importGTFS.py) does this.
 
 [importGTFS.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/importGTFS.py) is called like the other UrMoAC import scripts:
 ```python importGTFS.py <INPUT_PATH> <HOST>,<DB>,<SCHEMA>.<PREFIX>,<USER>,<PASSWD>```

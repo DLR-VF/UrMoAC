@@ -23,19 +23,20 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
 | --from.filter _&lt;FILTER&gt;_<br>-F _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for origins to load. |
-| --from.id _&lt;COLUMN_NAME&gt;_ | &ldquo;gid&rdquo; | Defines the column name of the origins&apos; ids. |
-| --from.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;the_geom&rdquo; | Defines the column name of the origins&apos; geometries. |
+| --from.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the origins&apos; ids. |
+| --from.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the origins&apos; geometries. |
 | --to.filter _&lt;FILTER&gt;_<br>-T _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for destinations to load. |
-| --to.id _&lt;COLUMN_NAME&gt;_ | &ldquo;gid&rdquo; | Defines the column name of the destinations&apos; ids. |
-| --to.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;the_geom&rdquo; | Defines the column name of the destinations&apos; geometries. |
+| --to.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the destinations&apos; ids. |
+| --to.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the destinations&apos; geometries. |
 | --from-agg.filter _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for origins aggregations&apos; to load. |
-| --from-agg.id _&lt;COLUMN_NAME&gt;_ | &ldquo;gid&rdquo; | Defines the column name of the origins aggregations&apos; ids. |
-| --from-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;the_geom&rdquo; | Defines the column name of the origins aggregations&apos; geometries. |
+| --from-agg.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the origins aggregations&apos; ids. |
+| --from-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the origins aggregations&apos; geometries. |
 | --to-agg.filter _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for destination aggregations&apos; to load. |
-| --to-agg.id _&lt;COLUMN_NAME&gt;_ | &ldquo;gid&rdquo; | Defines the column name of the destination aggregations&apos; ids. |
-| --to-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;the_geom&rdquo; | Defines the column name of the destination aggregations&apos; geometries. |
+| --to-agg.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the destination aggregations&apos; ids. |
+| --to-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the destination aggregations&apos; geometries. |
 | --net.vmax _&lt;COLUMN_NAME&gt;_ | &ldquo;vmax&rdquo; | Defines the column name of networks&apos;s vmax attribute. |
 | --keep-subnets | N/A (optional) | When set, unconnected network parts are not removed. |
+| --net.boundary _&lt;POSTGIS_GEOMETRY&gt;_ | N/A (optional)| Defines a boundary for the network. Please note that this option is experimental and works with networks loaded from PostGIS only. |
 
 ## Weighting options
 | Option  | Default | Explanation |
@@ -85,7 +86,8 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --direct-output _&lt;OUTPUT&gt;_<br>-d _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the direct output. |
 | --origins-to-road-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines output of the mapping between from-objects to the road. |
 | --destinations-to-road-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines output of the mapping between to-objects to the road. |
-| --subnets-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the output of subnets |
+| --write.subnets _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the output of subnets |
+| --write.net-errors _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the output for network errors and warnings |
 | --dropprevious | N/A (optional) | When set, previous output with the same name is replaced. |
 | --precision _&lt;INTEGER&gt;_ | 2 | Defines the number of digits after the decimal point. |
 | --comment | N/A (optional) | Adds a comment with the used options into generated output dbs. |

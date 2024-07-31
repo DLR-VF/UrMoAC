@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -8,7 +11,7 @@
  * 
  * German Aerospace Center (DLR)
  * Institute of Transport Research (VF)
- * Rutherfordstraße 2
+ * RutherfordstraÃŸe 2
  * 12489 Berlin
  * Germany
  * http://www.dlr.de/vf
@@ -53,69 +56,10 @@ import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
 /**
  * @class InputReader
- * @brief Methods for loading sources/destinations, entrainment data, geometries and O/D-connections 
- * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
+ * @brief Methods for loading origins/destinations, entrainment data, geometries and O/D-connections 
+ * @author Daniel Krajzewicz
  */
 public class InputReader {
-	// --------------------------------------------------------
-	// epsg determination
-	// --------------------------------------------------------
-	/**
-	 * @brief Finds the correct UTM-zone for the given net. Reference is the most south most west point in the from-locations.
-	 * 
-	 * The calculation is based on utm-zones for longitudes from -180 to 180 degrees.
-	 * The latitude is only valid from -84 to 84 degrees.
-	 * The returned UTM-zones start with 32500 for the southern hemisphere and with 32600 for the northern hemisphere.
-	 * @param[in] options The command line options 
-	 * @return The epsg-code of the UTM-zone or -1 of no UTM-zone could be found (e.g. north-pole )
-	 * @throws IOException 
-	 */
-	public static int findUTMZone(OptionsCont options) throws IOException {
-		Utils.Format format = Utils.getFormat(options.getString("from"));
-		if (format!=Utils.Format.FORMAT_POSTGRES) {
-			return 0;
-		}
-		try {
-			String[] inputParts = Utils.getParts(format, options.getString("from"), "from");
-			Connection connection = Utils.getConnection(format, inputParts, "from");
-			connection.setAutoCommit(true);
-			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
-			((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-			String table = Utils.getTableName(format, inputParts, "from");
-			String geomString = options.getString("from.geom");
-			String query = "SELECT min(ST_X(ST_TRANSFORM("+geomString+",4326)))as lon, min(ST_Y(ST_TRANSFORM("+geomString+",4326)))as lat FROM " + table + ";";
-			Statement s = connection.createStatement();
-			ResultSet rs = s.executeQuery(query);
-			int epsg=-1;
-			double lon, lat;
-			while (rs.next()) {
-				lon = rs.getDouble("lon");
-				lat = rs.getDouble("lat");
-				if(lat>84.0 || lat<-84.0) {
-					//around north or south-pole!
-					break;
-				}
-				if(lon>180.0 || lon<-180.0) {
-					//invalid longitude!
-					break;
-				}
-				if(lat>=0) { //northern hemisphere
-					epsg = 32600;
-				} else { //southern hemisphere
-					epsg = 32500;
-				}
-				epsg += ((180.0 + lon) / 6.) + 1;
-			}
-			rs.close();
-			s.close();
-			return epsg;
-		} catch (SQLException e) {
-			throw new IOException(e);
-		}
-	}
-	
-	
-
 	// --------------------------------------------------------
 	// loading layers
 	// --------------------------------------------------------
@@ -171,8 +115,8 @@ public class InputReader {
 	 * @brief Loads a set of objects from the db
 	 * 
 	 * @param layerName The layer/type ("from", "to") of the objects to load
-	 * @param format The format of the source
 	 * @param bounds The bounds to clip the read thing to
+	 * @param format The format of the source
 	 * @param inputParts The definition of the source
 	 * @param filter A WHERE-clause statement (optional, empty string if not used)
 	 * @param varName The name of the attached variable
@@ -607,7 +551,7 @@ public class InputReader {
 			connection.setAutoCommit(true);
 			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 			((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-			String query = "SELECT ST_AsBinary(ST_TRANSFORM(the_geom," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, what) + ";";
+			String query = "SELECT ST_AsBinary(ST_TRANSFORM(geom," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, what) + ";";
 			Statement s = connection.createStatement();
 			ResultSet rs = s.executeQuery(query);
 			Geometry geom = null;

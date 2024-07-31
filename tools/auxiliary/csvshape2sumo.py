@@ -1,41 +1,31 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# =============================================================================
-# csvshape2sumo.py
-#
-# Author: Daniel Krajzewicz
-# Date:   01.05.2023
-#
-# This file is part of the "UrMoAC" accessibility tool
-# https://github.com/DLR-VF/UrMoAC
-# Licensed under the Eclipse Public License 2.0
-#
-# Copyright (c) 2023-2024 Institute of Transport Research,
-#                         German Aerospace Center
-# All rights reserved.
-# =============================================================================
+from __future__ import print_function
+# ===========================================================================
 """Converts a csv shape file into a SUMO shapes file.
 
 Call with 
    csvshape2sumo.py <INPUT_CSV_SHAPES> <SUMO_SHAPE_OUTPUT>"""
-# =============================================================================
+# ===========================================================================
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright 2023-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__credits__    = ["Daniel Krajzewicz"]
+__license__    = "EPL 2.0"
+__version__    = "0.8.0"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Production"
+# ===========================================================================
+# - https://github.com/DLR-VF/UrMoAC
+# - https://www.dlr.de/vf
+# ===========================================================================
 
-# --- imported modules --------------------------------------------------------
+
+# --- imports ---------------------------------------------------------------
 import sys
 
 
-# --- meta --------------------------------------------------------------------
-__author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright (c) 2023-2024 Institute of Transport Research, German Aerospace Center"
-__credits__    = [ "Daniel Krajzewicz" ]
-__license__    = "EPL2.0"
-__version__    = "0.8"
-__maintainer__ = "Daniel Krajzewicz"
-__email__      = "daniel.krajzewicz@dlr.de"
-__status__     = "Development"
-
-
-# --- function definitions ----------------------------------------------------
+# --- function definitions --------------------------------------------------
 def csvshape2sumo(input_file, output_file):
     """Parses the contents from the csv shape file with the given name and 
     writes them into a SUMO additional (shapes) file.
