@@ -199,7 +199,6 @@ class OSMExtractor:
                         self._idMapping[subtype][pid] = id
                         print (" Found duplicate id '%s'. Renaming %s to '%s'." % (pid, subtype, id))
                         break
-        print (self._objectIDs)
    
    
     
@@ -242,8 +241,6 @@ class OSMExtractor:
                         relation = osm.OSMRelation(rid)
                         area.add_relation(relation)
                     role = r[3]
-                    #if len(self._roles)>0 and role not in self._roles:
-                    #    continue
                     iid = int(r[1])
                     relation.add_member(iid, r[2], r[3])
                     if r[2]=="rel" or r[2]=="relation":
@@ -252,16 +249,10 @@ class OSMExtractor:
                             continue
                         if iid not in seenRELs:
                             missingRELidsN.add(iid)
-                        if True and iid in self._objectIDs["rel"]:
-                            self._objectIDs["rel"].remove(iid)
                     elif r[2]=="way":
                         missingWAYids.add(iid)
-                        if True and iid in self._objectIDs["way"]:
-                            self._objectIDs["way"].remove(iid)
                     elif r[2]=="node":
                         missingNODEids.add(iid)
-                        if True and iid in self._objectIDs["node"]:
-                            self._objectIDs["node"].remove(iid)
                     else:
                         print ("Check type '%s'" % r[2])
             missingRELids = list(missingRELidsN)
@@ -277,9 +268,6 @@ class OSMExtractor:
                 for r in cursor.fetchall():
                     area.add_way(osm.OSMWay(int(r[0]), r[1]))
                     npoints.append(r[1])
-                    for nID in r[1]:
-                        if True and nID in self._objectIDs["node"]:
-                            self._objectIDs["node"].remove(nID)
         missingNODEids = set.union(*npoints)    
         # collect nodes
         print (" ... for nodes")
