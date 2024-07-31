@@ -1,6 +1,8 @@
 # Change Log
 
-## UrMoAC-0.8.0 (to come)
+## UrMoAC-0.8.0 (31.07.2024)
+
+[![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13142701-blue)](https://doi.org/10.5281/zenodo.13142701)
 
 ### Changes in options and defaults
 
