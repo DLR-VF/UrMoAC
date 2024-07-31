@@ -176,7 +176,7 @@ def commit_roads(conn, cursor, schema, dbprefix):
             mode_mit = 't'
         else:
             mode_mit = 'f'
-        cursor.execute("INSERT INTO %s.%s_network(oid, nodefrom, nodeto, numlanes, length, vmax, street_type, capacity, mode_walk, mode_bike, mode_pt, mode_mit, modes, nodes, sidewalk, cycleway, surface, lit, name, geom) VALUES('%s', %s, %s, %s, %s, %s, '%s', -1, '%s', '%s', '%s', '%s', %s, '{%s}', '%s', '%s', '%s', '%s', '%s', ST_GeomFromText('MULTILINESTRING((%s))', 4326))" % (schema, dbprefix, sr["id"], sr["fromNode"], sr["toNode"], sr["lanes"], -1, sr["vmax"], sr["osm_type"], mode_ped, mode_bic, mode_pt, mode_mit, sr["modes"], sr["nodes"], sr["sidewalk"], sr["cycleway"], sr["surface"], sr["lit"], sr["name"], sr["shape"]))
+        cursor.execute("INSERT INTO %s.%s_network(oid, nodefrom, nodeto, numlanes, length, vmax, street_type, capacity, mode_walk, mode_bike, mode_pt, mode_mit, modes, nodes, sidewalk, cycleway, surface, lit, name, geom) VALUES('%s', %s, %s, %s, %s, %s, '%s', -1, '%s', '%s', '%s', '%s', %s, '{%s}', '%s', '%s', '%s', '%s', '%s', ST_GeomFromText('LINESTRING(%s)', 4326))" % (schema, dbprefix, sr["id"], sr["fromNode"], sr["toNode"], sr["lanes"], -1, sr["vmax"], sr["osm_type"], mode_ped, mode_bic, mode_pt, mode_mit, sr["modes"], sr["nodes"], sr["sidewalk"], sr["cycleway"], sr["surface"], sr["lit"], sr["name"], sr["shape"]))
     conn.commit()
     del storedRoads[:]
 
@@ -504,7 +504,7 @@ def main(srcdb):
         name text,
         slope real    
     );""" % (schema, prefix))
-    cursor.execute("""SELECT AddGeometryColumn('%s', '%s_network', 'geom', 4326, 'MULTILINESTRING', 2);""" % (schema, prefix))
+    cursor.execute("""SELECT AddGeometryColumn('%s', '%s_network', 'geom', 4326, 'LINESTRING', 2);""" % (schema, prefix))
     conn.commit()
 
     # get roads and railroads with some typical classes
