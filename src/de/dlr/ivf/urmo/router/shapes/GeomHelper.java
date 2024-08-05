@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -15,12 +18,15 @@
  */
 package de.dlr.ivf.urmo.router.shapes;
 
+import java.util.Vector;
+
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Point;
 
 /** @class GeomHelper
  * @brief Some geometric help functions
+ * @author Daniel Krajzewicz
  */
 public class GeomHelper {
 	/**
@@ -52,21 +58,7 @@ public class GeomHelper {
 	 * @return The line string until the given distance
 	 */
 	public static LineString getGeomUntilDistance(LineString ls, double distance) {
-		distance = patchDistance(ls, distance);
-	    double seenLength = 0;
-		Coordinate tcoord[] = ls.getCoordinates();
-	    int numPoints = ls.getNumPoints();
-	    int i1 = 0;
-		for(; i1<numPoints-1&&seenLength<distance; ++i1) {
-			double nextLength = distance(tcoord[i1], tcoord[i1+1]);
-			seenLength += nextLength;
-		}
-		Coordinate ncoord[] = new Coordinate[i1+1];
-		for(int i=0; i<i1; ++i) {
-			ncoord[i] = tcoord[i];
-		}
-		ncoord[i1] = getPointAtDistance(ls, distance);
-	    return ls.getFactory().createLineString(ncoord);
+		return getSubGeom(ls, 0, distance);
 	}
 
 
@@ -77,21 +69,42 @@ public class GeomHelper {
 	 * @return The part of the lines string that starts at the given distance
 	 */
 	public static LineString getGeomBehindDistance(LineString ls, double distance) {
-		distance = patchDistance(ls, distance);
-	    double seenLength = 0;
+		return getSubGeom(ls, distance, ls.getLength());
+	}
+
+	
+	/**
+	 * @brief Returns the part of the given line string that starts and ends at the given distances
+	 * @param ls The line string to strip
+	 * @param beg The distance at which the returned part shall start
+	 * @param end The distance at which the returned part shall end
+	 * @return The part of the lines string that starts and ends at the given distances
+	 */
+	public static LineString getSubGeom(LineString ls, double beg, double end) {
+		beg = clampDistance(ls, beg);
+		end = clampDistance(ls, end);
+		Vector<Coordinate> ncoord = new Vector<>();
+		ncoord.add(getPointAtDistance(ls, beg));
+
+		double seenLength = 0;
 		Coordinate tcoord[] = ls.getCoordinates();
-	    int numPoints = ls.getNumPoints();
 	    int i1 = 0;
-		for(; i1<numPoints-1&&seenLength<distance; ++i1) {
+	    int numPoints = ls.getNumPoints();
+		for(; i1<numPoints-1; ++i1) {
 			double nextLength = distance(tcoord[i1], tcoord[i1+1]);
+			if(seenLength>beg) {
+				ncoord.add(tcoord[i1]);
+			} else if(seenLength+nextLength>=end) {
+				ncoord.add(getPointAtDistance(ls, end));
+				break;
+			}
 			seenLength += nextLength;
 		}
-		Coordinate ncoord[] = new Coordinate[numPoints-i1+1];
-		ncoord[0] = getPointAtDistance(ls, distance);
-		for(int i=1; i1<numPoints; ++i, ++i1) {
-			ncoord[i] = tcoord[i1];
+		Coordinate coords[] = new Coordinate[ncoord.size()];
+		for(int i=0; i<ncoord.size(); ++i) {
+			coords[i] = ncoord.elementAt(i);
 		}
-	    return ls.getFactory().createLineString(ncoord);
+		return ls.getFactory().createLineString(coords);
 	}
 
 	
@@ -101,10 +114,8 @@ public class GeomHelper {
 	 * @param distance The distance
 	 * @return A distance prunned to the line string's length
 	 */
-	private static double patchDistance(LineString ls, double distance) {
-		double len = ls.getLength();
-		double offset = len<.1 ? len / 4. : .1;  
-		return Math.min(len-offset, Math.max(offset, distance));
+	private static double clampDistance(LineString ls, double distance) {
+		return Math.min(ls.getLength(), Math.max(0, distance));
 	}
 
 	
@@ -199,13 +210,14 @@ public class GeomHelper {
 		double minDist = -1;
 		double pos = 0;
 		double minPos = 0;
-		int numPoints = e.geom.getNumPoints();
-		Coordinate tcoord[] = e.geom.getCoordinates();
+		LineString edgeGeom = e.getGeometry();
+		int numPoints = edgeGeom.getNumPoints();
+		Coordinate tcoord[] = edgeGeom.getCoordinates();
 		Coordinate coord[] = new Coordinate[2];
 		for(int i=0; i<numPoints-1; ++i) {
 			coord[0] = tcoord[i];
 			coord[1] = tcoord[i+1];
-			LineString ls = e.geom.getFactory().createLineString(coord);
+			LineString ls = edgeGeom.getFactory().createLineString(coord);
 			double dist = opivot.distance(ls);
 			if(minDist<0 || minDist>dist) {
 				minDist = dist;
@@ -217,6 +229,6 @@ public class GeomHelper {
 			}
 			pos += ls.getLength();
 		}
-		return Math.max(0, Math.min(e.length, minPos));
+		return Math.max(0, Math.min(e.getLength(), minPos));
 	}
 }

@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -32,7 +35,7 @@ import de.dlr.ivf.urmo.router.shapes.DBNode;
 /**
  * @class GTFSStop
  * @brief A stop as stored in GTFS
- * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class GTFSStop extends DBNode implements EdgeMappable {
 	/// @brief The stop's id
@@ -65,7 +68,7 @@ public class GTFSStop extends DBNode implements EdgeMappable {
 	 */
 	@Override
 	public long getOuterID() {
-		return id;
+		return getID();
 	}
 
 
@@ -102,13 +105,12 @@ public class GTFSStop extends DBNode implements EdgeMappable {
 	 * @brief Returns the connection to the given stop (building it if not yet given)
 	 * !!! TODO: it may happen that one mode of transport operating between two subsequent halts allows entrainment while other does not!!!
 	 * @param to The destination stop
-	 * @param nextID A running id
 	 * @param route The route that realises this connection
 	 * @param em The enttrainment map
 	 * @param net The network, needed for obtaining the geometry factory
 	 * @return The built or already available edge
 	 */
-	public GTFSEdge getEdgeTo(GTFSStop to, long nextID, GTFSRoute route, EntrainmentMap em, DBNet net) {
+	public GTFSEdge getEdgeTo(GTFSStop to, GTFSRoute route, EntrainmentMap em, DBNet net) {
 		if (!connections.containsKey(to)) {
 			connections.put(to, new HashMap<GTFSRoute, GTFSEdge>());
 		}
@@ -118,12 +120,12 @@ public class GTFSStop extends DBNode implements EdgeMappable {
 			if(em.carrier2carried.containsKey("pt"+route.type)) {
 				modes |= em.carrier2carried.get("pt"+route.type);
 			}
-			double length = this.pos.distance(to.pos);
+			double length = this.getCoordinate().distance(to.getCoordinate());
 			Coordinate coord[] = new Coordinate[2];
 			coord[0] = getCoordinate();
 			coord[1] = to.getCoordinate();
 			LineString ls = net.getGeometryFactory().createLineString(coord);
-			GTFSEdge e = new GTFSEdge(nextID, this.mid + "_to_" + to.mid + "_using_" + route.nameS, this, to, modes, 80, ls, length, route);
+			GTFSEdge e = new GTFSEdge(this.mid + "_to_" + to.mid + "_using_" + route.nameS, this, to, modes, 80, ls, length, route);
 			m.put(route, e);
 			return e;
 		}

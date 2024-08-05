@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -18,14 +21,13 @@ package de.dlr.ivf.urmo.router.output.ptod;
 import java.util.HashSet;
 import java.util.Set;
 
-import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
+import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.output.AbstractSingleResult;
 
 /**
  * @class PTODSingleResult
  * @brief A public transport - oriented result
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class PTODSingleResult extends AbstractSingleResult {
 	/// @brief The weighted distance
@@ -66,11 +68,11 @@ public class PTODSingleResult extends AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Generates an empty entry.
-	 * @param srcID The id of the origin the represented trip starts at
+	 * @param originID The id of the origin the represented trip starts at
 	 * @param destID The id of the destination the represented trip ends at
 	 */
-	public PTODSingleResult(long srcID, long destID) {
-		super(srcID, destID);
+	public PTODSingleResult(long originID, long destID) {
+		super(originID, destID);
 	}
 	
 	
@@ -78,14 +80,10 @@ public class PTODSingleResult extends AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Computes the distance and the travel time
-	 * @param srcID The id of the origin the represented trip starts at
-	 * @param destID The id of the destination the represented trip ends at
-	 * @param from The mapped source
-	 * @param to The mapped destination
-	 * @param dr The path between the source and the destination
+	 * @param result The processed path between the origin and the destination
 	 */
-	public PTODSingleResult(long srcID, long destID, MapResult from, MapResult to, DijkstraResult dr) {
-		super(srcID, destID, from, to, dr);
+	public PTODSingleResult(SingleODResult result) {
+		super(result);
 	}
 
 	
@@ -116,13 +114,13 @@ public class PTODSingleResult extends AbstractSingleResult {
 
 	/**
 	 * @brief Norms the computed measures
-	 * @param numSources The number of sources
-	 * @param sourcesWeight The sum of the sources' weights
+	 * @param numOrigins The number of origins
+	 * @param originsWeight The sum of the origins' weights
 	 * @return The normed result
 	 */
 	@Override
-	public AbstractSingleResult getNormed(int numSources, double sourcesWeight) {
-		PTODSingleResult srnm = new PTODSingleResult(srcID, destID);
+	public AbstractSingleResult getNormed(int numOrigins, double originsWeight) {
+		PTODSingleResult srnm = new PTODSingleResult(originID, destID);
 		srnm.weightedDistance = connectionsWeightSum!=0 ? weightedDistance / connectionsWeightSum : 0;
 		srnm.weightedTravelTime = connectionsWeightSum!=0 ? weightedTravelTime / connectionsWeightSum : 0;
 		srnm.weightedAccessDistance = connectionsWeightSum!=0 ? weightedAccessDistance / connectionsWeightSum : 0;
@@ -136,8 +134,8 @@ public class PTODSingleResult extends AbstractSingleResult {
 		srnm.weightedInterchangesNum = connectionsWeightSum!=0 ? weightedInterchangesNum / connectionsWeightSum : 0;
 		srnm.weightedWaitingTime = connectionsWeightSum!=0 ? weightedWaitingTime / connectionsWeightSum : 0;
 		srnm.weightedInitialWaitingTime = connectionsWeightSum!=0 ? weightedInitialWaitingTime / connectionsWeightSum : 0;
-		srnm.connectionsWeightSum = sourcesWeight!=0 ? connectionsWeightSum / sourcesWeight : 0;
-		srnm.weightedValue = sourcesWeight!=0 ? weightedValue / sourcesWeight : 0;
+		srnm.connectionsWeightSum = originsWeight!=0 ? connectionsWeightSum / originsWeight : 0;
+		srnm.weightedValue = originsWeight!=0 ? weightedValue / originsWeight : 0;
 		return srnm;
 	}
 	

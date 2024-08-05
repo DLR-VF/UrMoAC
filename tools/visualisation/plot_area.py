@@ -1,23 +1,24 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# =============================================================================
-# plot_area.py
-#
-# Author: Daniel Krajzewicz
-# Date:   01.05.2023
-#
-# This file is part of the "UrMoAC" accessibility tool
-# https://github.com/DLR-VF/UrMoAC
-# Licensed under the Eclipse Public License 2.0
-#
-# Copyright (c) 2023-2024 Institute of Transport Research,
-#                         German Aerospace Center
-# All rights reserved.
-# =============================================================================
+from __future__ import print_function
+# ===========================================================================
 """Plots measures on a map."""
-# =============================================================================
+# ===========================================================================
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright 2023-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__credits__    = ["Daniel Krajzewicz"]
+__license__    = "EPL 2.0"
+__version__    = "0.8.0"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Production"
+# ===========================================================================
+# - https://github.com/DLR-VF/UrMoAC
+# - https://www.dlr.de/vf
+# ===========================================================================
 
-# --- imported modules --------------------------------------------------------
+
+# --- imports ---------------------------------------------------------------
 from optparse import OptionParser
 import matplotlib
 import matplotlib.pyplot
@@ -39,18 +40,7 @@ import net
 import spatialhelper
 
 
-# --- meta --------------------------------------------------------------------
-__author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright (c) 2023-2024 Institute of Transport Research, German Aerospace Center"
-__credits__    = [ "Daniel Krajzewicz" ]
-__license__    = "EPL2.0"
-__version__    = "0.8"
-__maintainer__ = "Daniel Krajzewicz"
-__email__      = "daniel.krajzewicz@dlr.de"
-__status__     = "Development"
-
-
-# --- function definitions ----------------------------------------------------
+# --- function definitions --------------------------------------------------
 def cmap_discretize(cmap, N):
     """Return a discrete colormap from the continuous colormap cmap.
 
@@ -170,7 +160,7 @@ def add_colorbar(fig, ax, colmap, sm, levels, logarithmic, measurelabel):
 def parse_options(args):
     optParser = OptionParser(usage="""usage: %prog [options].""")
     optParser.add_option("-f", "--from", dest="objects",default=None, help="Defines the objects (origins) to load")
-    optParser.add_option("--from.id", dest="objectsID", default="gid", help="Defines the name of the field to read the object ids from")
+    optParser.add_option("--from.id", dest="objectsID", default="id", help="Defines the name of the field to read the object ids from")
     optParser.add_option("--from.geom", dest="objectsGeom",default="polygon", help="Defines the name of the field to read the object geometries from")
     optParser.add_option("--from.filter", dest="objectsFilter",default=None, help="Defines a SQL WHERE-clause parameter to filter the origins to read")
     optParser.add_option("-m", "--measures", dest="measures", default=None, help="Defines the measures' table to load")
@@ -216,7 +206,7 @@ def parse_options(args):
     return options, remaining_args
 
 
-def load_shapes(source, projection, asCentroid=False, idField="gid", geomField="polygon", geomFilter=None):
+def load_shapes(source, projection, asCentroid=False, idField="id", geomField="polygon", geomFilter=None):
     (host, db, tableFull, user, password) = source.split(",")
     (schema, table) = tableFull.split(".")
     where = ""

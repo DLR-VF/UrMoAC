@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -31,7 +34,7 @@ import de.dlr.ivf.urmo.router.io.Utils;
 /**
  * @class BasicCombinedWriter
  * @brief Base class for an output that writes to a database or a file
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public abstract class BasicCombinedWriter {
 	/// @{ db connection settings
@@ -62,7 +65,7 @@ public abstract class BasicCombinedWriter {
 	 * 
 	 * Opens the connection to a PostGIS database and builds the table
 	 * @param format The used format
-	 * @param inputParts The definition of the input/output source/destination
+	 * @param inputParts The definition of the input/output origin/destination
 	 * @param fileType The name of the input/output (option name)
 	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
@@ -168,17 +171,17 @@ public abstract class BasicCombinedWriter {
 	/**
 	 * @brief Adds a geometry column
 	 * @param name The name of the column
-	 * @param rsid The RSID to use for projection
+	 * @param epsg The EPSG to use for projection
 	 * @param geomType The geometry type to use
 	 * @param numDim The number of dimensions of this geometry
 	 * @throws IOException When something fails
 	 */
-	protected void addGeometryColumn(String name, int rsid, String geomType, int numDim) throws IOException {
+	protected void addGeometryColumn(String name, int epsg, String geomType, int numDim) throws IOException {
 		try {
 			if(_format==Utils.Format.FORMAT_POSTGRES) {
 				String[] d = _tableName.split("\\.");
 				_connection.createStatement().executeQuery("SELECT AddGeometryColumn('" + d[0] + "', '" + d[1] + "', '" + name
-						+ "', " + rsid + ", '" + geomType + "', " + numDim + ");");
+						+ "', " + epsg + ", '" + geomType + "', " + numDim + ");");
 				_connection.commit();
 			} else if(_format==Utils.Format.FORMAT_SQLITE) {
 				_connection.createStatement().executeUpdate("ALTER TABLE " + _tableName + " ADD COLUMN " + name + " text;");
@@ -191,15 +194,15 @@ public abstract class BasicCombinedWriter {
 	
 	
 	/** @brief Prepare the insert statement
-	 * @param[in] rsid The used projection
+	 * @param[in] epsg The used projection
 	 * @throws IOException When something fails
 	 */
-	public void createInsertStatement(int rsid) throws IOException {
+	public void createInsertStatement(int epsg) throws IOException {
 		if(_format!=Utils.Format.FORMAT_POSTGRES && _format!=Utils.Format.FORMAT_SQLITE) {
 			return;
 		}
 		try {
-			_ps = _connection.prepareStatement("INSERT INTO " + _tableName + " " + getInsertStatement(_format, rsid) + ";");
+			_ps = _connection.prepareStatement("INSERT INTO " + _tableName + " " + getInsertStatement(_format, epsg) + ";");
 		} catch (SQLException e) {
 			throw new IOException(e);
 		}
@@ -208,10 +211,10 @@ public abstract class BasicCombinedWriter {
 
 	/** @brief Get the insert statement string
 	 * @param[in] format The used output format
-	 * @param[in] rsid The used projection
+	 * @param[in] epsg The used projection
 	 * @return The insert statement string
 	 */
-	protected abstract String getInsertStatement(Utils.Format format, int rsid);  
+	protected abstract String getInsertStatement(Utils.Format format, int epsg);  
 
 	
 	/**

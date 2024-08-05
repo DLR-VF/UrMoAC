@@ -1,40 +1,32 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# =============================================================================
-# parse_reference.py
-#
-# Author: Daniel Krajzewicz
-# Date:   08.08.2022
-#
-# This file is part of the "UrMoAC" accessibility tool
-# https://github.com/DLR-VF/UrMoAC
-# Licensed under the Eclipse Public License 2.0
-#
-# Copyright (c) 2022-2024 Institute of Transport Research,
-#                         German Aerospace Center
-# All rights reserved.
-# =============================================================================
+from __future__ import print_function
+# ===========================================================================
 """Builds gtfs_defs.py from a local copy of the GTFS definition"""
-# =============================================================================
-
-# --- imported modules --------------------------------------------------------
-from bs4 import BeautifulSoup
-import bs4
-import sys, os.path, io
-
-
-# --- meta --------------------------------------------------------------------
+# ===========================================================================
 __author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright (c) 2022-2024 Institute of Transport Research, German Aerospace Center"
-__credits__    = [ "Daniel Krajzewicz" ]
-__license__    = "EPL2.0"
-__version__    = "0.8"
+__copyright__  = "Copyright 2023-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__credits__    = ["Daniel Krajzewicz"]
+__license__    = "EPL 2.0"
+__version__    = "0.8.0"
 __maintainer__ = "Daniel Krajzewicz"
 __email__      = "daniel.krajzewicz@dlr.de"
-__status__     = "Development"
+__status__     = "Production"
+# ===========================================================================
+# - https://github.com/DLR-VF/UrMoAC
+# - https://www.dlr.de/vf
+# ===========================================================================
 
 
-# --- enum definitions --------------------------------------------------------
+# --- imports ---------------------------------------------------------------
+from bs4 import BeautifulSoup
+import bs4
+import sys
+import os.path
+import io
+
+
+# --- enum definitions ------------------------------------------------------
 """A map of file type MML to their enum"""
 fieldTypeMap = {
     "Color" : "FieldType.COLOR",
@@ -78,7 +70,7 @@ fieldPresenceMap = {
 }
 
 
-# --- method definitions ------------------------------------------------------
+# --- method definitions ----------------------------------------------------
 def parse_table(info, fdo, optional):
     """Parses a single 'field-definitions' entry.
 
@@ -132,30 +124,31 @@ def write_header(fdo):
     :param fdo: The file to write the parsed definitions to
     :type fdo: io.TextIOWrapper
     """
-    fdo.write("""#!/usr/bin/env python3
+    fdo.write("""#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# =============================================================================
-# gtfs_defs.py
-#
-# Author: Daniel Krajzewicz
-# Date:   08.08.2022
-#
-# This file is part of the "UrMoAC" accessibility tool
-# https://github.com/DLR-VF/UrMoAC
-# Licensed under the Eclipse Public License 2.0
-#
-# Copyright (c) 2022-2024 Institute of Transport Research,
-#                         German Aerospace Center
-# All rights reserved.
-# =============================================================================
+from __future__ import print_function
+# ===========================================================================
 \"\"\"GTFS definitions built automatically using parse_reference.py\"\"\"
-# =============================================================================
+# ===========================================================================
+__author__     = "Daniel Krajzewicz"
+__copyright__  = "Copyright 2023-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__credits__    = ["Daniel Krajzewicz"]
+__license__    = "BSD"
+__version__    = "0.8.0"
+__maintainer__ = "Daniel Krajzewicz"
+__email__      = "daniel.krajzewicz@dlr.de"
+__status__     = "Production"
+# ===========================================================================
+# - https://github.com/DLR-VF/UrMoAC
+# - https://www.dlr.de/vf
+# ===========================================================================
 
-# --- imported modules --------------------------------------------------------
+
+# --- imports ---------------------------------------------------------------
 from enum import IntEnum
 
 
-# --- enum definitions --------------------------------------------------------
+# --- enum definitions ------------------------------------------------------
 class Presence(IntEnum):
     \"\"\"An enumeration of known presence conditions\"\"\"
     REQUIRED = 0
@@ -185,11 +178,11 @@ class FieldType(IntEnum):
     URL = 16
 
 
-# --- GTFS definitions --------------------------------------------------------
+# --- GTFS definitions ------------------------------------------------------
 """)
 
 
-# --- function definitions ----------------------------------------------------
+# --- function definitions --------------------------------------------------
 def parse_reference():
     """Parses a copy of the GTFS definitions page
     

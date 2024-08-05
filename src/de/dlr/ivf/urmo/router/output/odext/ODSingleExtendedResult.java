@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -18,14 +21,13 @@ package de.dlr.ivf.urmo.router.output.odext;
 import java.util.HashSet;
 import java.util.Set;
 
-import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
+import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.output.AbstractSingleResult;
 
 /**
  * @class ODSingleExtendedResult
  * @brief A more complex origin-destination result containing different measures
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class ODSingleExtendedResult extends AbstractSingleResult {
 	/// @brief The weighted distance
@@ -58,17 +60,21 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 	public double weightedInterchangeTime = 0;
 	/// @brief The used lines
 	public Set<String> lines = new HashSet<>();
+	/// @brief The weighted beeline distance
+	public double weightedBeelineDistance = 0;
+	/// @brief The weighted manhattan distance
+	public double weightedManhattenDistance = 0;
 	
 	
 	/**
 	 * @brief Constructor 
 	 * 
 	 * Generates an empty entry.
-	 * @param srcID The id of the origin the represented trip starts at
+	 * @param originID The id of the origin the represented trip starts at
 	 * @param destID The id of the destination the represented trip ends at
 	 */
-	public ODSingleExtendedResult(long srcID, long destID) {
-		super(srcID, destID);
+	public ODSingleExtendedResult(long originID, long destID) {
+		super(originID, destID);
 	}
 	
 	
@@ -76,14 +82,10 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Computes the distance and the travel time
-	 * @param srcID The id of the origin the represented trip starts at
-	 * @param destID The id of the destination the represented trip ends at
-	 * @param from The mapped source
-	 * @param to The mapped destination
-	 * @param dr The path between the source and the destination
+	 * @param result The processed path between the origin and the destination
 	 */
-	public ODSingleExtendedResult(long srcID, long destID, MapResult from, MapResult to, DijkstraResult dr) {
-		super(srcID, destID, from, to, dr);
+	public ODSingleExtendedResult(SingleODResult result) {
+		super(result);
 	}
 
 	
@@ -108,23 +110,25 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 		weightedInitialWaitingTime += srnm.weightedInitialWaitingTime;
 		weightedPTTravelTime += srnm.weightedPTTravelTime;
 		weightedInterchangeTime += srnm.weightedInterchangeTime;
+		weightedBeelineDistance += srnm.weightedBeelineDistance;
+		weightedManhattenDistance += srnm.weightedManhattenDistance;
 		lines.addAll(srnm.lines);
 	}
 
 
 	/**
 	 * @brief Norms the computed measures
-	 * @param numSources The number of sources
-	 * @param sourcesWeight The sum of the sources' weights
+	 * @param numOrigins The number of origins
+	 * @param originsWeight The sum of the origins' weights
 	 * @return The normed result
 	 */
 	@Override
-	public AbstractSingleResult getNormed(int numSources, double sourcesWeight) {
-		ODSingleExtendedResult srnm = new ODSingleExtendedResult(srcID, destID);
+	public AbstractSingleResult getNormed(int numOrigins, double originsWeight) {
+		ODSingleExtendedResult srnm = new ODSingleExtendedResult(originID, destID);
 		srnm.weightedDistance = connectionsWeightSum!=0 ? weightedDistance / connectionsWeightSum : 0;
 		srnm.weightedTravelTime = connectionsWeightSum!=0 ? weightedTravelTime / connectionsWeightSum : 0;
-		srnm.connectionsWeightSum = sourcesWeight!=0 ? connectionsWeightSum / sourcesWeight : 0;
-		srnm.weightedValue = sourcesWeight!=0 ? weightedValue / sourcesWeight : 0;
+		srnm.connectionsWeightSum = originsWeight!=0 ? connectionsWeightSum / originsWeight : 0;
+		srnm.weightedValue = originsWeight!=0 ? weightedValue / originsWeight : 0;
 		srnm.weightedKCal = connectionsWeightSum!=0 ? weightedKCal / connectionsWeightSum : 0;
 		srnm.weightedPrice = connectionsWeightSum!=0 ? weightedPrice / connectionsWeightSum : 0;
 		srnm.weightedCO2 = connectionsWeightSum!=0 ? weightedCO2 / connectionsWeightSum : 0;
@@ -135,6 +139,8 @@ public class ODSingleExtendedResult extends AbstractSingleResult {
 		srnm.weightedInitialWaitingTime = connectionsWeightSum!=0 ? weightedInitialWaitingTime / connectionsWeightSum : 0;
 		srnm.weightedPTTravelTime = connectionsWeightSum!=0 ? weightedPTTravelTime / connectionsWeightSum : 0;
 		srnm.weightedInterchangeTime = connectionsWeightSum!=0 ? weightedInterchangeTime / connectionsWeightSum : 0;
+		srnm.weightedBeelineDistance = connectionsWeightSum!=0 ? weightedBeelineDistance / connectionsWeightSum : 0;
+		srnm.weightedManhattenDistance = connectionsWeightSum!=0 ? weightedManhattenDistance / connectionsWeightSum : 0;
 		srnm.lines.addAll(lines);
 		return srnm;
 	}

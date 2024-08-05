@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -18,62 +21,68 @@ package de.dlr.ivf.urmo.router.output.odext;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.locationtech.jts.geom.Point;
+
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraEntry;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
+import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.output.MeasurementGenerator;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
+import de.dlr.ivf.urmo.router.shapes.GeomHelper;
 import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
 /**
  * @class ODExtendedMeasuresGenerator
  * @brief Interprets a path to build an ODSingleExtendedResult
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
- * @param <T>
+ * @author Daniel Krajzewicz
  */
 public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleExtendedResult> {
 	/**
 	 * @brief Interprets the path to build an ODSingleExtendedResult
 	 * @param beginTime The start time of the path
-	 * @param from The origin the path started at
-	 * @param to The destination accessed by this path
-	 * @param dr The routing result
+	 * @param result The processed path between the origin and the destination
 	 * @return An ODSingleExtendedResult computed using the given path
 	 */
-	public ODSingleExtendedResult buildResult(int beginTime, MapResult from, MapResult to, DijkstraResult dr) {
-		DijkstraEntry toEdgeEntry = dr.getEdgeInfo(to.edge);
-		ODSingleExtendedResult e = new ODSingleExtendedResult(from.em.getOuterID(), to.em.getOuterID(), from, to, dr);
+	public ODSingleExtendedResult buildResult(int beginTime, SingleODResult result) {
+		DijkstraEntry toEdgeEntry = result.path;
+		ODSingleExtendedResult e = new ODSingleExtendedResult(result);
+		MapResult from = result.origin;
+		MapResult to = result.destination;
 		e.weightedDistance = e.dist * e.val;
 		e.weightedTravelTime = e.tt * e.val;
-		e.weightedValue = ((LayerObject) to.em).getAttachedValue() * e.val;
+		e.weightedValue = ((LayerObject) result.destination.em).getAttachedValue() * e.val;
 		e.weightedWaitingTime = 0;
 		e.weightedInitialWaitingTime = 0;
 		e.weightedPTTravelTime = 0;
 		e.weightedInterchangeTime = 0;
 		e.connectionsWeightSum = e.val;
+		Point p1 = result.origin.em.getPoint();
+		Point p2 = result.destination.em.getPoint();
+		e.weightedBeelineDistance = GeomHelper.distance(p1, p2) * e.val;
+		e.weightedManhattenDistance = (Math.abs(p1.getX()-p2.getX()) + Math.abs(p1.getY()-p2.getY())) * e.val;
 
 		HashSet<String> trips = new HashSet<>();
 		double factor = 1.;
 		boolean single = false;
 		if(from.edge==to.edge) {
 			if(from.pos>to.pos) {
-				factor = (from.pos - to.pos) / from.edge.length;
+				factor = (from.pos - to.pos) / from.edge.getLength();
 			} else {
-				factor = (to.pos - from.pos) / from.edge.length;				
+				factor = (to.pos - from.pos) / from.edge.getLength();				
 			}
 			single = true;
-		} else if(from.edge.opposite==to.edge) {
-			if(from.pos>(from.edge.length - to.pos)) {
-				factor = (from.pos - (from.edge.length - to.pos)) / from.edge.length;
+		} else if(from.edge.getOppositeEdge()==to.edge) {
+			if(from.pos>(from.edge.getLength() - to.pos)) {
+				factor = (from.pos - (from.edge.getLength() - to.pos)) / from.edge.getLength();
 			} else {
-				factor = ((from.edge.length - to.pos) - from.pos) / from.edge.length;				
+				factor = ((from.edge.getLength() - to.pos) - from.pos) / from.edge.getLength();				
 			}
 			single = true;
 		} else {
 			if(toEdgeEntry.wasOpposite) {
-				factor = (to.edge.length - to.pos) / to.edge.length;
+				factor = (to.edge.getLength() - to.pos) / to.edge.getLength();
 			} else {
-				factor = to.pos / to.edge.length;
+				factor = to.pos / to.edge.getLength();
 			}
 		}		
 		
@@ -82,13 +91,13 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 		Set<String> seenLines = new HashSet<>();
 		// we go backwards through the list
 		do {
-			double ttt = current.prev==null ? current.tt : current.tt - current.prev.tt;
+			double ttt = current.e.getTravelTime(current.usedMode.vmax, current.tt+beginTime);//.prev==null ? current.tt : current.tt - current.prev.tt;
 			if(current.prev==null&&!single) {
 				// compute offset to edge's begin / end if it's the first edge
-				if(current.e==from.edge.opposite) {
-					factor = from.pos / from.edge.length;
+				if(current.e==from.edge.getOppositeEdge()) {
+					factor = from.pos / from.edge.getLength();
 				} else {
-					factor = 1. - from.pos / from.edge.length;
+					factor = 1. - from.pos / from.edge.getLength();
 				}
 			}
 			//
@@ -96,13 +105,13 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 			e.weightedKCal += edge.getKKC(current.usedMode, ttt) * factor;
 			e.weightedPrice += edge.getPrice(current.usedMode, seenLines) * factor;
 			e.weightedCO2 += edge.getCO2(current.usedMode) * factor;
-			if(current.line==null) {
+			if(current.ptConnection==null) {
 				if(lastPT==null) {
 					e.weightedEgress += ttt * factor;
 				}
 				e.weightedAccess += ttt * factor;
 			} else {
-				if(lastPT!=null&&!current.line.trip.tripID.equals(lastPT)) {
+				if(lastPT!=null&&!current.ptConnection.trip.tripID.equals(lastPT)) {
 					e.weightedInterchanges += 1.;
 					e.weightedInterchangeTime += e.weightedAccess;
 				}
@@ -110,17 +119,17 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 				e.weightedInterchangeTime += current.interchangeTT;
 				e.weightedAccess = 0;
 				e.weightedPTTravelTime += current.ttt;
-				if(current.prev==null || current.prev.line==null || !current.line.trip.equals(current.prev.line.trip)) {
-					double waitingTime = current.line.getWaitingTime(beginTime + current.prev.tt);
+				if(current.prev==null || current.prev.ptConnection==null || !current.ptConnection.trip.equals(current.prev.ptConnection.trip)) {
+					double waitingTime = current.ptConnection.getWaitingTime(beginTime + current.prev.tt);
 					e.weightedWaitingTime += waitingTime;
 					e.weightedInitialWaitingTime = waitingTime;
 					e.weightedPTTravelTime -= waitingTime;
 				}
 			}
-			if(current.line!=null) {
-				lastPT = current.line.trip.tripID;
-				e.lines.add(current.line.trip.route.id);
-				trips.add(current.line.trip.tripID);
+			if(current.ptConnection!=null) {
+				lastPT = current.ptConnection.trip.tripID;
+				e.lines.add(current.ptConnection.trip.route.id);
+				trips.add(current.ptConnection.trip.tripID);
 			} else {
 				e.lines.add(current.usedMode.mml);
 			}
@@ -144,12 +153,12 @@ public class ODExtendedMeasuresGenerator extends MeasurementGenerator<ODSingleEx
 	
 	/**
 	 * @brief Builds an empty entry of type ODSingleExtendedResult
-	 * @param srcID The id of the origin the path started at
+	 * @param originID The id of the origin the path started at
 	 * @param destID The id of the destination accessed by this path
 	 * @return An empty entry type ODSingleExtendedResult
 	 */
-	public ODSingleExtendedResult buildEmptyEntry(long srcID, long destID) {
-		return new ODSingleExtendedResult(srcID, destID);
+	public ODSingleExtendedResult buildEmptyEntry(long originID, long destID) {
+		return new ODSingleExtendedResult(originID, destID);
 	}
 
 	

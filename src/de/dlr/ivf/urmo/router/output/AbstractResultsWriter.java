@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -22,7 +25,7 @@ import de.dlr.ivf.urmo.router.io.Utils;
 /**
  * @class AbstractResultsWriter
  * @brief Class with interfaces for writing results of different type to databases or files 
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  * @param <T>
  */
 public abstract class AbstractResultsWriter<T> extends BasicCombinedWriter {
@@ -31,7 +34,7 @@ public abstract class AbstractResultsWriter<T> extends BasicCombinedWriter {
 	 * 
 	 * Opens the connection to a PostGIS database and builds the table
 	 * @param format The used format
-	 * @param inputParts The definition of the input/output source/destination
+	 * @param inputParts The definition of the input/output origin/destination
 	 * @param fileType The name of the input/output (option name)
 	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 

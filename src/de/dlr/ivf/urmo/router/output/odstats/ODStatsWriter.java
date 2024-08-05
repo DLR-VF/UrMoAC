@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -28,7 +31,7 @@ import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
 /**
  * @class ODStatsWriter
  * @brief Writes ODSingleStatsResult results to a database / file
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 	/// @brief Counter of results added to the database / file so far
@@ -81,7 +84,7 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 	 * 
 	 * Opens the connection to a PostGIS database and builds the table
 	 * @param format The used format
-	 * @param inputParts The definition of the input/output source/destination
+	 * @param inputParts The definition of the input/output origin/destination
 	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
 	 * @throws IOException When something fails
@@ -101,10 +104,10 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 
 	/** @brief Get the insert statement string
 	 * @param[in] format The used output format
-	 * @param[in] rsid The used projection
+	 * @param[in] epsg The used projection
 	 * @return The insert statement string
 	 */
-	protected String getInsertStatement(Utils.Format format, int rsid) {
+	protected String getInsertStatement(Utils.Format format, int epsg) {
 		return "VALUES (?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?)";
 	}
 
@@ -124,7 +127,7 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 		Stats CO2D = new Stats(result.allCO2s);
 		if (intoDB()) {
 			try {
-				_ps.setLong(1, result.srcID);
+				_ps.setLong(1, result.originID);
 				_ps.setLong(2, result.destID);
 				_ps.setLong(3, result.allCO2s.size());
 				insertIntoPS(_ps, distD, 4);
@@ -143,7 +146,7 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 				throw new IOException(ex);
 			}
 		} else {
-			_fileWriter.append(result.srcID + ";" + result.destID + ";" + result.allCO2s.size()
+			_fileWriter.append(result.originID + ";" + result.destID + ";" + result.allCO2s.size()
 					+ ";" + String.format(Locale.US, _FS, distD.avg) + ";" + String.format(Locale.US, _FS, ttD.avg) + ";" + String.format(Locale.US, _FS, valuesD.avg) + ";" + String.format(Locale.US, _FS, kcalsD.avg) + ";" + String.format(Locale.US, _FS, pricesD.avg) + ";" + String.format(Locale.US, _FS, CO2D.avg)
 					+ ";" + String.format(Locale.US, _FS, distD.med) + ";" + String.format(Locale.US, _FS, ttD.med) + ";" + String.format(Locale.US, _FS, valuesD.med) + ";" + String.format(Locale.US, _FS, kcalsD.med) + ";" + String.format(Locale.US, _FS, pricesD.med) + ";" + String.format(Locale.US, _FS, CO2D.med)
 					+ ";" + String.format(Locale.US, _FS, distD.min) + ";" + String.format(Locale.US, _FS, ttD.min) + ";" + String.format(Locale.US, _FS, valuesD.min) + ";" + String.format(Locale.US, _FS, kcalsD.min) + ";" + String.format(Locale.US, _FS, pricesD.min) + ";" + String.format(Locale.US, _FS, CO2D.min)

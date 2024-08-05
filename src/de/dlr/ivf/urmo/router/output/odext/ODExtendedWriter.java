@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -25,7 +28,7 @@ import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
 /**
  * @class ODExtendedWriter
  * @brief Writes ODSingleExtendedResult results to a database / file
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResult> {
 	/// @brief Counter of results added to the database / file so far
@@ -37,7 +40,7 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 	 * 
 	 * Opens the connection to a PostGIS database and builds the table
 	 * @param format The used format
-	 * @param inputParts The definition of the input/output source/destination
+	 * @param inputParts The definition of the input/output origin/destination
 	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
 	 * @throws IOException When something fails
@@ -46,19 +49,20 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 		super(format, inputParts, "ext-od-output", precision, dropPrevious, 
 				"(fid bigint, sid bigint, avg_distance real, avg_tt real, avg_num real, avg_value real, "
 				+ "avg_kcal real, avg_price real, avg_co2 real, avg_interchanges real, avg_access real, avg_egress real, "
-				+ "avg_waiting_time real, avg_init_waiting_time real, avg_pt_tt real, avg_pt_interchange_time real, modes text)");
+				+ "avg_waiting_time real, avg_init_waiting_time real, avg_pt_tt real, avg_pt_interchange_time real, modes text,"
+				+ "beeline_distance real, manhattan_distance real)");
 	}
 
 
 	/** @brief Get the insert statement string
 	 * @param[in] format The used output format
-	 * @param[in] rsid The used projection
+	 * @param[in] epsg The used projection
 	 * @return The insert statement string
 	 */
-	protected String getInsertStatement(Utils.Format format, int rsid) {
-		return "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	protected String getInsertStatement(Utils.Format format, int epsg) {
+		return "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	}
-	
+
 	
 	/** 
 	 * @brief Writes the results to the open database / file
@@ -69,7 +73,7 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 	public void writeResult(ODSingleExtendedResult result) throws IOException {
 		if (intoDB()) {
 			try {
-				_ps.setLong(1, result.srcID);
+				_ps.setLong(1, result.originID);
 				_ps.setLong(2, result.destID);
 				_ps.setFloat(3, (float) result.weightedDistance);
 				_ps.setFloat(4, (float) result.weightedTravelTime);
@@ -86,6 +90,8 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 				_ps.setFloat(15, (float) result.weightedPTTravelTime);
 				_ps.setFloat(16, (float) result.weightedInterchangeTime);
 				_ps.setString(17, result.lines.toString()); // modes
+				_ps.setFloat(18, (float) result.weightedBeelineDistance);
+				_ps.setFloat(19, (float) result.weightedManhattenDistance);
 				_ps.addBatch();
 				++batchCount;
 				if(batchCount>10000) {
@@ -96,7 +102,7 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 				throw new IOException(ex);
 			}
 		} else {
-			_fileWriter.append(result.srcID + ";" + result.destID + ";" 
+			_fileWriter.append(result.originID + ";" + result.destID + ";" 
 					+ String.format(Locale.US, _FS, result.weightedDistance) + ";" 
 					+ String.format(Locale.US, _FS, result.weightedTravelTime) + ";" 
 					+ String.format(Locale.US, _FS, result.connectionsWeightSum) + ";" 
@@ -111,7 +117,10 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 					+ String.format(Locale.US, _FS, result.weightedInitialWaitingTime) + ";"
 					+ String.format(Locale.US, _FS, result.weightedPTTravelTime) + ";" 
 					+ String.format(Locale.US, _FS, result.weightedInterchangeTime) + ";" 
-					+ result.lines.toString() + "\n");
+					+ result.lines.toString() + ";"
+					+ String.format(Locale.US, _FS, result.weightedBeelineDistance) + ";" 
+					+ String.format(Locale.US, _FS, result.weightedManhattenDistance) 
+					+ "\n");
 		}
 	}
 

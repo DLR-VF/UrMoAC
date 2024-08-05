@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -27,8 +30,7 @@ import de.dlr.ivf.urmo.router.shapes.DBNet;
 /**
  * @class GTFSData
  * @brief A container for read GTFS data
- * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of
- *         Transport Research
+ * @author Daniel Krajzewicz
  */
 public class GTFSData {
 	/// @brief A map of ids to the respective stop
@@ -37,7 +39,7 @@ public class GTFSData {
 	public HashMap<String, GTFSRoute> routes;
 	/// @brief A map of ids to the respective trip
 	public HashMap<String, GTFSTrip> trips;
-	/// @brief A set of edges (!!! unused?)
+	/// @brief A set of edges
 	public Set<GTFSEdge> ptedges = new HashSet<>();
 	/// @brief The network to refer to
 	private DBNet net;
@@ -84,7 +86,7 @@ public class GTFSData {
 	 * @param tripID The ID of the trip
 	 * @param stopTimes The stop times to recheck
 	 * @param id2stop The map of ids to stops
-	 * @return The number of errorneous connections
+	 * @return The number of erroneous connections
 	 */
 	public int recheckTimesAndInsert(String tripID, Vector<GTFSStopTime> stopTimes, HashMap<String, GTFSStop> id2stop) {
 		Vector<GTFSConnection> connections = new Vector<>();
@@ -100,7 +102,7 @@ public class GTFSData {
 			if(stop!=null && lastStop!=null) {
 				GTFSTrip trip = trips.get(tripID);
 				GTFSRoute route = trip.route;
-				GTFSEdge e = lastStop.getEdgeTo(stop, net.getNextID(), route, entrainmentMap, net);
+				GTFSEdge e = lastStop.getEdgeTo(stop, route, entrainmentMap, net);
 				ptedges.add(e);
 				GTFSConnection c = new GTFSConnection(e, trip, lastStopTime.departureTime, stopTime.arrivalTime);
 				connections.add(c);

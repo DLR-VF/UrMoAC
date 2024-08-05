@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -20,10 +23,13 @@ import java.util.HashMap;
 /**
  * @class RouteWeightFunction_ExpInterchange_TT
  * @brief Weights routes by counting interchanges exponential and addin the travel time
+ * @author Daniel Krajzewicz
  */
 public class RouteWeightFunction_ExpInterchange_TT extends AbstractRouteWeightFunction {
-	/// @brief Weights for interchanges
-	double scale1, scale2;
+	/// @brief First weight for interchanges (exponential)
+	double scale1;
+	/// @brief Second weight for interchanges (factor)
+	double scale2;
 	
 	
 	/** 
@@ -84,7 +90,7 @@ public class RouteWeightFunction_ExpInterchange_TT extends AbstractRouteWeightFu
 	public double computeWeight(DijkstraEntry c) {
 		int pc = (Integer) c.measures.get("interchanges");
 		double pcE = (Math.exp((double) pc*scale1)-1.) * scale2;
-		return c.tt + pcE;
+		return c.tt + pcE; // !!!! potentially wrong tt in DijkstraEntry
 	}
 	
 };

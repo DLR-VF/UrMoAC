@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2016-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -52,8 +55,7 @@ import de.dlr.ivf.urmo.router.shapes.DBNet;
 /**
  * @class GTFSReader_File
  * @brief Reads a GTFS plan from files
- * @author Daniel Krajzewicz (c) 2016 German Aerospace Center, Institute of
- *         Transport Research
+ * @author Daniel Krajzewicz
  */
 public class GTFSReader_File extends AbstractGTFSReader {
 	/// @brief The prefix of the tables
@@ -211,8 +213,10 @@ public class GTFSReader_File extends AbstractGTFSReader {
 				c.y = p.getY();
 				// !!! projection
 				GTFSStop stop = new GTFSStop(_net.getNextID(), id, c, _net.getGeometryFactory().createPoint(c)); // !!! new id - the nodes should have a new id as well
-				_net.addNode(stop);
-				stops.put(stop.id, stop);
+				if(!_net.addNode(stop)) {
+					throw new IOException("A node with id '" + stop.getID() + "' already exists.");
+				}
+				stops.put(stop.getID(), stop);
 				id2stop.put(stop.mid, stop);
 				stopsV.add(stop);
 			} catch (NumberFormatException | MismatchedDimensionException | TransformException e) {

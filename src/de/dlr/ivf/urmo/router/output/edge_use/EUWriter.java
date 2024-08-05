@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -26,7 +29,7 @@ import de.dlr.ivf.urmo.router.output.edge_use.EUSingleResult.EdgeParam;
 /**
  * @class EUWriter
  * @brief Writes EUSingleResult results to a database / file
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 	/// @brief Counter of results added to the database / file so far
@@ -45,16 +48,16 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 	 */
 	public EUWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious) throws IOException {
 		super(format, inputParts, "edges-output", precision, dropPrevious, 
-				"(fid bigint, sid bigint, eid text, num real, srcweight real, normed real)");
+				"(fid bigint, sid bigint, eid text, num real, origins_weight real, normed real)");
 	}
 
 
 	/** @brief Get the insert statement string
 	 * @param[in] format The used output format
-	 * @param[in] rsid The used projection
+	 * @param[in] epsg The used projection
 	 * @return The insert statement string
 	 */
-	protected String getInsertStatement(Utils.Format format, int rsid) {
+	protected String getInsertStatement(Utils.Format format, int epsg) {
 		return "VALUES (?, ?, ?, ?, ?, ?)";
 	}
 
@@ -70,12 +73,12 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 			try {
 				for(String id : result.stats.keySet()) {
 					EdgeParam ep = result.stats.get(id);
-						_ps.setLong(1, result.srcID);
+						_ps.setLong(1, result.originID);
 						_ps.setLong(2, result.destID);
 						_ps.setString(3, id);
 						_ps.setFloat(4, (float) ep.num);
-						_ps.setFloat(5, (float) ep.sourcesWeight);
-						_ps.setFloat(6, (float) (ep.num / ep.sourcesWeight));
+						_ps.setFloat(5, (float) ep.originsWeight);
+						_ps.setFloat(6, (float) (ep.num / ep.originsWeight));
 						_ps.addBatch();
 						++batchCount;
 						if(batchCount>10000) {
@@ -89,10 +92,10 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 		} else {
 			for(String id : result.stats.keySet()) {
 				EdgeParam ep = result.stats.get(id);
-				_fileWriter.append(result.srcID + ";" + result.destID + ";" + id + ";" 
+				_fileWriter.append(result.originID + ";" + result.destID + ";" + id + ";" 
 						+ String.format(Locale.US, _FS, ep.num) + ";" 
-						+ String.format(Locale.US, _FS, ep.sourcesWeight) + ";" 
-						+ String.format(Locale.US, _FS, (ep.num / ep.sourcesWeight)) + "\n");
+						+ String.format(Locale.US, _FS, ep.originsWeight) + ";" 
+						+ String.format(Locale.US, _FS, (ep.num / ep.originsWeight)) + "\n");
 			}
 		}
 	}

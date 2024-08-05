@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -27,7 +30,7 @@ import de.dlr.ivf.urmo.router.output.interchanges.InterchangeSingleResult.Interc
 /**
  * @class InterchangeWriter
  * @brief Writes InterchangeSingleResult results to a database / file
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleResult> {
 	/// @brief Counter of results added to the database / file so far
@@ -52,10 +55,10 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 
 	/** @brief Get the insert statement string
 	 * @param[in] format The used output format
-	 * @param[in] rsid The used projection
+	 * @param[in] epsg The used projection
 	 * @return The insert statement string
 	 */
-	protected String getInsertStatement(Utils.Format format, int rsid) {
+	protected String getInsertStatement(Utils.Format format, int epsg) {
 		return "VALUES (?, ?, ?, ?, ?, ?, ?)";
 	}
 
@@ -73,7 +76,7 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 					Map<String, InterchangeParam> ssstats = result.stats.get(id);
 					for(String id2 : ssstats.keySet()) {
 						String[] lineIDs = InterchangeSingleResult.splitLinesKey(id2);
-							_ps.setLong(1, result.srcID);
+							_ps.setLong(1, result.originID);
 							_ps.setLong(2, result.destID);
 							_ps.setString(3, id);
 							_ps.setString(4, lineIDs[0]);
@@ -96,7 +99,7 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 				Map<String, InterchangeParam> ssstats = result.stats.get(id);
 				for(String id2 : ssstats.keySet()) {
 					String[] lineIDs = InterchangeSingleResult.splitLinesKey(id2);
-					_fileWriter.append(result.srcID + ";" + result.destID + ";" + id + ";" + 
+					_fileWriter.append(result.originID + ";" + result.destID + ";" + id + ";" + 
 							lineIDs[0] + ";" + lineIDs[1] + ";" 
 							+ ssstats.get(id2).number + ";" 
 							+ String.format(Locale.US, _FS, ssstats.get(id2).weightedTT) + "\n");

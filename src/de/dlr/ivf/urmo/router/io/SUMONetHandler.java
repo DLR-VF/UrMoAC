@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2021-2024 DLR Institute of Transport Research
+ * Copyright (c) 2021-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -15,6 +18,7 @@
  */
 package de.dlr.ivf.urmo.router.io;
 
+import java.io.IOException;
 import java.util.Vector;
 
 import org.locationtech.jts.geom.Coordinate;
@@ -30,9 +34,10 @@ import de.dlr.ivf.urmo.router.shapes.DBNode;
 
 /** @class SUMOLayerHandler
  * @brief Parses a SUMO-net-file 
- * @author Daniel Krajzewicz (c) 2021 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class SUMONetHandler extends DefaultHandler {
+	/// @brief The geometry factory to use
 	GeometryFactory _gf;
 	/// @brief The net to fill
 	private DBNet _net;
@@ -155,7 +160,12 @@ public class SUMONetHandler extends DefaultHandler {
 				Coordinate[] cs = geom2.getCoordinates();
 				DBNode fromNode = _net.getNode(_from, cs[0]);
 				DBNode toNode = _net.getNode(_to, cs[cs.length - 1]);
-				_net.addEdge(_net.getNextID(), _id, fromNode, toNode, modes, _maxLaneSpeed, geom2, length);
+				try {
+					_net.addEdge(_id, fromNode, toNode, modes, _maxLaneSpeed, geom2, length);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 	}

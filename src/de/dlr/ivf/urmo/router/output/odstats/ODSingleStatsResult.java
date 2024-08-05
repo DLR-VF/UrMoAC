@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -17,14 +20,13 @@ package de.dlr.ivf.urmo.router.output.odstats;
 
 import java.util.Vector;
 
-import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
+import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.output.AbstractSingleResult;
 
 /**
  * @class ODSingleStatsResult
  * @brief A origin-destination result showing percentiles 
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class ODSingleStatsResult extends AbstractSingleResult {
 	/// @brief A vector of all collected distances
@@ -45,11 +47,11 @@ public class ODSingleStatsResult extends AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Generates an empty entry.
-	 * @param srcID The id of the origin the represented trip starts at
+	 * @param originID The id of the origin the represented trip starts at
 	 * @param destID The id of the destination the represented trip ends at
 	 */
-	public ODSingleStatsResult(long srcID, long destID) {
-		super(srcID, destID);
+	public ODSingleStatsResult(long originID, long destID) {
+		super(originID, destID);
 	}
 	
 	
@@ -57,14 +59,10 @@ public class ODSingleStatsResult extends AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Computes the distance and the travel time
-	 * @param srcID The id of the origin the represented trip starts at
-	 * @param destID The id of the destination the represented trip ends at
-	 * @param from The mapped source
-	 * @param to The mapped destination
-	 * @param dr The path between the source and the destination
+	 * @param result The processed path between the origin and the destination
 	 */
-	public ODSingleStatsResult(long srcID, long destID, MapResult from, MapResult to, DijkstraResult dr) {
-		super(srcID, destID, from, to, dr);
+	public ODSingleStatsResult(SingleODResult result) {
+		super(result);
 	}
 
 	
@@ -86,13 +84,13 @@ public class ODSingleStatsResult extends AbstractSingleResult {
 
 	/**
 	 * @brief Norms the computed measures
-	 * @param numSources The number of sources
-	 * @param sourcesWeight The sum of the sources' weights
+	 * @param numOrigins The number of origins
+	 * @param originsWeight The sum of the origins' weights
 	 * @return The normed result
 	 */
 	@Override
-	public AbstractSingleResult getNormed(int numSources, double sourcesWeight) {
-		ODSingleStatsResult srnm = new ODSingleStatsResult(srcID, destID);
+	public AbstractSingleResult getNormed(int numOrigins, double originsWeight) {
+		ODSingleStatsResult srnm = new ODSingleStatsResult(originID, destID);
 		srnm.allDistances = new Vector<Double>(allDistances);
 		srnm.allTravelTimes = new Vector<Double>(allTravelTimes);
 		srnm.allValues = new Vector<Double>(allValues);

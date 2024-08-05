@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2017-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -20,49 +23,48 @@ import java.util.Set;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraEntry;
-import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResult;
+import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.output.MeasurementGenerator;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 
 /**
  * @class ODStatsMeasuresGenerator
  * @brief Interprets a path to build an ODSingleStatsResult
- * @author Daniel Krajzewicz (c) 2017 German Aerospace Center, Institute of Transport Research
- * @param <T>
+ * @author Daniel Krajzewicz
  */
 public class ODStatsMeasuresGenerator extends MeasurementGenerator<ODSingleStatsResult> {
 	/**
 	 * @brief Interprets the path to build an ODSingleStatsResult
 	 * @param beginTime The start time of the path
-	 * @param from The origin the path started at
-	 * @param to The destination accessed by this path
-	 * @param dr The routing result
+	 * @param result The processed path between the origin and the destination
 	 * @return An ODSingleStatsResult computed using the given path
 	 */
-	public ODSingleStatsResult buildResult(int beginTime, MapResult from, MapResult to, DijkstraResult dr) {
-		DijkstraEntry toEdgeEntry = dr.getEdgeInfo(to.edge);
-		ODSingleStatsResult e = new ODSingleStatsResult(from.em.getOuterID(), to.em.getOuterID(), from, to, dr);
+	public ODSingleStatsResult buildResult(int beginTime, SingleODResult result) {
+		DijkstraEntry toEdgeEntry = result.path;//.getPath(to);//dr.getEdgeInfo(to.edge);
+		MapResult from = result.origin;
+		MapResult to = result.destination;
+		ODSingleStatsResult e = new ODSingleStatsResult(result);
 		double factor = 1.;
 		boolean single = false;
 		if(from.edge==to.edge) {
 			if(from.pos>to.pos) {
-				factor = (from.pos - to.pos) / from.edge.length;
+				factor = (from.pos - to.pos) / from.edge.getLength();
 			} else {
-				factor = (to.pos - from.pos) / from.edge.length;				
+				factor = (to.pos - from.pos) / from.edge.getLength();				
 			}
 			single = true;
-		} else if(from.edge.opposite==to.edge) {
-			if(from.pos>(from.edge.length - to.pos)) {
-				factor = (from.pos - (from.edge.length - to.pos)) / from.edge.length;
+		} else if(from.edge.getOppositeEdge()==to.edge) {
+			if(from.pos>(from.edge.getLength() - to.pos)) {
+				factor = (from.pos - (from.edge.getLength() - to.pos)) / from.edge.getLength();
 			} else {
-				factor = ((from.edge.length - to.pos) - from.pos) / from.edge.length;				
+				factor = ((from.edge.getLength() - to.pos) - from.pos) / from.edge.getLength();				
 			}
 			single = true;
 		} else {
 			if(toEdgeEntry.wasOpposite) {
-				factor = (to.edge.length - to.pos) / to.edge.length;
+				factor = (to.edge.getLength() - to.pos) / to.edge.getLength();
 			} else {
-				factor = to.pos / to.edge.length;
+				factor = to.pos / to.edge.getLength();
 			}
 		}		
 		
@@ -72,9 +74,9 @@ public class ODStatsMeasuresGenerator extends MeasurementGenerator<ODSingleStats
 		Set<String> seenLines = new HashSet<>();
 		DijkstraEntry current = toEdgeEntry;
 		do {
-			double ttt = current.prev==null ? current.tt : current.tt - current.prev.tt;
+			double ttt = current.e.getTravelTime(current.usedMode.vmax, current.tt+beginTime);//current.prev==null ? current.tt : current.tt - current.prev.tt;
 			if(current.prev==null&&!single) {
-				factor = 1. - from.pos / from.edge.length;
+				factor = 1. - from.pos / from.edge.getLength();
 			}
 			DBEdge edge = current.e;
 			kCal += edge.getKKC(current.usedMode, ttt) * factor;
@@ -91,12 +93,12 @@ public class ODStatsMeasuresGenerator extends MeasurementGenerator<ODSingleStats
 	
 	/**
 	 * @brief Builds an empty entry of type ODSingleStatsResult
-	 * @param srcID The id of the origin the path started at
+	 * @param originID The id of the origin the path started at
 	 * @param destID The id of the destination accessed by this path
 	 * @return An empty entry type ODSingleStatsResult
 	 */
-	public ODSingleStatsResult buildEmptyEntry(long srcID, long destID) {
-		return new ODSingleStatsResult(srcID, destID);
+	public ODSingleStatsResult buildEmptyEntry(long originID, long destID) {
+		return new ODSingleStatsResult(originID, destID);
 	}
 
 	

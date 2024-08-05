@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2016-2024 DLR Institute of Transport Research
+ * Copyright (c) 2023-2024
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
  * All rights reserved.
  * 
  * This file is part of the "UrMoAC" accessibility tool
@@ -18,6 +21,7 @@ package de.dlr.ivf.urmo.router.output;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.Vector;
 
@@ -27,7 +31,7 @@ import de.dlr.ivf.urmo.router.shapes.DBEdge;
 /**
  * @class DirectWriter
  * @brief Writes PTODSingleResult results to a database / file
- * @author Daniel Krajzewicz (c) 2023 German Aerospace Center, Institute of Transport Research
+ * @author Daniel Krajzewicz
  */
 public class NetClusterWriter extends BasicCombinedWriter {
 	/// @brief Counter of results added to the database / file so far
@@ -39,21 +43,21 @@ public class NetClusterWriter extends BasicCombinedWriter {
 	 * 
 	 * Opens the connection to a PostGIS database and builds the table
 	 * @param format The used format
-	 * @param inputParts The definition of the input/output source/destination
+	 * @param inputParts The definition of the input/output origin/destination
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
 	 * @throws IOException When something fails
 	 */
 	public NetClusterWriter(Utils.Format format, String[] inputParts, boolean dropPrevious) throws IOException {
-		super(format, inputParts, "subnets-output", 2, dropPrevious, "(edge_id text, cell_id integer, cell_size integer)");
+		super(format, inputParts, "write.subnets", 2, dropPrevious, "(edge_id text, cell_id integer, cell_size integer)");
 	}
 	
 	
 	/** @brief Get the insert statement string
 	 * @param[in] format The used output format
-	 * @param[in] rsid The used projection (not needed)
+	 * @param[in] epsg The used projection (not needed)
 	 * @return The insert statement string
 	 */
-	protected String getInsertStatement(Utils.Format format, int rsid) {
+	protected String getInsertStatement(Utils.Format format, int epsg) {
 		return "VALUES (?, ?, ?)";
 	}
 
@@ -61,23 +65,22 @@ public class NetClusterWriter extends BasicCombinedWriter {
 	/**
 	 * @brief Writes the information about network clusters
 	 * @param clusters The found clusters
-	 * @param major The major cluster
 	 * @throws IOException When something fails
 	 */
-	public synchronized void writeClusters(Set<Set<DBEdge>> clusters) throws IOException {
+	public synchronized void writeClusters(HashMap<Integer, Set<DBEdge>> clusters) throws IOException {
 		// convert to a sorted vector of sorted edge vectors 
 		Vector<Vector<DBEdge>> vClusters = new Vector<>();
-		for (Set<DBEdge> cluster : clusters) {
+		for (Set<DBEdge> cluster : clusters.values()) {
 			Vector<DBEdge> v = new Vector<>();
 			for (DBEdge e : cluster) {
 				v.add(e);
 			}
-			v.sort(new Comparator<DBEdge>() { public int compare(DBEdge e1, DBEdge e2) { return e1.id.compareTo(e2.id); } });
+			v.sort(new Comparator<DBEdge>() { public int compare(DBEdge e1, DBEdge e2) { return e1.getID().compareTo(e2.getID()); } });
 			vClusters.add(v);
 		}
 		vClusters.sort(new Comparator<Vector<DBEdge>>() {
 		    public int compare(Vector<DBEdge> v1, Vector<DBEdge> v2) {
-		        if(v1.size()==v2.size()) { return ((DBEdge) (v1.get(0))).id.compareTo(((DBEdge) v2.get(0)).id); }
+		        if(v1.size()==v2.size()) { return ((DBEdge) (v1.get(0))).getID().compareTo(((DBEdge) v2.get(0)).getID()); }
 		    	return v1.size()<v2.size() ? 1 : -1;
 		    }
 		});
@@ -109,7 +112,7 @@ public class NetClusterWriter extends BasicCombinedWriter {
 		for(DBEdge e : cluster) {
 			if (intoDB()) {
 				try {
-					_ps.setString(1, e.id);
+					_ps.setString(1, e.getID());
 					_ps.setInt(2, id);
 					_ps.setInt(3, cluster.size());
 					_ps.addBatch();
@@ -123,7 +126,7 @@ public class NetClusterWriter extends BasicCombinedWriter {
 					throw new IOException(ex);
 				}
 			} else {
-				_fileWriter.append(e.id + ";" + id + ";" + cluster.size() + "\n");
+				_fileWriter.append(e.getID() + ";" + id + ";" + cluster.size() + "\n");
 			}
 		}
 	}

@@ -4,3 +4,8 @@ mode_restrictions
 # route weight functions
 route_weight_functions
 
+# limiting search
+limits
+
+# some issues found
+found_issues
