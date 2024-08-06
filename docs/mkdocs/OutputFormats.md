@@ -70,7 +70,6 @@ The generated database table has the following format:
 | modes | text | The used modes |
 | beeline_distance | real | The beeline distance between the origin(s) and the destination(s) |
 | manhattan_distance | real | The manhattan distance between the origin(s) and the destination(s) |
-| avg_pt_interchange_time | real | The average time needed to change between different public transport lines |
 
 When writing to a file, these attributes are stored in a single line, separated by &lsquo;;&rsquo;.
 
