@@ -53,7 +53,7 @@ Which would compute the accessibility of the destinations stored in ```destinati
 
 Daniel Krajzewicz, Dirk Heinrichs and Rita Cyganski (2017) [_Intermodal Contour Accessibility Measures Computation Using the 'UrMo Accessibility Computer'_](https://elib.dlr.de/118235/). International Journal On Advances in Systems and Measurements, 10 (3&4), Seiten 111-123. IARIA.
 
-And / or use the DOI: [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13234335-blue)](https://doi.org/10.5281/zenodo.13234335) (v0.8.2)
+And / or use the DOI: [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13234444-blue)](https://doi.org/10.5281/zenodo.13234444) (v0.8.2)
 
 ## Support and Contribution
 

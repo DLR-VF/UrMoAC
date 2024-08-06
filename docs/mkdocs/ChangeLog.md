@@ -2,7 +2,7 @@
 
 ## UrMoAC-0.8.2 (06.08.2024)
 
-[![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13234335-blue)](https://doi.org/10.5281/zenodo.13234335)
+[![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13234444-blue)](https://doi.org/10.5281/zenodo.13234444)
 
 Re-release due to broken build. No further changes in comparison to v0.8.0.
 
