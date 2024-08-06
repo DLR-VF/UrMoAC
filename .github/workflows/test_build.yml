@@ -1,11 +1,10 @@
 # This workflow tests building UrMoAC on push
-
 name: test-urmoac-build
 
 on: [push]
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -16,6 +15,7 @@ jobs:
         distribution: 'temurin'
         cache: maven
     - name: Build with Maven
-      run: mvn --batch-mode --update-snapshots verify
+      run: mvn --batch-mode --update-snapshots verify --file pom.xml
+
 
     
