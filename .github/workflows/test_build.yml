@@ -1,5 +1,5 @@
 # This workflow tests building UrMoAC on push
-name: test-urmoac-build
+name: maven-build
 
 on: [push]
 
