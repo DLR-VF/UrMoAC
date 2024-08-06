@@ -4,7 +4,7 @@
 [![License: EPL2](https://img.shields.io/badge/license-EPL2-green)](https://github.com/DLR-VF/UrMoAC/blob/master/LICENSE.md)
 [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13234444-blue)](https://doi.org/10.5281/zenodo.13234444)
 [![Documentation Status](https://readthedocs.org/projects/urmoac/badge/?version=latest)](https://urmoac.readthedocs.io/en/latest/?badge=latest)
-![Build Status](https://github.com/DLR-VF/UrMoAC/actions/workflows/test_build.yml/badge.svg)
+![Build Status](https://github.com/DLR-VF/UrMoAC/actions/workflows/maven_build.yml/badge.svg)
 
 &ldquo;Urban Mobility Accessibility Computer&rdquo; or &ldquo;UrMoAC&rdquo; is a tool for computing accessibility measures, supporting aggregation, variable limits, and intermodal paths. It is a scientific tool.
 
