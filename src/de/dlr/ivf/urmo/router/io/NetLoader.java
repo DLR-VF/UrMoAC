@@ -94,7 +94,7 @@ public class NetLoader {
 			net = loadNetFromWKTFile(idGiver, inputParts[0], uModes, errorsWriter);
 			break;
 		case FORMAT_SHAPEFILE:
-			net = loadNetFromShapefile(idGiver, inputParts[0], epsg, uModes);
+			net = loadNetFromShapefile(idGiver, inputParts[0], epsg, uModes, errorsWriter);
 			break;
 		case FORMAT_SUMO:
 			net = loadNetFromSUMOFile(idGiver, inputParts[0], uModes, errorsWriter);
@@ -287,7 +287,7 @@ public class NetLoader {
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromShapefile(IDGiver idGiver, String fileName, int epsg, long uModes) throws IOException {
+	private static DBNet loadNetFromShapefile(IDGiver idGiver, String fileName, int epsg, long uModes, NetErrorsWriter errorsWriter) throws IOException {
 		try {
 			File file = new File(fileName);
 			if(!file.exists() || !fileName.endsWith(".shp")) {
@@ -303,7 +303,7 @@ public class NetLoader {
 	        boolean lenient = true; // allow for some error due to different datums
 	        MathTransform transform = CRS.findMathTransform(dataCRS, worldCRS, lenient);		
 
-			DBNet net = new DBNet(idGiver);
+			DBNet net = new DBNet(idGiver, errorsWriter, false);
 	        
 			SimpleFeatureIterator iterator = featureCollection.features();
 			boolean ok = true;
@@ -328,7 +328,7 @@ public class NetLoader {
 				Coordinate[] cs = geom2.getCoordinates();
 				DBNode fromNode = net.getNode((Integer) feature.getAttribute("nodefrom"), cs[0]);
 				DBNode toNode = net.getNode((Integer) feature.getAttribute("nodeto"), cs[cs.length - 1]);
-				ok &= net.addEdge(net.getNextID(), (String) feature.getAttribute("oid"), fromNode, toNode, modes,
+				ok &= net.addEdge((String) feature.getAttribute("oid"), fromNode, toNode, modes,
 						(Double) feature.getAttribute("vmax") / 3.6, geom2, (Double) feature.getAttribute("length"));
 			
 			}
