@@ -2,7 +2,7 @@
 
 # ![logo.png](https://raw.githubusercontent.com/DLR-VF/UrMoAC/master/logo.png) UrMoAC
 [![License: EPL2](https://img.shields.io/badge/license-EPL2-green)](https://github.com/DLR-VF/UrMoAC/blob/master/LICENSE.md)
-[![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13142701-blue)](https://doi.org/10.5281/zenodo.13142701)
+[![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13234444-blue)](https://doi.org/10.5281/zenodo.13234444)
 [![Documentation Status](https://readthedocs.org/projects/urmoac/badge/?version=latest)](https://urmoac.readthedocs.io/en/latest/?badge=latest)
 
 &ldquo;Urban Mobility Accessibility Computer&rdquo; or &ldquo;UrMoAC&rdquo; is a tool for computing accessibility measures, supporting aggregation, variable limits, and intermodal paths. It is a scientific tool.
@@ -53,7 +53,7 @@ Which would compute the accessibility of the destinations stored in ```destinati
 
 Daniel Krajzewicz, Dirk Heinrichs and Rita Cyganski (2017) [_Intermodal Contour Accessibility Measures Computation Using the 'UrMo Accessibility Computer'_](https://elib.dlr.de/118235/). International Journal On Advances in Systems and Measurements, 10 (3&4), Seiten 111-123. IARIA.
 
-And / or use the DOI: [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13142701-blue)](https://doi.org/10.5281/zenodo.13142701) (v0.8.0)
+And / or use the DOI: [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13234444-blue)](https://doi.org/10.5281/zenodo.13234444) (v0.8.2)
 
 ## Support and Contribution
 
