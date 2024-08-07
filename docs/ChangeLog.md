@@ -1,5 +1,12 @@
 # Change Log
 
+## UrMoAC-0.X.Y (to come)
+
+* added an action for checking whether the current version builds
+* corrected docs building
+* reorganised docs
+
+
 ## UrMoAC-0.8.2 (06.08.2024)
 
 [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13234444-blue)](https://doi.org/10.5281/zenodo.13234444)

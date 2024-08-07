@@ -2,26 +2,24 @@ site_name: UrMoAC
 site_url: https://github.com/DLR-VF/UrMoAC/
 site_description: Urban Mobility Accessibility Calculator
 site_author: DLR/VF
-docs_dir: ./mkdocs
+docs_dir: ./docs
 
 repo_url: https://github.com/DLR-VF/UrMoAC.git
 edit_uri: ""
 
+
+
 theme:
-    name: readthedocs
+    name: material
     highlightjs: true
     hljs_languages:
         - yaml
+    palette:
+        primary: light green
         
 nav:
     - Home: index.md
     - Installation: Installation.md
-    - FAQ: FAQ.md
-    - ChangeLog: ChangeLog.md
-    - Links: Links.md
-    - Publications: Publications.md
-    - Included Data: IncludedData.md
-    - Included Scripts: IncludedScripts.md
     - Usage: 
         - Basics: Usage.md
         - Options: Options.md
@@ -42,11 +40,18 @@ nav:
 #        - Networks: Subtopic_Networks.md
 #        - OpenStreetMap: Subtopic_OSM.md
 #        - GTFS: Subtopic_GTFS.md
+    - FAQ: FAQ.md
+    - ChangeLog: ChangeLog.md
+    - Links: Links.md
+    - Publications: Publications.md
+    - Included Data: IncludedData.md
+    - Included Scripts: IncludedScripts.md
     - Developer Docs: 
         - Overview: DeveloperDocs.md
         - Testing UrMoAC: DeveloperTests.md
         - Building a Static Documentation: DeveloperStaticDocumentation.md
         - How To Release: DeveloperHowToRelease.md
+#        - Todo: Todo.md
     - Legal: 
         - Main: Legal.md
         - License (EPL v2.0): LICENSE.md
@@ -62,7 +67,7 @@ markdown_extensions:
     - sane_lists
     - mdx_math
   
-copyright: "&copy; Copyright 2016&ndash;2023 German Aerospace Center, Institute of Transport Research, all rights reserved."
+copyright: "&copy; Copyright 2016&ndash;2024 German Aerospace Center, Institute of Transport Research, all rights reserved."
 
 use_directory_urls: false
 
