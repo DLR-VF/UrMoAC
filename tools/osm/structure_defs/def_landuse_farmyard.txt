@@ -1,10 +1,2 @@
-[node]
+[*]
 landuse~farmyard
-
-[way]
-landuse~farmyard
-
-[rel]
-landuse~farmyard
-
-

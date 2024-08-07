@@ -6,6 +6,11 @@
 * corrected docs building
 * reorganised docs
 
+### Tools
+* osm
+    * **osmdb_buildStructures.py**: It is no longer necessary to define all values for nodes, ways, and relations, each. You may use a * as the type qualify to set the subsequent extraction patterns for all.
+
+
 
 ## UrMoAC-0.8.2 (06.08.2024)
 

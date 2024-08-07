@@ -2,9 +2,3 @@
 railway=station
 railway=halt
 railway=subway_entrance
-
-[way]
-
-[rel]
-
-

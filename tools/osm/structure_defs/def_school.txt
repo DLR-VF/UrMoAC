@@ -1,10 +1,4 @@
-[node]
-amenity=school
-
-[way]
-amenity=school
-
-[rel]
+[*]
 <outline>
 <outer>
 <inner>

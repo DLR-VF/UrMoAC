@@ -93,7 +93,12 @@ class OSMExtractor:
                 self._roles.add(l[1:l.find('>')].strip())
                 continue
             # parse definition
-            self._defs[subtype].append(l.strip())
+            if subtype=="*":
+                self._defs["node"].append(l.strip())
+                self._defs["way"].append(l.strip())
+                self._defs["rel"].append(l.strip())
+            else:
+                self._defs[subtype].append(l.strip())
         return self._defs
     
 

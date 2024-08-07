@@ -1,13 +1,3 @@
-[node]
+[*]
 shop=* & shop!~beauty & shop!~hairdresser & shop!~massage & shop!~vacant
 amenity=marketplace
-
-[way]
-shop=* & shop!~beauty & shop!~hairdresser & shop!~massage & shop!~vacant
-amenity=marketplace
-
-[rel]
-shop=* & shop!~beauty & shop!~hairdresser & shop!~massage & shop!~vacant
-amenity=marketplace
-
-
