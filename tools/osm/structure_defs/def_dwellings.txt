@@ -1,0 +1,17 @@
+[*]
+<outline>
+<outer>
+<inner>
+building=detached
+building=house
+building=apartments
+building=bungalow
+building=cabin
+building=tent
+building=stilt_house
+building=static_caravan
+building=residential
+building=dormitory
+building=hut
+building=houseboat
+building=semidetached_house
