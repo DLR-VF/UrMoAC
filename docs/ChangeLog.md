@@ -8,7 +8,9 @@
 
 ### Tools
 * osm
-    * **osmdb_buildStructures.py**: It is no longer necessary to define all values for nodes, ways, and relations, each. You may use a * as the type qualify to set the subsequent extraction patterns for all.
+    * **osmdb_buildStructures.py**:
+        * It is no longer necessary to define all values for nodes, ways, and relations, each. You may use a * as the type qualify to set the subsequent extraction patterns for all.
+        * added an oid field to the output as nodes/ways/relations in OSM may have overlapping IDs. Together with the type field, one shold be able to get the according source.
 
 
 

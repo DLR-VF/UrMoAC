@@ -308,8 +308,8 @@ class OSMExtractor:
             return
         if len(entries)==0:
             return
-        args = ','.join(cursor.mogrify("(%s, %s, ST_GeomFromText(%s, 4326), ST_GeomFromText(%s, 4326), ST_Centroid(ST_ConvexHull(ST_GeomFromText(%s, 4326))))", i).decode('utf-8') for i in entries)
-        cursor.execute("INSERT INTO %s.%s(id, type, polygon, geom_collection, centroid) VALUES " % (schema, name) + (args))
+        args = ','.join(cursor.mogrify("(%s, %s, %s, ST_GeomFromText(%s, 4326), ST_GeomFromText(%s, 4326), ST_Centroid(ST_ConvexHull(ST_GeomFromText(%s, 4326))))", i).decode('utf-8') for i in entries)
+        cursor.execute("INSERT INTO %s.%s(id, oid, type, polygon, geom_collection, centroid) VALUES " % (schema, name) + (args))
         conn.commit()
         del entries[:]
         
@@ -330,12 +330,13 @@ class OSMExtractor:
         :type name: str
         :todo: Make database connection an attribute of the class
         """
-        id, type, polys, geom = item.get_description_with_polygons()
+        oid, type, polys, geom = item.get_description_with_polygons()
         if len(geom)==0:
             print ("Missing geometry for %s %s" % (geom[1], geom[0]))
             return
-        if id in self._idMapping[type]:
-            id = self._idMapping[type][id]
+        id = oid
+        if oid in self._idMapping[type]:
+            id = self._idMapping[type][oid]
         geom = "GEOMETRYCOLLECTION(" + geom + ")"
         centroid = geom
         if polys!=None and len(polys)!=0:
@@ -363,7 +364,7 @@ class OSMExtractor:
             centroid = polys
         else:
             polys = "MULTIPOLYGON EMPTY"
-        entries.append([id, type, polys, geom, centroid])
+        entries.append([id, oid, type, polys, geom, centroid])
         self._check_commit(False, entries, conn, cursor, schema, name)
 
 
@@ -438,7 +439,7 @@ def main(srcdb, deffile, dstdb):
     cursor2 = conn2.cursor()
     # --- build tables
     cursor2.execute("DROP TABLE IF EXISTS %s.%s" % (schema, name))
-    cursor2.execute("CREATE TABLE %s.%s ( id bigint, type varchar(4) );" % (schema, name))
+    cursor2.execute("CREATE TABLE %s.%s ( id bigint, oid bigint, type varchar(4) );" % (schema, name))
     cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'centroid', 4326, 'POINT', 2);" % (schema, name))
     cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'polygon', 4326, 'MULTIPOLYGON', 2);" % (schema, name))
     cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'geom_collection', 4326, 'GEOMETRYCOLLECTION', 2);" % (schema, name))
