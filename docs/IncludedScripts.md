@@ -24,7 +24,7 @@ These scripts are located in ***&lt;UrMoAC&gt;*/tools** and are sorted by topic:
 
 | Script | Purpose | Call |
 | ------ | ------- | ---- |
-| importGTFS.py | Imports a GTFS data set into a database. | see [Importing GTFS](./ImportScripts.md#importing-gtfs) |
+| importGTFS.py | Imports a GTFS data set into a database. | see [Importing GTFS](./importer/GTFS.md) |
 | gtfs_defs.py | GTFS data definitions built using parse_reference.py. | - |
 | parse_reference.py | Builds gtfs_defs.py from a local copy of the GTFS definition. | parse_reference.py (but the definitions should be up-to-date) |
 
@@ -35,9 +35,9 @@ These scripts are located in ***&lt;UrMoAC&gt;*/tools** and are sorted by topic:
 | osmmodes.py | Defines modes of transport for the OSM importer. | - |
 | osm.py | OSM data model. | - |
 | osmdb.py | OSM database representation. | - |
-| osm2db.py | Imports an OSM-file into the database. | see [Importing OpenStreetMap into the database](./ImportScripts.md#importing-openstreetmap-into-the-database) |
-| osmdb_buildStructures.py  | Builds a table with defined structures (not the network) using an OSM-database representation. | see [Using OpenStreetMap data to build tables of certain structures](./ImportScripts.md#using-openstreetmap-data-to-build-tables-of-certain-structures) |
-| osmdb_buildWays.py  | Builds an road network table using  an OSM-database representation. | see [Building the road network from OpenStreetMap data](./ImportScripts.md#building-the-road-network-from-openstreetmap-data) |
+| osm2db.py | Imports an OSM-file into the database. | see [Importing OpenStreetMap into the database](./importer/OpenStreetMap.md#importing-openstreetmap-into-the-database) |
+| osmdb_buildStructures.py  | Builds a table with defined structures (not the network) using an OSM-database representation. | see [Using OpenStreetMap data to build tables of certain structures](./importer/OpenStreetMap.md#using-openstreetmap-data-to-build-tables-of-certain-structures) |
+| osmdb_buildWays.py  | Builds an road network table using  an OSM-database representation. | see [Building the road network from OpenStreetMap data](./importer/OpenStreetMap.md#building-the-road-network-from-openstreetmap-data) |
 
 ## Helper
 
@@ -56,4 +56,4 @@ These scripts are located in ***&lt;UrMoAC&gt;*/tools** and are sorted by topic:
 
 | Script | Purpose | Call |
 | ------ | ------- | ---- |
-| plot_area.py | Plots measures on a map. | see [plot_area](./VisualisationTools.md#plot_area) |
+| plot_area.py | Plots measures on a map. | see [plot_area](./eval/PlotArea.md) |

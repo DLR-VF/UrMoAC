@@ -30,7 +30,7 @@ Now, you should open a command line interface (shell / cmd.exe) and navigate to 
 
 
 #### Step 2.1: Import OSM data
-UrMoAC comes with a Python script named [osm2db.py](./ImportScripts.md#importing-openstreetmap-into-the-database) for importing [OpenStreetMap](http://www.openstreetmap.org) data into a database. My call for importing the downloaded and extracted OSM-file into my local database is as following:
+UrMoAC comes with a Python script named [osm2db.py](../importer/OpenStreetMap.md#importing-openstreetmap-into-the-database) for importing [OpenStreetMap](http://www.openstreetmap.org) data into a database. My call for importing the downloaded and extracted OSM-file into my local database is as following:
 
 ```console
 ...\tools\osm>python osm2db.py localhost,urmoac,berlin.osm20230428,<USER>,<PASSWD> data\berlin-latest.osm
@@ -42,12 +42,12 @@ Please note that you need the PostGis extensions to be installed. If not, use:
 CREATE EXTENSION postgis;
 ```
 
-As described in the section about [import scripts](ImportScripts.md), [osm2db.py](./ImportScripts.md#importing-openstreetmap-into-the-database) gets the definition of the database to generate as the first, and about the file to parse as the second parameter. The format of the first (see [import scripts](ImportScripts.md) ) is _&lt;HOST&gt;_,_&lt;DB&gt;_,_&lt;SCHEMA&gt;_._&lt;PREFIX&gt;_,_&lt;USER&gt;_,_&lt;PASSWD&gt;_.
+As described in the pages about OpenStreetMap import scripts(../importer/OpenStreetMap.md), [osm2db.py](../importer/OpenStreetMap.md#importing-openstreetmap-into-the-database) gets the definition of the database to generate as the first, and about the file to parse as the second parameter. The format of the first (see [OpenStreetMap import scripts](../importer/OpenStreetMap.md) ) is _&lt;HOST&gt;_,_&lt;DB&gt;_,_&lt;SCHEMA&gt;_._&lt;PREFIX&gt;_,_&lt;USER&gt;_,_&lt;PASSWD&gt;_.
 
-The tool builds the tables as described in [import scripts](ImportScripts.md) and reports about inserting nodes, ways, and relations. It takes some time, for Berlin, with 6.6Mio nodes, 1Mio ways, and 16k relations, my computer needed about five minutes.
+The tool builds the tables as described in [OOpenStreetMap import scripts](../importer/OpenStreetMap.md) and reports about inserting nodes, ways, and relations. It takes some time, for Berlin, with 6.6Mio nodes, 1Mio ways, and 16k relations, my computer needed about five minutes.
 
 #### Step 2.2: Prepare the road network
-As described in [import scripts](ImportScripts.md), you may use the [osmdb_buildWays.py](./ImportScripts.md#building-the-road-network-from-openstreetmap-data) script to build your road network from a previously imported OSM data. In our case, the call is: 
+As described in [OpenStreetMap import scripts](../importer/OpenStreetMap.md), you may use the [osmdb_buildWays.py](../importer/OpenStreetMap.md#building-the-road-network-from-openstreetmap-data) script to build your road network from a previously imported OSM data. In our case, the call is: 
 
 ```console
 ...\tools\osm>python osmdb_buildWays.py localhost,urmoac,berlin.osm20230428,<USER>,<PASSWD>
@@ -56,7 +56,7 @@ As described in [import scripts](ImportScripts.md), you may use the [osmdb_build
 You may note that the tool reports about unknown highway or railway tags. Usually, these are yet unbuilt or even erased roads. For importing the road network of Berlin (about 1.2Mio edges), the tool needed about seven minutes.
 
 #### Step 2.3: Prepare the buildings (origins)
-Use the tool [osmdb_buildStructures.py](./ImportScripts.md#using-openstreetmap-data-to-build-tables-of-certain-structures) to import buildings by calling:
+Use the tool [osmdb_buildStructures.py](../importer/OpenStreetMap.md#using-openstreetmap-data-to-build-tables-of-certain-structures) to import buildings by calling:
 
 ```console
 ...\tools\osm>python osmdb_buildStructures.py localhost,urmoac,berlin.osm20230428,<USER>,<PASSWD> structure_defs/def_buildings.txt localhost,urmoac,berlin.osm20230428_buildings,<USER>,<PASSWD>
@@ -65,7 +65,7 @@ Use the tool [osmdb_buildStructures.py](./ImportScripts.md#using-openstreetmap-d
 You will obtain a table named &ldquo;osm20230428_buildings&rdquo; that includes the buildings. The process took about 1 minute on my computer.
 
 #### Step 2.4: Prepare the public transport halts (destinations)
-Again, you may use [osmdb_buildStructures.py](./ImportScripts.md#using-openstreetmap-data-to-build-tables-of-certain-structures) to import public transport halts. The call is:
+Again, you may use [osmdb_buildStructures.py](../importer/OpenStreetMap.md#using-openstreetmap-data-to-build-tables-of-certain-structures) to import public transport halts. The call is:
 
 ```console
 ...\tools\osm>python osmdb_buildStructures.py localhost,urmoac,berlin.osm20230428,<USER>,<PASSWD> structure_defs/def_pt_halts.txt localhost,urmoac,berlin.osm20230428_pthalts,<USER>,<PASSWD>
@@ -74,7 +74,7 @@ Again, you may use [osmdb_buildStructures.py](./ImportScripts.md#using-openstree
 You will obtain a table named &ldquo;osm20230428_pthalts&rdquo; that includes the public transport halts.
 
 #### Step 2.5: Prepare the city boundary
-For a nicer visualisation, we need Berlin's boundary. Again,  [osmdb_buildStructures.py](./ImportScripts.md#using-openstreetmap-data-to-build-tables-of-certain-structures) is used. The call is:
+For a nicer visualisation, we need Berlin's boundary. Again,  [osmdb_buildStructures.py](../importer/OpenStreetMap.md#using-openstreetmap-data-to-build-tables-of-certain-structures) is used. The call is:
 
 ```console
 ...\tools\osm>python osmdb_buildStructures.py localhost,urmoac,berlin.osm20230428,<USER>,<PASSWD> structure_defs/def_city_boundaries.txt localhost,urmoac,berlin.osm20230428_boundary,<USER>,<PASSWD>
@@ -118,7 +118,7 @@ Given this, the tool will generate the table &ldquo;berlin.osm20230428_houses2pt
 ### Step 4: Display the results
 
 >ou can now visualise the results. UrMoAC comes with Python-scripts for visualisation and we simply use one of them, namely 
-[plot_area.py](./VisualisationTools.md#plot_area). The call is as following:
+[plot_area.py](../eval/PlotArea.md). The call is as following:
 
 
 ```console

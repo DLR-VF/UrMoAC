@@ -14,7 +14,7 @@ This means, you have the following tables:
 * __berlin.osm20230428_houses2pthalts__: the accessibility values computed using UrMoAC
 
 ## Visualisation using QGIS
-Start [QGIS](https://www.qgis.org/) and load the buildings first. You may have to add your database server to the list of known servers and open the path (host-scheme-table) to the buildings table. You may note that the OSM-importer [osmdb_buildStructures.py](./ImportScripts.md#using-openstreetmap-data-to-build-tables-of-certain-structures) has generated two different geometry columns &#8212; one with the centroids (as points) and one with polygons. Open __berlin.osm20230428_buildings.polygon__. You should see something like what is shown in the following image.
+Start [QGIS](https://www.qgis.org/) and load the buildings first. You may have to add your database server to the list of known servers and open the path (host-scheme-table) to the buildings table. You may note that the OSM-importer [osmdb_buildStructures.py](../importer/OpenStreetMap.md#using-openstreetmap-data-to-build-tables-of-certain-structures) has generated two different geometry columns &#8212; one with the centroids (as points) and one with polygons. Open __berlin.osm20230428_buildings.polygon__. You should see something like what is shown in the following image.
 
 # ![qgis_berlin_buildings4326.png](./images/qgis_berlin_buildings4326.png)
 

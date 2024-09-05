@@ -1,14 +1,8 @@
-# Visualisation Tools
-
-UrMoAC includes some scripts for evaluating and visualising the results, based on the outstanding [matplotlib library](https://matplotlib.org/) for scientific visualisations using Python. You may find some [matplotlib](https://matplotlib.org/) examples on the [matplotlib gallery page](https://matplotlib.org/stable/gallery/index).
-
-Below, you will find the descriptions of the tools included in the UrMoAC package.
-
-## plot_area
+# plot_area
 
 **plot_area.py** shows the results of an accessibility computation on a map. **plot_area.py** is a Python script and has to be started on the command line. Either the used origins or the origin aggregation areas are colorised or a isolevel view using [matplotlib's](https://matplotlib.org/) contourf-plot is generated.
 
-### Usage
+## Usage
 
 The tool needs at least the information about the origins to load, given using the **--from *&lt;DB_SOURCE&gt;*** (or **-f *&lt;DB_SOURCE&gt;*** for short) option and the measures to load given using the **--measures *&lt;DB_SOURCE&gt;*** (or **-m *&lt;DB_SOURCE&gt;*** for short) option. Both options get a reference to a database table as input, see below. In addition, you may name the column within the measures table from which the values shall be read using **--value *&lt;VALUE_NAME&gt;*** (or **-i *&lt;VALUE_NAME&gt;*** for short), currently defaulting to &ldquo;avg_tt&rdquo; that is included in most outputs. Please note that you **need to define a proper projection** using **--projection *&lt;EPSG_CODE&gt;*** (or **-p *&lt;EPSG_CODE&gt;*** for short). The default projection is 25833 (Berlin).
  
@@ -26,13 +20,13 @@ The file to write the generated figure to is defined using the **--output *&lt;F
 The option **--verbose** (or **-v** for short) triggers a verbose output. **--help** (or *-h* for short) prints a help screen and quits. If you do not want to see the figure, only save it, you may trigger this using the **--no-show** option (or **-S** for short).
 
 
-### Examples
+## Examples
 
 It generates figures as the following:
 
 # ![berlin_building2pt.png](./images/berlin_building2pt.png)
 
-### Options
+## Options
 
 The following table lists the options of **plot_area.py**.
 

@@ -16,32 +16,42 @@ theme:
 nav:
     - Home: index.md
     - Installation: Installation.md
+    - Basic Usage: Usage.md
+    - Options: Options.md
     - FAQ: FAQ.md
     - ChangeLog: ChangeLog.md
     - Links: Links.md
     - Publications: Publications.md
     - Included Data: IncludedData.md
     - Included Scripts: IncludedScripts.md
-    - Usage: 
-        - Basics: Usage.md
-        - Options: Options.md
-        - Input Data Formats: InputDataFormats.md
-        - Import Scripts: ImportScripts.md
-        - Output Formats: OutputFormats.md
-        - Visualisation Tools: VisualisationTools.md
+    - Input Data Formats: 
+        - Origins and Destinations: input_formats/OriginsDestinations.md
+        - Road Network: input_formats/RoadNetwork.md
+        - Aggregation Areas: input_formats/AggregationAreas.md
+        - GTFS Definitions: input_formats/GTFSDefinitions.md
+        - Speed Time Lines: input_formats/SpeedTimeLines.md
+        - Entrainment Definitions: input_formats/EntrainmentDefinitions.md
+        - O/D Connections: input_formats/ODConnections.md
+    - Import Scripts: 
+        - OpenStreetMap: importer/OpenStreetMap.md
+        - GTFS: importer/GTFS.md
+        - Shapefiles: importer/Shapefiles.md
+    - Output Formats: 
+        - Overview: outputs/Overview.md
+        - O/D Output: outputs/ODOutput.md
+        - Extended O/D Output: outputs/ExtendedODOutput.md
+        - Direct Output: outputs/DirectOutput.md
+        - O/D Mapping Output: outputs/MappingOutput.md
+        - Edge Use Output: outputs/EdgeUseOutput.md
+        - Public Transport Output: outputs/PTOutput.md
+        - Interchanges Output: outputs/InterchangesOutput.md
+        - O/D Output Statistics: outputs/ODStatisticsOutput.md
+    - Visualisation Tools: 
+        - plot_area.py: eval/PlotArea.md
     - Tutorials: 
-        - Tutorial List: Tutorials.md
-        - Computing the accessibility to the next public transport halt: TutorialNextPTHalt.md
-        - Using QGIS to visualise UrMoAC results: TutorialQGISVisualisation.md
-#    - Subtopics:
-#        - Subtopics List: Subtopics.md
-#        - Projection: Subtopic_Projection.md
-#        - Routing: Subtopic_Routing.md
-#        - Mapping To Net: Subtopic_Mapping.md
-#        - Boundary Issues: Subtopic_BoundaryIssues.md
-#        - Networks: Subtopic_Networks.md
-#        - OpenStreetMap: Subtopic_OSM.md
-#        - GTFS: Subtopic_GTFS.md
+        - Overview: tutorials/Overview.md
+        - Computing the accessibility to the next public transport halt: tutorials/TutorialNextPTHalt.md
+        - Using QGIS to visualise UrMoAC results: tutorials/TutorialQGISVisualisation.md
     - Developer Docs: 
         - Overview: DeveloperDocs.md
         - Testing UrMoAC: DeveloperTests.md

@@ -2,15 +2,23 @@
 
 ## UrMoAC-0.X.Y (to come)
 
-* added an action for checking whether the current version builds
+### Debugging and improvements
+
+* debugged mapping of public transport halts on edges
+
+### Documentation
+
 * corrected docs building
 * reorganised docs
 
+### Continuous Integration 
+
+* added an action for checking whether the current version builds
+
 ### Tools
-* osm
-    * **osmdb_buildStructures.py**:
-        * It is no longer necessary to define all values for nodes, ways, and relations, each. You may use a * as the type qualify to set the subsequent extraction patterns for all.
-        * added an oid field to the output as nodes/ways/relations in OSM may have overlapping IDs. Together with the type field, one shold be able to get the according source.
+* **osmdb_buildStructures.py**:
+    * It is no longer necessary to define all values for nodes, ways, and relations, each. You may use a * as the type qualify to set the subsequent extraction patterns for all.
+    * added an oid field to the output as nodes/ways/relations in OSM may have overlapping IDs. Together with the type field, one shold be able to get the according source.
 
 
 
@@ -86,7 +94,7 @@ Re-release due to broken build. No further changes in comparison to v0.8.0.
 * You may directly load a [SUMO Edge-Based Network State](https://sumo.dlr.de/docs/Simulation/Output/Lane-_or_Edge-based_Traffic_Measures.html) as travel time information.
 * [issue #42](https://github.com/DLR-VF/UrMoAC/issues/42) solved: GTFS files can now be loaded directly from disc
 * [issue #3](https://github.com/DLR-VF/UrMoAC/issues/31) solved: **the outputs do not include the access/egress distaces and traveltimes from/to the buildings to/from the road; we assume that this makes the outputs more standard compliant; the access/egress distances are still a part of the ext-nm-output**
-* finally added at least one [visualisation tool](./VisualisationTools.md)
+* finally added at least one [visualisation tool (plot_area.py)](./eval/PlotArea.md)
 * added a citation file
 * got a DOI (10.5281/zenodo.7940600)
 

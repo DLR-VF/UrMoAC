@@ -7,7 +7,7 @@
 ## OSM Extraction Pattern
 
 The extraction patterns define which OSM-structures shall be extracted, based on keys/values.
-Their usage is documented at [Building the road network from OpenStreetMap data](./ImportScripts.md#using-openstreetmap-data-to-build-tables-of-certain-structures).
+Their usage is documented at [Building the road network from OpenStreetMap data](./importer/OpenStreetMap.md#using-openstreetmap-data-to-build-tables-of-certain-structures).
 
 There are some sets of these files, as listed in the following.
 
@@ -48,7 +48,7 @@ The following structures are used often as origins / destinations - together wit
 
 ### Areal structures
 
-The following structures are mainly used for visualisation purposes, see also see [plot_area.py](./VisualisationTools.md#plot_area).
+The following structures are mainly used for visualisation purposes, see also see [plot_area.py](./eval/PlotArea.md).
 
 | File Name               | Description                                   |
 | ----------------------- | --------------------------------------------- |
