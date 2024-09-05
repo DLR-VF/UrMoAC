@@ -323,12 +323,12 @@ public abstract class AbstractGTFSReader {
 				DBNode intermediateNode = _net.getNode(_net.getNextID(), pos);
 				// build this side access
 				geom = GeomHelper.getGeomUntilDistance(lastGeom, stopEdgePos-seen);
-				if(!_net.addEdge(e.getID()+"-"+stopID, e.getFromNode(), intermediateNode, e.getModes(), e.getVMax(), geom, geom.getLength())) {
+				if(!_net.addEdge(e.getID()+"-"+stopID, e.getFromNode(), intermediateNode, e.getModes(), e.getVMax(), geom, Math.max(0.1, geom.getLength()))) {
 					throw new ParseException("Could not allocate edge '" + e.getID()+"-"+stopID+ "'");
 				}
 				lastGeom = GeomHelper.getGeomBehindDistance(lastGeom, stopEdgePos-seen);
 				String nextEdgeName = stopID+"-"+e.getID();
-				if(!_net.addEdge(nextEdgeName, intermediateNode, e.getToNode(), e.getModes(), e.getVMax(), lastGeom, lastGeom.getLength())) {
+				if(!_net.addEdge(nextEdgeName, intermediateNode, e.getToNode(), e.getModes(), e.getVMax(), lastGeom, Math.max(0.1, lastGeom.getLength()))) {
 					throw new ParseException("Could not allocate edge '" +stopID+ "-"+e.getID() + "'");
 				}
 				// build (optional) opposite side access
@@ -336,11 +336,11 @@ public abstract class AbstractGTFSReader {
 				if(opp!=null) {
 					lastOppGeom = GeomHelper.getGeomUntilDistance(opp.getGeometry(), opp.getLength()-seen-stopEdgePos);
 					nextOppEdgeName = opp.getID()+"-"+stopID;
-					if(!_net.addEdge(nextOppEdgeName, opp.getFromNode(), intermediateNode, opp.getModes(), opp.getVMax(), lastOppGeom, lastOppGeom.getLength())) {
+					if(!_net.addEdge(nextOppEdgeName, opp.getFromNode(), intermediateNode, opp.getModes(), opp.getVMax(), lastOppGeom, Math.max(0.1, lastOppGeom.getLength()))) {
 						throw new ParseException("Could not allocate edge '" + opp.getID()+"-"+stopID + "'");
 					}
 					geom = GeomHelper.getGeomBehindDistance(opp.getGeometry(), opp.getLength()-seen-stopEdgePos);
-					if(!_net.addEdge(stopID+"-"+opp.getID(), intermediateNode, opp.getToNode(), opp.getModes(), opp.getVMax(), geom, geom.getLength())) {
+					if(!_net.addEdge(stopID+"-"+opp.getID(), intermediateNode, opp.getToNode(), opp.getModes(), opp.getVMax(), geom, Math.max(0.1, geom.getLength()))) {
 						throw new ParseException("Could not allocate edge '" + stopID+"-"+opp.getID() + "'");
 					}
 				}
