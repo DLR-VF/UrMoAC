@@ -465,7 +465,7 @@ if __name__ == '__main__':
 Please run with:
     osmdb_buildStructures.py <INPUT_TABLES_PREFIX> <DEF_FILE> <OUTPUT_TABLE>
 where <INPUT_TABLES_PREFIX> is defined as:
-    <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD>  
+    <HOST>,<DB>,<SCHEMA>,<PREFIX>.<USER>,<PASSWD>  
 and <OUTPUT_TABLE> is defined as:
     <HOST>,<DB>,<SCHEMA>,<NAME>,<USER>,<PASSWD>""")
         sys.exit(1)
