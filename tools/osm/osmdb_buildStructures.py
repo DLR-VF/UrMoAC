@@ -467,7 +467,7 @@ Please run with:
 where <INPUT_TABLES_PREFIX> is defined as:
     <HOST>,<DB>,<SCHEMA>,<PREFIX>.<USER>,<PASSWD>  
 and <OUTPUT_TABLE> is defined as:
-    <HOST>,<DB>,<SCHEMA>,<NAME>,<USER>,<PASSWD>""")
+    <HOST>,<DB>,<SCHEMA>.<NAME>,<USER>,<PASSWD>""")
         sys.exit(1)
     main(sys.argv[1], sys.argv[2], sys.argv[3])
     sys.exit(0)
