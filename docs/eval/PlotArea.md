@@ -32,26 +32,41 @@ The following table lists the options of **plot_area.py**.
 
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
-| --from _&lt;DB_SOURCE&gt;_<br>-f _&lt;DB_SOURCE&gt;_ | N/A (mandatory) | Defines the objects (origins) to load. |
-| --measures _&lt;DB_SOURCE&gt;_<br>-m _&lt;DB_SOURCE&gt;_ | N/A (mandatory) | Defines the measures' table to load. |
-| --value _&lt;VALUE_NAME&gt;_<br>-i _&lt;VALUE_NAME&gt;_ | &ldquo;avg_tt&rdquo; | Defines the name of the value to load from the measures. |
-| --from.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the name of the field to read the object ids from. |
-| --from.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the name of the field to read the object geometries from. |
-| --from.filter _&lt;WHERE_PARAMETER&gt;_ | N/A (optional) | Defines a SQL WHERE-clause parameter to filter the origins to read. |
-| --projection _&lt;EPSG_CODE&gt;_<br>-p _&lt;EPSG_CODE&gt;_ | 25833 | Sets the projection EPSG number. |
-| --border _&lt;DB_SOURCE&gt;_<br>-b _&lt;DB_SOURCE&gt;_ | N/A (optional) | Defines the border geometry to load. |
-| --inner _&lt;DB_SOURCE&gt;_ | N/A (optional) | Defines the optional inner boundaries to load. |
-| --bounds _&lt;BOUNDING_BOX&gt;_ | N/A (optional) | Defines the bounding box. |
-| --net _&lt;DB_SOURCE&gt;_<br>-n _&lt;DB_SOURCE&gt;_ | N/A (optional) | Defines the optional road network to load. |
-| --water _&lt;DB_SOURCE&gt;_ | N/A (optional) | Defines the optional water to load. |
-| --colmap _&lt;COLORMAP_NAME&gt;_<br>-C _&lt;COLORMAP_NAME&gt;_ | RdYlGn_r | Defines the color map to use. |
-| --contour | N/A (optional) | Triggers contour rendering. |
-| --from.borderwidth | 1 | Sets the width of the border of the loaded objects. |
-| --title _&lt;TITLE&gt;_<br>-t _&lt;TITLE&gt;_ | N/A (optional) | Sets the figure title. |
-| --output _&lt;FILE&gt;_<br>-o _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the name of the graphic to generate. |
-| --help<br>-h | N/A (optional) | Show a help message and exits. |
-| --verbose<br>-v | N/A (optional) | Triggers verbose output. |
-| --no-show<br>-S | N/A (optional) | Does not show the figure if set. |
+| **Input options** | | |
+| --from _&lt;DB_SOURCE&gt;_<br>-f _&lt;DB_SOURCE&gt;_ | N/A (mandatory) | Defines the objects (origins) to load |
+| --measures _&lt;DB_SOURCE&gt;_<br>-m _&lt;DB_SOURCE&gt;_ | N/A (mandatory) | Defines the measures' table to load |
+| --value _&lt;VALUE_NAME&gt;_<br>-i _&lt;VALUE_NAME&gt;_ | &ldquo;avg_tt&rdquo; | Defines the name of the value to load from the measures |
+| --border _&lt;DB_SOURCE&gt;_<br>-b _&lt;DB_SOURCE&gt;_ | N/A (optional) | Defines the border geometry to load |
+| --inner _&lt;DB_SOURCE&gt;_ | N/A (optional) | Defines the optional inner boundaries to load |
+| --projection _&lt;EPSG_CODE&gt;_<br>-p _&lt;EPSG_CODE&gt;_ | 25833 | Sets the projection EPSG number |
+| --net _&lt;DB_SOURCE&gt;_<br>-n _&lt;DB_SOURCE&gt;_ | N/A (optional) | Defines the optional road network to load |
+| --water _&lt;DB_SOURCE&gt;_ | N/A (optional) | Defines the optional water to load |
+| **Input adaptation options** | | |
+| --from.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the name of the field to read the object ids from |
+| --from.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the name of the field to read the object geometries from |
+| --from.filter _&lt;WHERE_PARAMETER&gt;_ | N/A (optional) | Defines a SQL WHERE-clause parameter to filter the origins to read |
+| --border.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the name of the field to read the border geometry from |
+| **Rendering options** | | |
+| --figsize _&lt;WIDTH&gt;_,_&lt;HEIGHT&gt;_<br>-F _&lt;WIDTH&gt;_,_&lt;HEIGHT&gt;_ | 8,5 | Defines figure size |
+| --bounds _&lt;BOUNDING_BOX&gt;_ | N/A (optional) | Defines the bounding box |
+| --colormap _&lt;COLORMAP_NAME&gt;_<br>-C _&lt;COLORMAP_NAME&gt;_ | RdYlGn_r | Defines the color map to use |
+| --invalid _&lt;COLOR&gt;_ | azure | Defines the color to use when data is missing |
+| --contour | N/A (optional) | Triggers contour rendering |
+| --isochrone | N/A (optional) | Triggers isochrone rendering |
+| --title _&lt;TITLE&gt;_<br>-t _&lt;TITLE&gt;_ | N/A (optional) | Sets the figure title |
+| --minV _&lt;VALUE&gt;_ | N/A (optional) | Sets the lower value bound |
+| --maxV _&lt;VALUE&gt;_ | N/A (optional) | Sets the upper value bound |
+| --levels _&lt;FLOAT&gt;_[,_&lt;FLOAT&gt;_]+ | N/A (optional) | Sets the discrete levels |
+| --measure-label | N/A (optional) | Sets the colorbar measure label |
+| --no-legend | N/A (optional) | If set, no legend will be drawn |
+| --from.borderwidth _&lt;WIDTH&gt;_ | 1 | Sets the width of the border of the loaded objects |
+| --net.width _&lt;WIDTH&gt;_ | 1 | Sets the width scale of the network |
+| **Flow and meta options** | | |
+| --output _&lt;FILE&gt;_<br>-o _&lt;FILE&gt;_ | N/A (optional) | Defines the name of the graphic to generate |
+| --help<br>-h | N/A (optional) | Show a help message and exits |
+| --verbose<br>-v | N/A (optional) | Triggers verbose output |
+| --report-all-missing-values | N/A (optional) | Triggers reporting all missing values |
+| --no-show<br>-S | N/A (optional) | Does not show the figure if set |
 
 
 **plot_area.py** is located in &lt;UrMoAC&gt;\tools\visualisation.
