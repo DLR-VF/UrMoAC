@@ -188,7 +188,7 @@ public class InputReader {
 				layer.addObject(o);
 				// check for duplicates
 				if(seen.contains(id)) {
-					System.err.println("Duplicate object '" + id + "' occured.");
+					System.err.println("Duplicate object '" + id + "' occurred.");
 					ok = false;
 					continue;
 				}
@@ -287,7 +287,7 @@ public class InputReader {
 			layer.addObject(new LayerObject(idGiver.getNextRunningID(), id, var, geom2));
 			// check for duplicates
 			if(seen.contains(id)) {
-				System.err.println("Duplicate object '" + id + "' occured.");
+				System.err.println("Duplicate object '" + id + "' occurred.");
 				ok = false;
 			}
 			seen.add(id);
@@ -358,7 +358,7 @@ public class InputReader {
 				layer.addObject(new LayerObject(idGiver.getNextRunningID(), id, var, geom));
 				// check for duplicates
 				if(seen.contains(id)) {
-					System.err.println("Duplicate object '" + id + "' occured.");
+					System.err.println("Duplicate object '" + id + "' occurred.");
 					ok = false;
 				}
 				seen.add(id);

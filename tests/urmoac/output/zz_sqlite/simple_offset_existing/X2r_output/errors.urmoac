@@ -1,2 +1,2 @@
-Exception 'org.sqlite.SQLiteException: [SQLITE_ERROR] SQL error or missing database (table test_o2r already exists)' occured while building the origins-to-road-output.
+Exception 'org.sqlite.SQLiteException: [SQLITE_ERROR] SQL error or missing database (table test_o2r already exists)' occurred while building the origins-to-road-output.
 Quitting on error...

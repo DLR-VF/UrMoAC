@@ -93,7 +93,7 @@ public class OutputBuilder {
 						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 				aggregators.add(agg);
 			} catch(IOException e) {
-				throw new IOException("Exception '" + e.getMessage() + "' occured while building the od-output.");
+				throw new IOException("Exception '" + e.getMessage() + "' occurred while building the od-output.");
 			}
 		}
 		if (options.isSet("ext-od-output")) {
@@ -105,7 +105,7 @@ public class OutputBuilder {
 						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 				aggregators.add(agg);
 			} catch(IOException e) {
-				throw new IOException("Exception '" + e.getMessage() + "' occured while building the ext-od-output.");
+				throw new IOException("Exception '" + e.getMessage() + "' occurred while building the ext-od-output.");
 			}
 		}
 		if (options.isSet("stat-od-output")) {
@@ -117,7 +117,7 @@ public class OutputBuilder {
 						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 				aggregators.add(agg);
 			} catch(IOException e) {
-				throw new IOException("Exception '" + e.getMessage() + "' occured while building the stat-od-output.");
+				throw new IOException("Exception '" + e.getMessage() + "' occurred while building the stat-od-output.");
 			}
 		}
 		if (options.isSet("interchanges-output")) {
@@ -129,7 +129,7 @@ public class OutputBuilder {
 						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 				aggregators.add(agg);
 			} catch(IOException e) {
-				throw new IOException("Exception '" + e.getMessage() + "' occured while building the interchanges-output.");
+				throw new IOException("Exception '" + e.getMessage() + "' occurred while building the interchanges-output.");
 			}
 		}
 		if (options.isSet("edges-output")) {
@@ -141,7 +141,7 @@ public class OutputBuilder {
 						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 				aggregators.add(agg);
 			} catch(IOException e) {
-				throw new IOException("Exception '" + e.getMessage() + "' occured while building the edges-output.");
+				throw new IOException("Exception '" + e.getMessage() + "' occurred while building the edges-output.");
 			}
 		}
 		if (options.isSet("pt-output")) {
@@ -153,7 +153,7 @@ public class OutputBuilder {
 						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
 				aggregators.add(agg);
 			} catch(IOException e) {
-				throw new IOException("Exception '" + e.getMessage() + "' occured while building the pt-output.");
+				throw new IOException("Exception '" + e.getMessage() + "' occurred while building the pt-output.");
 			}
 		}
 		return aggregators;
@@ -183,7 +183,7 @@ public class OutputBuilder {
 			}
 			return dw;
 		} catch(IOException e) {
-			throw new IOException("Exception '" + e.getMessage() + "' occured while building the direct-output.");
+			throw new IOException("Exception '" + e.getMessage() + "' occurred while building the direct-output.");
 		}
 	}
 
@@ -212,7 +212,7 @@ public class OutputBuilder {
 			emw.writeResults(nearestEdges);
 			emw.close();
 		} catch(IOException e) {
-			throw new IOException("Exception '" + e.getMessage() + "' occured while building the " + outputName + ".");
+			throw new IOException("Exception '" + e.getMessage() + "' occurred while building the " + outputName + ".");
 		}
 	}
 

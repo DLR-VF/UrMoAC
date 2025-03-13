@@ -21,11 +21,11 @@ public class OptionsParser {
         for(int pos=0; pos<args.length;) {
             // try to parse a token combination
             int add = parse(into, args, pos);
-            // check whether an error occured
+            // check whether an error occurred
             if(add<0) {
-                // error occured
+                // error occurred
                 ok = false;
-                // maybe we want to continue although an error occured
+                // maybe we want to continue although an error occurred
                 if(continueOnError) {
                     pos += -add;
                 } else {
