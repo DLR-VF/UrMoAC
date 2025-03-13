@@ -27,7 +27,7 @@ An origin or a destination is represented using the following attributes in the 
 
 To load objects from a database, you have to give the complete path to the according database table as well as the credentials needed to access it. As such, the call to load origins from a database looks like: __--from jdbc:postgresql:_&lt;DB_HOST&gt;_,_&lt;SCHEMA&gt;_._&lt;TABLE&gt;_,_&lt;USER&gt;_,_&lt;PASSWORD&gt;___ where:
 
-* ___&lt;DB\_HOST&gt;___ is the adress of the database server
+* ___&lt;DB\_HOST&gt;___ is the address of the database server
 * ___&lt;SCHEMA&gt;___ is the database schema the table is located within
 * ___&lt;TABLE&gt;___ is the name of the database table
 * ___&lt;USER&gt;___ is the name of the user that can read the table

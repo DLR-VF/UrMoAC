@@ -7,11 +7,11 @@ The generated database table has the following format:
 | ---- | ---- | ---- |
 | id | bigint | The ID of the origin / destination object |
 | rid | text | The name of the road the origin / destination is mapped on |
-| rpos | real | The position along the edge the objects is mappend to |
+| rpos | real | The position along the edge the objects is mapped to |
 | dist | real | The distance between the object and the edge |
 | conn | LINESTRING | A geometrical representation of the connection between the object and the position on the edge it is mapped to |
 
-The geometry is always contains a line between two points &mdash; the origin or respectively the destination position and the position on the network this origin / destination is mapped to.
+The geometry always contains a line between two points &mdash; the origin or respectively the destination position and the position on the network this origin / destination is mapped to.
 
 When writing to a file, these attributes are stored in a single line, separated by &lsquo;;&rsquo;. The geometry is represented as `x1;y1;x2;y2` within the csv output.
 

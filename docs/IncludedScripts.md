@@ -37,7 +37,7 @@ These scripts are located in ***&lt;UrMoAC&gt;*/tools** and are sorted by topic:
 | osmdb.py | OSM database representation. | - |
 | osm2db.py | Imports an OSM-file into the database. | see [Importing OpenStreetMap into the database](./importer/OpenStreetMap.md#importing-openstreetmap-into-the-database) |
 | osmdb_buildStructures.py  | Builds a table with defined structures (not the network) using an OSM-database representation. | see [Using OpenStreetMap data to build tables of certain structures](./importer/OpenStreetMap.md#using-openstreetmap-data-to-build-tables-of-certain-structures) |
-| osmdb_buildWays.py  | Builds an road network table using  an OSM-database representation. | see [Building the road network from OpenStreetMap data](./importer/OpenStreetMap.md#building-the-road-network-from-openstreetmap-data) |
+| osmdb_buildWays.py  | Builds a road network table using  an OSM-database representation. | see [Building the road network from OpenStreetMap data](./importer/OpenStreetMap.md#building-the-road-network-from-openstreetmap-data) |
 
 ## Helper
 

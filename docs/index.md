@@ -23,7 +23,7 @@ Some features:
 
 The tool has been developed at the [Institute of Transport Research](http://www.dlr.de/vf) of the [German Aerospace Center](http://www.dlr.de).
 
-Its methods are comprehensively described in [[1]](Publications.md#1), yet this document might be outdated. We hope to include further documentation at these pages.
+Its methods are described in [[1]](Publications.md#1), yet this document might be outdated. We hope to include a sufficient and up-to-date documentation here. Please let us known when something is missing.
 
 **When using it, we ask you to cite it as:**
 

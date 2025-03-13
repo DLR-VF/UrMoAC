@@ -44,7 +44,7 @@ CREATE EXTENSION postgis;
 
 As described in the pages about OpenStreetMap import scripts(../importer/OpenStreetMap.md), [osm2db.py](../importer/OpenStreetMap.md#importing-openstreetmap-into-the-database) gets the definition of the database to generate as the first, and about the file to parse as the second parameter. The format of the first (see [OpenStreetMap import scripts](../importer/OpenStreetMap.md) ) is _&lt;HOST&gt;_,_&lt;DB&gt;_,_&lt;SCHEMA&gt;_._&lt;PREFIX&gt;_,_&lt;USER&gt;_,_&lt;PASSWD&gt;_.
 
-The tool builds the tables as described in [OOpenStreetMap import scripts](../importer/OpenStreetMap.md) and reports about inserting nodes, ways, and relations. It takes some time, for Berlin, with 6.6Mio nodes, 1Mio ways, and 16k relations, my computer needed about five minutes.
+The tool builds the tables as described in [OpenStreetMap import scripts](../importer/OpenStreetMap.md) and reports about inserting nodes, ways, and relations. It takes some time, for Berlin, with 6.6Mio nodes, 1Mio ways, and 16k relations, my computer needed about five minutes.
 
 #### Step 2.2: Prepare the road network
 As described in [OpenStreetMap import scripts](../importer/OpenStreetMap.md), you may use the [osmdb_buildWays.py](../importer/OpenStreetMap.md#building-the-road-network-from-openstreetmap-data) script to build your road network from a previously imported OSM data. In our case, the call is: 

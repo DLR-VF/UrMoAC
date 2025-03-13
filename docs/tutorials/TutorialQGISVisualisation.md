@@ -26,7 +26,7 @@ Now, load the accessibility table by choosing the menu &#8220;Database -&gt; DB 
 
 Now, connect the buildings to the __osm20230428_houses2pthalts__ table. For this purpose, select the layer __berlin.osm20230428_buildings.polygon__ and double-click on it. In the next menu choose &#8220;Joins&#8221;. Add a connection between the &#8220;id&#8221; field of __berlin.osm20230428_buildings.polygon__ and the &#8220;fid&#8221; field of __osm20230428_houses2pthalts__ &#8212; because &#8220;fid&#8221; were our origins.
 
-Now, select the layer&#39;s visualisation tab &#8220;Symbology&#8221;. Choose &#8220;Graduated&#8221; instead of &#8220;Single symbol&#8221; and &#8220;osm20230428_houses2pthalts_avg_tt&#8221; for value. Set the number of classes to 20 and press &#8220;Classifiy&#8221;. Select a nice color map. In the following image, the inversed &#8220;RdYlGn&#8221; is used. You may want to remove the borders of the polygons. The result are buildings colored by their travel time to the next public transport halt, as shown in the following image.
+Now, select the layer&#39;s visualisation tab &#8220;Symbology&#8221;. Choose &#8220;Graduated&#8221; instead of &#8220;Single symbol&#8221; and &#8220;osm20230428_houses2pthalts_avg_tt&#8221; for value. Set the number of classes to 20 and press &#8220;Classify&#8221;. Select a nice color map. In the following image, the inversed &#8220;RdYlGn&#8221; is used. You may want to remove the borders of the polygons. The result are buildings colored by their travel time to the next public transport halt, as shown in the following image.
 
 # ![qgis_berlin_buildings25833colored.png](./images/qgis_berlin_buildings25833colored.png)
 

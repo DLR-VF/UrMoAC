@@ -21,7 +21,7 @@ Some notes:
 
 * Most of the outputs include the fields __fid__ (ID of the origin) and __sid__ (ID of the destination); in case aggregation areas are loaded, the IDs of the individual origins/destinations are replaced by the ID of the aggregation area they belong to;
 * If no aggregation area is given, the fields (avg_*) contain the distinct, unaggregated and not averaged measures between an origin and a destination;
-* Some of the outputs are in a mature state and should be very reliable; some specific outputs may be not yet completly verified;
+* Some of the outputs are in a mature state and should be very reliable; some specific outputs may be not yet completely verified;
 * **Attention!**: some of the outputs are very verbose! You may easily end up with some outputs of several GB when not using them with care!
 
 The outputs are described in-depth in the following.

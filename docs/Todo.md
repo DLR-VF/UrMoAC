@@ -2,8 +2,8 @@
 * weighting methods, including formulas
 * entrainment
 * Tutorials
-* network prunning
-* aggregation, including prunning
+* network pruning
+* aggregation, including pruning
 * Formats description
     * GTFS-fields
 * GTFS

@@ -6,7 +6,7 @@ In a first step, you have to write this data into a database. This is done using
 ## Importing OpenStreetMap into the database
 The purpose of the [osm2db.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osm2db.py) tool is to store the contents of a given OSM XML file into a PostGIS-enabled PostgreSQL database.
 
-The [osm2db.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osm2db.py) tool gets two parameter on the command line:
+The [osm2db.py](https://github.com/DLR-VF/UrMoAC/blob/master/tools/osm/osm2db.py) tool gets two parameters on the command line:
 
 * The definition of the database that shall be used to store the data and the access information;
 * The OSM XML file to get the data from.

@@ -4,7 +4,7 @@
 
 ### Debugging and improvements
 
-* debugged mapping of public transport halts on edges
+* debugged mapping of public transport halts to edges
 
 ### Documentation
 
@@ -17,8 +17,8 @@
 
 ### Tools
 * **osmdb_buildStructures.py**:
-    * It is no longer necessary to define all values for nodes, ways, and relations, each. You may use a * as the type qualify to set the subsequent extraction patterns for all.
-    * added an oid field to the output as nodes/ways/relations in OSM may have overlapping IDs. Together with the type field, one shold be able to get the according source.
+    * It is no longer necessary to define all values for nodes, ways, and relations, each. You may use a '*' as the type qualify to set the subsequent extraction patterns for all.
+    * added an oid field to the output as nodes/ways/relations in OSM may have overlapping IDs. Together with the type field, one should be able to get the according source.
 
 
 
@@ -49,7 +49,7 @@ Re-release due to broken build. No further changes in comparison to v0.8.0.
     * within UrMoAC
     * within included Python-scripts (please note that all fields are now divided using a ',')
 * __references to database are now defined on the command line like: *&lt;HOST&gt;*,*&lt;DB&gt;*,*&lt;SCHEMA&gt;*.*&lt;TABLE&gt;*,*&lt;USER&gt;*,*&lt;PASSWD&gt;*__ - schema and table name are divided using a '.', all other fields using a ','
-* The default for ID columng of database objects is now "id", no longer "gid"
+* The default for ID column of database objects is now "id", no longer "gid"
 * The default for the geometry column of database objects is now "geom", no longer "the_geom"
     * If you cannot use your old networks, try to add the option --net.geom=the_geom
     * If you cannot use your old origins, try to add the option --from.geom=the_geom
@@ -83,7 +83,7 @@ Re-release due to broken build. No further changes in comparison to v0.8.0.
 * initial file support (all but GTFS)
   * **Attention! option --from-filter was renamed to --from.filter**
   * **Attention! option --to-filter was renamed to --to.filter**
-* added --od-connections option which allows to specifiy a table with explicit origin/destination-tuples to route between
+* added --od-connections option which allows to specify a table with explicit origin/destination-tuples to route between
 * [issue #17](https://github.com/DLR-VF/UrMoAC/issues/17) added the possibility to save current command line options to a configuration file, to read configuration file
 * added the possibility to save an options template
 * [issue #20](https://github.com/DLR-VF/UrMoAC/issues/20) added a custom mode
@@ -93,7 +93,7 @@ Re-release due to broken build. No further changes in comparison to v0.8.0.
 * [issue #11](https://github.com/DLR-VF/UrMoAC/issues/11) origins, destinations, and aggregation areas can now be loaded from [SUMO shapefiles](https://sumo.dlr.de/docs/Simulation/Shapes.html) directly. The file extension is &ldquo;.poi.xml&rdquo;. __Please note that UrMoAC only accepts numerical IDs, at least currently.__
 * You may directly load a [SUMO Edge-Based Network State](https://sumo.dlr.de/docs/Simulation/Output/Lane-_or_Edge-based_Traffic_Measures.html) as travel time information.
 * [issue #42](https://github.com/DLR-VF/UrMoAC/issues/42) solved: GTFS files can now be loaded directly from disc
-* [issue #3](https://github.com/DLR-VF/UrMoAC/issues/31) solved: **the outputs do not include the access/egress distaces and traveltimes from/to the buildings to/from the road; we assume that this makes the outputs more standard compliant; the access/egress distances are still a part of the ext-nm-output**
+* [issue #3](https://github.com/DLR-VF/UrMoAC/issues/31) solved: **the outputs do not include the access/egress distances and travel times from/to the buildings to/from the road; we assume that this makes the outputs more standard compliant; the access/egress distances are still a part of the ext-nm-output**
 * finally added at least one [visualisation tool (plot_area.py)](./eval/PlotArea.md)
 * added a citation file
 * got a DOI (10.5281/zenodo.7940600)

@@ -3,7 +3,7 @@ These installation instructions are suitable for windows and are tested under Wi
 ## Download the latest release
 The easiest way is to download the latest release. It should contain everything needed to run the software.
 
-As UrMoAC is a Java application, the most simple way to obtain a valid version is to download the latest release from [https://github.com/DLR-VF/UrMoAC/releases](https://github.com/DLR-VF/UrMoAC/releases).
+As UrMoAC is a Java application, the simplest way to obtain a valid version is to download the latest release from [https://github.com/DLR-VF/UrMoAC/releases](https://github.com/DLR-VF/UrMoAC/releases).
 
 
 ## Install using Maven
@@ -15,24 +15,24 @@ Be sure that you have installed git and download the source code using
 on the command line in a folder of your choice.
 
 ### Step 2: Set-up Maven
-An executable jar file can be built with maven. Please install maven (https://maven.apache.org/install.html) on your computer, and be sure that you include JAVA_HOME and M2_HOME in your environment variables.
-Add the maven/bin folder to your path (https://en.wikipedia.org/wiki/PATH_(variable) ) variable.
+An executable jar file can be built with maven. Please install maven (<https://maven.apache.org/install.html>) on your computer, and be sure that you include JAVA_HOME and M2_HOME in your environment variables.
+Add the maven/bin folder to your path (<https://en.wikipedia.org/wiki/PATH_(variable)>) variable.
 
 ### Step 3: Build using Maven
 Open the command line. Go to the directory you just cloned. Type:
 
     mvn package
 
-et voila. All dependencies will be downloaded and there will be a new folder called target which includes the executable UrMoAccessibilityComputer-[VERSION]-SNAPSHOT-executable.jar.
+et voila. All dependencies will be downloaded and there will be a new folder called target which includes the executable <span style="background-color: yellow">UrMoAccessibilityComputer-[VERSION]-SNAPSHOT-executable.jar</span>.
 
 
 
 ## Shaded JAR using Maven
 
 You can build a shaded JAR file to execute UrMoAC. 
-UrMoAC contains the external library optionslib (see libs directory). 
+<span style="background-color: yellow">UrMoAC contains the external library optionslib (see libs directory). </span>
 
-To build the JAR file correctly you need to add the optionslib to your local Maven repositories using the following command:
+<span style="background-color: yellow">To build the JAR file correctly you need to add the optionslib to your local Maven repositories using the following command:</span>
 
 ```shell
 mvn install:install-file -Dfile=libs/optionslib-1.2.jar -DgroupId=de.dks.utils.options -DartifactId=optionslib -Dversion=1.2 -Dpackaging=jar        
@@ -43,7 +43,7 @@ After that, you can build the final JAR using:
 mvn clean package
 ```
 
-After finishing the build process, you will see a target directory in your project directory that contains the shaded JAR file.
+<span style="background-color: yellow">After finishing the build process, you will see a target directory in your project directory that contains the shaded JAR file.</span>
 
 
 ## Eclipse import

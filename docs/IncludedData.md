@@ -17,20 +17,20 @@ The files are located in ***&lt;UrMoAC&gt;*/tools/osm/structure_defs**.
 
 The OSM data used in the MyFairShare project (see [Benchmarking Cities of 15 Minutes using Open Data and Tools within the MyFairShare Project](./Publications.md#10)) are given in the following table.
 
-| File Name                   | Description                        |
-| --------------------------- | ---------------------------------- |
-| def_leisure.txt             | Places of leisure activities       |
-| def_education.txt           | Places of education activities     |
-| def_shopping.txt            | Places of shopping activities      |
-| def_errand.txt              | Places of errand activities        |
-| def_landuse_commercial.txt  | Commercial areas                   |
-| def_landuse_industrial.txt  | Industrial areas                   |
-| def_park_ride.txt           | Park&Ride facilities               |
-| def_landuse_farmyard.txt    | Farm yards (not used)              |
-| def_landuse_allotments.txt  | Allotment areas (not used)         |
-| def_landuse_residential.txt | Residential areas (not used)       |
-| def_landuse_retail.txt      | Retail areas (not used)            |
-| def_landuse.txt             | All landuse information (not used) |
+| File Name                   | Description                         |
+| --------------------------- | ----------------------------------- |
+| def_leisure.txt             | Places of leisure activities        |
+| def_education.txt           | Places of education activities      |
+| def_shopping.txt            | Places of shopping activities       |
+| def_errand.txt              | Places of errand activities         |
+| def_landuse_commercial.txt  | Commercial areas                    |
+| def_landuse_industrial.txt  | Industrial areas                    |
+| def_park_ride.txt           | Park&Ride facilities                |
+| def_landuse_farmyard.txt    | Farm yards (not used)               |
+| def_landuse_allotments.txt  | Allotment areas (not used)          |
+| def_landuse_residential.txt | Residential areas (not used)        |
+| def_landuse_retail.txt      | Retail areas (not used)             |
+| def_landuse.txt             | All land use information (not used) |
 
 
 ## Often used structures
