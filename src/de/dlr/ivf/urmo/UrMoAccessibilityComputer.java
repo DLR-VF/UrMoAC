@@ -191,7 +191,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("keep-subnets", new Option_Bool());
 		options.setDescription("keep-subnets", "When set, unconnected network parts are not removed.");
 
-		options.beginSection("Weighting Options");
+		options.beginSection("O/D Weighting Options");
 		options.add("weight", 'W', new Option_String(""));
 		options.setDescription("weight", "An optional weighting attribute for the origins.");
 		options.add("variable", 'V', new Option_String(""));

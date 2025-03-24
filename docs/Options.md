@@ -38,7 +38,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --keep-subnets | N/A (optional) | When set, unconnected network parts are not removed. |
 | --net.boundary _&lt;POSTGIS_GEOMETRY&gt;_ | N/A (optional)| Defines a boundary for the network. Please note that this option is experimental and works with networks loaded from PostGIS only. |
 
-## Weighting options
+## O/D Weighting options
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
 | --weight _&lt;FIELD&gt;_<br>-W _&lt;FIELD&gt;_ | None/empty | An optional weighting attribute for the origins. |
