@@ -590,7 +590,10 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		// public transport network
 		if (options.isSet("pt")) {
 			if (verbose) System.out.println("Reading the public transport network");
-			GTFSLoader.load(options, bounds, net, entrainmentMap, epsg, options.getInteger("threads"), verbose);
+			GTFSData gtfs = GTFSLoader.load(options, bounds, net, entrainmentMap, epsg, options.getInteger("threads"), verbose);
+			if(gtfs==null) {
+				return false;
+			}
 			if (verbose) System.out.println(" loaded");
 		}
 
