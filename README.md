@@ -58,7 +58,7 @@ And / or use the DOI: [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.
 
 ## Support and Contribution
 
-**UrMoAC** is under active development and we are happy about any interaction with users or dvelopers.
+**UrMoAC** is under active development and we are happy about any interaction with users or developers.
 
 ## Authors
 
