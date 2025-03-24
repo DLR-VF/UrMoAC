@@ -213,6 +213,10 @@ public abstract class AbstractGTFSReader {
 			if(verbose) System.out.println(" ... reading trips ...");
 			HashMap<String, GTFSTrip> trips = new HashMap<>();
 			readTrips(services, routes, dateI, trips);
+			if(trips.size()==0) {
+				System.err.println("No trips were loaded. May be a false date information.");
+				return null;
+			}
 			// build intermediate container 
 			GTFSData ret = new GTFSData(_net, entrainmentMap, stops, routes, trips);
 			
