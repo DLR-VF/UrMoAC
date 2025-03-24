@@ -568,9 +568,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		// to aggregation
 		Layer toAggLayer = null;
 		if (options.isSet("to-agg") && !options.getString("to-agg").equals("all")) {
-			if (verbose) System.out.println("Reading sink aggregation zones");
+			if (verbose) System.out.println("Reading destination aggregation zones");
 			toAggLayer = InputReader.loadLayer(options, bounds, "to-agg", null, true, this, epsg); 
-			if (verbose) System.out.println(" " + toAggLayer.getObjects().size() + " sink aggregation geometries loaded");
+			if (verbose) System.out.println(" " + toAggLayer.getObjects().size() + " destination aggregation geometries loaded");
 		}
 		
 		// travel times
