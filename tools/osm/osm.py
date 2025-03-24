@@ -441,7 +441,6 @@ class OSMRelation(OSMElement):
             return True
         # build roles
         roles = {} # !!! could be a direct member
-        #print (self.members)
         for m in self.members:
             if m[2] not in roles:
                 roles[m[2]] = []

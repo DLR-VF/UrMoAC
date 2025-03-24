@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 # ===========================================================================
-"""Builds an road network table using  an OSM-database representation.
+"""Builds an road network table using an OSM-database representation.
 
 Call with
   osmdb_buildWays <HOST>,<DB>,<SCHEMA>.<PREFIX>,<USER>,<PASSWD>"""
 # ===========================================================================
 __author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright 2016-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__copyright__  = "Copyright 2016-2025, Institute of Transport Research, German Aerospace Center (DLR)"
 __credits__    = ["Daniel Krajzewicz"]
 __license__    = "EPL 2.0"
 __version__    = "0.8.2"
@@ -466,46 +466,51 @@ def get_params_class(params):
 
 
 # --- main
-def main(srcdb):
+def build_ways(src_db, dest_db, dropprevious, append, unconsumed_file, errorneous_file, verbose):
     """Main method"""
-    (host, db, schema_prefix, user, password) = srcdb.split(",")
+    (host, db, schema_prefix, user, password) = src_db.split(",")
     schema, prefix = schema_prefix.split(".")
     t1 = datetime.datetime.now()
     conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
     cursor = conn.cursor()
     db = osmdb.OSMDB(schema, prefix, conn, cursor)
-    fdo1 = io.open("%s_unconsumed.txt" % prefix,'w',encoding='utf8')
-    fdo2 = io.open("%s_errorneous.txt" % prefix,'w',encoding='utf8')
+    unconsumed_output = io.open(unconsumed_file, 'w', encoding='utf8') if unconsumed_file is not None else None
+    errorneous_output = io.open(errorneous_file, 'w', encoding='utf8') if errorneous_file is not None else None
     # (re) create tables
     if db.table_exists(schema, prefix+"_network"):
-        cursor.execute("""DROP TABLE %s.%s_network;""" % (schema, prefix))
+        if dropprevious:
+            cursor.execute("""DROP TABLE %s.%s_network;""" % (schema, prefix))
+            conn.commit()
+        elif not append:
+            print ("osmdb_buildWays: error: destination table already exist", file=sys.stderr)
+            return 1
+    if not append:
+        cursor.execute("""CREATE TABLE %s.%s_network (
+            id serial PRIMARY KEY,
+            oid text,
+            nodefrom bigint, 
+            nodeto bigint, 
+            numlanes smallint,
+            length double precision,
+            vmax double precision,
+            street_type text,
+            capacity double precision,
+            mode_walk boolean,
+            mode_bike boolean,
+            mode_pt boolean,
+            mode_mit boolean,    
+            modes bigint,
+            nodes bigint[],
+            sidewalk text,
+            cycleway text,
+            width double precision,
+            surface text,
+            lit text,
+            name text,
+            slope real    
+        );""" % (schema, prefix))
+        cursor.execute("""SELECT AddGeometryColumn('%s', '%s_network', 'geom', 4326, 'LINESTRING', 2);""" % (schema, prefix))
         conn.commit()
-    cursor.execute("""CREATE TABLE %s.%s_network (
-        id serial PRIMARY KEY,
-        oid text,
-        nodefrom bigint, 
-        nodeto bigint, 
-        numlanes smallint,
-        length double precision,
-        vmax double precision,
-        street_type text,
-        capacity double precision,
-        mode_walk boolean,
-        mode_bike boolean,
-        mode_pt boolean,
-        mode_mit boolean,    
-        modes bigint,
-        nodes bigint[],
-        sidewalk text,
-        cycleway text,
-        width double precision,
-        surface text,
-        lit text,
-        name text,
-        slope real    
-    );""" % (schema, prefix))
-    cursor.execute("""SELECT AddGeometryColumn('%s', '%s_network', 'geom', 4326, 'LINESTRING', 2);""" % (schema, prefix))
-    conn.commit()
 
     # get roads and railroads with some typical classes
     seen = set()
@@ -536,7 +541,7 @@ def main(srcdb):
                     else:
                         nodes[n] = 1 
 
-    if len(unrecognized)>0:
+    if len(unrecognized)>0 and verbose:
         print ("The following types were not recognised and will be thereby dismissed:")
         for u in unrecognized:
             print (" %s (%s instances)" % (u, unrecognized[u]))
@@ -552,8 +557,6 @@ def main(srcdb):
             if hID in seen:
                 continue
             htype = h[1]+"_"+h[2]
-            #if htype=="highway_proposed": htype="highway_residential"
-            #if htype=="highway_construction": htype="highway_residential"
             if htype not in highways:
                 continue
             else:
@@ -571,9 +574,7 @@ def main(srcdb):
                     if ut2 in highways:
                         defaultModes = defaultModes | highways[ut2]["mode"] 
                 modes, cycleway, sidewalk = get_modes(hID, defaultModes, params)
-      
                 defaultOneway = "oneway" in highways[htype] and highways[htype]["oneway"] 
-      
                 modesF, modesB = get_directional_modes(hID, defaultOneway, params, modes) # !!! hier - nun die Richtungsabhaengigen dinge        
       
                 numLanes = get_lane_number(highways[htype]["lanes"], params)
@@ -585,7 +586,6 @@ def main(srcdb):
                 params.consume("lit")
                 surface = params.get("surface")
                 params.consume("surface")
-
                 params.consume("highway")
                 params.consume("railway")
                 #
@@ -612,7 +612,8 @@ def main(srcdb):
                     nodeIDs.append(n[0])
                     hGeom.append("%s %s" % (p[0], p[1]))
                     if n[0] not in nodes:
-                        print ("Critical error: way %s has a node %s not seen before; all nodes: %s" % (hID, n[0], n))
+                        print ("osmdb_buildWays: error: way %s has a node %s not seen before; all nodes: %s" % (hID, n[0], n), file=sys.stderr)
+                        return 1
                     if (nodes[n[0]]>1 or splits[ni]) and ni>0:
                         # store the road
                         if modesF!=0:
@@ -636,31 +637,93 @@ def main(srcdb):
                         num += 1
 
                 unconsumed = params.get_unconsumed(["source:lit", "note:name", "postal_code", "name:ru", "created_by", "old_name", "trail_visibility", "source:maxspeed", "source"])
-                if len(unconsumed)>0: 
-                    fdo1.write(u"%s:%s\n" % (hID, str(unconsumed)))
-                if len(params._errorneous)>0:
-                    fdo2.write(u"%s:%s\n" % (hID, str(params._errorneous)))
+                if unconsumed_output is not None and len(unconsumed)>0: 
+                    unconsumed_output.write(u"%s:%s\n" % (hID, str(unconsumed)))
+                if errorneous_output is not None and len(params._errorneous)>0:
+                    errorneous_output.write(u"%s:%s\n" % (hID, str(params._errorneous)))
 
             if len(storedRoads)>10000:
                 commit_roads(db._conn, db._cursor, schema, prefix)
     commit_roads(db._conn, db._cursor, schema, prefix)
     cursor.execute("UPDATE %s.%s_network SET length=ST_Length(geom::geography);" % (schema, prefix))
     conn.commit()
-    fdo1.close()
-    fdo2.close()
+    if unconsumed_output is not None:
+        unconsumed_output.close()
+    if errorneous_output is not None:
+        errorneous_output.close()
     t2 = datetime.datetime.now()
     dt = t2-t1
     print ("Built %s roads" % num)
     print (" in %s" % dt)
 
 
+# --- function definitions --------------------------------------------------
+# -- main
+def main(arguments=None):
+    """Main method"""
+    # parse options
+    if arguments is None:
+        arguments = sys.argv[1:]
+    # https://stackoverflow.com/questions/3609852/which-is-the-best-way-to-allow-configuration-options-be-overridden-at-the-comman
+    defaults = {}
+    conf_parser = argparse.ArgumentParser(prog='osmdb_buildWays', add_help=False)
+    conf_parser.add_argument("-c", "--config", metavar="FILE", help="Reads the named configuration file")
+    args, remaining_argv = conf_parser.parse_known_args(arguments)
+    if args.config is not None:
+        if not os.path.exists(args.config):
+            print ("osmdb_buildWays: error: configuration file '%s' does not exist" % str(args.config), file=sys.stderr)
+            raise SystemExit(2)
+        config = configparser.ConfigParser()
+        config.read([args.config])
+        defaults.update(dict(config.items("DEFAULT")))
+    parser = argparse.ArgumentParser(prog='osmdb_buildWays', parents=[conf_parser], 
+        description='Builds an road network table using an OSM-database representation', 
+        epilog='(c) Copyright 2016-2025, German Aerospace Center (DLR)')
+    parser.add_argument('OSMdatabase', metavar='OSM-database', help='The definition of the database to read data from;\n'
+            + ' should be a string of the form <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.8.2')
+    parser.add_argument('-o', '--output', help='The definition of the table to write the network to;\n'
+            + ' should be a string of the form <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>')
+    parser.add_argument('-R', '--dropprevious', action='store_true', help="Delete destination tables if already existing")
+    parser.add_argument('-A', '--append', action='store_true', help="Append read data to existing tables")
+    parser.add_argument('--unconsumed-output', default=None, help="Writes not consumed attributes to the given file")
+    parser.add_argument('--errorneous-output', default=None, help="Writes errorneous items to the given file")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Print what is being done")
+    parser.set_defaults(**defaults)
+    args = parser.parse_args(remaining_argv)
+
+    # check and parse command line parameter and input files
+    errors = []
+    # - input db
+    if len(args.OSMdatabase.split(","))!=5:
+        errors.append("Missing values in OSM database definition;\n must be: <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>")
+    elif args.OSMdatabase.split(",")[2].count(".")!=1:
+        errors.append("The second field of the OSM database definition must have the format <SCHEMA>.<TABLE_PREFIX>")
+    # - output db
+    if args.output is not None:
+        output = args.output
+        if len(output.split(","))!=5:
+            errors.append("Missing values in target database definition;\n must be: <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>")
+        elif output.split(",")[2].count(".")!=1:
+            errors.append("The second field of the target database definition must have the format <SCHEMA>.<TABLE_PREFIX>")
+    else:
+        # checked before
+        output = args.OSMdatabase.split(",")
+        output[2] = output[2] + "_network"
+        output = ",".join(output)
+    # - report
+    if len(errors)!=0:
+        parser.print_usage(sys.stderr)
+        for e in errors:
+            print ("osmdb_buildWays: error: %s" % e, file=sys.stderr)
+        print ("osmdb_buildWays: quitting on error.", file=sys.stderr)
+        return 1
+    
+    # build
+    return build_ways(args.OSMdatabase, output, args.dropprevious, args.append, args.unconsumed_output, args.errorneous_output, args.verbose)
+
+
 # -- main check
 if __name__ == '__main__':
-    if len(sys.argv)<2:
-        print ("""Error: Parameter is missing
-Please run with:
-    osmdb_buildWays <HOST>,<DB>,<SCHEMA>.<PREFIX>,<USER>,<PASSWD>""")
-        sys.exit(1)
-    main(sys.argv[1])
-    sys.exit(0)
-   
+    sys.exit(main(sys.argv[1:]))
+
