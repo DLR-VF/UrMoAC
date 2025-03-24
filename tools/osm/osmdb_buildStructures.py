@@ -34,7 +34,7 @@ import psycopg2
 import datetime
 import math
 import osm
-
+import argparse 
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join(script_dir, '..', 'helper')
 sys.path.append(mymodule_dir)

@@ -28,6 +28,7 @@ import sys
 import datetime
 from xml.sax import saxutils, make_parser, handler
 import psycopg2
+import argparse
 import osm
 
 
@@ -290,6 +291,8 @@ def main(arguments=None):
     parser.add_argument('-R', '--dropprevious', action='store_true', help="Delete destination tables if already existing")
     parser.add_argument('-A', '--append', action='store_true', help="Append read data to existing tables")
     parser.add_argument("-v", "--verbose", action="store_true", help="Print what is being done")
+    parser.set_defaults(**defaults)
+    args = parser.parse_args(remaining_argv)
 
     # check and parse command line parameter and input files
     errors = []

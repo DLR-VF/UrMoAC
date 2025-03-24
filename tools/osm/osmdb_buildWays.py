@@ -25,7 +25,9 @@ __status__     = "Production"
 import os, string, sys, io
 import datetime
 from xml.sax import saxutils, make_parser, handler
-import psycopg2, osmdb
+import argparse
+import psycopg2
+import osmdb
 from osmmodes import *
 
 
