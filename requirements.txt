@@ -1,0 +1,6 @@
+psycopg2
+mkdocs
+mkdocs-material
+pytest
+coverage
+matplotlib
