@@ -45,7 +45,7 @@ import de.dlr.ivf.urmo.router.algorithms.routing.AbstractRouteWeightFunction;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_ExpInterchange_TT;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_MaxInterchange_TT;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_Price_TT;
-import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_TT_Modes;
+import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_TT_ModeSpeed;
 import de.dlr.ivf.urmo.router.io.GTFSLoader;
 import de.dlr.ivf.urmo.router.io.InputReader;
 import de.dlr.ivf.urmo.router.io.NetLoader;
@@ -634,7 +634,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, maxNumber, maxTT, maxDistance, maxVar, shortestOnly, needsPT); 
 		
 		// -------- measure
-		measure = new RouteWeightFunction_TT_Modes();
+		measure = new RouteWeightFunction_TT_ModeSpeed();
 		if(options.isSet("measure")) {
 			String t = options.getString("measure");
 			if("price_tt".equals(t)) {
