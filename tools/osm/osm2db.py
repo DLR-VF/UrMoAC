@@ -307,7 +307,7 @@ def main(arguments=None):
         for e in errors:
             print ("osm2db: error: %s" % e, file=sys.stderr)
         print ("osm2db: quitting on error.", file=sys.stderr)
-        return 1
+        return 2
 
     # run
     return osm2db(args.OSMdatabase, args.OSMfile, args.dropprevious, args.append, args.verbose)

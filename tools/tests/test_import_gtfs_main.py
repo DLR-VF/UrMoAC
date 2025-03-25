@@ -30,7 +30,7 @@ import importGTFS
 def test_main_empty(capsys):
     """Test behaviour if no arguments are given"""
     try:
-        importGTFS.main()
+        importGTFS.main([])
         assert False # pragma: no cover
     except SystemExit as e:
         assert type(e)==type(SystemExit())

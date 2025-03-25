@@ -30,7 +30,7 @@ import osm2db
 def test_main_empty(capsys):
     """Test behaviour if no arguments are given"""
     try:
-        osm2db.main()
+        osm2db.main([])
         assert False # pragma: no cover
     except SystemExit as e:
         assert type(e)==type(SystemExit())

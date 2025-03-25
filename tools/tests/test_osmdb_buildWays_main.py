@@ -30,7 +30,7 @@ import osmdb_buildWays
 def test_main_empty(capsys):
     """Test behaviour if no arguments are given"""
     try:
-        osmdb_buildWays.main()
+        osmdb_buildWays.main([])
         assert False # pragma: no cover
     except SystemExit as e:
         assert type(e)==type(SystemExit())
