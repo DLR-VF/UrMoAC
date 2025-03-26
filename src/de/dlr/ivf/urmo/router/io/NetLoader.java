@@ -61,26 +61,29 @@ public class NetLoader {
 	 * @param vmaxAttr The attribute (column) to read the maximum velocity from 
 	 * @param epsg The projection
 	 * @param uModes The modes for which the network shall be loaded
+	 * @param errorsWriter The writer to report errors to
+	 * @param reportAllErrors If set, all errors are reported, not only the first one
+	 * @param patchErrors If set, false lengths and vmax are patched
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	public static DBNet loadNet(IDGiver idGiver, String def, String netBoudary, String vmaxAttr, String geomS, int epsg, long uModes, NetErrorsWriter errorsWriter) throws IOException {
+	public static DBNet loadNet(IDGiver idGiver, String def, String netBoudary, String vmaxAttr, String geomS, int epsg, long uModes, NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors) throws IOException {
 		Utils.Format format = Utils.getFormat(def);
 		String[] inputParts = Utils.getParts(format, def, "net");
 		DBNet net = null;
 		switch(format) {
 		case FORMAT_POSTGRES:
 		case FORMAT_SQLITE:
-			net = loadNetFromDB(idGiver, format, inputParts, netBoudary, vmaxAttr, geomS, epsg, uModes, errorsWriter);
+			net = loadNetFromDB(idGiver, format, inputParts, netBoudary, vmaxAttr, geomS, epsg, uModes, errorsWriter, reportAllErrors, patchErrors);
 			break;
 		case FORMAT_CSV:
-			net = loadNetFromCSVFile(idGiver, inputParts[0], uModes, errorsWriter);
+			net = loadNetFromCSVFile(idGiver, inputParts[0], uModes, errorsWriter, reportAllErrors, patchErrors);
 			break;
 		case FORMAT_WKT:
-			net = loadNetFromWKTFile(idGiver, inputParts[0], uModes, errorsWriter);
+			net = loadNetFromWKTFile(idGiver, inputParts[0], uModes, errorsWriter, reportAllErrors, patchErrors);
 			break;
 		case FORMAT_SUMO:
-			net = loadNetFromSUMOFile(idGiver, inputParts[0], uModes, errorsWriter);
+			net = loadNetFromSUMOFile(idGiver, inputParts[0], uModes, errorsWriter, reportAllErrors, patchErrors);
 			break;
 		case FORMAT_GEOPACKAGE:
 			throw new IOException("Reading 'net' from " + Utils.getFormatMMLName(format) + " is not supported.");
@@ -88,6 +91,7 @@ public class NetLoader {
 			throw new IOException("Could not recognize the format used for GTFS.");
 		}
 		if(net==null) {
+			if(errorsWriter!=null) errorsWriter.close();
 			throw new IOException("The network could not be loaded");
 		}
 		// set opposite edges; add opposite pedestrian edges if foot is used
@@ -103,10 +107,13 @@ public class NetLoader {
 	 * @param vmax The attribute (column) to read the maximum velocity from 
 	 * @param epsg The projection
 	 * @param uModes The modes for which the network shall be loaded
+	 * @param errorsWriter The writer to report errors to
+	 * @param reportAllErrors If set, all errors are reported, not only the first one
+	 * @param patchErrors If set, false lengths and vmax are patched
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromDB(IDGiver idGiver, Utils.Format format, String[] inputParts, String netBoudary, String vmax, String geomS, int epsg, long uModes, NetErrorsWriter errorsWriter) throws IOException {
+	private static DBNet loadNetFromDB(IDGiver idGiver, Utils.Format format, String[] inputParts, String netBoudary, String vmax, String geomS, int epsg, long uModes, NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors) throws IOException {
 		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
 		try {
 			Class.forName("org.sqlite.JDBC");
@@ -127,7 +134,7 @@ public class NetLoader {
 			Statement s = connection.createStatement();
 			ResultSet rs = s.executeQuery(query);
 			WKBReader wkbRead = new WKBReader();
-			DBNet net = new DBNet(idGiver, errorsWriter, false); // todo: implement report settings
+			DBNet net = new DBNet(idGiver, errorsWriter, reportAllErrors, patchErrors);
 			boolean ok = true;
 			boolean warnedDeprecatedGeom = false;
 			while (rs.next()) {
@@ -176,11 +183,14 @@ public class NetLoader {
 	 * @param idGiver Instance supporting running ids 
 	 * @param fileName The file to read the network from
 	 * @param uModes The modes for which the network shall be loaded
+	 * @param errorsWriter The writer to report errors to
+	 * @param reportAllErrors If set, all errors are reported, not only the first one
+	 * @param patchErrors If set, false lengths and vmax are patched
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromCSVFile(IDGiver idGiver, String fileName, long uModes, NetErrorsWriter errorsWriter) throws IOException {
-		DBNet net = new DBNet(idGiver, errorsWriter, false); // todo: implement report settings
+	private static DBNet loadNetFromCSVFile(IDGiver idGiver, String fileName, long uModes, NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors) throws IOException {
+		DBNet net = new DBNet(idGiver, errorsWriter, reportAllErrors, patchErrors);
 		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
 		// https://stackoverflow.com/questions/1388602/do-i-need-to-close-both-filereader-and-bufferedreader
 		@SuppressWarnings("resource")
@@ -224,12 +234,15 @@ public class NetLoader {
 	 * @param idGiver Instance supporting running ids 
 	 * @param fileName The file to read the network from
 	 * @param uModes The modes for which the network shall be loaded
+	 * @param errorsWriter The writer to report errors to
+	 * @param reportAllErrors If set, all errors are reported, not only the first one
+	 * @param patchErrors If set, false lengths and vmax are patched
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromWKTFile(IDGiver idGiver, String fileName, long uModes, NetErrorsWriter errorsWriter) throws IOException {
+	private static DBNet loadNetFromWKTFile(IDGiver idGiver, String fileName, long uModes, NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors) throws IOException {
 		try {
-			DBNet net = new DBNet(idGiver, errorsWriter, false); // todo: implement report settings
+			DBNet net = new DBNet(idGiver, errorsWriter, reportAllErrors, patchErrors);
 			WKTReader wktReader = new WKTReader();
 			BufferedReader br = new BufferedReader(new FileReader(fileName));
 			String line = null;
@@ -266,12 +279,15 @@ public class NetLoader {
 	 * @param idGiver Instance supporting running ids 
 	 * @param fileName The file to read the network from
 	 * @param uModes The modes for which the network shall be loaded
+	 * @param errorsWriter The writer to report errors to
+	 * @param reportAllErrors If set, all errors are reported, not only the first one
+	 * @param patchErrors If set, false lengths and vmax are patched
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromSUMOFile(IDGiver idGiver, String fileName, long uModes, NetErrorsWriter errorsWriter) throws IOException {
+	private static DBNet loadNetFromSUMOFile(IDGiver idGiver, String fileName, long uModes, NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors) throws IOException {
 		try {
-			DBNet net = new DBNet(idGiver, errorsWriter, false); // todo: implement report settings
+			DBNet net = new DBNet(idGiver, errorsWriter, reportAllErrors, patchErrors);
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 	        SAXParser saxParser = factory.newSAXParser();
 	        SUMONetHandler handler = new SUMONetHandler(net, uModes);

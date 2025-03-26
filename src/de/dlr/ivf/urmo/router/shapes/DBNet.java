@@ -64,19 +64,22 @@ public class DBNet {
 	private int stateEdges0Length = 0;
 	/// @brief A state variable for reporting duplicate edges (0: report all, 1: report first, 2: report first, first reported)
 	private int stateEdgesSameID = 0;
+	/// @brief Whether network errors (vmax=0, length=0) shall be patched
+	private boolean patchErrors;
 
 
 	/**
 	 * @brief Constructor
 	 * @param _idGiver The id supplier to use
 	 */
-	public DBNet(IDGiver _idGiver, NetErrorsWriter _log, boolean _reportAllIssues) {
+	public DBNet(IDGiver _idGiver, NetErrorsWriter _log, boolean _reportAllIssues, boolean _patchErrors) {
 		idGiver = _idGiver;
 		log = _log;
 		stateDuplicateEdges = _reportAllIssues==true ? 0 : 1;
 		stateEdges0VMax = _reportAllIssues==true ? 0 : 1;
 		stateEdges0Length = _reportAllIssues==true ? 0 : 1;
 		stateEdgesSameID = _reportAllIssues==true ? 0 : 1;
+		patchErrors = _patchErrors;
 	}
 
 	
@@ -95,31 +98,48 @@ public class DBNet {
 		boolean hadError = false;
 		if(_length<=0) {
 			if(stateEdges0Length!=2) {
-				System.err.println("Error: Edge '" + _id + "' has a length of 0.");
+				if(patchErrors) {
+					System.err.println("Warning: Edge '" + _id + "' has a length of 0. Will be set to 0.1 m.");
+				} else {
+					System.err.println("Error: Edge '" + _id + "' has a length of 0.");
+				}
 				if(stateEdges0Length!=0) {
 					stateEdges0Length = 2;
-					System.err.println("Warning: Subsequent edges with length=0 will not be reported; use --write.net-errors to get the complete list.");
+					System.err.println("Warning: Subsequent edges with length=0 will not be reported; use --write.net-errors or --net.report-all-errors to get the complete list.");
 				}
 			}
-			hadError = true;
+			if(log!=null) log.writeNoLength(_id);
+			if(patchErrors) {
+				_length = .1;
+			} else {
+				hadError = true;
+			}
 		}
 		if(_vmax<=0) {
 			if(stateEdges0VMax!=2) {
-				System.err.println("Error: Edge '" + _id + "' has a speed of 0.");
+				if(patchErrors) {
+					System.err.println("Warning: Edge '" + _id + "' has a speed of 0. Will be set to 0.1 m/s.");
+				} else {
+					System.err.println("Error: Edge '" + _id + "' has a speed of 0.");
+				}
 				if(stateEdges0VMax!=0) {
 					stateEdges0VMax = 2;
-					System.err.println("Warning: Subsequent edges with vmax=0 will not be reported; use --write.net-errors to get the complete list.");
+					System.err.println("Warning: Subsequent edges with vmax=0 will not be reported; use --write.net-errors or --net.report-all-errors to get the complete list.");
 				}
 			}
 			if(log!=null) log.writeNoSpeed(_id);
-			hadError = true;
+			if(patchErrors) {
+				_vmax = .1;
+			} else {
+				hadError = true;
+			}
 		}
 		if(name2edge.containsKey(_id)) {
 			if(stateEdgesSameID!=2) {
 				System.err.println("Error: Edge '" + _id + "' already exists.");
 				if(stateEdgesSameID!=0) {
 					stateEdgesSameID = 2;
-					System.err.println("Warning: Subsequent edge with duplicate IDs will not be reported; use --write.net-errors to get the complete list.");
+					System.err.println("Warning: Subsequent edge with duplicate IDs will not be reported; use --write.net-errors or --net.report-all-errors to get the complete list.");
 				}
 			}
 			if(log!=null) log.writeDuplicate(_id);
@@ -155,7 +175,7 @@ public class DBNet {
 					System.err.println("Warning: removed edge '" + e.getID() + "' as a duplicate of edge '" + e2.getID() + "'.");
 					if(stateDuplicateEdges!=0) {
 						stateDuplicateEdges = 2;
-						System.err.println("Warning: Subsequent replacements will not be reported; use --write.net-errors to get the complete list.");
+						System.err.println("Warning: Subsequent replacements will not be reported; use --write.net-errors or --net.report-all-errors to get the complete list.");
 					}
 				}
 				return;

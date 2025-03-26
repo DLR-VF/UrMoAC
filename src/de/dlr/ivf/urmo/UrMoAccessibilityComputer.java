@@ -190,6 +190,10 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("net.boundary", "Defines a boundary for the network.");
 		options.add("keep-subnets", new Option_Bool());
 		options.setDescription("keep-subnets", "When set, unconnected network parts are not removed.");
+		options.add("net.report-all-errors", new Option_Bool());
+		options.setDescription("net.report-all-errors", "When set, all errors are printed.");
+		options.add("net.patch-errors", new Option_Bool());
+		options.setDescription("net.patch-errors", "When set, broken edge lengths and speeds will be patched.");
 
 		options.beginSection("O/D Weighting Options");
 		options.add("weight", 'W', new Option_String(""));
@@ -525,7 +529,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		NetErrorsWriter netErrorsOutput = options.isSet("write.net-errors") 
 				? OutputBuilder.buildNetErrorsWriter(options.getString("write.net-errors"), options.getBool("dropprevious")) : null;  
 		String netBoundary = options.isSet("net.boundary") ? options.getString("net.boundary") : null;  
-		DBNet net = NetLoader.loadNet(this, options.getString("net"), netBoundary, options.getString("net.vmax"), options.getString("net.geom"), epsg, modes, netErrorsOutput);
+		DBNet net = NetLoader.loadNet(this, options.getString("net"), netBoundary, options.getString("net.vmax"), options.getString("net.geom"), 
+				epsg, modes, netErrorsOutput, options.getBool("net.report-all-errors"), options.getBool("net.patch-errors"));
 		if (verbose) System.out.println(" " + net.getNumEdges() + " edges loaded (" + net.getNodes().size() + " nodes)");
 		if(!options.getBool("keep-subnets")) {
 			if (verbose) System.out.println("Checking for connectivity...");
