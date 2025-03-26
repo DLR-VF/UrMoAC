@@ -219,6 +219,18 @@ public class DBNet {
 
 
 	/**
+	 * @brief Adds a node to this road network
+	 * @param node The node to add
+	 */
+	public boolean addNode(DBNode node, String origName) {
+		if(!name2nodeID.containsKey(origName)) {
+			name2nodeID.put(origName, node.getID());
+		}
+		return addNode(node);
+	}
+
+
+	/**
 	 * @brief Returns the named node or builds it if not existing
 	 * @param id The id of the node to return
 	 * @param pos The node's position
@@ -250,6 +262,16 @@ public class DBNet {
 		return getNode(id, pos);
 	}
 
+	
+	public DBNode getExistingNode(String sid) {
+		if(!name2nodeID.containsKey(sid)) {
+			return null;
+		}
+		long id = name2nodeID.get(sid);
+		return nodes.get(id);
+	}
+	
+	
 
 	/**
 	 * @brief Returns the named edge (by name)

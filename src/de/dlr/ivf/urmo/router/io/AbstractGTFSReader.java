@@ -42,6 +42,7 @@ import de.dlr.ivf.urmo.router.gtfs.GTFSRoute;
 import de.dlr.ivf.urmo.router.gtfs.GTFSStop;
 import de.dlr.ivf.urmo.router.gtfs.GTFSTrip;
 import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
+import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
@@ -176,12 +177,16 @@ public abstract class AbstractGTFSReader {
 			Vector<EdgeMappable> stopsV = new Vector<>();
 			readStops(stops, id2stop, stopsV);
 			// map stops to edges
-			long accessModes = Modes.getMode("foot").id|Modes.getMode("bike").id;
+			//long accessModes = Modes.getMode("foot").id|Modes.getMode("bike").id;
+			Vector<Mode> accessModes = new Vector<>();
+			accessModes.add(Modes.getMode("foot"));
+			accessModes.add(Modes.getMode("bike"));
+			long uAccessModes = Modes.getCombinedModeIDs(accessModes);
 			NearestEdgeFinder nef = new NearestEdgeFinder(stopsV, _net, accessModes);
 			HashMap<DBEdge, Vector<MapResult>> edge2stops = nef.getNearestEdges(false, false, numThreads);
 			// connect stops to network
 			if(verbose) System.out.println(" ... connecting stops ...");
-			int failed = connectStops(edge2stops, accessModes);
+			int failed = connectStops(edge2stops, uAccessModes);
 			if(verbose) System.out.println(" " + failed + " stations could not be allocated");
 			// read routes
 			if(verbose) System.out.println(" ... reading routes ...");

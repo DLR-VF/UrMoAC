@@ -243,6 +243,16 @@ public class DBEdge {
 
 
 	/**
+	 * @brief Returns whether all given modes may be used at this edges
+	 * @param modes The transport modes to use
+	 * @return Whether all of the given modes of transport are allowed on this edge
+	 */
+	public boolean allowsAll(long modes) {
+		return (this.modes & modes) == modes;
+	}
+
+
+	/**
 	 * @brief Returns the travel time
 	 * 
 	 * As this edge is walked by continuously, the travel time is the
@@ -387,6 +397,15 @@ public class DBEdge {
 	}
 
 
+	/**
+	 * @brief "Joins" both edges
+	 * 
+	 * It is assumes that both edges have the same geometry and should be treated as one.
+	 * 
+	 * The method extends the allowed modes by the ones of the given edge and adapts
+	 * the allowed velocity to the maximum of both edges' allowed velocities.
+	 * @param e The edge to combine with this one
+	 */
 	public void adapt(DBEdge e) {
 		// geometry is same...
 		modes = modes | e.modes;
@@ -394,6 +413,11 @@ public class DBEdge {
 	}
 
 
+	/** @brief Returns whether both edges are overlapping
+	 * 
+	 * @param e The edge to compare the geometry to
+	 * @return Whether both edges overlap
+	 */
 	public double maxDistanceTo(DBEdge e) {
 		double maxDistance = 0;
 		LineString eg = e.getGeometry();
@@ -406,5 +430,6 @@ public class DBEdge {
 		}
 		return maxDistance;
 	}
+
 
 }

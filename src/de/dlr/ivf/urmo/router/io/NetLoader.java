@@ -26,6 +26,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Vector;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -42,6 +43,7 @@ import org.locationtech.jts.io.WKTReader;
 import org.postgresql.PGConnection;
 import org.xml.sax.SAXException;
 
+import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.output.NetErrorsWriter;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
@@ -67,9 +69,10 @@ public class NetLoader {
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	public static DBNet loadNet(IDGiver idGiver, String def, String netBoudary, String vmaxAttr, String geomS, int epsg, long uModes, NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors) throws IOException {
+	public static DBNet loadNet(IDGiver idGiver, String def, String netBoudary, String vmaxAttr, String geomS, int epsg, Vector<Mode> modes, NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors) throws IOException {
 		Utils.Format format = Utils.getFormat(def);
 		String[] inputParts = Utils.getParts(format, def, "net");
+		long uModes = Modes.getCombinedModeIDs(modes);
 		DBNet net = null;
 		switch(format) {
 		case FORMAT_POSTGRES:

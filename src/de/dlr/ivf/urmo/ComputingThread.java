@@ -8,6 +8,7 @@ import java.util.Vector;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.AbstractRouteWeightFunction;
 import de.dlr.ivf.urmo.router.algorithms.routing.BoundDijkstra;
+import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.output.DijkstraResultsProcessor;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBODRelationExt;
@@ -28,10 +29,8 @@ public class ComputingThread implements Runnable {
 	private AbstractRouteWeightFunction measure;
 	/// @brief The start time of routing
 	private int time; 
-	/// @brief The mode of transport to use at the begin
-	private long initMode;
 	/// @brief The available transport modes
-	private long modes;
+	private Vector<Mode> modes;
 	/// @brief The maximum number of destinations to find
 	private int boundNumber;
 	/// @brief The maximum travel time to use
@@ -50,7 +49,6 @@ public class ComputingThread implements Runnable {
 	 * @param _measure The routing measure to use
 	 * @param _resultsProcessor The results processor to use
 	 * @param _time The start time of routing
-	 * @param _initMode The mode of transport to use at the begin
 	 * @param _modes The available transport modes
 	 * @param _boundNumber The maximum number of destinations to find
 	 * @param _boundTT The maximum travel time to use
@@ -60,8 +58,7 @@ public class ComputingThread implements Runnable {
 	 */
 	public ComputingThread(UrMoAccessibilityComputer _parent, 
 			AbstractRouteWeightFunction _measure, DijkstraResultsProcessor _resultsProcessor,
-			int _time, long _initMode, 
-			long _modes, int _boundNumber, double _boundTT, 
+			int _time, Vector<Mode> _modes, int _boundNumber, double _boundTT, 
 			double _boundDist, double _boundVar, boolean _shortestOnly) {
 		super();
 		parent = _parent;
@@ -69,7 +66,6 @@ public class ComputingThread implements Runnable {
 		measure = _measure;
 		//needsPT = _needsPT;
 		time = _time; 
-		initMode = _initMode;
 		modes = _modes;
 		boundNumber = _boundNumber;
 		boundTT = _boundTT;
@@ -98,7 +94,7 @@ public class ComputingThread implements Runnable {
 					Vector<MapResult> fromObjects = parent.nearestFromEdges.get(e);
 					for(MapResult mr : fromObjects) {
 						BoundDijkstra bd = new BoundDijkstra(measure, mr, boundNumber, boundTT, boundDist, boundVar, shortestOnly, time);
-						bd.run(initMode, modes, parent.nearestToEdges.keySet(), parent.nearestToEdges);
+						bd.run(modes, parent.nearestToEdges.keySet(), parent.nearestToEdges);
 						resultsProcessor.process(mr, bd, -1);
 					}
 				} while(e!=null&&!parent.hadError);
@@ -112,7 +108,7 @@ public class ComputingThread implements Runnable {
 					Set<DBEdge> destinations = new HashSet<>();
 					destinations.add(od.toEdge);
 					BoundDijkstra bd = new BoundDijkstra(measure, od.fromMR, boundNumber, boundTT, boundDist, boundVar, shortestOnly, time);
-					bd.run(initMode, modes, parent.nearestToEdges.keySet(), parent.nearestToEdges);
+					bd.run(modes, parent.nearestToEdges.keySet(), parent.nearestToEdges);
 					resultsProcessor.process(od.fromMR, bd, od.destination);
 				} while(od!=null&&!parent.hadError);
 			}

@@ -26,6 +26,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Vector;
@@ -49,8 +50,9 @@ import de.dks.utils.options.OptionsCont;
 import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
 import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;
+import de.dlr.ivf.urmo.router.shapes.DBNet;
+import de.dlr.ivf.urmo.router.shapes.DBNode;
 import de.dlr.ivf.urmo.router.shapes.DBODRelation;
-import de.dlr.ivf.urmo.router.shapes.IDGiver;
 import de.dlr.ivf.urmo.router.shapes.Layer;
 import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
@@ -701,4 +703,111 @@ public class InputReader {
 		return ret;
 	}
 
+	
+	// --------------------------------------------------------
+	// mode change locations loading
+	// --------------------------------------------------------
+	/** @brief Loads mode change locations
+	 * @param def The source definition (unparsed)
+	 * @return Whether the locations could be loaded
+	 * @throws IOException When something fails
+	 */
+	public static boolean loadModeChangeLocations(String def, DBNet net) throws IOException {
+		Utils.Format format = Utils.getFormat(def);
+		String[] inputParts = Utils.getParts(format, def, "od-connections");
+		switch(format) {
+		case FORMAT_POSTGRES:
+		case FORMAT_SQLITE:
+			return loadModeChangeLocationsFromDB(format, inputParts, net);
+		case FORMAT_CSV:
+			return loadModeChangeLocationsFromCSVFile(inputParts[0], net);
+		case FORMAT_WKT:
+		case FORMAT_SHAPEFILE:
+		case FORMAT_GEOPACKAGE:
+		case FORMAT_SUMO:
+			throw new IOException("Reading 'od-connections' from " + Utils.getFormatMMLName(format) + " is not supported.");
+		default:
+			throw new IOException("Could not recognize the format used for 'od-connections'.");
+		}
+	}
+
+
+	/** @brief Loads mode change locations from a database
+	 * @param format The used format
+	 * @param inputParts The source definition
+	 * @param net The road network to add the mode change locations to
+	 * @return Whether the locations could be loaded
+	 * @throws IOException When something fails
+	 */
+	private static boolean loadModeChangeLocationsFromDB(Utils.Format format, String[] inputParts, DBNet net) throws IOException {
+		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
+		try {
+			Class.forName("org.sqlite.JDBC");
+			Class.forName("org.postgresql.Driver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		boolean hadError = false;
+		try {
+			Connection connection = Utils.getConnection(format, inputParts, "mode-changes");
+			connection.setAutoCommit(true);
+			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
+			String query = "SELECT node_id,from_mode,to_mode,duration,price FROM " + Utils.getTableName(format, inputParts, "mode-changes") + ";";
+			Statement s = connection.createStatement();
+			ResultSet rs = s.executeQuery(query);
+			while (rs.next()) {
+				DBNode node = net.getExistingNode(rs.getString("node_id"));
+				if (node!=null) {
+					node.addModeChange(rs.getLong("from_mode"), rs.getLong("to_mode"), rs.getDouble("duration"), rs.getDouble("price"));
+				} else {
+					System.err.println("Trying to add a mode change to a non-existing node '" + rs.getString("node_id") + "'.");
+					hadError = true;
+				}
+			}
+			rs.close();
+			s.close();
+			connection.close();
+		} catch (SQLException e) {
+			throw new IOException(e);
+		}
+		return !hadError;
+	}
+
+
+	/** @brief Loads mode change locations from a csv file
+	 * @param fileName The name of the file to read od-connections from
+	 * @param net The road network to add the mode change locations to
+	 * @return Whether the locations could be loaded
+	 * @throws IOException When something fails
+	 */
+	private static boolean loadModeChangeLocationsFromCSVFile(String fileName, DBNet net) throws IOException {
+		boolean hadError = false;
+		BufferedReader br = new BufferedReader(new FileReader(fileName));
+		String line = null;
+		do {
+			line = br.readLine();
+			if(line==null || line.length()==0 || line.charAt(0)=='#') {
+				continue;
+			}
+			String[] vals = line.split(";");
+			try {
+				DBNode node = net.getExistingNode(vals[0]);
+				if(node!=null) {
+					long fromModeID = Modes.getMode(vals[1]).id; // !!! catch errors
+					long toModeID = Modes.getMode(vals[2]).id; // !!! catch errors
+					node.addModeChange(fromModeID, toModeID, Double.parseDouble(vals[3]), Double.parseDouble(vals[4]));
+				} else {
+					System.err.println("Trying to add a mode change to a non-existing node '" + vals[0] + "'.");
+					hadError = true;
+				}
+			} catch(NumberFormatException e) {
+				System.err.println("Broken o/d relation in '" + fileName + "': " + line + ".");
+			}
+	    } while(line!=null);
+		br.close();
+		return !hadError;
+	}
+	
+	
+	
 }

@@ -30,6 +30,8 @@ import org.locationtech.jts.index.strtree.ItemBoundable;
 import org.locationtech.jts.index.strtree.ItemDistance;
 import org.locationtech.jts.index.strtree.STRtree;
 
+import de.dlr.ivf.urmo.router.modes.Mode;
+import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.GeomHelper;
@@ -237,9 +239,9 @@ public class NearestEdgeFinder {
 	 * @param _net The network to use
 	 * @param _modes Bitset of usable transport modes
 	 */
-	public NearestEdgeFinder(Vector<EdgeMappable> _objects, DBNet _net, long _modes) {
+	public NearestEdgeFinder(Vector<EdgeMappable> _objects, DBNet _net, Vector<Mode> _modes) {
 		objects = _objects;
-		modes = _modes;
+		modes = Modes.getCombinedModeIDs(_modes);
 		tree = _net.getModedSpatialIndex(modes);
 		geometryFactory = _net.getGeometryFactory();
 	}

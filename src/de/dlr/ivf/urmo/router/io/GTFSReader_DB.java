@@ -122,7 +122,7 @@ public class GTFSReader_DB extends AbstractGTFSReader {
 					System.out.println("Warning: stop " + stop.mid + " already exists; skipping.");
 					continue;
 				}
-				if(!_net.addNode(stop)) {
+				if(!_net.addNode(stop, stop.mid)) {
 					throw new IOException("A node with id '" + stop.getID() + "' already exists.");
 				}
 				stops.put(stop.getID(), stop);

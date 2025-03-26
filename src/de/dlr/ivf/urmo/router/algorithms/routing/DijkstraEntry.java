@@ -37,8 +37,6 @@ public class DijkstraEntry {
 	public DBNode n;
 	/// @brief Used edge
 	public DBEdge e;
-	/// @brief The modes available at this step
-	public long availableModes;
 	/// @brief The modes used as last
 	public Mode usedMode;
 	/// @brief Used GTFS connection
@@ -64,7 +62,6 @@ public class DijkstraEntry {
 	 * @param _prev The previous edge
 	 * @param _n The last node
 	 * @param _e The current edge
-	 * @param _availableModes List of still available modes
 	 * @param _usedMode The currently used mode
 	 * @param _distance The overall distance
 	 * @param _tt The travel time on this edge
@@ -73,7 +70,7 @@ public class DijkstraEntry {
 	 * @param _interchangeTT Time needed for the interchange
 	 * @param _wasOpposite Whether it is the opposite direction of the current edge
 	 */
-	public DijkstraEntry(AbstractRouteWeightFunction measure, DijkstraEntry _prev, DBNode _n, DBEdge _e, long _availableModes, Mode _usedMode, 
+	public DijkstraEntry(AbstractRouteWeightFunction measure, DijkstraEntry _prev, DBNode _n, DBEdge _e, Mode _usedMode, 
 			double _distance, double _tt, GTFSConnection _ptConnection, double _ttt, double _interchangeTT, boolean _wasOpposite) {
 		prev = _prev;
 		n = _n;
@@ -81,7 +78,6 @@ public class DijkstraEntry {
 		distance = _distance;
 		tt = _tt;
 		ttt = _ttt;
-		availableModes = _availableModes;
 		usedMode = _usedMode;
 		ptConnection = _ptConnection;
 		interchangeTT = _interchangeTT;
@@ -94,6 +90,28 @@ public class DijkstraEntry {
 		}
 	}
 
+
+	/** @brief Constructor
+	 * @param orig The DijkstraEntry to copy values from
+	 * @param mode The mode to set as being currently used
+	 */
+	@SuppressWarnings("unchecked")
+	public DijkstraEntry(DijkstraEntry orig, Mode mode) {
+		prev = orig.prev;
+		n = orig.n;
+		e = orig.e;
+		distance = orig.distance;
+		tt = orig.tt;
+		ttt = orig.ttt;
+		usedMode = mode;
+		ptConnection = orig.ptConnection;
+		interchangeTT = orig.interchangeTT;
+		wasOpposite = orig.wasOpposite;
+		measures = orig.measures==null ? null : (HashMap<String, Object>) orig.measures.clone();
+		first = orig.first;
+	}
+
+	
 	
 	/** 
 	 * @brief Returns the name for the used line

@@ -100,9 +100,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	/// @brief Starting time for routing
 	private int time = -1;
 	/// @brief Allowed modes
-	private long modes = -1;
-	/// @brief Initial mode
-	private long initMode = -1;
+	private Vector<Mode> modes = null;
 	/// @brief list of connections to process
 	Vector<DBODRelation> connections = null;
 	/// @brief A point to the currently processed connection
@@ -157,6 +155,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("time", "The time the trips start at in seconds.");
 		options.add("od-connections", new Option_String());
 		options.setDescription("od-connections", "The OD connections to compute.");
+		options.add("mode-changes", new Option_String());
+		options.setDescription("mode-changes", "Defines places where the mode of transport can be changes (no pt).");
 		
 		options.beginSection("Input Adaptation");
 		options.add("from.filter", 'F', new Option_String());
@@ -483,14 +483,12 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		if (!options.isSet("mode")) {
 			throw new IOException("At least one allowed mode must be given.");
 		}
-		Vector<Mode> modesV = getModes(options.getString("mode"));
-		if (modesV == null) {
+		modes = getModes(options.getString("mode"));
+		if (modes == null) {
 			throw new IOException("The mode(s) '" + options.getString("mode") + "' is/are not known.");
 		}
-		modes = Modes.getCombinedModeIDs(modesV);
-		initMode = modesV.get(0).id;
 		// ------ reset custom mode if used
-		if((modes&Modes.getMode("custom").id)!=0) { // 
+		if(options.getString("mode").contains("custom")) { // !!!
 			double custom_vmax = options.isSet("custom.vmax") ? options.getDouble("custom.vmax") : -1;
 			double custom_kkc = options.isSet("custom.kkc-per-hour") ? options.getDouble("custom.kkc-per-hour") : -1;
 			double custom_co2 = options.isSet("custom.co2-per-km") ? options.getDouble("custom.co2-per-km") : -1;
@@ -602,6 +600,15 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			}
 			if (verbose) System.out.println(" loaded");
 		}
+		
+		// mode changes
+		if (options.isSet("mode-changes")) {
+			if (verbose) System.out.println("Reading mode change locations");
+			if(!InputReader.loadModeChangeLocations(options.getString("mode-changes"), net)) {
+				return false;
+			}
+			if (verbose) System.out.println(" loaded");
+		}
 
 		// explicit O/D-connections
 		if (options.isSet("od-connections")) {
@@ -614,7 +621,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		// -------- compute (and optionally write) nearest edges
 		// compute nearest edges
 		if (verbose) System.out.println("Computing access from the origins to the network");
-		NearestEdgeFinder nef1 = new NearestEdgeFinder(fromLayer.getObjects(), net, initMode);
+		NearestEdgeFinder nef1 = new NearestEdgeFinder(fromLayer.getObjects(), net, modes);
 		nearestFromEdges = nef1.getNearestEdges(false, false, options.getInteger("threads"));
 		if (options.isSet("origins-to-road-output")) {
 			OutputBuilder.writeEdgeAllocation("origins-to-road-output", options, nearestFromEdges, epsg);
@@ -701,7 +708,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		seenEdges = 0;
 		Vector<Thread> threads = new Vector<>();
 		for (int i=0; i<numThreads; ++i) {
-			Thread t = new Thread(new ComputingThread(this, measure, resultsProcessor, time, initMode, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly));
+			Thread t = new Thread(new ComputingThread(this, measure, resultsProcessor, time, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly));
 			threads.add(t);
 	        t.start();
 		}
