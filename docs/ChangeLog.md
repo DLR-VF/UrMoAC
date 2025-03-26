@@ -5,6 +5,7 @@
 ### Debugging and improvements
 
 * debugged mapping of public transport halts to edges
+* debugged and consolidated reporting of network errors
 
 ### Documentation
 
@@ -19,6 +20,7 @@
 * **osmdb_buildStructures.py**:
     * It is no longer necessary to define all values for nodes, ways, and relations, each. You may use a '*' as the type qualify to set the subsequent extraction patterns for all.
     * added an oid field to the output as nodes/ways/relations in OSM may have overlapping IDs. Together with the type field, one should be able to get the according source.
+* all tools: unified options parsing; synopsis was kept, but tools that generate tables now support deleting previously built tables and/or appending data to existing tables
 
 
 
@@ -27,6 +29,7 @@
 [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13234444-blue)](https://doi.org/10.5281/zenodo.13234444)
 
 Re-release due to broken build. No further changes in comparison to v0.8.0.
+
 
 
 ## UrMoAC-0.8.0 (31.07.2024)
