@@ -23,6 +23,8 @@ Usage:
   --epsg                         The EPSG projection to use.
   --time                         The time the trips start at in seconds.
   --od-connections               The OD connections to compute.
+  --mode-changes                 Defines places where the mode of transport can
+                                   be changes (no pt).
 
  Input Adaptation
   -F, --from.filter              Defines a filter for origins to load.
