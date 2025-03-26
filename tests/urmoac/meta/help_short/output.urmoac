@@ -53,6 +53,9 @@ Usage:
   --net.boundary                 Defines a boundary for the network.
   --keep-subnets                 When set, unconnected network parts are not
                                    removed.
+  --net.report-all-errors        When set, all errors are printed.
+  --net.patch-errors             When set, broken edge lengths and speeds will
+                                   be patched.
 
  O/D Weighting Options
   -W, --weight                   An optional weighting attribute for the

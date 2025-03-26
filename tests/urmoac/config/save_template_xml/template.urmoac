@@ -27,8 +27,8 @@
    <net.geom></net.geom>
    <net.boundary></net.boundary>
    <keep-subnets></keep-subnets>
-   <net.patch-vmax0></net.patch-vmax0>
-   <net.patch-length0></net.patch-length0>
+   <net.report-all-errors></net.report-all-errors>
+   <net.patch-errors></net.patch-errors>
    <weight></weight>
    <variable></variable>
    <max-number></max-number>
