@@ -71,12 +71,11 @@ public class InputReader {
 	 * @param base The layer/type ("from", "to") of the objects to load
 	 * @param varName Name of the variable field
 	 * @param dismissWeight Whether the weight shall be discarded
-	 * @param idGiver An instance to retrieve new ids from
 	 * @param epsg The used projection
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
-	public static Layer loadLayer(OptionsCont options, Geometry bounds, String base, String varName, boolean dismissWeight, IDGiver idGiver, int epsg) throws IOException {
+	public static Layer loadLayer(OptionsCont options, Geometry bounds, String base, String varName, boolean dismissWeight, int epsg) throws IOException {
 		String filter = options.isSet(base+".filter") ? options.getString(base + ".filter") : ""; // !!! use something different
 		varName = varName==null ? null : options.getString(varName);
 		String def = options.getString(base);
@@ -86,16 +85,16 @@ public class InputReader {
 		switch(format) {
 		case FORMAT_POSTGRES:
 		case FORMAT_SQLITE:
-			layer = loadLayerFromDB(base, bounds, format, inputParts, filter, varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg, dismissWeight);
+			layer = loadLayerFromDB(base, bounds, format, inputParts, filter, varName, options.getString(base + ".id"), options.getString(base + ".geom"), epsg, dismissWeight);
 			break;
 		case FORMAT_CSV:
-			layer = loadLayerFromCSVFile(base, bounds, inputParts[0], idGiver, dismissWeight);
+			layer = loadLayerFromCSVFile(base, bounds, inputParts[0], dismissWeight);
 			break;
 		case FORMAT_WKT:
-			layer = loadLayerFromWKTFile(base, bounds, inputParts[0], idGiver, dismissWeight);
+			layer = loadLayerFromWKTFile(base, bounds, inputParts[0], dismissWeight);
 			break;
 		case FORMAT_SUMO:
-			layer = loadLayerFromSUMOPOIs(base, bounds, inputParts[0], idGiver, dismissWeight);
+			layer = loadLayerFromSUMOPOIs(base, bounds, inputParts[0], dismissWeight);
 			break;
 		case FORMAT_SHAPEFILE:
 		case FORMAT_GEOPACKAGE:
@@ -122,14 +121,13 @@ public class InputReader {
 	 * @param varName The name of the attached variable
 	 * @param idS The name of the column to read the IDs from
 	 * @param geomS The name of the column to read the geometry from
-	 * @param idGiver A reference to something that supports a running ID
 	 * @param epsg The EPSG of the projection to use
 	 * @param dismissWeight Whether the weight shall be discarded
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
 	private static Layer loadLayerFromDB(String layerName, Geometry bounds, Utils.Format format, String[] inputParts, String filter, String varName,
-			String idS, String geomS, IDGiver idGiver, int epsg, boolean dismissWeight) throws IOException {
+			String idS, String geomS, int epsg, boolean dismissWeight) throws IOException {
 		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
 		try {
 			Class.forName("org.sqlite.JDBC");
@@ -184,7 +182,7 @@ public class InputReader {
 					var = rs.getDouble(numColumns-1);
 				}
 				long id = rs.getLong(idS);
-				LayerObject o = new LayerObject(idGiver.getNextRunningID(), id, var, geom);
+				LayerObject o = new LayerObject(id, var, geom);
 				layer.addObject(o);
 				// check for duplicates
 				if(seen.contains(id)) {
@@ -210,12 +208,11 @@ public class InputReader {
 	 * @param layerName The name of the layer to generate
 	 * @param bounds The bounds to clip the read thing to
 	 * @param fileName The name of the file to read
-	 * @param idGiver A reference to something that supports a running ID
 	 * @param dismissWeight Whether the weight shall be discarded
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
-	private static Layer loadLayerFromCSVFile(String layerName, Geometry bounds, String fileName, IDGiver idGiver, boolean dismissWeight) throws IOException { 
+	private static Layer loadLayerFromCSVFile(String layerName, Geometry bounds, String fileName, boolean dismissWeight) throws IOException { 
 		Layer layer = new Layer(layerName, bounds);
 		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
 		BufferedReader br = new BufferedReader(new FileReader(fileName));
@@ -284,7 +281,7 @@ public class InputReader {
 					}
 				}
 			}
-			layer.addObject(new LayerObject(idGiver.getNextRunningID(), id, var, geom2));
+			layer.addObject(new LayerObject(id, var, geom2));
 			// check for duplicates
 			if(seen.contains(id)) {
 				System.err.println("Duplicate object '" + id + "' occurred.");
@@ -303,12 +300,11 @@ public class InputReader {
 	 * @param layerName The name of the layer to generate
 	 * @param bounds The bounds to clip the read thing to
 	 * @param fileName The name of the file to read
-	 * @param idGiver A reference to something that supports a running ID
 	 * @param dismissWeight Whether the weight shall be discarded
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
-	private static Layer loadLayerFromWKTFile(String layerName, Geometry bounds, String fileName, IDGiver idGiver, boolean dismissWeight) throws IOException { 
+	private static Layer loadLayerFromWKTFile(String layerName, Geometry bounds, String fileName, boolean dismissWeight) throws IOException { 
 		Set<Long> seen = new HashSet<Long>();
 		boolean ok = true;
 			Layer layer = new Layer(layerName, bounds);
@@ -355,7 +351,7 @@ public class InputReader {
 						}
 					}
 				}
-				layer.addObject(new LayerObject(idGiver.getNextRunningID(), id, var, geom));
+				layer.addObject(new LayerObject(id, var, geom));
 				// check for duplicates
 				if(seen.contains(id)) {
 					System.err.println("Duplicate object '" + id + "' occurred.");
@@ -374,12 +370,11 @@ public class InputReader {
 	 * @param layerName The name of the layer to generate
 	 * @param bounds The bounds to clip the read thing to
 	 * @param fileName The name of the file to read
-	 * @param idGiver A reference to something that supports a running ID
 	 * @param dismissWeight Whether the weight shall be discarded
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
-	private static Layer loadLayerFromSUMOPOIs(String layerName, Geometry bounds, String fileName, IDGiver idGiver, boolean dismissWeight) throws IOException {
+	private static Layer loadLayerFromSUMOPOIs(String layerName, Geometry bounds, String fileName, boolean dismissWeight) throws IOException {
 		try {
 			Layer layer = new Layer(layerName, bounds);
 	        SAXParserFactory spf = SAXParserFactory.newInstance();
@@ -387,7 +382,7 @@ public class InputReader {
 	        SAXParser saxParser;
 				saxParser = spf.newSAXParser();
 	        XMLReader xmlReader = saxParser.getXMLReader();
-	        xmlReader.setContentHandler(new SUMOLayerHandler(layer, idGiver));
+	        xmlReader.setContentHandler(new SUMOLayerHandler(layer));
 	        xmlReader.parse(fileName);
 	        return layer;
 		} catch (ParserConfigurationException | SAXException e) {

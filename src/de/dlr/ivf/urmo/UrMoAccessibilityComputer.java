@@ -549,7 +549,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 
 		// from
 		if (verbose) System.out.println("Reading origin places");
-		Layer fromLayer = InputReader.loadLayer(options, bounds, "from", "weight", dismissWeight, this, epsg); 
+		Layer fromLayer = InputReader.loadLayer(options, bounds, "from", "weight", dismissWeight, epsg); 
 		if (verbose) System.out.println(" " + fromLayer.getObjects().size() + " origin places loaded");
 		if (fromLayer.getObjects().size()==0) {
 			hadError = true;
@@ -559,12 +559,12 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		Layer fromAggLayer = null;
 		if (options.isSet("from-agg") && !options.getString("from-agg").equals("all")) {
 			if (verbose) System.out.println("Reading origin aggregation zones");
-			fromAggLayer = InputReader.loadLayer(options, bounds, "from-agg", null, true, this, epsg);
+			fromAggLayer = InputReader.loadLayer(options, bounds, "from-agg", null, true, epsg);
 			if (verbose) System.out.println(" " + fromAggLayer.getObjects().size() + " origin aggregation geometries loaded");
 		}
 		// to
 		if (verbose) System.out.println("Reading destination places");
-		Layer toLayer = InputReader.loadLayer(options, bounds, "to", "variable", false, this, epsg);
+		Layer toLayer = InputReader.loadLayer(options, bounds, "to", "variable", false, epsg);
 		if (verbose) System.out.println(" " + toLayer.getObjects().size() + " destination places loaded");
 		if (toLayer.getObjects().size()==0) {
 			hadError = true;
@@ -574,7 +574,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		Layer toAggLayer = null;
 		if (options.isSet("to-agg") && !options.getString("to-agg").equals("all")) {
 			if (verbose) System.out.println("Reading destination aggregation zones");
-			toAggLayer = InputReader.loadLayer(options, bounds, "to-agg", null, true, this, epsg); 
+			toAggLayer = InputReader.loadLayer(options, bounds, "to-agg", null, true, epsg); 
 			if (verbose) System.out.println(" " + toAggLayer.getObjects().size() + " destination aggregation geometries loaded");
 		}
 		
