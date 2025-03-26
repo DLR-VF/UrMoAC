@@ -243,9 +243,9 @@ def osm2db(db_def, input_file, dropprevious, append, verbose):
         conn.commit()
 
     # parsing the document and adding contents to the db
-    print ("Parsing '%s'..." % sys.argv[2])
+    print (f"Parsing '{input_file}'...")
     parser = make_parser()
-    r = OSMReader(schema, prefix, conn, cursor)
+    r = OSMReader(schema, prefix, conn, cursor, verbose)
     parser.setContentHandler(r)
     parser.parse(input_file)
     r._check_commit(True)
