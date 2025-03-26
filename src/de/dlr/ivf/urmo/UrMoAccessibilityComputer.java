@@ -46,6 +46,7 @@ import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_ExpIntercha
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_MaxInterchange_TT;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_Price_TT;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_TT_ModeSpeed;
+import de.dlr.ivf.urmo.router.gtfs.GTFSData;
 import de.dlr.ivf.urmo.router.io.GTFSLoader;
 import de.dlr.ivf.urmo.router.io.InputReader;
 import de.dlr.ivf.urmo.router.io.NetLoader;
