@@ -54,7 +54,7 @@ Usage:
   --keep-subnets                 When set, unconnected network parts are not
                                    removed.
 
- Weighting Options
+ O/D Weighting Options
   -W, --weight                   An optional weighting attribute for the
                                    origins.
   -V, --variable                 An optional destinations' variable to collect.
