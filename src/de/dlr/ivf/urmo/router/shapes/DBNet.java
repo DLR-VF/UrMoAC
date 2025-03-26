@@ -53,11 +53,17 @@ public class DBNet {
 	/// @brief The resulting geometry factory
 	private GeometryFactory geometryFactory = null;
 	/// @brief The id supplier to use
-	private IDGiver idGiver;
-	
-	NetErrorsWriter log;
-	boolean reportAllIssues;
-	boolean hadDuplicateConnection = false;
+	private IDGiver idGiver = null;
+	/// @brief The logger used to store network errors
+	private NetErrorsWriter log = null;
+	/// @brief A state variable for reporting overwritten edges (0: report all, 1: report first, 2: report first, first reported)
+	private int stateDuplicateEdges = 0;
+	/// @brief A state variable for reporting edges with speed==0 (0: report all, 1: report first, 2: report first, first reported)
+	private int stateEdges0VMax = 0;
+	/// @brief A state variable for reporting edges with length==0 (0: report all, 1: report first, 2: report first, first reported)
+	private int stateEdges0Length = 0;
+	/// @brief A state variable for reporting duplicate edges (0: report all, 1: report first, 2: report first, first reported)
+	private int stateEdgesSameID = 0;
 
 
 	/**
@@ -67,7 +73,10 @@ public class DBNet {
 	public DBNet(IDGiver _idGiver, NetErrorsWriter _log, boolean _reportAllIssues) {
 		idGiver = _idGiver;
 		log = _log;
-		reportAllIssues = _reportAllIssues;
+		stateDuplicateEdges = _reportAllIssues==true ? 0 : 1;
+		stateEdges0VMax = _reportAllIssues==true ? 0 : 1;
+		stateEdges0Length = _reportAllIssues==true ? 0 : 1;
+		stateEdgesSameID = _reportAllIssues==true ? 0 : 1;
 	}
 
 	
@@ -85,22 +94,41 @@ public class DBNet {
 	public boolean addEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length) throws IOException {
 		boolean hadError = false;
 		if(_length<=0) {
-			System.err.println("Error: Edge '" + _id + "' has a length of 0.");
-			if(log!=null) log.writeNoLength(_id);
+			if(stateEdges0Length!=2) {
+				System.err.println("Error: Edge '" + _id + "' has a length of 0.");
+				if(stateEdges0Length!=0) {
+					stateEdges0Length = 2;
+					System.err.println("Warning: Subsequent edges with length=0 will not be reported; use --write.net-errors to get the complete list.");
+				}
+			}
 			hadError = true;
 		}
 		if(_vmax<=0) {
-			System.err.println("Error: Edge '" + _id + "' has a speed of 0.");
+			if(stateEdges0VMax!=2) {
+				System.err.println("Error: Edge '" + _id + "' has a speed of 0.");
+				if(stateEdges0VMax!=0) {
+					stateEdges0VMax = 2;
+					System.err.println("Warning: Subsequent edges with vmax=0 will not be reported; use --write.net-errors to get the complete list.");
+				}
+			}
 			if(log!=null) log.writeNoSpeed(_id);
 			hadError = true;
 		}
 		if(name2edge.containsKey(_id)) {
-			System.err.println("Error: Edge '" + _id + "' already exists.");
+			if(stateEdgesSameID!=2) {
+				System.err.println("Error: Edge '" + _id + "' already exists.");
+				if(stateEdgesSameID!=0) {
+					stateEdgesSameID = 2;
+					System.err.println("Warning: Subsequent edge with duplicate IDs will not be reported; use --write.net-errors to get the complete list.");
+				}
+			}
 			if(log!=null) log.writeDuplicate(_id);
 			hadError = true;
 		}
-		DBEdge e = new DBEdge(_id, _from, _to, _modes, _vmax, _geom, _length);
-		addEdge(e);
+		if(!hadError) {
+			DBEdge e = new DBEdge(_id, _from, _to, _modes, _vmax, _geom, _length);
+			addEdge(e);
+		}
 		return !hadError;
 	}
 
@@ -123,10 +151,10 @@ public class DBNet {
 				e2.adapt(e);
 				removeEdge(e);
 				if (log!=null) log.writeEdgeReplacement(e2.getID(), e.getID());
-				if(reportAllIssues||!hadDuplicateConnection) {
-					hadDuplicateConnection = true;
+				if(stateDuplicateEdges!=2) {
 					System.err.println("Warning: removed edge '" + e.getID() + "' as a duplicate of edge '" + e2.getID() + "'.");
-					if(!reportAllIssues) {
+					if(stateDuplicateEdges!=0) {
+						stateDuplicateEdges = 2;
 						System.err.println("Warning: Subsequent replacements will not be reported; use --write.net-errors to get the complete list.");
 					}
 				}

@@ -1,3 +1,4 @@
 Error: Edge '10000' has a length of 0.
+Warning: Subsequent edges with length=0 will not be reported; use --write.net-errors to get the complete list.
 The network could not be loaded
 Quitting on error...

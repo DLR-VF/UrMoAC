@@ -1,3 +1,4 @@
 Error: Edge '10000' already exists.
+Warning: Subsequent edge with duplicate IDs will not be reported; use --write.net-errors to get the complete list.
 The network could not be loaded
 Quitting on error...
