@@ -236,7 +236,7 @@ def parse_arguments(arguments):
     return args, remaining_args
 
 
-def load_shapes(source, projection, asCentroid=False, idField="id", geomField="polygon", geomFilter=None):
+def load_shapes(source, projection, asCentroid=False, idField="id", geomField="polygon", geomFilter=None, needs_id=True):
     (host, db, tableFull, user, password) = source.split(",")
     (schema, table) = tableFull.split(".")
     where = ""
@@ -244,23 +244,30 @@ def load_shapes(source, projection, asCentroid=False, idField="id", geomField="p
         where = " WHERE %s" % geomFilter
     conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
     cursor = conn.cursor()
+    if not needs_id:
+        idField = ""
+    else:
+        idField = idField + ","
     if asCentroid: 
-        cursor.execute("SELECT %s,ST_AsText(ST_Centroid(ST_Transform(%s, %s))) FROM %s.%s%s" % (idField, geomField, projection, schema, table, where))
+        cursor.execute("SELECT %sST_AsText(ST_Centroid(ST_Transform(%s, %s))) FROM %s.%s%s" % (idField, geomField, projection, schema, table, where))
     else: 
-        cursor.execute("SELECT %s,ST_AsText(ST_Transform(%s, %s)) FROM %s.%s%s" % (idField, geomField, projection, schema, table, where))
+        cursor.execute("SELECT %sST_AsText(ST_Transform(%s, %s)) FROM %s.%s%s" % (idField, geomField, projection, schema, table, where))
     obj2geom = {}
     for r in cursor.fetchall():
-        geom = wkt.wkt2geometry(r[1])
+        geom = wkt.wkt2geometry(r[-1])
         if geom is None or geom._shape is None or len(geom._shape)==0:
             # skipping empty geometries
             print ("The geometry of %s is empty. Skipping" % int(r[0]))
             continue
-        obj2geom[int(r[0])] = geom
+        if needs_id:
+            obj2geom[int(r[0])] = geom
+        else:
+            obj2geom[len(obj2geom)] = geom
     return obj2geom
 
 
 
-def load_measures(source, measure, minV, maxV, isochrone):
+def load_measures(source, measure, norm, minV, maxV, isochrone):
     (host, db, tableFull, user, password) = source.split(",")
     (schema, table) = tableFull.split(".")
     conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
@@ -269,7 +276,7 @@ def load_measures(source, measure, minV, maxV, isochrone):
     cursor.execute("SELECT %s,%s FROM %s.%s" % (id_field, measure, schema, table))
     obj2value = {}
     for r in cursor.fetchall():
-        obj2value[int(r[0])] = float(r[1])
+        obj2value[int(r[0])] = float(r[1]) / norm
     if minV is not None: 
         for o in obj2value: obj2value[o] = max(minV, obj2value[o])
     if maxV is not None:
@@ -296,7 +303,7 @@ def plot(mainBorder, innerBorders, network, water, obj2geom, obj2value, options,
     if options.minV is not None: minV = options.minV
     if options.levels is not None and options.levels is not int: options.levels = [float(i) for i in options.levels.split(",")]
     norm = matplotlib.pyplot.Normalize(vmin=minV, vmax=maxV)
-    sm = matplotlib.cm.ScalarMappable(cmap=options.colmap, norm=norm)
+    sm = matplotlib.cm.ScalarMappable(cmap=colormap, norm=norm)
     # build clip
     clip = mainBorder.artist(lw=2, fc="red", ec="black", transform=ax.transData) if mainBorder is not None else None
     # draw
@@ -315,7 +322,7 @@ def plot(mainBorder, innerBorders, network, water, obj2geom, obj2value, options,
         patches = [g.artist() for g in innerBorders]
         ax.add_collection(matplotlib.collections.PatchCollection(patches, facecolors='none', linewidths=10., edgecolor="black", zorder=40  ))
     if network is not None:
-        net.plotNet(ax, network, color="#000000", alpha=1, width_scale=options.net_width, zorder=10)
+        net.plotNet(ax, network, color="#000000", alpha=1, width_scale=options.net_width, zorder=400)
     # apply clipping
     for o in ax.get_children():
         o.set_clip_path(clip)
@@ -352,7 +359,7 @@ def plot(mainBorder, innerBorders, network, water, obj2geom, obj2value, options,
     matplotlib.pyplot.gca().xaxis.set_major_locator(matplotlib.pyplot.NullLocator())
     matplotlib.pyplot.gca().yaxis.set_major_locator(matplotlib.pyplot.NullLocator())
     ax.set_aspect('equal', 'datalim')
-    matplotlib.pyplot.subplots_adjust(bottom=0.05, right=.96, left=.02, top=0.9, wspace=0)
+    matplotlib.pyplot.subplots_adjust(bottom=0.05, right=.94, left=.02, top=0.9, wspace=0) #!!!
 
 
 def main(arguments=None):
@@ -399,5 +406,4 @@ def main(arguments=None):
 # -- main check
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
-  
   
