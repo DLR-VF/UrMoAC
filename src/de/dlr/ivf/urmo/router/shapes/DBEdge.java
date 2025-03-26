@@ -235,7 +235,7 @@ public class DBEdge {
 	/**
 	 * @brief Returns whether the given mode of transport is allowed on this edge
 	 * @param modes The transport modes to use
-	 * @return Whether this mode of transport is allowed
+	 * @return Whether any of the given modes of transport is allowed on this edge
 	 */
 	public boolean allowsAny(long modes) {
 		return (this.modes & modes) != 0;
