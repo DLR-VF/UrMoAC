@@ -31,6 +31,7 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.index.strtree.STRtree;
 
+import de.dlr.ivf.urmo.router.algorithms.routing.CrossingTimesModel_CTM1;
 import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.output.NetErrorsWriter;
 
@@ -518,6 +519,21 @@ public class DBNet {
 		cs[3] = new Coordinate(minCorner.x, maxCorner.y);
 		cs[4] = minCorner;
 		return geometryFactory.createPolygon(cs);
+	}
+
+
+	/** @brief Computes the crossing times for all intersections
+	 * 
+	 * @param ctm The model used to compute the crossing times
+	 * @throws IOException When the crossing times writer fails
+	 */
+	public void computeCrossingTimes(CrossingTimesModel_CTM1 ctm) throws IOException {
+		if(ctm==null) {
+			return;
+		}
+		for(DBNode n : nodes.values()) {
+			n.computeCrossingTimes(ctm);
+		}
 	}
 	
 }

@@ -33,6 +33,7 @@ import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
 import de.dlr.ivf.urmo.router.output.AbstractSingleResult;
 import de.dlr.ivf.urmo.router.output.Aggregator;
+import de.dlr.ivf.urmo.router.output.CrossingTimesWriter;
 import de.dlr.ivf.urmo.router.output.DirectWriter;
 import de.dlr.ivf.urmo.router.output.EdgeMappingWriter;
 import de.dlr.ivf.urmo.router.output.MeasurementGenerator;
@@ -246,6 +247,19 @@ public class OutputBuilder {
 		return new NetErrorsWriter(format, inputParts, dropPrevious);
 	}
 	
+	
+	/** @brief Builds a writer that stores crossing times
+	 * 
+	 * @param outputDefinition The definition of the output
+	 * @param dropPrevious Whether prior reports with the same name shall be deleted
+	 * @return The built writer
+	 * @throws IOException
+	 */
+	public static CrossingTimesWriter buildCrossingTimesWriter(String outputDefinition, boolean dropPrevious) throws IOException {
+		Utils.Format format = Utils.getFormat(outputDefinition);
+		String[] inputParts = Utils.getParts(format, outputDefinition, "crossing-times");
+		return new CrossingTimesWriter(format, inputParts, dropPrevious);
+	}
 	
 
 	/**

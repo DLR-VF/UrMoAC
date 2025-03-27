@@ -18,9 +18,12 @@
  */
 package de.dlr.ivf.urmo.router.shapes;
 
+import java.io.IOException;
 import java.util.Vector;
 
 import org.locationtech.jts.geom.Coordinate;
+
+import de.dlr.ivf.urmo.router.algorithms.routing.CrossingTimesModel_CTM1;
 
 /**
  * @class DBNode
@@ -214,6 +217,21 @@ public class DBNode {
 	 */
 	public Vector<AllowedModeChange> getAllowedModeChanges() {
 		return modeChanges;
+	}
+	
+	
+	/** @brief Computes the crossing times to subsequent edges for all incoming edges
+	 * 
+	 * @param ctm The model used to compute the crossing times
+	 * @throws IOException When the crossing times writer fails
+	 */
+	public void computeCrossingTimes(CrossingTimesModel_CTM1 ctm) throws IOException {
+		if(ctm==null) {
+			return;
+		}
+		for(DBEdge incomingEdge : incoming) {
+			ctm.computeCrossingTimes(incomingEdge);
+		}
 	}
 	
 	

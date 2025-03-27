@@ -43,6 +43,7 @@ import org.locationtech.jts.io.WKTReader;
 import org.postgresql.PGConnection;
 import org.xml.sax.SAXException;
 
+import de.dlr.ivf.urmo.router.algorithms.routing.CrossingTimesModel_CTM1;
 import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.output.NetErrorsWriter;
@@ -62,14 +63,16 @@ public class NetLoader {
 	 * @param def Source definition
 	 * @param vmaxAttr The attribute (column) to read the maximum velocity from 
 	 * @param epsg The projection
-	 * @param uModes The modes for which the network shall be loaded
+	 * @param modes The modes for which the network shall be loaded
 	 * @param errorsWriter The writer to report errors to
 	 * @param reportAllErrors If set, all errors are reported, not only the first one
 	 * @param patchErrors If set, false lengths and vmax are patched
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	public static DBNet loadNet(IDGiver idGiver, String def, String netBoudary, String vmaxAttr, String geomS, int epsg, Vector<Mode> modes, NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors) throws IOException {
+	public static DBNet loadNet(IDGiver idGiver, String def, String netBoudary, String vmaxAttr, String geomS, int epsg, Vector<Mode> modes, 
+			NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors,
+			CrossingTimesModel_CTM1 ctm) throws IOException {
 		Utils.Format format = Utils.getFormat(def);
 		String[] inputParts = Utils.getParts(format, def, "net");
 		long uModes = Modes.getCombinedModeIDs(modes);
@@ -99,6 +102,10 @@ public class NetLoader {
 		}
 		// set opposite edges; add opposite pedestrian edges if foot is used
 		net.extendDirections((uModes&Modes.getMode("foot").id)!=0);
+		// compute crossing times
+		if(ctm!=null) {
+			net.computeCrossingTimes(ctm);
+		}
 		return net;
 	}
 

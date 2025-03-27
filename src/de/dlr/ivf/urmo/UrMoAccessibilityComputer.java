@@ -42,6 +42,7 @@ import de.dks.utils.options.OptionsTypedFileIO;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.NearestEdgeFinder;
 import de.dlr.ivf.urmo.router.algorithms.routing.AbstractRouteWeightFunction;
+import de.dlr.ivf.urmo.router.algorithms.routing.CrossingTimesModel_CTM1;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_ExpInterchange_TT;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_MaxInterchange_TT;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_Price_TT;
@@ -55,6 +56,7 @@ import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
 import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.output.Aggregator;
+import de.dlr.ivf.urmo.router.output.CrossingTimesWriter;
 import de.dlr.ivf.urmo.router.output.DijkstraResultsProcessor;
 import de.dlr.ivf.urmo.router.output.DirectWriter;
 import de.dlr.ivf.urmo.router.output.NetErrorsWriter;
@@ -223,6 +225,12 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("measure-param1", "First parameter of the chosen weight function.");
 		options.add("measure-param2", new Option_Double());
 		options.setDescription("measure-param2", "Second parameter of the chosen weight function.");
+		options.add("crossing-model", new Option_String("none"));
+		options.setDescription("crossing-model", "The crossing model to use during the routing ['none', 'ctm1'].");
+		options.add("crossing-model-param1", new Option_Double());
+		options.setDescription("crossing-model-param1", "First parameter of the chosen crossing model.");
+		options.add("crossing-model-param2", new Option_Double());
+		options.setDescription("crossing-model-param2", "Second parameter of the chosen crossing model.");
 		
 		options.beginSection("Public Transport Options");
 		options.add("pt-boundary", new Option_String());
@@ -272,6 +280,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("write.subnets", "Defines the output for subnets.");
 		options.add("write.net-errors", new Option_String());
 		options.setDescription("write.net-errors", "Defines the output for network errors and warnings.");
+		options.add("write.crossing-times", new Option_String());
+		options.setDescription("write.crossing-times", "Defines the output for crossing times.");
 		options.add("dropprevious", new Option_Bool());
 		options.setDescription("dropprevious", "When set, previous output with the same name is replaced.");
 		options.add("precision", new Option_Integer(2));
@@ -528,8 +538,18 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		NetErrorsWriter netErrorsOutput = options.isSet("write.net-errors") 
 				? OutputBuilder.buildNetErrorsWriter(options.getString("write.net-errors"), options.getBool("dropprevious")) : null;  
 		String netBoundary = options.isSet("net.boundary") ? options.getString("net.boundary") : null;  
+		CrossingTimesWriter ctmWriter = null;
+		if(options.isSet("write.crossing-times")) {
+			if("none".equals(options.getString("crossing-model"))) {
+				System.err.println("Warning: a writer for crossing times is defined, but no model to compute them.");
+			} else {
+				ctmWriter = OutputBuilder.buildCrossingTimesWriter(options.getString("write.crossing-times"), options.getBool("dropprevious"));
+			}
+		}
+		CrossingTimesModel_CTM1 ctm = "ctm1".equals(options.getString("crossing-model")) ? new CrossingTimesModel_CTM1(ctmWriter) : null;
 		DBNet net = NetLoader.loadNet(this, options.getString("net"), netBoundary, options.getString("net.vmax"), options.getString("net.geom"), 
-				epsg, modes, netErrorsOutput, options.getBool("net.report-all-errors"), options.getBool("net.patch-errors"));
+				epsg, modes, netErrorsOutput, options.getBool("net.report-all-errors"), options.getBool("net.patch-errors"),
+				ctm);
 		if (verbose) System.out.println(" " + net.getNumEdges() + " edges loaded (" + net.getNodes().size() + " nodes)");
 		if(!options.getBool("keep-subnets")) {
 			if (verbose) System.out.println("Checking for connectivity...");
@@ -539,6 +559,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			}
 			if (verbose) System.out.println(" " + net.getNumEdges() + " remaining after removing unconnected ones.");
 		}
+		
+		// bounds
 		Geometry bounds = null;
 		if(options.getBool("clip-to-net")) {
 			bounds = net.getBounds();

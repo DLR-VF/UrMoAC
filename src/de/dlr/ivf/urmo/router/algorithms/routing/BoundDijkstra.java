@@ -174,6 +174,7 @@ public class BoundDijkstra {
 					}
 					ttt = ptConnection.arrivalTime - time - nns.tt + interchangeTT;
 				} else {
+					interchangeTT = nns.e.getCrossingTimeTo(oe);
 					ttt = oe.getTravelTime(usedMode.vmax, time + nns.tt) + interchangeTT;
 					// @todo: interchange times at nodes
 				}

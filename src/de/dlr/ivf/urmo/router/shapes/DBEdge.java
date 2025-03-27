@@ -19,6 +19,7 @@
 package de.dlr.ivf.urmo.router.shapes;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Vector;
@@ -103,6 +104,8 @@ public class DBEdge {
 	private double attachedValuesSum = 0;
 	/// @brief The opposite direction
 	private DBEdge opposite = null;
+	/// @brief Crossing times to subsequent edges
+	private HashMap<DBEdge, Double> crossingTimes; 
 
 
 	/**
@@ -431,5 +434,33 @@ public class DBEdge {
 		return maxDistance;
 	}
 
+
+	/** @brief Sets the time needed to get to the other edge at the intersections
+	 * 
+	 * @param e The subsequent edge
+	 * @param value The crossing time
+	 */
+	public void setCrossingTimeTo(DBEdge e, double value) {
+		if (crossingTimes==null) {
+			crossingTimes = new HashMap<DBEdge, Double>();
+		}
+		crossingTimes.put(e, value);
+	}
+
+	
+	/** @brief Returns the time needed to get to the other edge at the intersections
+	 * 
+	 * @param e The subsequent edge
+	 * @return The time needed to cross the intersection
+	 */
+	public double getCrossingTimeTo(DBEdge e) {
+		if (crossingTimes==null) {
+			return 0;
+		}
+		if (!crossingTimes.containsKey(e)) {
+			return 0;
+		}
+		return crossingTimes.get(e);
+	}
 
 }
