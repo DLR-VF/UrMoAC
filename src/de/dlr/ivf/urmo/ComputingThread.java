@@ -93,9 +93,13 @@ public class ComputingThread implements Runnable {
 					}
 					Vector<MapResult> fromObjects = parent.nearestFromEdges.get(e);
 					for(MapResult mr : fromObjects) {
-						BoundDijkstra bd = new BoundDijkstra(measure, mr, boundNumber, boundTT, boundDist, boundVar, shortestOnly, time);
-						bd.run(modes, parent.nearestToEdges.keySet(), parent.nearestToEdges);
-						resultsProcessor.process(mr, bd, -1);
+						try {
+							BoundDijkstra bd = new BoundDijkstra(measure, mr, boundNumber, boundTT, boundDist, boundVar, shortestOnly, time);
+							bd.run(modes, parent.nearestToEdges.keySet(), parent.nearestToEdges);
+							resultsProcessor.process(mr, bd, -1);
+						} catch(java.lang.OutOfMemoryError e2) {
+							System.out.println("Out of memory while processing '" + mr.em.getOuterID() + "'.");
+						}
 					}
 				} while(e!=null&&!parent.hadError);
 			} else {
