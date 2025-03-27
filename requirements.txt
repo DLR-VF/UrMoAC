@@ -4,3 +4,5 @@ mkdocs-material
 pytest
 coverage
 matplotlib
+scipy
+python-markdown-math
