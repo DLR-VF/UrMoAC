@@ -175,6 +175,7 @@ public class NearestEdgeFinder {
 			// get the next nearest edges
 			DBEdge found = (DBEdge) tree.nearestNeighbour(mappable.getEnvelope(), mappable, itemDist);
 			if(found==null) {
+				System.err.println("No matching edge found for item '" + mappable.getOuterID() + "'");
 				return; // @todo add error message
 			}
 			// check opposite
