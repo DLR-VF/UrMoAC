@@ -80,6 +80,10 @@ Usage:
                                    'maxinterchanges_tt'].
   --measure-param1               First parameter of the chosen weight function.
   --measure-param2               Second parameter of the chosen weight function.
+  --crossing-model               The crossing model to use during the routing
+                                   ['none', 'ctm1'].
+  --crossing-model-param1        First parameter of the chosen crossing model.
+  --crossing-model-param2        Second parameter of the chosen crossing model.
 
  Public Transport Options
   --pt-boundary                  Defines the data source of the boundary for the
@@ -115,6 +119,7 @@ Usage:
   --write.subnets                Defines the output for subnets.
   --write.net-errors             Defines the output for network errors and
                                    warnings.
+  --write.crossing-times         Defines the output for crossing times.
   --dropprevious                 When set, previous output with the same name is
                                    replaced.
   --precision                    Defines the number of digits after the decimal

@@ -42,6 +42,9 @@
    <measure></measure>
    <measure-param1></measure-param1>
    <measure-param2></measure-param2>
+   <crossing-model></crossing-model>
+   <crossing-model-param1></crossing-model-param1>
+   <crossing-model-param2></crossing-model-param2>
    <pt-boundary></pt-boundary>
    <date></date>
    <entrainment></entrainment>
@@ -62,6 +65,7 @@
    <destinations-to-road-output></destinations-to-road-output>
    <write.subnets></write.subnets>
    <write.net-errors></write.net-errors>
+   <write.crossing-times></write.crossing-times>
    <dropprevious></dropprevious>
    <precision></precision>
    <comment></comment>
