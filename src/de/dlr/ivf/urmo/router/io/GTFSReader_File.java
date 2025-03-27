@@ -213,7 +213,7 @@ public class GTFSReader_File extends AbstractGTFSReader {
 				c.y = p.getY();
 				// !!! projection
 				GTFSStop stop = new GTFSStop(_net.getNextID(), id, c, _net.getGeometryFactory().createPoint(c)); // !!! new id - the nodes should have a new id as well
-				if(!_net.addNode(stop)) {
+				if(!_net.addNode(stop, stop.mid)) {
 					throw new IOException("A node with id '" + stop.getID() + "' already exists.");
 				}
 				stops.put(stop.getID(), stop);
