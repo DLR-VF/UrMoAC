@@ -397,7 +397,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		if(options.isSet("routing-measure")) {
 			String t = options.getString("routing-measure");
 			if(!"tt_mode".equals(t)&&!"price_tt".equals(t)&&!"interchanges_tt".equals(t)&&!"maxinterchanges_tt".equals(t)) {
-				System.err.println("Unknown measure '" + t + "'; allowed are: 'tt_mode', 'price_tt', 'interchanges_tt', and 'maxinterchanges_tt'.");
+				System.err.println("Unknown routing measure '" + t + "'; allowed are: 'tt_mode', 'price_tt', 'interchanges_tt', and 'maxinterchanges_tt'.");
 				check = false;
 			}
 		}
