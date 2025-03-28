@@ -55,9 +55,9 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --max-variable-sum _&lt;DOUBLE&gt;_ | N/A (optional) | The maximum sum of variable&apos;s values to collect. |
 | --shortest | N/A (optional) | Searches only one destination per origin. |
 | --requirespt | N/A (optional) | When set, only information that contains a PT part are stored. |
-| --measure [&apos;tt_mode&apos;, &lsquo;price_tt&rsquo;, &lsquo;interchanges_tt&rsquo;, &lsquo;maxinterchanges_tt&rsquo;] | N/A (optional) | The measure to use during the routing. |
-| --measure-param1 _&lt;DOUBLE&gt;_ | N/A (optional) | The parameter for the first routing measure&apos;s variable. |
-| --measure-param2 _&lt;DOUBLE&gt;_ | N/A (optional) | The parameter for the second routing measure&apos;s variable. |
+| --routing-measure [&apos;tt_mode&apos;, &lsquo;price_tt&rsquo;, &lsquo;interchanges_tt&rsquo;, &lsquo;maxinterchanges_tt&rsquo;] | N/A (optional) | The measure to use during the routing. |
+| --routing-measure.param1 _&lt;DOUBLE&gt;_ | N/A (optional) | The parameter for the first routing measure&apos;s variable. |
+| --routing-measure.param2 _&lt;DOUBLE&gt;_ | N/A (optional) | The parameter for the second routing measure&apos;s variable. |
 
 ## Public Transport options
 | Option  | Default | Explanation |

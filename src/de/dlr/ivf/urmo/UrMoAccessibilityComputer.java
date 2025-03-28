@@ -217,18 +217,18 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("requirespt", "When set, only information that contains a PT part are stored.");
 		options.add("clip-to-net", new Option_Bool());
 		options.setDescription("clip-to-net", "When set, origins, destinations, and pt is clipped at the network boundaries.");
-		options.add("measure", new Option_String());
-		options.setDescription("measure", "The measure to use during the routing ['tt_mode', 'price_tt', 'interchanges_tt', 'maxinterchanges_tt'].");
-		options.add("measure-param1", new Option_Double());
-		options.setDescription("measure-param1", "First parameter of the chosen weight function.");
-		options.add("measure-param2", new Option_Double());
-		options.setDescription("measure-param2", "Second parameter of the chosen weight function.");
+		options.add("routing-measure", new Option_String());
+		options.setDescription("routing-measure", "The measure to use during the routing ['tt_mode', 'price_tt', 'interchanges_tt', 'maxinterchanges_tt'].");
+		options.add("routing-measure.param1", new Option_Double());
+		options.setDescription("routing-measure.param1", "First parameter of the chosen weight function.");
+		options.add("routing-measure.param2", new Option_Double());
+		options.setDescription("routing-measure.param2", "Second parameter of the chosen weight function.");
 		options.add("crossing-model", new Option_String("none"));
 		options.setDescription("crossing-model", "The crossing model to use during the routing ['none', 'ctm1'].");
-		options.add("crossing-model-param1", new Option_Double());
-		options.setDescription("crossing-model-param1", "First parameter of the chosen crossing model.");
-		options.add("crossing-model-param2", new Option_Double());
-		options.setDescription("crossing-model-param2", "Second parameter of the chosen crossing model.");
+		options.add("crossing-model.param1", new Option_Double());
+		options.setDescription("crossing-model.param1", "First parameter of the chosen crossing model.");
+		options.add("crossing-model.param2", new Option_Double());
+		options.setDescription("crossing-model.param2", "Second parameter of the chosen crossing model.");
 		
 		options.beginSection("Public Transport Options");
 		options.add("pt-boundary", new Option_String());
@@ -394,8 +394,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			}
 		}
 		//
-		if(options.isSet("measure")) {
-			String t = options.getString("measure");
+		if(options.isSet("routing-measure")) {
+			String t = options.getString("routing-measure");
 			if(!"tt_mode".equals(t)&&!"price_tt".equals(t)&&!"interchanges_tt".equals(t)&&!"maxinterchanges_tt".equals(t)) {
 				System.err.println("Unknown measure '" + t + "'; allowed are: 'tt_mode', 'price_tt', 'interchanges_tt', and 'maxinterchanges_tt'.");
 				check = false;
@@ -454,8 +454,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 */
 	protected boolean checkParameterOptions(OptionsCont options, int num) {
 		for(int i=0; i<num; ++i) {
-			if(!options.isSet("measure-param"+(i+1))) {
-				System.err.println("Error: value for route weighting function #"+(i+1)+" is missing; use --measure-param"+(i+1)+" <DOUBLE>.");
+			if(!options.isSet("routing-measure.param"+(i+1))) {
+				System.err.println("Error: value for route weighting function #"+(i+1)+" is missing; use --routing-measure.param"+(i+1)+" <DOUBLE>.");
 				hadError = true;
 			}
 		}
@@ -670,8 +670,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		
 		// -------- measure
 		measure = new RouteWeightFunction_TT_ModeSpeed();
-		if(options.isSet("measure")) {
-			String t = options.getString("measure");
+		if(options.isSet("routing-measure")) {
+			String t = options.getString("routing-measure");
 			if("price_tt".equals(t)) {
 				measure = new RouteWeightFunction_Price_TT();
 			} else if("interchanges_tt".equals(t)) {
@@ -679,13 +679,13 @@ public class UrMoAccessibilityComputer implements IDGiver {
 					hadError = true;
 					return false;
 				} 
-				measure = new RouteWeightFunction_ExpInterchange_TT(options.getDouble("measure-param1"), options.getDouble("measure-param2"));
+				measure = new RouteWeightFunction_ExpInterchange_TT(options.getDouble("routing-measure.param1"), options.getDouble("routing-measure.param2"));
 			} else if("maxinterchanges_tt".equals(t)) {
 				if(!checkParameterOptions(options, 1)) {
 					hadError = true;
 					return false;
 				}
-				measure = new RouteWeightFunction_MaxInterchange_TT((int) options.getDouble("measure-param1"));
+				measure = new RouteWeightFunction_MaxInterchange_TT((int) options.getDouble("routing-measure.param1"));
 			} else if(!"tt_mode".equals(t)) {
 				System.err.println("Error: the route weight function '" + t + "' is not known.");
 				hadError = true;

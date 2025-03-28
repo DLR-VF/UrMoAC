@@ -74,15 +74,15 @@ Usage:
                                    part are stored.
   --clip-to-net                  When set, origins, destinations, and pt is
                                    clipped at the network boundaries.
-  --measure                      The measure to use during the routing
+  --routing-measure              The measure to use during the routing
                                    ['tt_mode', 'price_tt', 'interchanges_tt',
                                    'maxinterchanges_tt'].
-  --measure-param1               First parameter of the chosen weight function.
-  --measure-param2               Second parameter of the chosen weight function.
+  --routing-measure.param1       First parameter of the chosen weight function.
+  --routing-measure.param2       Second parameter of the chosen weight function.
   --crossing-model               The crossing model to use during the routing
                                    ['none', 'ctm1'].
-  --crossing-model-param1        First parameter of the chosen crossing model.
-  --crossing-model-param2        Second parameter of the chosen crossing model.
+  --crossing-model.param1        First parameter of the chosen crossing model.
+  --crossing-model.param2        Second parameter of the chosen crossing model.
 
  Public Transport Options
   --pt-boundary                  Defines the data source of the boundary for the

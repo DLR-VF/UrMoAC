@@ -1,3 +1,3 @@
-Error: value for route weighting function #1 is missing; use --measure-param1 <DOUBLE>.
-Error: value for route weighting function #2 is missing; use --measure-param2 <DOUBLE>.
+Error: value for route weighting function #1 is missing; use --routing-measure.param1 <DOUBLE>.
+Error: value for route weighting function #2 is missing; use --routing-measure.param2 <DOUBLE>.
 Quitting on error...

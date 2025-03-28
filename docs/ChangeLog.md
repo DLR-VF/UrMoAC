@@ -16,7 +16,16 @@
 
 * option **--keep-subnets" was renamed to **--net.keep-subnets**
 * added option **--net.report-all-errors** that forces **UrMoAC** to report all network errors. Otherwise, only the first one of each type is reported. Please note that you may generate a file/database table listing all network errors using the option **--net-errors-output *&lt;OUTPUT&gt;**.
-* Renamed **--write.subnets *&lt;OUTPUT&gt;*** to **--subnets-output *&lt;OUTPUT&gt;*** (back again)
+* renamed **--write.subnets *&lt;OUTPUT&gt;*** to **--subnets-output *&lt;OUTPUT&gt;*** (back again)
+* added options **--crossing-model *&lt;MODEL&gt;*** for selecting the model of penalties at crossings, including options to set its parameter **--crossing-model.param1 *&lt;DOUBLE&gt;***, and **--crossing-model.param2 *&lt;DOUBLE&gt;***
+* renamed **--measure *&lt;ROUTING_MEASURE&gt;*** to **--routing-measure *&lt;ROUTING_MEASURE&gt;*** and according **--measure-param*X* *&lt;DOUBLE&gt;*** to **--routing-measure.param*X* *&lt;DOUBLE&gt;***
+
+
+### Changes in computation
+
+* previously, intermodality was somehow covered by giving **UrMoAC** a list of modes to use. This has been replaced by distinct mode change points, defined using the option **--mode-changes *&lt;INPUT&gt;***
+* an initial model for adding penalties at crossing was added. It can be enabled using the option **--crossing-model *&lt;MODEL&gt;***
+
 		
 ### Continuous Integration 
 
