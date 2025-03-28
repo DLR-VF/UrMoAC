@@ -34,4 +34,12 @@ public interface ICrossingTimesModel {
 	 * @param subjectEdge The regarded edge
 	 */
 	public void computeCrossingTimes(DBEdge subjectEdge) throws IOException;
+	
+	
+	/** @brief Closes the used crossing times writer, if given
+	 * 
+	 */
+	public void closeWriter() throws IOException;
+
+	
 }

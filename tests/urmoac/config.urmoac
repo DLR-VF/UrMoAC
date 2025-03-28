@@ -47,6 +47,7 @@ pt_output:pt_output.csv
 direct_output:direct_output.csv
 subnets_output:subnets_output.csv
 neterrors_output:net_errors.txt
+crossings_output:crossings_output.txt
 configuration:configuration.xml
 template:template.xml
 sqlite:sqlite.db

@@ -105,6 +105,7 @@ public class NetLoader {
 		// compute crossing times
 		if(ctm!=null) {
 			net.computeCrossingTimes(ctm);
+			ctm.closeWriter();
 		}
 		return net;
 	}

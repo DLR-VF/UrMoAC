@@ -278,8 +278,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("subnets-output", "Defines the output for subnets.");
 		options.add("net-errors-output", new Option_String());
 		options.setDescription("net-errors-output", "Defines the output for network errors and warnings.");
-		options.add("write.crossing-times", new Option_String());
-		options.setDescription("write.crossing-times", "Defines the output for crossing times.");
+		options.add("crossings-output", new Option_String());
+		options.setDescription("crossings-output", "Defines the output for crossing times.");
 		options.add("dropprevious", new Option_Bool());
 		options.setDescription("dropprevious", "When set, previous output with the same name is replaced.");
 		options.add("precision", new Option_Integer(2));
@@ -548,11 +548,11 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				? OutputBuilder.buildNetErrorsWriter(options.getString("net-errors-output"), options.getBool("dropprevious")) : null;  
 		String netBoundary = options.isSet("net.boundary") ? options.getString("net.boundary") : null;  
 		CrossingTimesWriter ctmWriter = null;
-		if(options.isSet("write.crossing-times")) {
+		if(options.isSet("crossings-output")) {
 			if("none".equals(options.getString("crossing-model"))) {
 				System.err.println("Warning: a writer for crossing times is defined, but no model to compute them.");
 			} else {
-				ctmWriter = OutputBuilder.buildCrossingTimesWriter(options.getString("write.crossing-times"), options.getBool("dropprevious"));
+				ctmWriter = OutputBuilder.buildCrossingTimesWriter(options.getString("crossings-output"), options.getBool("dropprevious"));
 			}
 		}
 		CrossingTimesModel_CTM1 ctm = "ctm1".equals(options.getString("crossing-model")) ? new CrossingTimesModel_CTM1(ctmWriter) : null;

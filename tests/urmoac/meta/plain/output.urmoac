@@ -118,7 +118,7 @@ Usage:
   --subnets-output               Defines the output for subnets.
   --net-errors-output            Defines the output for network errors and
                                    warnings.
-  --write.crossing-times         Defines the output for crossing times.
+  --crossings-output             Defines the output for crossing times.
   --dropprevious                 When set, previous output with the same name is
                                    replaced.
   --precision                    Defines the number of digits after the decimal

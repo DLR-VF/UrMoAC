@@ -111,13 +111,6 @@ public class CrossingTimesModel_CTM1 implements ICrossingTimesModel {
 		}
 		// sort from rightmost to leftmost
 		Collections.sort(all, new RelativeDirectionComparator(relAngles));
-		/*
-		System.out.println(subjectEdge.getID() + " (" + refAngle + ")");
-		for(DBEdge e : all) {
-			System.out.println(e.getID() + ": " + relAngles.get(e));
-		}
-		System.out.println("----------------------------");
-		*/
 		// compute crossing times
 		int crossed = 0;
 		DBEdge last = subjectEdge;
@@ -129,7 +122,6 @@ public class CrossingTimesModel_CTM1 implements ICrossingTimesModel {
 				if(writer!=null) {
 					writer.writeCrossingTime(subjectEdge.getID(), e.getID(), value);
 				}
-				System.out.println(e.getID() + ": " + value + " (" + crossed + ")");
 			}
 			if(last==null||last.getOppositeEdge()==e) {
 				crossed += 1;
@@ -139,9 +131,18 @@ public class CrossingTimesModel_CTM1 implements ICrossingTimesModel {
 		if(subjectEdge.getOppositeEdge()!=null) {
 			subjectEdge.setCrossingTimeTo(subjectEdge.getOppositeEdge(), 1 * CROSSING_TIME);
 		}
-		//System.out.println("============================");
 	}
 
+	
+	/** @brief Closes the used crossing times writer, if given
+	 * 
+	 */
+	public void closeWriter() throws IOException {
+		if(writer!=null) {
+			writer.close();
+		}
+	}
+	
 
 	/** @brief Returns the angle of the given edge at the given node
 	 * 

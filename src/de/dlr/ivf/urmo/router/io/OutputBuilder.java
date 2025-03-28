@@ -241,9 +241,16 @@ public class OutputBuilder {
 	}
 
 	
-	public static NetErrorsWriter buildNetErrorsWriter(String d, boolean dropPrevious) throws IOException {
-		Utils.Format format = Utils.getFormat(d);
-		String[] inputParts = Utils.getParts(format, d, "pt-output");
+	/** @brief Builds a writer that stores network loading errors
+	 * 
+	 * @param outputDefinition The definition of the output
+	 * @param dropPrevious Whether prior reports with the same name shall be deleted
+	 * @return The built writer
+	 * @throws IOException
+	 */
+	public static NetErrorsWriter buildNetErrorsWriter(String outputDefinition, boolean dropPrevious) throws IOException {
+		Utils.Format format = Utils.getFormat(outputDefinition);
+		String[] inputParts = Utils.getParts(format, outputDefinition, "net-errors");
 		return new NetErrorsWriter(format, inputParts, dropPrevious);
 	}
 	
