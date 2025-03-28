@@ -1,1 +1,1 @@
---write.net-errors net_errors.txt
+--net-errors-output net_errors.txt

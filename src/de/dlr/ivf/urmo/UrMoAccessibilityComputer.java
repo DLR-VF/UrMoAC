@@ -191,10 +191,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("net.geom", "Defines the column name of the network's geometries.");
 		options.add("net.boundary", new Option_String());
 		options.setDescription("net.boundary", "Defines a boundary for the network.");
-		options.add("keep-subnets", new Option_Bool());
-		options.setDescription("keep-subnets", "When set, unconnected network parts are not removed.");
-		options.add("net.report-all-errors", new Option_Bool());
-		options.setDescription("net.report-all-errors", "When set, all errors are printed.");
+		options.add("net.keep-subnets", new Option_Bool());
+		options.setDescription("net.keep-subnets", "When set, unconnected network parts are not removed.");
 		options.add("net.patch-errors", new Option_Bool());
 		options.setDescription("net.patch-errors", "When set, broken edge lengths and speeds will be patched.");
 
@@ -276,10 +274,10 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("origins-to-road-output", "Defines the output of the mapping between origins and the network.");
 		options.add("destinations-to-road-output", new Option_String());
 		options.setDescription("destinations-to-road-output", "Defines the output of the mapping between destinations and the network.");
-		options.add("write.subnets", new Option_String());
-		options.setDescription("write.subnets", "Defines the output for subnets.");
-		options.add("write.net-errors", new Option_String());
-		options.setDescription("write.net-errors", "Defines the output for network errors and warnings.");
+		options.add("subnets-output", new Option_String());
+		options.setDescription("subnets-output", "Defines the output for subnets.");
+		options.add("net-errors-output", new Option_String());
+		options.setDescription("net-errors-output", "Defines the output for network errors and warnings.");
 		options.add("write.crossing-times", new Option_String());
 		options.setDescription("write.crossing-times", "Defines the output for crossing times.");
 		options.add("dropprevious", new Option_Bool());
@@ -294,6 +292,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("threads", "The number of threads to use.");
 		options.add("verbose", 'v', new Option_Bool());
 		options.setDescription("verbose", "Prints what is being done.");
+		options.add("net.report-all-errors", new Option_Bool());
+		options.setDescription("net.report-all-errors", "When set, all errors are printed.");
 		options.add("subnets-summary", new Option_Bool());
 		options.setDescription("subnets-summary", "Prints a summary on found subnets.");
 		options.add("save-config", new Option_String());
@@ -535,8 +535,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			throw new IOException("A network must be given.");
 		}
 		if (verbose) System.out.println("Reading the road network");
-		NetErrorsWriter netErrorsOutput = options.isSet("write.net-errors") 
-				? OutputBuilder.buildNetErrorsWriter(options.getString("write.net-errors"), options.getBool("dropprevious")) : null;  
+		NetErrorsWriter netErrorsOutput = options.isSet("net-errors-output") 
+				? OutputBuilder.buildNetErrorsWriter(options.getString("net-errors-output"), options.getBool("dropprevious")) : null;  
 		String netBoundary = options.isSet("net.boundary") ? options.getString("net.boundary") : null;  
 		CrossingTimesWriter ctmWriter = null;
 		if(options.isSet("write.crossing-times")) {
@@ -551,11 +551,11 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				epsg, modes, netErrorsOutput, options.getBool("net.report-all-errors"), options.getBool("net.patch-errors"),
 				ctm);
 		if (verbose) System.out.println(" " + net.getNumEdges() + " edges loaded (" + net.getNodes().size() + " nodes)");
-		if(!options.getBool("keep-subnets")) {
+		if(!options.getBool("net.keep-subnets")) {
 			if (verbose) System.out.println("Checking for connectivity...");
 			HashMap<Integer, Set<DBEdge>> clusters = net.dismissUnconnectedEdges(options.getBool("subnets-summary"));
-			if (options.isSet("write.subnets")) {
-				OutputBuilder.writeSubnets("write.subnets", options, clusters);
+			if (options.isSet("subnets-output")) {
+				OutputBuilder.writeSubnets("subnets-output", options, clusters);
 			}
 			if (verbose) System.out.println(" " + net.getNumEdges() + " remaining after removing unconnected ones.");
 		}

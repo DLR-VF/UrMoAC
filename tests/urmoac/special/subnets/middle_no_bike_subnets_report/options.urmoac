@@ -1,2 +1,2 @@
---subnets-summary --keep-subnets
+--subnets-summary --net.keep-subnets
 

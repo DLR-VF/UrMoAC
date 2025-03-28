@@ -27,8 +27,7 @@
    <net.vmax></net.vmax>
    <net.geom></net.geom>
    <net.boundary></net.boundary>
-   <keep-subnets></keep-subnets>
-   <net.report-all-errors></net.report-all-errors>
+   <net.keep-subnets></net.keep-subnets>
    <net.patch-errors></net.patch-errors>
    <weight></weight>
    <variable></variable>
@@ -63,14 +62,15 @@
    <direct-output></direct-output>
    <origins-to-road-output></origins-to-road-output>
    <destinations-to-road-output></destinations-to-road-output>
-   <write.subnets></write.subnets>
-   <write.net-errors></write.net-errors>
+   <subnets-output></subnets-output>
+   <net-errors-output></net-errors-output>
    <write.crossing-times></write.crossing-times>
    <dropprevious></dropprevious>
    <precision></precision>
    <comment></comment>
    <threads></threads>
    <verbose></verbose>
+   <net.report-all-errors></net.report-all-errors>
    <subnets-summary></subnets-summary>
    <save-config></save-config>
    <save-template></save-template>

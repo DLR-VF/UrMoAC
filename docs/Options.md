@@ -36,8 +36,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --to-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the destination aggregations&apos; geometries. |
 | --net.vmax _&lt;COLUMN_NAME&gt;_ | &ldquo;vmax&rdquo; | Defines the column name of networks&apos;s vmax attribute. |
 | --net.boundary _&lt;POSTGIS_GEOMETRY&gt;_ | N/A (optional)| Defines a boundary for the network. Please note that this option is experimental and works with networks loaded from PostGIS only. |
-| --keep-subnets | N/A (optional) | When set, unconnected network parts are not removed. |
-| --net.report-all-errors | N/A (optional) | When set, all errors are printed. |
+| --net.keep-subnets | N/A (optional) | When set, unconnected network parts are not removed. |
 | --net.patch-errors | N/A (optional) | When set, broken edge lengths and speeds will be patched. |
 
 
@@ -89,8 +88,8 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --direct-output _&lt;OUTPUT&gt;_<br>-d _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the direct output. |
 | --origins-to-road-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines output of the mapping between from-objects to the road. |
 | --destinations-to-road-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines output of the mapping between to-objects to the road. |
-| --write.subnets _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the output of subnets |
-| --write.net-errors _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the output for network errors and warnings |
+| --subnets-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the output of subnets |
+| --net-errors-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the output for network errors and warnings |
 | --dropprevious | N/A (optional) | When set, previous output with the same name is replaced. |
 | --precision _&lt;INTEGER&gt;_ | 2 | Defines the number of digits after the decimal point. |
 | --comment | N/A (optional) | Adds a comment with the used options into generated output dbs. |
@@ -100,6 +99,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | ---- | ---- | ---- |
 | --threads _&lt;INTEGER&gt;_ | 1 | The number of threads to use. |
 | --verbose<br>-v | N/A (optional) | Prints what is being done. |
+| --net.report-all-errors | N/A (optional) | When set, all errors are printed. |
 | --subnets-summary | N/A (optional) | Prints a summary on found subnets |
 | --save-config _&lt;FILENAME&gt;_ | N/A (optional) | Saves the set options as a configuration file. |
 | --save-template _&lt;FILENAME&gt;_ | N/A (optional) | Saves a configuration template to add options to. |

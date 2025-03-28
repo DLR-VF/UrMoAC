@@ -53,9 +53,8 @@ Usage:
   --net.geom                     Defines the column name of the network's
                                    geometries.
   --net.boundary                 Defines a boundary for the network.
-  --keep-subnets                 When set, unconnected network parts are not
+  --net.keep-subnets             When set, unconnected network parts are not
                                    removed.
-  --net.report-all-errors        When set, all errors are printed.
   --net.patch-errors             When set, broken edge lengths and speeds will
                                    be patched.
 
@@ -116,8 +115,8 @@ Usage:
                                    origins and the network.
   --destinations-to-road-output  Defines the output of the mapping between
                                    destinations and the network.
-  --write.subnets                Defines the output for subnets.
-  --write.net-errors             Defines the output for network errors and
+  --subnets-output               Defines the output for subnets.
+  --net-errors-output            Defines the output for network errors and
                                    warnings.
   --write.crossing-times         Defines the output for crossing times.
   --dropprevious                 When set, previous output with the same name is
@@ -130,6 +129,7 @@ Usage:
  Process Options
   --threads                      The number of threads to use.
   -v, --verbose                  Prints what is being done.
+  --net.report-all-errors        When set, all errors are printed.
   --subnets-summary              Prints a summary on found subnets.
   --save-config                  Saves the set options as a configuration file.
   --save-template                Saves a configuration template to add options

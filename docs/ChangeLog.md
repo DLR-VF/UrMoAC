@@ -12,6 +12,12 @@
 * corrected docs building
 * reorganised docs
 
+### Changes in options and defaults
+
+* option **--keep-subnets" was renamed to **--net.keep-subnets**
+* added option **--net.report-all-errors** that forces **UrMoAC** to report all network errors. Otherwise, only the first one of each type is reported. Please note that you may generate a file/database table listing all network errors using the option **--net-errors-output *&lt;OUTPUT&gt;**.
+* Renamed **--write.subnets *&lt;OUTPUT&gt;*** to **--subnets-output *&lt;OUTPUT&gt;*** (back again)
+		
 ### Continuous Integration 
 
 * added an action for checking whether the current version builds
