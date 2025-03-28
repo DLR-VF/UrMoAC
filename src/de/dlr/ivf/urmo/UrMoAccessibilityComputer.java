@@ -401,6 +401,15 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				check = false;
 			}
 		}
+		//
+		if(options.isSet("crossing-model")) {
+			String t = options.getString("crossing-model");
+			if(!"none".equals(t)&&!"ctm1".equals(t)) {
+				System.err.println("Unknown crossing model '" + t + "'; allowed are: 'none', 'ctm1'.");
+				check = false;
+			}
+		}
+		//
 		if (!check) {
 			return null;
 		}

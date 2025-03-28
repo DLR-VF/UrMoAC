@@ -9,3 +9,6 @@ limits
 
 # some issues found
 found_issues
+
+# crossings (additional crossing times)
+crossings
