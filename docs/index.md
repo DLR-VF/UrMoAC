@@ -21,6 +21,8 @@ Some features:
 * support for different transport modes, as well as intermodal accessibilities;
 * GTFS-based public transport accessibility computation;
 * possibility to read time-dependent travel times (for motorised individual traffic);
+* penalties at crossings (experimental);
+* support for intermodal paths beyond using public transport (experimental);
 * support for data preparation and visualisation.
 
 The tool has been developed at the [Institute of Transport Research](http://www.dlr.de/vf) of the [German Aerospace Center](http://www.dlr.de).
