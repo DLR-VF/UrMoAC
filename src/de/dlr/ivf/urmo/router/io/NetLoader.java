@@ -40,6 +40,7 @@ import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 import org.locationtech.jts.io.WKTReader;
+import org.locationtech.jts.io.WKTWriter;
 import org.postgresql.PGConnection;
 import org.xml.sax.SAXException;
 
@@ -70,7 +71,7 @@ public class NetLoader {
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	public static DBNet loadNet(IDGiver idGiver, String def, String netBoudary, String vmaxAttr, String geomS, int epsg, Vector<Mode> modes, 
+	public static DBNet loadNet(IDGiver idGiver, String def, Geometry netBoundary, String vmaxAttr, String geomS, int epsg, Vector<Mode> modes, 
 			NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors,
 			CrossingTimesModel_CTM1 ctm) throws IOException {
 		Utils.Format format = Utils.getFormat(def);
@@ -80,7 +81,7 @@ public class NetLoader {
 		switch(format) {
 		case FORMAT_POSTGRES:
 		case FORMAT_SQLITE:
-			net = loadNetFromDB(idGiver, format, inputParts, netBoudary, vmaxAttr, geomS, epsg, uModes, errorsWriter, reportAllErrors, patchErrors);
+			net = loadNetFromDB(idGiver, format, inputParts, netBoundary, vmaxAttr, geomS, epsg, uModes, errorsWriter, reportAllErrors, patchErrors);
 			break;
 		case FORMAT_CSV:
 			net = loadNetFromCSVFile(idGiver, inputParts[0], uModes, errorsWriter, reportAllErrors, patchErrors);
@@ -124,7 +125,7 @@ public class NetLoader {
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromDB(IDGiver idGiver, Utils.Format format, String[] inputParts, String netBoudary, String vmax, String geomS, int epsg, long uModes, NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors) throws IOException {
+	private static DBNet loadNetFromDB(IDGiver idGiver, Utils.Format format, String[] inputParts, Geometry netBoundary, String vmax, String geomS, int epsg, long uModes, NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors) throws IOException {
 		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
 		try {
 			Class.forName("org.sqlite.JDBC");
@@ -138,8 +139,10 @@ public class NetLoader {
 			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 			((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
 			String query = "SELECT oid,nodefrom,nodeto,mode_walk,mode_bike,mode_mit,"+vmax+",length,ST_AsBinary(ST_TRANSFORM(" + geomS + "," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, "net");
-			if(netBoudary!=null) {
-				query += " WHERE ST_Within(ST_TRANSFORM(" + geomS + "," + epsg + "), " + netBoudary + ")";
+			if(netBoundary!=null) {
+				WKTWriter wkt = new WKTWriter();
+				String wktNetBoundary = wkt.write(netBoundary).toString();
+				query += " WHERE ST_Within(ST_Transform(" + geomS + "," + epsg + "), ST_Transform(ST_GeomFromText('" + wktNetBoundary + "', 3035), " + epsg + "))";
 			}
 			query += ";";
 			Statement s = connection.createStatement();

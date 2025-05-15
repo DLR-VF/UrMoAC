@@ -25,19 +25,24 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --from.filter _&lt;FILTER&gt;_<br>-F _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for origins to load. |
 | --from.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the origins&apos; ids. |
 | --from.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the origins&apos; geometries. |
+| --from.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the origins. |
 | --to.filter _&lt;FILTER&gt;_<br>-T _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for destinations to load. |
 | --to.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the destinations&apos; ids. |
 | --to.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the destinations&apos; geometries. |
+| --from.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the destinations. |
 | --from-agg.filter _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for origins aggregations&apos; to load. |
 | --from-agg.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the origins aggregations&apos; ids. |
 | --from-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the origins aggregations&apos; geometries. |
+| --from-agg.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the origins aggregation areas. |
 | --to-agg.filter _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for destination aggregations&apos; to load. |
 | --to-agg.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the destination aggregations&apos; ids. |
 | --to-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the destination aggregations&apos; geometries. |
+| --to-agg.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the destinations aggregation areas. |
 | --net.vmax _&lt;COLUMN_NAME&gt;_ | &ldquo;vmax&rdquo; | Defines the column name of networks&apos;s vmax attribute. |
-| --net.boundary _&lt;POSTGIS_GEOMETRY&gt;_ | N/A (optional)| Defines a boundary for the network. Please note that this option is experimental and works with networks loaded from PostGIS only. |
+| --net.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the network. |
 | --net.keep-subnets | N/A (optional) | When set, unconnected network parts are not removed. |
 | --net.patch-errors | N/A (optional) | When set, broken edge lengths and speeds will be patched. |
+| --pt.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the PT offer. |
 
 
 ## O/D Weighting options
@@ -62,7 +67,6 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 ## Public Transport options
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
-| --pt-boundary _&lt;BOUNDARY_SOURCE&gt;_ | N/A (optional) | Defines the data source of the boundary for the PT offer. |
 | --date _&lt;DATE&gt;_ | N/A (optional); mandatory when using public transport | The date for which the accessibilities shall be computed. |
 | --entrainment _&lt;ENTRAINMENT_SOURCE&gt;_<br>-E _&lt;ENTRAINMENT_SOURCE&gt;_ | N/A (optional) | Data source for entrainment description. |
 | --pt-restriction _&lt;CARRIERS&gt;_ | N/A (optional) | A list of carriers that shall be loaded (all are loaded if not given). |

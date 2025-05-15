@@ -36,8 +36,10 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LinearRing;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
@@ -499,6 +501,32 @@ public class InputReader {
 	// --------------------------------------------------------
 	// geometry loading
 	// --------------------------------------------------------
+	public static Geometry getGeometry(String def, String what, int epsg) throws IOException {
+		if("".equals(def)) {
+			return null;
+		}
+		String[] vals = def.split(",");
+		if(vals.length==4) {
+			Vector<Double> bounds = new Vector<>();
+			for(int i=0; i<4; ++i) {
+				try {
+					double d = Double.parseDouble(vals[i]);
+					bounds.add(d);
+				} catch(NumberFormatException e) {
+					throw new IOException("Could not parse bounds for '" + what + "'.");
+				}
+			}
+			GeometryFactory gf = new GeometryFactory(new PrecisionModel());
+			Envelope env = new Envelope(bounds.get(0), bounds.get(2), bounds.get(1), bounds.get(3));
+			return gf.toGeometry(env);
+		}
+		return loadGeometry(def, what, epsg);
+	}
+	
+	
+	
+	
+	
 	/** @brief Loads a geometry
 	 * @param def The source definition (unparsed)
 	 * @param what The name of the loaded thing for reporting
@@ -506,7 +534,7 @@ public class InputReader {
 	 * @return The loaded geometry
 	 * @throws IOException When something fails
 	 */
-	public static Geometry loadGeometry(String def, String what, int epsg)  throws IOException {
+	private static Geometry loadGeometry(String def, String what, int epsg) throws IOException {
 		Utils.Format format = Utils.getFormat(def);
 		String[] inputParts = Utils.getParts(format, def, "od-output");
 		switch(format) {

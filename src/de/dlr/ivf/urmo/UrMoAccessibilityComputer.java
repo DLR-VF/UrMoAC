@@ -167,34 +167,44 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("from.id", "Defines the column name of the origins' ids.");
 		options.add("from.geom", new Option_String("geom"));
 		options.setDescription("from.geom", "Defines the column name of the origins' geometries.");
+		options.add("from.boundary", new Option_String(""));
+		options.setDescription("from.boundary", "Defines a boundary for the origins.");
 		options.add("to.filter", 'T', new Option_String());
 		options.setDescription("to.filter", "Defines a filter for destinations to load.");
 		options.add("to.id", new Option_String("id"));
 		options.setDescription("to.id", "Defines the column name of the destinations' ids.");
 		options.add("to.geom", new Option_String("geom"));
 		options.setDescription("to.geom", "Defines the column name of the destinations' geometries.");
+		options.add("to.boundary", new Option_String(""));
+		options.setDescription("to.boundary", "Defines a boundary for the destinations.");
 		options.add("from-agg.filter", new Option_String());
 		options.setDescription("from-agg.filter", "Defines a filter for origin aggregation areas to load.");
 		options.add("from-agg.id", new Option_String("id"));
 		options.setDescription("from-agg.id", "Defines the column name of the origins aggregation areas' ids.");
 		options.add("from-agg.geom", new Option_String("geom"));
 		options.setDescription("from-agg.geom", "Defines the column name of the origins aggregation areas' geometries.");
+		options.add("from-agg.boundary", new Option_String(""));
+		options.setDescription("from-agg.boundary", "Defines a boundary for the origins aggregation areas.");
 		options.add("to-agg.filter", new Option_String());
 		options.setDescription("to-agg.filter", "Defines a filter for destination aggregation areas to load.");
 		options.add("to-agg.id", new Option_String("id"));
 		options.setDescription("to-agg.id", "Defines the column name of the destination aggregation areas' ids.");
 		options.add("to-agg.geom", new Option_String("geom"));
 		options.setDescription("to-agg.geom", "Defines the column name of the destination aggregation areas' geometries.");
+		options.add("to-agg.boundary", new Option_String(""));
+		options.setDescription("to-agg.boundary", "Defines a boundary for the destinations aggregation areas.");
 		options.add("net.vmax", new Option_String("vmax"));
 		options.setDescription("net.vmax", "Defines the column name of networks's vmax attribute.");
 		options.add("net.geom", new Option_String("geom"));
 		options.setDescription("net.geom", "Defines the column name of the network's geometries.");
-		options.add("net.boundary", new Option_String());
+		options.add("net.boundary", new Option_String(""));
 		options.setDescription("net.boundary", "Defines a boundary for the network.");
 		options.add("net.keep-subnets", new Option_Bool());
 		options.setDescription("net.keep-subnets", "When set, unconnected network parts are not removed.");
 		options.add("net.patch-errors", new Option_Bool());
 		options.setDescription("net.patch-errors", "When set, broken edge lengths and speeds will be patched.");
+		options.add("pt.boundary", new Option_String(""));
+		options.setDescription("pt.boundary", "Defines a boundary for the PT offer.");
 
 		options.beginSection("O/D Weighting Options");
 		options.add("weight", 'W', new Option_String(""));
@@ -231,8 +241,6 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("crossing-model.param2", "Second parameter of the chosen crossing model.");
 		
 		options.beginSection("Public Transport Options");
-		options.add("pt-boundary", new Option_String());
-		options.setDescription("pt-boundary", "Defines the data source of the boundary for the PT offer.");
 		options.add("date", new Option_String());
 		options.setDescription("date", "The date for which the accessibilities shall be computed.");
 		options.add("entrainment", 'E', new Option_String());
@@ -546,7 +554,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		if (verbose) System.out.println("Reading the road network");
 		NetErrorsWriter netErrorsOutput = options.isSet("net-errors-output") 
 				? OutputBuilder.buildNetErrorsWriter(options.getString("net-errors-output"), options.getBool("dropprevious")) : null;  
-		String netBoundary = options.isSet("net.boundary") ? options.getString("net.boundary") : null;  
+		Geometry netBoundary = InputReader.getGeometry(options.getString("net.boundary"), "net.boundary", epsg);  
 		CrossingTimesWriter ctmWriter = null;
 		if(options.isSet("crossings-output")) {
 			if("none".equals(options.getString("crossing-model"))) {
@@ -579,7 +587,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 
 		// from
 		if (verbose) System.out.println("Reading origin places");
-		Layer fromLayer = InputReader.loadLayer(options, bounds, "from", "weight", dismissWeight, epsg); 
+		Geometry fromBoundary = InputReader.getGeometry(options.getString("from.boundary"), "from.boundary", epsg);
+		Layer fromLayer = InputReader.loadLayer(options, fromBoundary, "from", "weight", dismissWeight, epsg); 
 		if (verbose) System.out.println(" " + fromLayer.getObjects().size() + " origin places loaded");
 		if (fromLayer.getObjects().size()==0) {
 			hadError = true;
@@ -589,12 +598,14 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		Layer fromAggLayer = null;
 		if (options.isSet("from-agg") && !options.getString("from-agg").equals("all")) {
 			if (verbose) System.out.println("Reading origin aggregation zones");
-			fromAggLayer = InputReader.loadLayer(options, bounds, "from-agg", null, true, epsg);
+			Geometry fromAggBoundary = InputReader.getGeometry(options.getString("from-agg.boundary"), "from-agg.boundary", epsg);
+			fromAggLayer = InputReader.loadLayer(options, fromAggBoundary, "from-agg", null, true, epsg);
 			if (verbose) System.out.println(" " + fromAggLayer.getObjects().size() + " origin aggregation geometries loaded");
 		}
 		// to
 		if (verbose) System.out.println("Reading destination places");
-		Layer toLayer = InputReader.loadLayer(options, bounds, "to", "variable", false, epsg);
+		Geometry toBoundary = InputReader.getGeometry(options.getString("to.boundary"), "to", epsg);
+		Layer toLayer = InputReader.loadLayer(options, toBoundary, "to", "variable", false, epsg);
 		if (verbose) System.out.println(" " + toLayer.getObjects().size() + " destination places loaded");
 		if (toLayer.getObjects().size()==0) {
 			hadError = true;
@@ -604,7 +615,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		Layer toAggLayer = null;
 		if (options.isSet("to-agg") && !options.getString("to-agg").equals("all")) {
 			if (verbose) System.out.println("Reading destination aggregation zones");
-			toAggLayer = InputReader.loadLayer(options, bounds, "to-agg", null, true, epsg); 
+			Geometry toAggBoundary = InputReader.getGeometry(options.getString("to-agg.boundary"), "to-agg.boundary", epsg);
+			toAggLayer = InputReader.loadLayer(options, toAggBoundary, "to-agg", null, true, epsg); 
 			if (verbose) System.out.println(" " + toAggLayer.getObjects().size() + " destination aggregation geometries loaded");
 		}
 		
@@ -625,7 +637,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		// public transport network
 		if (options.isSet("pt")) {
 			if (verbose) System.out.println("Reading the public transport network");
-			GTFSData gtfs = GTFSLoader.load(options, bounds, net, entrainmentMap, epsg, options.getInteger("threads"), verbose);
+			Geometry ptBoundary = InputReader.getGeometry(options.getString("pt.boundary"), "pt.boundary", epsg);
+			GTFSData gtfs = GTFSLoader.load(options, ptBoundary, net, entrainmentMap, epsg, options.getInteger("threads"), verbose);
 			if(gtfs==null) {
 				return false;
 			}
