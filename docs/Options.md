@@ -15,9 +15,10 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --to-agg _&lt;OBJECT_SOURCE&gt;_ | N/A (optional) | Defines the data source of destination aggregation areas. |
 | --pt _&lt;GTFS_TABLES_PREFIX&gt;_<br>-p _&lt;GTFS_TABLES_PREFIX&gt;_ | N/A (optional) | Defines the GTFS-based public transport representation. |
 | --traveltimes _&lt;TT_SOURCE&gt;_ | N/A (optional) | Defines the data source of traveltimes. |
-| --epsg _&lt;EPSG_NUMBER&gt;_ | N/A (mandatory) | The EPSG projection to use. |
-| --time _&lt;TIMES&gt;_ | N/A (mandatory) | The time the trips start at in seconds. |
+| --epsg _&lt;EPSG_NUMBER&gt;_ | N/A (__mandatory__) | The EPSG projection to use. |
+| --time _&lt;TIMES&gt;_ | N/A (__mandatory__) | The time the trips start at in seconds. |
 | --od-connections _&lt;OD_SOURCE&gt;_ | N/A (optional) | When set, O/D-connections to compute are read from the given data source. |
+| --mode-changes _&lt;CHANGES_SOURCE&gt;_ | N/A (optional) | Load places where the mode of transport can be changed (no pt). |
 
 ### Input adaptation
 | Option  | Default | Explanation |
@@ -34,9 +35,9 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --from-agg.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the origins aggregations&apos; ids. |
 | --from-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the origins aggregations&apos; geometries. |
 | --from-agg.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the origins aggregation areas. |
-| --to-agg.filter _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for destination aggregations&apos; to load. |
-| --to-agg.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the destination aggregations&apos; ids. |
-| --to-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the destination aggregations&apos; geometries. |
+| --to-agg.filter _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for destinations aggregation areas to load. |
+| --to-agg.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the destinations aggregation areas&apos; ids. |
+| --to-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the destinations aggregation areas&apos; geometries. |
 | --to-agg.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the destinations aggregation areas. |
 | --net.vmax _&lt;COLUMN_NAME&gt;_ | &ldquo;vmax&rdquo; | Defines the column name of networks&apos;s vmax attribute. |
 | --net.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the network. |
@@ -67,7 +68,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 ## Public Transport options
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
-| --date _&lt;DATE&gt;_ | N/A (optional); mandatory when using public transport | The date for which the accessibilities shall be computed. |
+| --date _&lt;DATE&gt;_ | N/A (optional); __mandatory__ when using public transport | The date for which the accessibilities shall be computed. |
 | --entrainment _&lt;ENTRAINMENT_SOURCE&gt;_<br>-E _&lt;ENTRAINMENT_SOURCE&gt;_ | N/A (optional) | Data source for entrainment description. |
 | --pt-restriction _&lt;CARRIERS&gt;_ | N/A (optional) | A list of carriers that shall be loaded (all are loaded if not given). |
 

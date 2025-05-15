@@ -158,7 +158,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("od-connections", new Option_String());
 		options.setDescription("od-connections", "The OD connections to compute.");
 		options.add("mode-changes", new Option_String());
-		options.setDescription("mode-changes", "Defines places where the mode of transport can be changes (no pt).");
+		options.setDescription("mode-changes", "Load places where the mode of transport can be changed (no pt).");
 		
 		options.beginSection("Input Adaptation");
 		options.add("from.filter", 'F', new Option_String());
@@ -186,11 +186,11 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("from-agg.boundary", new Option_String(""));
 		options.setDescription("from-agg.boundary", "Defines a boundary for the origins aggregation areas.");
 		options.add("to-agg.filter", new Option_String());
-		options.setDescription("to-agg.filter", "Defines a filter for destination aggregation areas to load.");
+		options.setDescription("to-agg.filter", "Defines a filter for destinations aggregation areas to load.");
 		options.add("to-agg.id", new Option_String("id"));
-		options.setDescription("to-agg.id", "Defines the column name of the destination aggregation areas' ids.");
+		options.setDescription("to-agg.id", "Defines the column name of the destinations aggregation areas' ids.");
 		options.add("to-agg.geom", new Option_String("geom"));
-		options.setDescription("to-agg.geom", "Defines the column name of the destination aggregation areas' geometries.");
+		options.setDescription("to-agg.geom", "Defines the column name of the destinations aggregation areas' geometries.");
 		options.add("to-agg.boundary", new Option_String(""));
 		options.setDescription("to-agg.boundary", "Defines a boundary for the destinations aggregation areas.");
 		options.add("net.vmax", new Option_String("vmax"));
