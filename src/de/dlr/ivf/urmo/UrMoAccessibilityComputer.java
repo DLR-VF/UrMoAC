@@ -577,14 +577,6 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			if (verbose) System.out.println(" " + net.getNumEdges() + " remaining after removing unconnected ones.");
 		}
 		
-		// bounds
-		Geometry bounds = null;
-		if(options.getBool("clip-to-net")) {
-			bounds = net.getBounds();
-		} else if (options.isSet("pt-boundary")) {
-			bounds = InputReader.loadGeometry(options.getString("pt-boundary"), "pt-boundary", epsg);
-		}
-
 		// from
 		if (verbose) System.out.println("Reading origin places");
 		Geometry fromBoundary = InputReader.getGeometry(options.getString("from.boundary"), "from.boundary", epsg);
