@@ -31,25 +31,32 @@ Usage:
   --from.id                      Defines the column name of the origins' ids.
   --from.geom                    Defines the column name of the origins'
                                    geometries.
+  --from.boundary                Defines a boundary for the origins.
   -T, --to.filter                Defines a filter for destinations to load.
   --to.id                        Defines the column name of the destinations'
                                    ids.
   --to.geom                      Defines the column name of the destinations'
                                    geometries.
+  --to.boundary                  Defines a boundary for the destinations.
   --from-agg.filter              Defines a filter for origin aggregation areas
                                    to load.
   --from-agg.id                  Defines the column name of the origins
                                    aggregation areas' ids.
   --from-agg.geom                Defines the column name of the origins
                                    aggregation areas' geometries.
-  --to-agg.filter                Defines a filter for destination aggregation
+  --from-agg.boundary            Defines a boundary for the origins aggregation
+                                   areas.
+  --to-agg.filter                Defines a filter for destinations aggregation
                                    areas to load.
-  --to-agg.id                    Defines the column name of the destination
+  --to-agg.id                    Defines the column name of the destinations
                                    aggregation areas' ids.
-  --to-agg.geom                  Defines the column name of the destination
+  --to-agg.geom                  Defines the column name of the destinations
                                    aggregation areas' geometries.
+  --to-agg.boundary              Defines a boundary for the destinations
+                                   aggregation areas.
   --net.vmax                     Defines the column name of networks's vmax
                                    attribute.
+  --net.vmax-model               Defines model to use for adapting edge speeds.
   --net.geom                     Defines the column name of the network's
                                    geometries.
   --net.boundary                 Defines a boundary for the network.
@@ -57,6 +64,7 @@ Usage:
                                    removed.
   --net.patch-errors             When set, broken edge lengths and speeds will
                                    be patched.
+  --pt.boundary                  Defines a boundary for the PT offer.
 
  O/D Weighting Options
   -W, --weight                   An optional weighting attribute for the
@@ -85,8 +93,6 @@ Usage:
   --crossing-model.param2        Second parameter of the chosen crossing model.
 
  Public Transport Options
-  --pt-boundary                  Defines the data source of the boundary for the
-                                   PT offer.
   --date                         The date for which the accessibilities shall be
                                    computed.
   -E, --entrainment              Data source for entrainment description.

@@ -15,20 +15,26 @@
    <from.filter></from.filter>
    <from.id></from.id>
    <from.geom></from.geom>
+   <from.boundary></from.boundary>
    <to.filter></to.filter>
    <to.id></to.id>
    <to.geom></to.geom>
+   <to.boundary></to.boundary>
    <from-agg.filter></from-agg.filter>
    <from-agg.id></from-agg.id>
    <from-agg.geom></from-agg.geom>
+   <from-agg.boundary></from-agg.boundary>
    <to-agg.filter></to-agg.filter>
    <to-agg.id></to-agg.id>
    <to-agg.geom></to-agg.geom>
+   <to-agg.boundary></to-agg.boundary>
    <net.vmax></net.vmax>
+   <net.vmax-model></net.vmax-model>
    <net.geom></net.geom>
    <net.boundary></net.boundary>
    <net.keep-subnets></net.keep-subnets>
    <net.patch-errors></net.patch-errors>
+   <pt.boundary></pt.boundary>
    <weight></weight>
    <variable></variable>
    <max-number></max-number>
@@ -44,7 +50,6 @@
    <crossing-model></crossing-model>
    <crossing-model.param1></crossing-model.param1>
    <crossing-model.param2></crossing-model.param2>
-   <pt-boundary></pt-boundary>
    <date></date>
    <entrainment></entrainment>
    <pt-restriction></pt-restriction>
