@@ -40,6 +40,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --to-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the destinations aggregation areas&apos; geometries. |
 | --to-agg.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the destinations aggregation areas. |
 | --net.vmax _&lt;COLUMN_NAME&gt;_ | &ldquo;vmax&rdquo; | Defines the column name of networks&apos;s vmax attribute. |
+| --net.vmax-model _&lt;MODEL_NAME&gt;_ | &ldquo;none&rdquo; | Defines the model to use for adapting edge speeds  ['none', 'vmm1']. |
 | --net.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the network. |
 | --net.keep-subnets | N/A (optional) | When set, unconnected network parts are not removed. |
 | --net.patch-errors | N/A (optional) | When set, broken edge lengths and speeds will be patched. |

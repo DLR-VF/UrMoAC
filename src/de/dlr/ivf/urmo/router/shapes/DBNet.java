@@ -32,6 +32,7 @@ import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.index.strtree.STRtree;
 
 import de.dlr.ivf.urmo.router.algorithms.routing.CrossingTimesModel_CTM1;
+import de.dlr.ivf.urmo.router.mivspeeds.SpeedModel;
 import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.output.NetErrorsWriter;
 
@@ -533,6 +534,13 @@ public class DBNet {
 		}
 		for(DBNode n : nodes.values()) {
 			n.computeCrossingTimes(ctm);
+		}
+	}
+
+
+	public void applyVMaxModel(SpeedModel speedModel) {
+		for (DBEdge e : name2edge.values()) {
+			e.setVMax(speedModel.compute(e, 0));
 		}
 	}
 	

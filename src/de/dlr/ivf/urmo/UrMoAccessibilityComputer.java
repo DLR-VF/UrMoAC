@@ -52,6 +52,7 @@ import de.dlr.ivf.urmo.router.io.GTFSLoader;
 import de.dlr.ivf.urmo.router.io.InputReader;
 import de.dlr.ivf.urmo.router.io.NetLoader;
 import de.dlr.ivf.urmo.router.io.OutputBuilder;
+import de.dlr.ivf.urmo.router.mivspeeds.SpeedModel;
 import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
 import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;
@@ -195,6 +196,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("to-agg.boundary", "Defines a boundary for the destinations aggregation areas.");
 		options.add("net.vmax", new Option_String("vmax"));
 		options.setDescription("net.vmax", "Defines the column name of networks's vmax attribute.");
+		options.add("net.vmax-model", new Option_String("none"));
+		options.setDescription("net.vmax-model", "Defines the model to use for adapting edge speeds ['none', 'vmm1'].");
 		options.add("net.geom", new Option_String("geom"));
 		options.setDescription("net.geom", "Defines the column name of the network's geometries.");
 		options.add("net.boundary", new Option_String(""));
@@ -418,6 +421,14 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			}
 		}
 		//
+		if(options.isSet("net.vmax-model")) {
+			String t = options.getString("net.vmax-model");
+			if(!"none".equals(t)&&!"vmm1".equals(t)) {
+				System.err.println("Unknown vmax model '" + t + "'; allowed are: 'none', 'vmm1'.");
+				check = false;
+			}
+		}
+		//
 		if (!check) {
 			return null;
 		}
@@ -575,6 +586,10 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				OutputBuilder.writeSubnets("subnets-output", options, clusters);
 			}
 			if (verbose) System.out.println(" " + net.getNumEdges() + " remaining after removing unconnected ones.");
+		}
+		if(options.isSet("net.vmax-model")&&"vmm1".equals(options.getString("net.vmax-model"))) {
+			if (verbose) System.out.println(" ... recomputing edge vmax.");
+			net.applyVMaxModel(new SpeedModel());
 		}
 		
 		// from

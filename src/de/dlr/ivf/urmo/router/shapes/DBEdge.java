@@ -463,4 +463,9 @@ public class DBEdge {
 		return crossingTimes.get(e);
 	}
 
+
+	public void setVMax(double value) {
+		vmax = value;
+	}
+
 }
