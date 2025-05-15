@@ -23,8 +23,8 @@ Usage:
   --epsg                         The EPSG projection to use.
   --time                         The time the trips start at in seconds.
   --od-connections               The OD connections to compute.
-  --mode-changes                 Defines places where the mode of transport can
-                                   be changes (no pt).
+  --mode-changes                 Load places where the mode of transport can be
+                                   changed (no pt).
 
  Input Adaptation
   -F, --from.filter              Defines a filter for origins to load.
@@ -56,7 +56,8 @@ Usage:
                                    aggregation areas.
   --net.vmax                     Defines the column name of networks's vmax
                                    attribute.
-  --net.vmax-model               Defines model to use for adapting edge speeds.
+  --net.vmax-model               Defines the model to use for adapting edge
+                                   speeds ['none', 'vmm1'].
   --net.geom                     Defines the column name of the network's
                                    geometries.
   --net.boundary                 Defines a boundary for the network.
