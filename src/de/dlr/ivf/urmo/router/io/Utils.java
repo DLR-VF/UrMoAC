@@ -179,7 +179,6 @@ public class Utils {
 		} else if(input.endsWith(".net.xml") || input.endsWith(".poi.xml") || input.endsWith(".dump.xml")) {
 			return Format.FORMAT_SUMO;
 		}   
-		
 		return Format.FORMAT_UNKNOWN;
 	}
 
