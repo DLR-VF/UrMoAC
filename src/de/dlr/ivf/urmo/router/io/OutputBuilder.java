@@ -299,6 +299,7 @@ public class OutputBuilder {
 	            		value = value.substring(0, value.lastIndexOf(',')+1) + "xxx";
 	            	}
 	            }
+	            value = value.replace('\'', '_');
 	            ps.print(": " + value );
 	            ps.println();
 	        }
