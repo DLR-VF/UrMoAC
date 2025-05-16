@@ -92,7 +92,7 @@ public class GTFSReader_DB extends AbstractGTFSReader {
 
 			// read the boundary
 			if(bounds!=null) {
-				boundsFilter = " WHERE ST_Within(ST_TRANSFORM(pos, " + _epsg + "), ST_GeomFromText('" + bounds.toText() + "', " + _epsg + "))";
+				boundsFilter = " WHERE ST_Within(ST_TRANSFORM(pos, " + epsg + "), ST_GeomFromText('" + bounds.toText() + "', " + epsg + "))";
 			}
 			tablePrefix = Utils.getTableName(format, inputParts, "pt");
 		} catch (SQLException e2) {
@@ -109,7 +109,7 @@ public class GTFSReader_DB extends AbstractGTFSReader {
 	 */
 	protected void readStops(HashMap<Long, GTFSStop> stops, HashMap<String, GTFSStop> id2stop, Vector<EdgeMappable> stopsV) throws IOException {
 		try {
-			String query = "SELECT stop_id,ST_AsBinary(ST_TRANSFORM(pos," + _epsg + ")) FROM " + tablePrefix + "_stops" + boundsFilter + ";";
+			String query = "SELECT stop_id,ST_AsBinary(ST_TRANSFORM(pos," + epsg + ")) FROM " + tablePrefix + "_stops" + boundsFilter + ";";
 			Statement s = connection.createStatement();
 			ResultSet rs = s.executeQuery(query);
 			WKBReader wkbRead = new WKBReader();
@@ -117,12 +117,12 @@ public class GTFSReader_DB extends AbstractGTFSReader {
 				ResultSetMetaData rsmd = rs.getMetaData();
 				Geometry geom = wkbRead.read(rs.getBytes(rsmd.getColumnCount()));
 				Coordinate[] cs = geom.getCoordinates();
-				GTFSStop stop = new GTFSStop(_net.getNextID(), rs.getString("stop_id"), cs[0], _net.getGeometryFactory().createPoint(cs[0])); // !!! new id - the nodes should have a new id as well
+				GTFSStop stop = new GTFSStop(net.getNextID(), rs.getString("stop_id"), cs[0], net.getGeometryFactory().createPoint(cs[0])); // !!! new id - the nodes should have a new id as well
 				if(id2stop.containsKey(stop.mid)) {
 					System.out.println("Warning: stop " + stop.mid + " already exists; skipping.");
 					continue;
 				}
-				if(!_net.addNode(stop, stop.mid)) {
+				if(!net.addNode(stop, stop.mid)) {
 					throw new IOException("A node with id '" + stop.getID() + "' already exists.");
 				}
 				stops.put(stop.getID(), stop);
@@ -148,7 +148,7 @@ public class GTFSReader_DB extends AbstractGTFSReader {
 			ResultSet rs = s.executeQuery(query);
 			while (rs.next()) {
 				GTFSRoute route = new GTFSRoute(rs.getString("route_id"), rs.getString("route_short_name"), rs.getInt("route_type"));
-				if(_allowedCarrier.size()==0 || _allowedCarrier.contains(route.type)) {
+				if(allowedCarrier.size()==0 || allowedCarrier.contains(route.type)) {
 					routes.put(rs.getString("route_id"), route);
 				}
 			}
