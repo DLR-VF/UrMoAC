@@ -70,6 +70,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
 | --prunning.remove-geometries | N/A (optional) | Removes edge geometries. |
+| --prunning.remove-dead-ends | N/A (optional) | Removes dead ends with no objects. |
 
 ## Public Transport options
 | Option  | Default | Explanation |
