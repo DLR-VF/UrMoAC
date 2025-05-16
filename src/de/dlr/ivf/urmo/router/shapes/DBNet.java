@@ -29,6 +29,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.index.strtree.STRtree;
 
 import de.dlr.ivf.urmo.router.algorithms.routing.CrossingTimesModel_CTM1;
@@ -82,6 +83,7 @@ public class DBNet {
 		stateEdges0Length = _reportAllIssues==true ? 0 : 1;
 		stateEdgesSameID = _reportAllIssues==true ? 0 : 1;
 		patchErrors = _patchErrors;
+		geometryFactory = new GeometryFactory(new PrecisionModel());
 	}
 
 	
@@ -199,10 +201,6 @@ public class DBNet {
 			minCorner.y = Math.min(minCorner.y, c.y);
 			maxCorner.x = Math.max(maxCorner.x, c.x);
 			maxCorner.y = Math.max(maxCorner.y, c.y);
-		}
-		// store geometry settings
-		if(geometryFactory==null) {
-			geometryFactory = e.getGeometry().getFactory();
 		}
 	}
 
