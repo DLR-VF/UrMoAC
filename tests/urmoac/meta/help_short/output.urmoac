@@ -95,6 +95,7 @@ Usage:
 
  Network Simplification Options
   --prunning.remove-geometries   Removes edge geometries.
+  --prunning.remove-dead-ends    Removes dead ends with no objects.
 
  Public Transport Options
   --date                         The date for which the accessibilities shall be

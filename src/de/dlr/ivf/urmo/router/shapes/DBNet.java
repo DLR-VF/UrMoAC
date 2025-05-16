@@ -32,6 +32,7 @@ import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.index.strtree.STRtree;
 
+import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.CrossingTimesModel_CTM1;
 import de.dlr.ivf.urmo.router.mivspeeds.SpeedModel;
 import de.dlr.ivf.urmo.router.modes.Modes;
@@ -546,6 +547,47 @@ public class DBNet {
 	public void nullifyEdgeGeometries() {
 		for (DBEdge e : name2edge.values()) {
 			e.nullifyGeometry();
+		}
+	}
+
+
+	public void removeUnusedDeadEnds(HashMap<DBEdge, Vector<MapResult>> nearestFromEdges, HashMap<DBEdge, Vector<MapResult>> nearestToEdges) {
+		Set<DBEdge> toRemove = new HashSet<>();
+		for (DBEdge e : name2edge.values()) {
+			if(!e.isUnusedDeadEnd(nearestFromEdges, nearestToEdges, null)) {
+				continue;
+			}
+			toRemove.add(e);
+			if(e.getOppositeEdge()!=null) {
+				toRemove.add(e.getOppositeEdge());
+			}
+			// progress backwards
+			DBEdge prior = e;
+			while(prior!=null) {
+				Vector<DBEdge> candidates = new Vector<>();
+				for(DBEdge e2 : prior.getFromNode().getIncoming()) {
+					if(e2!=prior.getOppositeEdge()) {
+						candidates.add(e2);
+					}
+				}
+				if(candidates.size()!=1) {
+					break;
+				}
+				DBEdge candidate = candidates.get(0);
+				if(candidate.isUnusedDeadEnd(nearestFromEdges, nearestToEdges, prior)) {
+					prior = candidate;
+					toRemove.add(prior);
+					if(prior.getOppositeEdge()!=null) {
+						toRemove.add(prior.getOppositeEdge());
+					}
+				} else {
+					break;
+				}
+			}
+			
+		}
+		for (DBEdge e : toRemove) {
+			removeEdge(e);
 		}
 	}
 	

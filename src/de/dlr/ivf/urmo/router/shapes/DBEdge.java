@@ -30,6 +30,7 @@ import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.PrecisionModel;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
+import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.modes.Mode;
 
 /**
@@ -481,6 +482,26 @@ public class DBEdge {
 	
 	public void nullifyGeometry() {
 		geom = null;
+	}
+	
+	
+	public boolean isUnusedDeadEnd(HashMap<DBEdge, Vector<MapResult>> nearestFromEdges, HashMap<DBEdge, Vector<MapResult>> nearestToEdges, DBEdge prior) {
+		if(nearestFromEdges.containsKey(this)||nearestToEdges.containsKey(this)) {
+			return false;
+		}
+		if(opposite!=null) {
+			if(nearestFromEdges.containsKey(opposite)||nearestToEdges.containsKey(opposite)) {
+				return false;
+			}
+		}
+		Set<DBEdge> followingEdges = new HashSet<DBEdge>(to.getOutgoing());
+		if(prior!=null) {
+			followingEdges.remove(prior);
+		}
+		if(opposite!=null) {
+			followingEdges.remove(opposite);
+		}
+		return followingEdges.size()==0; 
 	}
 
 }

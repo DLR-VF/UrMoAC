@@ -1,0 +1,12 @@
+# unidirectional with a single dead end
+uni_single
+
+# bididirectional with a single dead end
+bidi_single
+
+# unidirectional with a continued dead end
+uni_multi
+
+# bididirectional with a continued dead end
+bidi_multi
+

@@ -1,0 +1,31 @@
+# foot, no remove
+plain_foot
+
+# bike, no remove
+plain_bike
+
+# foot, remove, not empty
+remove_foot_used
+
+# bike, remove, not empty
+remove_bike_used
+
+# foot, remove, no source
+remove_foot_no_source
+
+# bike, remove, no source
+remove_bike_no_source
+
+# foot, remove, no destination
+remove_foot_no_destination
+
+# bike, remove, no destination
+remove_bike_no_destination
+
+# foot, remove, empty
+remove_foot_empty
+
+# bike, remove, empty
+remove_bike_empty
+
+

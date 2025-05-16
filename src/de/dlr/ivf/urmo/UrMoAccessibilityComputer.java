@@ -246,6 +246,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.beginSection("Network Simplification Options");
 		options.add("prunning.remove-geometries", new Option_Bool());
 		options.setDescription("prunning.remove-geometries", "Removes edge geometries.");
+		options.add("prunning.remove-dead-ends", new Option_Bool());
+		options.setDescription("prunning.remove-dead-ends", "Removes dead ends with no objects.");
 		
 		options.beginSection("Public Transport Options");
 		options.add("date", new Option_String());
@@ -699,6 +701,11 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				System.err.println("Warning: Removing edge geometries will reduce the quality of direct output!");
 			}
 			net.nullifyEdgeGeometries();
+		}
+		if(options.getBool("prunning.remove-dead-ends")) {
+			if (verbose) System.out.println("Removing unused dead ends...");
+			net.removeUnusedDeadEnds(nearestFromEdges, nearestToEdges);
+			if (verbose) System.out.println(" " + net.getNumEdges() + " remaining after removing empty dead ends.");
 		}
 
 		// -------- build outputs

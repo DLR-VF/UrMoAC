@@ -51,6 +51,7 @@
    <crossing-model.param1></crossing-model.param1>
    <crossing-model.param2></crossing-model.param2>
    <prunning.remove-geometries></prunning.remove-geometries>
+   <prunning.remove-dead-ends></prunning.remove-dead-ends>
    <date></date>
    <entrainment></entrainment>
    <pt-restriction></pt-restriction>
