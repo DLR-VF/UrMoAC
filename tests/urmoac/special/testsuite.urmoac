@@ -9,3 +9,7 @@ subnets
 
 # mode settings
 modes
+
+# removing edge geometries
+remove_geometries
+
