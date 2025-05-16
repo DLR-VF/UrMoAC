@@ -771,10 +771,17 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		seenEdges = 0;
 		Vector<Thread> threads = new Vector<>();
 		for (int i=0; i<numThreads; ++i) {
-			Thread t = new Thread(new ComputingThread(this, measure, resultsProcessor, time, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly));
-			threads.add(t);
-	        t.start();
+			if(connections==null) {
+				Thread t = new Thread(new ComputingThread_Plain(this, measure, resultsProcessor, time, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly, options.isSet("pt")));
+				threads.add(t);
+		        t.start();
+			} else {
+				Thread t = new Thread(new ComputingThread_OD(this, measure, resultsProcessor, time, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly, options.isSet("pt")));
+				threads.add(t);
+		        t.start();
+			}
 		}
+		// close threads after computation
 		for(Thread t : threads) {
 			try {
 				t.join();

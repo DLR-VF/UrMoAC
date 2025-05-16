@@ -1,17 +1,16 @@
 package de.dlr.ivf.urmo;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.Vector;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.routing.AbstractRouteWeightFunction;
-import de.dlr.ivf.urmo.router.algorithms.routing.BoundDijkstra;
+import de.dlr.ivf.urmo.router.algorithms.routing.BoundDijkstra_Full;
+import de.dlr.ivf.urmo.router.algorithms.routing.BoundDijkstra_UniModal;
+import de.dlr.ivf.urmo.router.algorithms.routing.IBoundDijkstra;
 import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.output.DijkstraResultsProcessor;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
-import de.dlr.ivf.urmo.router.shapes.DBODRelationExt;
 
 /** @class ComputingThread
  * 
@@ -20,7 +19,7 @@ import de.dlr.ivf.urmo.router.shapes.DBODRelationExt;
  * @author Daniel Krajzewicz
  * @todo refactor - od-connections and usual use cases should use own according computation classes
  */
-public class ComputingThread implements Runnable {
+public class ComputingThread_Plain implements Runnable {
 	/// @brief The parent to get information from
 	private UrMoAccessibilityComputer parent;
 	/// @brief The results processor to use
@@ -41,7 +40,8 @@ public class ComputingThread implements Runnable {
 	private double boundVar;
 	/// @brief Whether only the shortest connection shall be found 
 	private boolean shortestOnly;
-	
+	private boolean hasPT;
+
 	
 	/**
 	 * @brief Constructor
@@ -56,10 +56,10 @@ public class ComputingThread implements Runnable {
 	 * @param _boundVar The maximum value to collect
 	 * @param _shortestOnly Whether only the shortest connection shall be found 
 	 */
-	public ComputingThread(UrMoAccessibilityComputer _parent, 
+	public ComputingThread_Plain(UrMoAccessibilityComputer _parent, 
 			AbstractRouteWeightFunction _measure, DijkstraResultsProcessor _resultsProcessor,
 			int _time, Vector<Mode> _modes, int _boundNumber, double _boundTT, 
-			double _boundDist, double _boundVar, boolean _shortestOnly) {
+			double _boundDist, double _boundVar, boolean _shortestOnly, boolean _hasPT) {
 		super();
 		parent = _parent;
 		resultsProcessor = _resultsProcessor;
@@ -72,6 +72,7 @@ public class ComputingThread implements Runnable {
 		boundDist = _boundDist;
 		boundVar = _boundVar;
 		shortestOnly = _shortestOnly;
+		hasPT = _hasPT;
 	}
 	
 	
@@ -84,40 +85,53 @@ public class ComputingThread implements Runnable {
 	 */
 	public void run() {
 		try {
-			if(parent.connections==null) {
-				DBEdge e = null;
-				do {
-					e = parent.getNextStartingEdge();
-					if(e==null) {
-						continue;
-					}
-					Vector<MapResult> fromObjects = parent.nearestFromEdges.get(e);
-					for(MapResult mr : fromObjects) {
-						try {
-							BoundDijkstra bd = new BoundDijkstra(measure, mr, boundNumber, boundTT, boundDist, boundVar, shortestOnly, time);
-							bd.run(modes, parent.nearestToEdges.keySet(), parent.nearestToEdges);
-							resultsProcessor.process(mr, bd, -1);
-						} catch(java.lang.OutOfMemoryError e2) {
-							System.out.println("Out of memory while processing '" + mr.em.getOuterID() + "'.");
-						}
-					}
-				} while(e!=null&&!parent.hadError);
-			} else {
-				DBODRelationExt od = null;
-				do {
-					od = parent.getNextOD();
-					if(od==null) {
-						continue;
-					}
-					Set<DBEdge> destinations = new HashSet<>();
-					destinations.add(od.toEdge);
-					BoundDijkstra bd = new BoundDijkstra(measure, od.fromMR, boundNumber, boundTT, boundDist, boundVar, shortestOnly, time);
-					bd.run(modes, parent.nearestToEdges.keySet(), parent.nearestToEdges);
-					resultsProcessor.process(od.fromMR, bd, od.destination);
-				} while(od!=null&&!parent.hadError);
-			}
+			DBEdge e = null;
+			do {
+				e = parent.getNextStartingEdge();
+				if(e==null) {
+					continue;
+				}
+				Vector<MapResult> fromObjects = parent.nearestFromEdges.get(e);
+				if(modes.size()==1 && hasPT==false) {
+					runUniModal(fromObjects);
+				} else {
+					runFull(fromObjects);
+				}
+			} while(e!=null&&!parent.hadError);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
+
+
+
+	private void runFull(Vector<MapResult> fromObjects) throws IOException {
+		for(MapResult mr : fromObjects) {
+			try {
+				IBoundDijkstra bd = new BoundDijkstra_Full(modes, measure, mr, boundNumber, boundTT, boundDist, boundVar, shortestOnly, time);
+				bd.run(parent.nearestToEdges.keySet(), parent.nearestToEdges);
+				resultsProcessor.process(mr, bd, -1);
+			} catch(java.lang.OutOfMemoryError e2) {
+				System.out.println("Out of memory while processing '" + mr.em.getOuterID() + "'.");
+			}
+		}
+	}
+
+
+	private void runUniModal(Vector<MapResult> fromObjects) throws IOException {
+		for(MapResult mr : fromObjects) {
+			try {
+				IBoundDijkstra bd = new BoundDijkstra_UniModal(modes.get(0), measure, mr, boundNumber, boundTT, boundDist, boundVar, shortestOnly, time);
+				bd.run(parent.nearestToEdges.keySet(), parent.nearestToEdges);
+				resultsProcessor.process(mr, bd, -1);
+			} catch(java.lang.OutOfMemoryError e2) {
+				System.out.println("Out of memory while processing '" + mr.em.getOuterID() + "'.");
+			}
+		}
+	}
+	
+	
+	
+	
+	
 }

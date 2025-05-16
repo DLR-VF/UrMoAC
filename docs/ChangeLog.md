@@ -34,6 +34,7 @@
 * an initial model for reducing speeds (mainly for MIT routing) was added. It can be enabled using the option **--net.vmax-model *&lt;MODEL&gt;*** where ***&lt;MODEL&gt;*** may be one of "*none*" and "*vmm1*"
 * Reducing memory footprint and increasing speed
 	* The option **--prunning.remove-geometries** will remove the edge geometries after mapping sources/destiations for reducing the memory footprint; You will be warned, when using in combination with **--direct-output** as this is the only output that needs edge geometries
+	* The computation uses a less complex algorithm when computing unimodal accessibilities
 
 		
 ### Continuous Integration 

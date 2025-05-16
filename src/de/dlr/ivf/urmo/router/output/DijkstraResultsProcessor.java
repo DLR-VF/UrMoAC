@@ -23,7 +23,7 @@ import java.util.Vector;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
-import de.dlr.ivf.urmo.router.algorithms.routing.BoundDijkstra;
+import de.dlr.ivf.urmo.router.algorithms.routing.IBoundDijkstra;
 import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
@@ -92,7 +92,7 @@ public class DijkstraResultsProcessor {
 	 * @param singleDestination If >0 only this destination shall be regarded
 	 * @throws IOException When something fails
 	 */
-	public void process(MapResult mr, BoundDijkstra dr, long singleDestination) throws IOException {
+	public void process(MapResult mr, IBoundDijkstra dr, long singleDestination) throws IOException {
 		Vector<SingleODResult> results = new Vector<>();
 		for(EdgeMappable destination : dr.getSeenDestinations()) {
 			SingleODResult destPath = dr.getResult(destination);
