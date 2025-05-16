@@ -140,9 +140,7 @@ public class NetLoader {
 			((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
 			String query = "SELECT oid,nodefrom,nodeto,mode_walk,mode_bike,mode_mit,"+vmax+",length,ST_AsBinary(ST_TRANSFORM(" + geomS + "," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, "net");
 			if(netBoundary!=null) {
-				WKTWriter wkt = new WKTWriter();
-				String wktNetBoundary = wkt.write(netBoundary).toString();
-				query += " WHERE ST_Within(ST_Transform(" + geomS + "," + epsg + "), ST_Transform(ST_GeomFromText('" + wktNetBoundary + "', 3035), " + epsg + "))";
+				query += " WHERE ST_Within(ST_Transform(" + geomS + "," + epsg + "), ST_GeomFromText('" + netBoundary.toText() + "', " + epsg + "))";
 			}
 			query += ";";
 			Statement s = connection.createStatement();
