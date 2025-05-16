@@ -94,11 +94,12 @@ public class GeomHelper {
 			double nextLength = distance(tcoord[i1], tcoord[i1+1]);
 			if(seenLength>beg) {
 				ncoord.add(tcoord[i1]);
-			} else if(seenLength+nextLength>=end) {
+			}
+			seenLength += nextLength;
+			if(seenLength>=end) {
 				ncoord.add(getPointAtDistance(ls, end));
 				break;
 			}
-			seenLength += nextLength;
 		}
 		Coordinate coords[] = new Coordinate[ncoord.size()];
 		for(int i=0; i<ncoord.size(); ++i) {
