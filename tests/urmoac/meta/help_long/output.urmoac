@@ -93,6 +93,9 @@ Usage:
   --crossing-model.param1        First parameter of the chosen crossing model.
   --crossing-model.param2        Second parameter of the chosen crossing model.
 
+ Network Simplification Options
+  --prunning.remove-geometries   Removes edge geometries.
+
  Public Transport Options
   --date                         The date for which the accessibilities shall be
                                    computed.

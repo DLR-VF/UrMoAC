@@ -544,4 +544,11 @@ public class DBNet {
 		}
 	}
 	
+	
+	public void nullifyEdgeGeometries() {
+		for (DBEdge e : name2edge.values()) {
+			e.nullifyGeometry();
+		}
+	}
+	
 }

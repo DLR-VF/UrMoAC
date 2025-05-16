@@ -14,16 +14,27 @@
 
 ### Changes in options and defaults
 
-* option **--keep-subnets" was renamed to **--net.keep-subnets**
+* option **--keep-subnets** was renamed to **--net.keep-subnets**
 * added option **--net.report-all-errors** that forces **UrMoAC** to report all network errors. Otherwise, only the first one of each type is reported. Please note that you may generate a file/database table listing all network errors using the option **--net-errors-output *&lt;OUTPUT&gt;**.
 * renamed **--write.subnets *&lt;OUTPUT&gt;*** to **--subnets-output *&lt;OUTPUT&gt;*** (back again)
 * added options **--crossing-model *&lt;MODEL&gt;*** for selecting the model of penalties at crossings, including options to set its parameter **--crossing-model.param1 *&lt;DOUBLE&gt;***, and **--crossing-model.param2 *&lt;DOUBLE&gt;***
 * renamed **--measure *&lt;ROUTING_MEASURE&gt;*** to **--routing-measure *&lt;ROUTING_MEASURE&gt;*** and according **--measure-param*X* *&lt;DOUBLE&gt;*** to **--routing-measure.param*X* *&lt;DOUBLE&gt;***
+* Earlier options for prunning the network and/or the pt-offer were replaced by the following options. Each of those can either get a bounding box (four floats) or the reference to a data source to load the prunning area from.
+	* **--from.boundary [_&lt;GEOM_SOURCE&gt;_ | _&lt;BOUNDING_BOX&gt;_]**
+	* **--to.boundary [_&lt;GEOM_SOURCE&gt;_ | _&lt;BOUNDING_BOX&gt;_]**
+	* **--from-agg.boundary [_&lt;GEOM_SOURCE&gt;_ | _&lt;BOUNDING_BOX&gt;_]**
+	* **--to-agg.boundary [_&lt;GEOM_SOURCE&gt;_ | _&lt;BOUNDING_BOX&gt;_]**
+	* **--net.boundary [_&lt;GEOM_SOURCE&gt;_ | _&lt;BOUNDING_BOX&gt;_]**
+	* **--pt.boundary [_&lt;GEOM_SOURCE&gt;_ | _&lt;BOUNDING_BOX&gt;_]**
 
 ### Changes in computation
 
 * previously, intermodality was somehow covered by giving **UrMoAC** a list of modes to use. This has been replaced by distinct mode change points, defined using the option **--mode-changes *&lt;INPUT&gt;***
-* an initial model for adding penalties at crossing was added. It can be enabled using the option **--crossing-model *&lt;MODEL&gt;***
+* an initial model for adding penalties at crossing was added. It can be enabled using the option **--crossing-model *&lt;MODEL&gt;*** where ***&lt;MODEL&gt;*** may be one of "*none*" and "*ctm1*". (Floating point) parameter of the model can be set using the options ***--crossing-model.param1 *&lt;FLOAT&gt;***, and ***--crossing-model.param2 *&lt;FLOAT&gt;***.
+* an initial model for reducing speeds (mainly for MIT routing) was added. It can be enabled using the option **--net.vmax-model *&lt;MODEL&gt;*** where ***&lt;MODEL&gt;*** may be one of "*none*" and "*vmm1*"
+* Reducing memory footprint and increasing speed
+	* The option **--prunning.remove-geometries** will remove the edge geometries after mapping sources/destiations for reducing the memory footprint; You will be warned, when using in combination with **--direct-output** as this is the only output that needs edge geometries
+
 		
 ### Continuous Integration 
 

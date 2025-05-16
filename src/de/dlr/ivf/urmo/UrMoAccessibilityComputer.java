@@ -243,6 +243,10 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("crossing-model.param2", new Option_Double());
 		options.setDescription("crossing-model.param2", "Second parameter of the chosen crossing model.");
 		
+		options.beginSection("Network Simplification Options");
+		options.add("prunning.remove-geometries", new Option_Bool());
+		options.setDescription("prunning.remove-geometries", "Removes edge geometries.");
+		
 		options.beginSection("Public Transport Options");
 		options.add("date", new Option_String());
 		options.setDescription("date", "The date for which the accessibilities shall be computed.");
@@ -682,6 +686,14 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		nearestToEdges = nef2.getNearestEdges(true, true, options.getInteger("threads"));
 		if (options.isSet("destinations-to-road-output")) {
 			OutputBuilder.writeEdgeAllocation("destinations-to-road-output", options, nearestToEdges, epsg);
+		}
+		
+		// -------- simplify the network
+		if(options.getBool("prunning.remove-geometries")) {
+			if(options.isSet("direct-output")) {
+				System.err.println("Warning: Removing edge geometries will reduce the quality of direct output!");
+			}
+			net.nullifyEdgeGeometries();
 		}
 
 		// -------- build outputs

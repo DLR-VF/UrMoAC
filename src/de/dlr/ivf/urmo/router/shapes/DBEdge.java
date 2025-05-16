@@ -24,7 +24,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Vector;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.PrecisionModel;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
 import de.dlr.ivf.urmo.router.modes.Mode;
@@ -202,7 +205,14 @@ public class DBEdge {
 	 * @return This edge's geometry
 	 */
 	public LineString getGeometry() {
-		return geom;
+		if(geom!=null) {
+			return geom;
+		}
+		Coordinate[] edgeCoords = new Coordinate[2];
+		edgeCoords[0] = from.getCoordinate();
+		edgeCoords[1] = to.getCoordinate();
+		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
+		return geom = gf.createLineString(edgeCoords);
 	}
 
 
@@ -466,6 +476,11 @@ public class DBEdge {
 
 	public void setVMax(double value) {
 		vmax = value;
+	}
+	
+	
+	public void nullifyGeometry() {
+		geom = null;
 	}
 
 }
