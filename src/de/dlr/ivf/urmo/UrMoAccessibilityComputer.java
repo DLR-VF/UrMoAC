@@ -583,6 +583,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		DBNet net = NetLoader.loadNet(this, options.getString("net"), netBoundary, options.getString("net.vmax"), options.getString("net.geom"), 
 				epsg, modes, netErrorsOutput, options.getBool("net.report-all-errors"), options.getBool("net.patch-errors"),
 				ctm);
+		if (net.getNumEdges()==0) {
+			throw new IOException("No network edges loaded.");
+		}
 		if (verbose) System.out.println(" " + net.getNumEdges() + " edges loaded (" + net.getNodes().size() + " nodes)");
 		if(!options.getBool("net.keep-subnets")) {
 			if (verbose) System.out.println("Checking for connectivity...");
