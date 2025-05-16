@@ -109,13 +109,6 @@ public class DirectWriter extends BasicCombinedWriter {
 				if(result.origin.edge==result.destination.edge) {
 					beg = result.origin.pos;
 					end = result.destination.pos;
-					/*
-					if(beg>end) {
-						double tmp = beg;
-						beg = end;
-						end = tmp;
-					}
-					*/
 				} else {
 					beg = result.origin.edge.getLength() - result.origin.pos;
 					end = result.destination.pos;
