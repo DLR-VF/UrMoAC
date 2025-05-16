@@ -556,6 +556,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			throw new IOException("An EPSG to use for projection must be given.");
 		}
 		int epsg = options.getInteger("epsg");
+		// !!! todo: check epsg for using metric coordinates
 		// -------- loading
 		boolean dismissWeight = !options.isSet("from-agg");
 		if(dismissWeight && !options.isDefault("weight")) {
