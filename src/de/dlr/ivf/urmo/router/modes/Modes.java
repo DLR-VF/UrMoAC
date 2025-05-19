@@ -138,6 +138,22 @@ public class Modes {
 		}
 		return ret;
 	}
+	
+	
+	/**
+	 * @brief Returns whether a named mode is included in the modes' list
+	 * @param modes The modes list
+	 * @param modes The mode name to check
+	 * @return Whether the named mode is within the list
+	 */
+	public static boolean isIncluded(Vector<Mode> modes, String modeName) {
+		for(Mode m : modes) {
+			if(m.mml!=null&&m.mml.equals(modeName)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	
 	/**

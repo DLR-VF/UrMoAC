@@ -534,7 +534,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			throw new IOException("The mode(s) '" + options.getString("mode") + "' is/are not known.");
 		}
 		// ------ reset custom mode if used
-		if(options.getString("mode").contains("custom")) { // !!!
+		if(Modes.isIncluded(modes, "custom")) {
 			double custom_vmax = options.isSet("custom.vmax") ? options.getDouble("custom.vmax") : -1;
 			double custom_kkc = options.isSet("custom.kkc-per-hour") ? options.getDouble("custom.kkc-per-hour") : -1;
 			double custom_co2 = options.isSet("custom.co2-per-km") ? options.getDouble("custom.co2-per-km") : -1;

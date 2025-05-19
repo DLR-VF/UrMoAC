@@ -38,6 +38,7 @@
 	* The computation uses a less complex algorithm when computing unimodal accessibilities
 	* Added the option **--prunning.remove-dead-ends** for removing unused dead ends (ones that do not have an origin / a destination)
 * added incline to edges
+* added option **--prunning.precompute-tt** which forces UrMoAC to precompute travel times; works for unimodal computation only and only if no variabel speed time lines are loaded
 		
 ### Continuous Integration 
 
