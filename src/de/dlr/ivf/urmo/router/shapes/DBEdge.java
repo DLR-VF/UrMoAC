@@ -104,8 +104,6 @@ public class DBEdge {
 	private HashSet<EdgeMappable> objects = null;
 	/// @brief The list of travel time informations for this edge
 	private Vector<V> speeds = null;
-	/// @brief The sum of attached values
-	private double attachedValuesSum = 0;
 	/// @brief The opposite direction
 	private DBEdge opposite = null;
 	/// @brief Crossing times to subsequent edges
@@ -301,7 +299,6 @@ public class DBEdge {
 			objects = new HashSet<>();
 		}
 		objects.add(em);
-		attachedValuesSum += ((LayerObject) em).getAttachedValue();
 	}
 
 
@@ -311,15 +308,6 @@ public class DBEdge {
 	 */
 	public Set<EdgeMappable> getMappedObjects() {
 		return objects;
-	}
-
-
-	/**
-	 * @brief Returns the sum of the attached object's values
-	 * @return Sum of the values of the objects attached to this edge
-	 */
-	public double getAttachedValues() {
-		return attachedValuesSum;
 	}
 
 
