@@ -110,7 +110,7 @@ public class BoundDijkstra_UniModal implements IBoundDijkstra {
 		DijkstraEntry nm = new DijkstraEntry(measure, null, startEdge.getToNode(), startEdge, mode,
 				(startEdge.getLength()-origin.pos), tt, null, tt, 0, false);
 		addNodeInfo(startEdge.getToNode(), nm);
-		addModalVariants(nm);
+		next.add(nm);
 		if(visitFirstEdge(measure, startEdge, nm, nearestFromEdges, false)) {
 			hadExtension = true; // there won't be a better way
 		} 
@@ -150,11 +150,11 @@ public class BoundDijkstra_UniModal implements IBoundDijkstra {
 				DijkstraEntry oldValue = getPriorNodeInfo(n);
 				DijkstraEntry newValue = new DijkstraEntry(measure, nns, n, oe, mode, distance, tt, null, ttt, interchangeTT, false);
 				if(oldValue==null) {
-					addModalVariants(newValue);
+					next.add(newValue);
 					addNodeInfo(n, newValue);
 				} else if(measure.compare(oldValue, newValue)>0) {
 					next.remove(oldValue);
-					addModalVariants(newValue);
+					next.add(newValue);
 					addNodeInfo(n, newValue);
 				}
 				if(visitEdge(measure, oe, newValue, nearestFromEdges)) {
@@ -179,11 +179,6 @@ public class BoundDijkstra_UniModal implements IBoundDijkstra {
 		}
 	}
 	
-
-	private void addModalVariants(DijkstraEntry entry) {
-		next.add(entry);
-	}
-
 
 
 	/** @brief Adds the information about the access to a node
