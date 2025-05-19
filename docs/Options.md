@@ -79,10 +79,11 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --entrainment _&lt;ENTRAINMENT_SOURCE&gt;_<br>-E _&lt;ENTRAINMENT_SOURCE&gt;_ | N/A (optional) | Data source for entrainment description. |
 | --pt-restriction _&lt;CARRIERS&gt;_ | N/A (optional) | A list of carriers that shall be loaded (all are loaded if not given). |
 
-## Custom Mode options
+## Mode options
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
-| --custom.vmax _&lt;DOUBLE&gt;_ | N/A (optional) | Maximum velocity of the custom mode. |
+| --foot.vmax _&lt;DOUBLE&gt;_ | 3.6 | Maximum walking velocity (in km/h). |
+| --custom.vmax _&lt;DOUBLE&gt;_ | N/A (optional) | Maximum velocity of the custom mode (in km/h). |
 | --custom.kkc-per-hour _&lt;DOUBLE&gt;_ | N/A (optional) | kkc used per hour when using the custom mode. |
 | --custom.co2-per-km _&lt;DOUBLE&gt;_ | N/A (optional) | CO2 emitted per kilometer when using the custom mode. |
 | --custom.price-per-km _&lt;DOUBLE&gt;_ | N/A (optional) | Price for using the custom mode per kilometre. |

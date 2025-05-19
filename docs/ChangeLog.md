@@ -26,6 +26,7 @@
 	* **--to-agg.boundary [_&lt;GEOM_SOURCE&gt;_ | _&lt;BOUNDING_BOX&gt;_]**
 	* **--net.boundary [_&lt;GEOM_SOURCE&gt;_ | _&lt;BOUNDING_BOX&gt;_]**
 	* **--pt.boundary [_&lt;GEOM_SOURCE&gt;_ | _&lt;BOUNDING_BOX&gt;_]**
+* added option **--foot.vmax *&lt;SPEED&gt;*** for changing the default walking speed; *&lt;SPEED&gt;* is given in km/h
 
 ### Changes in computation
 
@@ -36,6 +37,7 @@
 	* The option **--prunning.remove-geometries** will remove the edge geometries after mapping sources/destiations for reducing the memory footprint; You will be warned, when using in combination with **--direct-output** as this is the only output that needs edge geometries
 	* The computation uses a less complex algorithm when computing unimodal accessibilities
 	* Added the option **--prunning.remove-dead-ends** for removing unused dead ends (ones that do not have an origin / a destination)
+* added incline to edges
 		
 ### Continuous Integration 
 

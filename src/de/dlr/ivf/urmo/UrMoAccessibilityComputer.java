@@ -257,7 +257,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("pt-restriction", new Option_String());
 		options.setDescription("pt-restriction", "Restrictions to usable GTFS carriers.");
 		
-		options.beginSection("Custom Mode Options");
+		options.beginSection("Mode Options");
+		options.add("foot.vmax", new Option_Double(3.6));
+		options.setDescription("foot.vmax", "Sets the maximum walking speed (default: 3.6 km/h).");
 		options.add("custom.vmax", new Option_Double());
 		options.setDescription("custom.vmax", "Maximum velocity of the custom mode.");
 		options.add("custom.kkc-per-hour", new Option_Double());
@@ -523,7 +525,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		verbose = options.getBool("verbose");
 		// -------- modes
 		// ------ set up and parse modes
-		Modes.init();
+		Modes.init(options.getDouble("foot.vmax"));
 		if (!options.isSet("mode")) {
 			throw new IOException("At least one allowed mode must be given.");
 		}
