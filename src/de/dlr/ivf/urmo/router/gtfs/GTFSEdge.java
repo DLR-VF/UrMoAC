@@ -58,8 +58,8 @@ public class GTFSEdge extends DBEdge {
 	 * @param _route The route that realises this connection between two nodes
 	 */
 	public GTFSEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom,
-			double _length, GTFSRoute _route) {
-		super(_id, _from, _to, _modes, _vmax, _geom, _length);
+			double _length, double _incline, GTFSRoute _route) {
+		super(_id, _from, _to, _modes, _vmax, _geom, _length, _incline);
 		route = _route;
 	}
 

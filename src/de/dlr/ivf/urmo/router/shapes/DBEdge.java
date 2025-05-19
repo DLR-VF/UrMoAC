@@ -100,6 +100,8 @@ public class DBEdge {
 	private LineString geom;
 	/// @brief The length of this edge
 	private double length;
+	/// @brief The incline of this edge
+	private double incline;
 	/// @brief Objects assigned to this edge
 	private HashSet<EdgeMappable> objects = null;
 	/// @brief The list of travel time informations for this edge
@@ -120,7 +122,7 @@ public class DBEdge {
 	 * @param _geom The geometry of this edge
 	 * @param _length The length of this edge
 	 */
-	public DBEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length) {
+	public DBEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length, double _incline) {
 		id = _id;
 		from = _from;
 		to = _to;
@@ -128,6 +130,7 @@ public class DBEdge {
 		vmax = _vmax;
 		geom = _geom;
 		length = _length;
+		incline = _incline;
 		_from.addOutgoing(this);
 		_to.addIncoming(this);
 	}
@@ -169,6 +172,15 @@ public class DBEdge {
 	 */
 	public double getLength() {
 		return length;
+	}
+
+
+	/**
+	 * @brief Returns this edge's incline [%]
+	 * @return This edge's length
+	 */
+	public double getIncline() {
+		return incline;
 	}
 
 
@@ -283,6 +295,14 @@ public class DBEdge {
 					}
 					return length / Math.min(ivmax, Math.min(vg, vmax));
 				}
+			}
+		}
+		// !!! per mode
+		if(incline!=0) {
+			if(incline>6) {
+				ivmax *= 0.9;
+			} else if(incline<-6) {
+				ivmax *= 1.05;
 			}
 		}
 		double v = Math.min(vmax, ivmax);

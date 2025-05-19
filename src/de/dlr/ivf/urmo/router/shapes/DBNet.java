@@ -99,7 +99,7 @@ public class DBNet {
 	 * @return The built edge
 	 * @throws IOException 
 	 */
-	public boolean addEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length) throws IOException {
+	public boolean addEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length, double _incline) throws IOException {
 		boolean hadError = false;
 		if(_length<=0) {
 			if(stateEdges0Length!=2) {
@@ -151,7 +151,7 @@ public class DBNet {
 			hadError = true;
 		}
 		if(!hadError) {
-			DBEdge e = new DBEdge(_id, _from, _to, _modes, _vmax, _geom, _length);
+			DBEdge e = new DBEdge(_id, _from, _to, _modes, _vmax, _geom, _length, _incline);
 			addEdge(e);
 		}
 		return !hadError;
@@ -481,7 +481,7 @@ public class DBNet {
 			// add a reverse direction edge for pedestrians
 			if(addOppositePedestrianEdges && ((opposite==null && e.allows(modeFoot)))) {// || (opposite==e))) {
 				// todo: recheck whether opposite==e is correct - it happens, though maybe when using an external OSM importer
-				opposite = new DBEdge("opp_"+e.getID(), e.getToNode(), e.getFromNode(), modeFoot, e.getVMax(), (LineString) e.getGeometry().reverse(), e.getLength());
+				opposite = new DBEdge("opp_"+e.getID(), e.getToNode(), e.getFromNode(), modeFoot, e.getVMax(), (LineString) e.getGeometry().reverse(), e.getLength(), -e.getIncline());
 				newEdges.add(opposite);
 			}
 			// add the information about the opposite edge

@@ -138,7 +138,7 @@ public class NetLoader {
 			connection.setAutoCommit(true);
 			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 			((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-			String query = "SELECT oid,nodefrom,nodeto,mode_walk,mode_bike,mode_mit,"+vmax+",length,ST_AsBinary(ST_TRANSFORM(" + geomS + "," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, "net");
+			String query = "SELECT oid,nodefrom,nodeto,mode_walk,mode_bike,mode_mit,"+vmax+",length,incline,ST_AsBinary(ST_TRANSFORM(" + geomS + "," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, "net");
 			if(netBoundary!=null) {
 				query += " WHERE ST_Within(ST_Transform(" + geomS + "," + epsg + "), ST_GeomFromText('" + netBoundary.toText() + "', " + epsg + "))";
 			}
@@ -179,7 +179,11 @@ public class NetLoader {
 				Coordinate[] cs = geom2.getCoordinates();
 				DBNode fromNode = net.getNode(rs.getLong("nodefrom"), cs[0]);
 				DBNode toNode = net.getNode(rs.getLong("nodeto"), cs[cs.length - 1]);
-				ok &= net.addEdge(rs.getString("oid"), fromNode, toNode, modes, rs.getDouble(vmax) / 3.6, geom2, rs.getDouble("length"));
+				double incline = rs.getDouble("incline");
+				if (rs.wasNull()) {
+					incline = 0;
+				}
+				ok &= net.addEdge(rs.getString("oid"), fromNode, toNode, modes, rs.getDouble(vmax) / 3.6, geom2, rs.getDouble("length"), incline);
 			}
 			rs.close();
 			s.close();
@@ -235,7 +239,7 @@ public class NetLoader {
 			DBNode fromNode = net.getNode(Long.parseLong(vals[1]), coords[0]);
 			DBNode toNode = net.getNode(Long.parseLong(vals[2]), coords[coords.length - 1]);
 			LineString ls = gf.createLineString(coords);
-			ok &= net.addEdge(vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, ls, Double.parseDouble(vals[7]));
+			ok &= net.addEdge(vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, ls, Double.parseDouble(vals[7]), 0);
 	    } while(line!=null);
 		br.close();
 		return ok ? net : null;
@@ -277,7 +281,7 @@ public class NetLoader {
 				Coordinate cs[] = geom.getCoordinates();
 				DBNode fromNode = net.getNode(Long.parseLong(vals[1]), cs[0]);
 				DBNode toNode = net.getNode(Long.parseLong(vals[2]), cs[cs.length - 1]);
-				ok &= net.addEdge(vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, geom, Double.parseDouble(vals[7]));
+				ok &= net.addEdge(vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, geom, Double.parseDouble(vals[7]), 0);
 		    } while(line!=null);
 			br.close();
 			return ok ? net : null;

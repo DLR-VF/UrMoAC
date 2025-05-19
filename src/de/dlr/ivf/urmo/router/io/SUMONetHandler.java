@@ -161,7 +161,7 @@ public class SUMONetHandler extends DefaultHandler {
 				DBNode fromNode = _net.getNode(_from, cs[0]);
 				DBNode toNode = _net.getNode(_to, cs[cs.length - 1]);
 				try {
-					_net.addEdge(_id, fromNode, toNode, modes, _maxLaneSpeed, geom2, length);
+					_net.addEdge(_id, fromNode, toNode, modes, _maxLaneSpeed, geom2, length, 0);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

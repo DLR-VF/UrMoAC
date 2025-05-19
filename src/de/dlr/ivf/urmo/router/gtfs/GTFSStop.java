@@ -125,7 +125,7 @@ public class GTFSStop extends DBNode implements EdgeMappable {
 			coord[0] = getCoordinate();
 			coord[1] = to.getCoordinate();
 			LineString ls = net.getGeometryFactory().createLineString(coord);
-			GTFSEdge e = new GTFSEdge(this.mid + "_to_" + to.mid + "_using_" + route.nameS, this, to, modes, 80, ls, length, route);
+			GTFSEdge e = new GTFSEdge(this.mid + "_to_" + to.mid + "_using_" + route.nameS, this, to, modes, 80, ls, length, 0, route);
 			m.put(route, e);
 			return e;
 		}
