@@ -590,5 +590,12 @@ public class DBNet {
 			removeEdge(e);
 		}
 	}
+
+
+	public void precomputeTTs(double ivmax) {
+		for (DBEdge e : name2edge.values()) {
+			e.precomputeTT(ivmax);
+		}		
+	}
 	
 }

@@ -248,7 +248,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("prunning.remove-geometries", "Removes edge geometries.");
 		options.add("prunning.remove-dead-ends", new Option_Bool());
 		options.setDescription("prunning.remove-dead-ends", "Removes dead ends with no objects.");
-		
+		options.add("prunning.precompute-tt", new Option_Bool());
+		options.setDescription("prunning.precompute-tt", "Precomputes travel times.");
+				
 		options.beginSection("Public Transport Options");
 		options.add("date", new Option_String());
 		options.setDescription("date", "The date for which the accessibilities shall be computed.");
@@ -744,6 +746,19 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			} else if(!"tt_mode".equals(t)) {
 				System.err.println("Error: the route weight function '" + t + "' is not known.");
 				hadError = true;
+			}
+		}
+		// -------- precompute travel times
+		if(!hadError&&options.getBool("prunning.precompute-tt")) {
+			if(Modes.isIncluded(modes, "car")&&options.isSet("traveltimes")) {
+				System.err.println("Error: Travel time precomputation is not possible when using time-dependent travel times.");
+				hadError = true;
+			} if(modes.size()>1) {
+				System.err.println("Error: Travel time precomputation is not possible when using more than one mode.");
+				hadError = true;
+			} else {
+				Mode m = modes.get(0);
+				net.precomputeTTs(m.vmax);
 			}
 		}
 		// done everything

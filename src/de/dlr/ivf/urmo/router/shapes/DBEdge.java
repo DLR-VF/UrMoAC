@@ -110,6 +110,7 @@ public class DBEdge {
 	private DBEdge opposite = null;
 	/// @brief Crossing times to subsequent edges
 	private HashMap<DBEdge, Double> crossingTimes; 
+	double precomputedTT = -1;
 
 
 	/**
@@ -286,6 +287,9 @@ public class DBEdge {
 	 * @return The travel time to pass this edge
 	 */
 	public double getTravelTime(double ivmax, double time) {
+		if(precomputedTT>=0) {
+			return precomputedTT;
+		}
 		if(speeds!=null) {
 			for(V v : speeds) {
 				if(v.ibeg<=time && v.iend>=time) {
@@ -307,6 +311,11 @@ public class DBEdge {
 		}
 		double v = Math.min(vmax, ivmax);
 		return length / v;
+	}
+	
+	
+	public void precomputeTT(double ivmax) {
+		precomputedTT = getTravelTime(ivmax, 0);
 	}
 
 
