@@ -110,7 +110,7 @@ public class DBEdge {
 	private DBEdge opposite = null;
 	/// @brief Crossing times to subsequent edges
 	private HashMap<DBEdge, Double> crossingTimes; 
-	double precomputedTT = -1;
+	private double precomputedTT = -1;
 
 
 	/**
@@ -224,7 +224,7 @@ public class DBEdge {
 		edgeCoords[0] = from.getCoordinate();
 		edgeCoords[1] = to.getCoordinate();
 		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
-		return geom = gf.createLineString(edgeCoords);
+		return gf.createLineString(edgeCoords);
 	}
 
 
