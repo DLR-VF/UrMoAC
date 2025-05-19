@@ -40,7 +40,6 @@ import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 import org.locationtech.jts.io.WKTReader;
-import org.locationtech.jts.io.WKTWriter;
 import org.postgresql.PGConnection;
 import org.xml.sax.SAXException;
 
