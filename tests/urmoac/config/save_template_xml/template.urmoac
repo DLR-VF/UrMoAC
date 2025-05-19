@@ -34,6 +34,7 @@
    <net.boundary></net.boundary>
    <net.keep-subnets></net.keep-subnets>
    <net.patch-errors></net.patch-errors>
+   <net.no-incline></net.no-incline>
    <pt.boundary></pt.boundary>
    <weight></weight>
    <variable></variable>
@@ -52,9 +53,11 @@
    <crossing-model.param2></crossing-model.param2>
    <prunning.remove-geometries></prunning.remove-geometries>
    <prunning.remove-dead-ends></prunning.remove-dead-ends>
+   <prunning.precompute-tt></prunning.precompute-tt>
    <date></date>
    <entrainment></entrainment>
    <pt-restriction></pt-restriction>
+   <foot.vmax></foot.vmax>
    <custom.vmax></custom.vmax>
    <custom.kkc-per-hour></custom.kkc-per-hour>
    <custom.co2-per-km></custom.co2-per-km>
