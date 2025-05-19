@@ -72,7 +72,7 @@ public class NetLoader {
 	 * @throws IOException When something fails 
 	 */
 	public static DBNet loadNet(IDGiver idGiver, String def, Geometry netBoundary, String vmaxAttr, String geomS, int epsg, Vector<Mode> modes, 
-			NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors,
+			NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors, boolean ignoreIncline,
 			CrossingTimesModel_CTM1 ctm) throws IOException {
 		Utils.Format format = Utils.getFormat(def);
 		String[] inputParts = Utils.getParts(format, def, "net");
@@ -81,7 +81,7 @@ public class NetLoader {
 		switch(format) {
 		case FORMAT_POSTGRES:
 		case FORMAT_SQLITE:
-			net = loadNetFromDB(idGiver, format, inputParts, netBoundary, vmaxAttr, geomS, epsg, uModes, errorsWriter, reportAllErrors, patchErrors);
+			net = loadNetFromDB(idGiver, format, inputParts, netBoundary, vmaxAttr, geomS, epsg, uModes, errorsWriter, reportAllErrors, patchErrors, ignoreIncline);
 			break;
 		case FORMAT_CSV:
 			net = loadNetFromCSVFile(idGiver, inputParts[0], uModes, errorsWriter, reportAllErrors, patchErrors);
@@ -125,7 +125,9 @@ public class NetLoader {
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromDB(IDGiver idGiver, Utils.Format format, String[] inputParts, Geometry netBoundary, String vmax, String geomS, int epsg, long uModes, NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors) throws IOException {
+	private static DBNet loadNetFromDB(IDGiver idGiver, Utils.Format format, String[] inputParts, Geometry netBoundary, 
+			String vmax, String geomS, int epsg, long uModes, NetErrorsWriter errorsWriter, 
+			boolean reportAllErrors, boolean patchErrors, boolean ignoreIncline) throws IOException {
 		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
 		try {
 			Class.forName("org.sqlite.JDBC");
@@ -179,7 +181,7 @@ public class NetLoader {
 				Coordinate[] cs = geom2.getCoordinates();
 				DBNode fromNode = net.getNode(rs.getLong("nodefrom"), cs[0]);
 				DBNode toNode = net.getNode(rs.getLong("nodeto"), cs[cs.length - 1]);
-				double incline = rs.getDouble("incline");
+				double incline = ignoreIncline ? 0 : rs.getDouble("incline");
 				if (rs.wasNull()) {
 					incline = 0;
 				}

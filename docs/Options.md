@@ -44,6 +44,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --net.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the network. |
 | --net.keep-subnets | N/A (optional) | When set, unconnected network parts are not removed. |
 | --net.patch-errors | N/A (optional) | When set, broken edge lengths and speeds will be patched. |
+| --net.no-incline | N/A (optional) | Ignores loaded incline information. |
 | --pt.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the PT offer. |
 
 
