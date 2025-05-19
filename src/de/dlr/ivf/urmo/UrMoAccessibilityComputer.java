@@ -699,14 +699,14 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		}
 		
 		// -------- simplify the network
-		if(options.getBool("prunning.remove-geometries")) {
+		if(!hadError&&options.getBool("prunning.remove-geometries")) {
 			if (verbose) System.out.println("Nullifying edge geometries...");
 			if(options.isSet("direct-output")) {
 				System.err.println("Warning: Removing edge geometries will reduce the quality of direct output!");
 			}
 			net.nullifyEdgeGeometries();
 		}
-		if(options.getBool("prunning.remove-dead-ends")) {
+		if(!hadError&&options.getBool("prunning.remove-dead-ends")) {
 			if (verbose) System.out.println("Removing unused dead ends...");
 			net.removeUnusedDeadEnds(nearestFromEdges, nearestToEdges);
 			if (verbose) System.out.println(" " + net.getNumEdges() + " remaining after removing empty dead ends.");
