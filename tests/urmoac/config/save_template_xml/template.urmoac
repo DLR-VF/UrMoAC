@@ -54,6 +54,7 @@
    <prunning.remove-geometries></prunning.remove-geometries>
    <prunning.remove-dead-ends></prunning.remove-dead-ends>
    <prunning.precompute-tt></prunning.precompute-tt>
+   <prunning.join-similar></prunning.join-similar>
    <date></date>
    <entrainment></entrainment>
    <pt-restriction></pt-restriction>

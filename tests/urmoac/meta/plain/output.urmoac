@@ -98,6 +98,7 @@ Usage:
   --prunning.remove-geometries   Removes edge geometries.
   --prunning.remove-dead-ends    Removes dead ends with no objects.
   --prunning.precompute-tt       Precomputes travel times.
+  --prunning.join-similar        Joins edges with similar attributes.
 
  Public Transport Options
   --date                         The date for which the accessibilities shall be

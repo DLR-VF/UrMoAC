@@ -207,7 +207,7 @@ highways = {
     #"highway_construction":{"mode":ALL, "vmax":50, "lanes":1},
     "highway_service":{"mode":ALL, "vmax":20, "lanes":1},
     "highway_track":{"mode":ALL, "vmax":20, "lanes":1},  # all only if destination (http://wiki.openstreetmap.org/wiki/OSM_tags_for_routing/Access-Restrictions#Germany)
-    "highway_services":{"mode":ALL, "vmax":30, "lanes":1},
+    "highway_services":{"mode":ALL, "vmax":20, "lanes":1},
     "highway_unsurfaced":{"mode":ALL, "vmax":30, "lanes":1},
 
     # TODO: we should decide which of the following ones may be used by which mode
@@ -383,12 +383,12 @@ def get_vmax(defaultSpeed, params):
 
 accessAllows = {
     "yes":True,
-    "private":False,
+    "private":True,
     "no":False,
     "permissive":True,
     "agricultural":False,
     "use_sidepath":True,
-    "delivery":False,
+    "delivery":True,
     "designated":True,
     "dismount":True,
     "discouraged":True,

@@ -172,6 +172,13 @@ public class DBNode {
 	}
 
 
+	public void replaceIncoming(DBEdge e, DBEdge by) {
+		incoming.remove(e);
+		incoming.add(by);
+	}
+
+	
+	
 	/**
 	 * @brief Removes the given edge from the ones that start at this node
 	 * @param e The edge to remove
@@ -179,6 +186,17 @@ public class DBNode {
 	public void removeOutgoing(DBEdge e) {
 		outgoing.remove(e);
 	}
+
+	
+	public void replaceOutgoing(DBEdge e, DBEdge by) {
+		outgoing.remove(e);
+		outgoing.add(by);
+		for(DBEdge incEdge : incoming) {
+			incEdge.replaceOutgoing(e, by);
+		}
+	}
+
+	
 	
 	
 	/** @brief Returns the coordinate

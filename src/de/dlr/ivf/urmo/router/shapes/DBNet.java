@@ -598,4 +598,93 @@ public class DBNet {
 		}		
 	}
 	
+	
+	public void joinSimilar(double ivmax, long mode) throws IOException {
+		// determine candidates
+		HashMap<DBEdge, DBEdge> candidates = new HashMap<>();
+		for (DBEdge e : name2edge.values()) {
+			if(e.getAttachedObjectsNumber()!=0) {
+				continue;
+			}
+			Vector<DBEdge> outgoing = e.getToNode().getOutgoing();
+			int nOutgoing = outgoing.size();
+			DBEdge opposite = e.getOppositeEdge();
+			if(opposite!=null&&outgoing.contains(opposite)) {
+				nOutgoing -= 1;
+			}
+			if(nOutgoing!=1) {
+				continue;
+			}
+			outgoing = new Vector<DBEdge>(outgoing);
+			if(opposite!=null&&outgoing.contains(opposite)) {
+				outgoing.remove(opposite);
+			}
+			DBEdge next = outgoing.get(0);
+			if(next.getAttachedObjectsNumber()!=0) {
+				continue;
+			}
+			if(!e.canBeJoined(next, ivmax, mode)) {
+				continue;
+			}
+			candidates.put(e, next);
+		}
+		// join
+		HashMap<DBEdge, DBEdge> replaced = new HashMap<>();
+		for (DBEdge prev : candidates.keySet()) {
+			DBEdge next = candidates.get(prev);
+			if(replaced.containsKey(next)) {
+				next = replaced.get(next); 
+			}
+			DBEdge prevOpposite = prev.getOppositeEdge();
+			DBEdge nextOpposite = next.getOppositeEdge();
+			if(replaced.containsKey(nextOpposite)) {
+				nextOpposite = replaced.get(nextOpposite); 
+			}
+			// check whether they can be joined
+			if((prevOpposite==null&&nextOpposite!=null) || (prevOpposite!=null&&nextOpposite==null)) {
+				continue;
+			}
+			if(!candidates.containsKey(nextOpposite)||candidates.get(nextOpposite)!=prevOpposite) {
+				continue;
+			}
+			String nid = prev.extendBy(next, geometryFactory);
+			String nidOpposite = null;
+			if(prevOpposite!=null) {
+				nidOpposite = nextOpposite.extendBy(prevOpposite, geometryFactory);
+			}
+			// remove in in-between node
+			DBNode n = prev.getToNode();
+			n.removeIncoming(prev);
+			n.removeOutgoing(next);
+			if(prevOpposite!=null) {
+				n.removeIncoming(nextOpposite);
+				n.removeOutgoing(prevOpposite);
+			}
+			if(n.getIncoming().size()!=0||n.getOutgoing().size()!=0) {
+				throw new IOException("fatal error#1 in joinSimilar");
+			}
+			nodes.remove(n.getID());
+			// replace in begin / end nodes
+			next.getToNode().replaceIncoming(next, prev);
+			if(prevOpposite!=null) {
+				prevOpposite.getToNode().replaceIncoming(prevOpposite, nextOpposite);
+			}
+			// replace in name mapping
+			name2edge.remove(prev.getID());
+			name2edge.remove(next.getID());
+			if(prevOpposite!=null) {
+				name2edge.remove(prevOpposite.getID());
+				name2edge.remove(nextOpposite.getID());
+			}
+			name2edge.put(nid, prev);
+			if(nidOpposite!=null) {
+				name2edge.put(nidOpposite, nextOpposite);
+			}
+			//
+			replaced.put(prev, next);
+			replaced.put(nextOpposite, prevOpposite);
+		}		
+	}
+	
+	
 }

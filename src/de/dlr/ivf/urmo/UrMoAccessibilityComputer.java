@@ -252,6 +252,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("prunning.remove-dead-ends", "Removes dead ends with no objects.");
 		options.add("prunning.precompute-tt", new Option_Bool());
 		options.setDescription("prunning.precompute-tt", "Precomputes travel times.");
+		options.add("prunning.join-similar", new Option_Bool());
+		options.setDescription("prunning.join-similar", "Joins edges with similar attributes.");
 				
 		options.beginSection("Public Transport Options");
 		options.add("date", new Option_String());
@@ -713,6 +715,30 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			net.removeUnusedDeadEnds(nearestFromEdges, nearestToEdges);
 			if (verbose) System.out.println(" " + net.getNumEdges() + " remaining after removing empty dead ends.");
 		}
+		if(!hadError&&options.getBool("prunning.precompute-tt")) {
+			if(Modes.isIncluded(modes, "car")&&options.isSet("traveltimes")) {
+				System.err.println("Error: Travel time precomputation is not possible when using time-dependent travel times.");
+				hadError = true;
+			} if(modes.size()>1) {
+				System.err.println("Error: Travel time precomputation is not possible when using more than one mode.");
+				hadError = true;
+			} else {
+				Mode m = modes.get(0);
+				net.precomputeTTs(m.vmax);
+			}
+		}
+		if(!hadError&&options.getBool("prunning.join-similar")) {
+			if(Modes.isIncluded(modes, "car")&&options.isSet("traveltimes")) {
+				System.err.println("Error: Joining edges is currently not possible when using time-dependent travel times.");
+				hadError = true;
+			} if(modes.size()>1) {
+				System.err.println("Error: Joining edges is currently not possible when using more than one mode.");
+				hadError = true;
+			} else {
+				Mode m = modes.get(0);
+				net.joinSimilar(m.vmax, m.id);
+			}
+		}
 
 		// -------- build outputs
 		@SuppressWarnings("rawtypes")
@@ -748,19 +774,6 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			} else if(!"tt_mode".equals(t)) {
 				System.err.println("Error: the route weight function '" + t + "' is not known.");
 				hadError = true;
-			}
-		}
-		// -------- precompute travel times
-		if(!hadError&&options.getBool("prunning.precompute-tt")) {
-			if(Modes.isIncluded(modes, "car")&&options.isSet("traveltimes")) {
-				System.err.println("Error: Travel time precomputation is not possible when using time-dependent travel times.");
-				hadError = true;
-			} if(modes.size()>1) {
-				System.err.println("Error: Travel time precomputation is not possible when using more than one mode.");
-				hadError = true;
-			} else {
-				Mode m = modes.get(0);
-				net.precomputeTTs(m.vmax);
 			}
 		}
 		// done everything

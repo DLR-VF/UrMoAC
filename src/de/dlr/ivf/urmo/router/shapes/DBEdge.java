@@ -521,4 +521,42 @@ public class DBEdge {
 		return followingEdges.size()==0; 
 	}
 
+
+	public boolean canBeJoined(DBEdge next, double ivmax, long mode) {
+		return Math.min(ivmax, vmax)==Math.min(ivmax, next.vmax)
+				&& (mode&modes)==(mode&next.modes)
+				&& incline==next.incline;
+	}
+
+
+	public String extendBy(DBEdge next, GeometryFactory gf) {
+		id = id + next.getID();
+		to = next.getToNode();
+		vmax = Math.min(vmax, next.vmax);
+		if(geom!=null&&next.geom!=null) {
+			int nCoordinates = geom.getNumPoints() + next.geom.getNumPoints() - 1;
+			Coordinate[] edgeCoords = new Coordinate[nCoordinates];
+			int j = 0;
+			for(int i=0; i<geom.getNumPoints(); ++i, ++j) {
+				edgeCoords[j] = geom.getPointN(i).getCoordinate();
+			}
+			for(int i=0; i<next.geom.getNumPoints(); ++i, ++j) {
+				edgeCoords[j] = next.geom.getPointN(i).getCoordinate();
+			}
+			geom = gf.createLineString(edgeCoords);
+		}
+		length += next.length;
+		objects.addAll(next.objects);
+		return id;
+	}
+	
+	
+	public void replaceOutgoing(DBEdge e, DBEdge by) {
+		if(crossingTimes.containsKey(e)) {
+			double t = crossingTimes.get(e);
+			crossingTimes.remove(e);
+			crossingTimes.put(by, t);
+		}
+	}
+
 }
