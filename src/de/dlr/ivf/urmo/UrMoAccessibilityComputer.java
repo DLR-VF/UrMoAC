@@ -206,8 +206,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("net.keep-subnets", "When set, unconnected network parts are not removed.");
 		options.add("net.patch-errors", new Option_Bool());
 		options.setDescription("net.patch-errors", "When set, broken edge lengths and speeds will be patched.");
-		options.add("net.no-incline", new Option_Bool());
-		options.setDescription("net.no-incline", "Ignores loaded incline information.");
+		options.add("net.incline", new Option_Bool());
+		options.setDescription("net.incline", "Uses incline information.");
 		options.add("pt.boundary", new Option_String(""));
 		options.setDescription("pt.boundary", "Defines a boundary for the PT offer.");
 
@@ -592,7 +592,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		CrossingTimesModel_CTM1 ctm = "ctm1".equals(options.getString("crossing-model")) ? new CrossingTimesModel_CTM1(ctmWriter) : null;
 		DBNet net = NetLoader.loadNet(this, options.getString("net"), netBoundary, options.getString("net.vmax"), options.getString("net.geom"), 
 				epsg, modes, netErrorsOutput, options.getBool("net.report-all-errors"), options.getBool("net.patch-errors"),
-				options.getBool("net.no-incline"), ctm);
+				!options.getBool("net.incline"), ctm);
 		if (net.getNumEdges()==0) {
 			throw new IOException("No network edges loaded.");
 		}
@@ -737,6 +737,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			} else {
 				Mode m = modes.get(0);
 				net.joinSimilar(m.vmax, m.id);
+				if (verbose) System.out.println(" " + net.getNumEdges() + " remaining after joining similar edges.");
 			}
 		}
 

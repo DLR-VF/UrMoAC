@@ -65,7 +65,7 @@ Usage:
                                    removed.
   --net.patch-errors             When set, broken edge lengths and speeds will
                                    be patched.
-  --net.no-incline               Ignores loaded incline information.
+  --net.incline                  Uses incline information.
   --pt.boundary                  Defines a boundary for the PT offer.
 
  O/D Weighting Options
