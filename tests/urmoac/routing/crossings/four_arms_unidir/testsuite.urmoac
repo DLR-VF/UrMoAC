@@ -4,5 +4,8 @@ function_default
 # no crossing function
 function_none
 
+# using ctm1
+function_ctm1
+
 
 
