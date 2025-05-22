@@ -301,6 +301,7 @@ public class DBEdge {
 				}
 			}
 		}
+		/*
 		// !!! per mode
 		if(incline!=0) {
 			if(incline>6) {
@@ -309,6 +310,7 @@ public class DBEdge {
 				ivmax *= 1.05;
 			}
 		}
+		*/
 		double v = Math.min(vmax, ivmax);
 		return length / v;
 	}
