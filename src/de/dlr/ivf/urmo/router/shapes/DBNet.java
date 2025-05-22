@@ -619,6 +619,9 @@ public class DBNet {
 			if(opposite!=null&&outgoing.contains(opposite)) {
 				outgoing.remove(opposite);
 			}
+			if(outgoing.size()!=1) {
+				throw new IOException("fatal error#1 in joinSimilar");
+			}
 			DBEdge next = outgoing.get(0);
 			if(next.getAttachedObjectsNumber()!=0) {
 				continue;
@@ -630,15 +633,22 @@ public class DBNet {
 		}
 		// join
 		HashMap<DBEdge, DBEdge> replaced = new HashMap<>();
+		Set<DBEdge> skip = new HashSet<>();
 		for (DBEdge prev : candidates.keySet()) {
 			DBEdge next = candidates.get(prev);
-			if(replaced.containsKey(next)) {
-				next = replaced.get(next); 
+			prev = checkNextJoinReplacement(prev, skip, replaced);
+			next = checkNextJoinReplacement(next, skip, replaced);
+			if(prev==null||next==null) {
+				continue;
 			}
 			DBEdge prevOpposite = prev.getOppositeEdge();
 			DBEdge nextOpposite = next.getOppositeEdge();
-			if(replaced.containsKey(nextOpposite)) {
-				nextOpposite = replaced.get(nextOpposite); 
+			if(prevOpposite!=null&&nextOpposite!=null) {
+				prevOpposite = checkNextJoinReplacement(prevOpposite, skip, replaced);
+				nextOpposite = checkNextJoinReplacement(nextOpposite, skip, replaced);
+				if(prevOpposite==null||nextOpposite==null) {
+					continue;
+				}
 			}
 			// check whether they can be joined
 			if((prevOpposite==null&&nextOpposite!=null) || (prevOpposite!=null&&nextOpposite==null)) {
@@ -647,11 +657,7 @@ public class DBNet {
 			if(!candidates.containsKey(nextOpposite)||candidates.get(nextOpposite)!=prevOpposite) {
 				continue;
 			}
-			String nid = prev.extendBy(next, geometryFactory);
-			String nidOpposite = null;
-			if(prevOpposite!=null) {
-				nidOpposite = nextOpposite.extendBy(prevOpposite, geometryFactory);
-			}
+			skip.add(nextOpposite);
 			// remove in in-between node
 			DBNode n = prev.getToNode();
 			n.removeIncoming(prev);
@@ -661,29 +667,49 @@ public class DBNet {
 				n.removeOutgoing(prevOpposite);
 			}
 			if(n.getIncoming().size()!=0||n.getOutgoing().size()!=0) {
-				throw new IOException("fatal error#1 in joinSimilar");
+				throw new IOException("fatal error#2 in joinSimilar");
 			}
 			nodes.remove(n.getID());
-			// replace in begin / end nodes
-			next.getToNode().replaceIncoming(next, prev);
-			if(prevOpposite!=null) {
-				prevOpposite.getToNode().replaceIncoming(prevOpposite, nextOpposite);
-			}
-			// replace in name mapping
 			name2edge.remove(prev.getID());
 			name2edge.remove(next.getID());
 			if(prevOpposite!=null) {
 				name2edge.remove(prevOpposite.getID());
 				name2edge.remove(nextOpposite.getID());
 			}
+			// extend
+			String nid = prev.extendBy(next, geometryFactory);
+			String nidOpposite = null;
+			if(prevOpposite!=null) {
+				nidOpposite = nextOpposite.extendBy(prevOpposite, geometryFactory);
+			}
+			// replace in begin / end nodes
+			prev.getToNode().replaceIncoming(next, prev);
+			if(prevOpposite!=null) {
+				nextOpposite.getToNode().replaceIncoming(prevOpposite, nextOpposite);
+			}
+			// replace in name mapping
 			name2edge.put(nid, prev);
 			if(nidOpposite!=null) {
 				name2edge.put(nidOpposite, nextOpposite);
 			}
 			//
-			replaced.put(prev, next);
-			replaced.put(nextOpposite, prevOpposite);
+			replaced.put(next, prev);
+			replaced.put(prevOpposite, nextOpposite);
 		}		
+	}
+
+
+	private DBEdge checkNextJoinReplacement(DBEdge e, Set<DBEdge> skip, HashMap<DBEdge, DBEdge> replaced) {
+		if(skip.contains(e)) {
+			return null;
+		}
+		if(replaced.containsKey(e)) {
+			e = replaced.get(e); 
+		}
+		if(skip.contains(e)) {
+			return null;
+		}
+		return e;
 	}
 	
 	

@@ -132,6 +132,7 @@ public class DBEdge {
 		geom = _geom;
 		length = _length;
 		incline = _incline;
+		length = Math.sqrt(length*length + incline*incline);
 		_from.addOutgoing(this);
 		_to.addIncoming(this);
 	}
@@ -542,13 +543,18 @@ public class DBEdge {
 			for(int i=0; i<geom.getNumPoints(); ++i, ++j) {
 				edgeCoords[j] = geom.getPointN(i).getCoordinate();
 			}
-			for(int i=0; i<next.geom.getNumPoints(); ++i, ++j) {
+			for(int i=1; i<next.geom.getNumPoints(); ++i, ++j) {
 				edgeCoords[j] = next.geom.getPointN(i).getCoordinate();
 			}
 			geom = gf.createLineString(edgeCoords);
 		}
 		length += next.length;
-		objects.addAll(next.objects);
+		if(next.objects!=null) {
+			for(EdgeMappable em : next.objects) {
+				addMappedObject(em);
+			}
+		}
+		to = next.to;
 		return id;
 	}
 	

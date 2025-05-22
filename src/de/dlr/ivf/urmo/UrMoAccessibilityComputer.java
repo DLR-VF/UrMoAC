@@ -728,6 +728,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			}
 		}
 		if(!hadError&&options.getBool("prunning.join-similar")) {
+			System.err.println("Error: Joining edges is currently not working. Come back :-)");
+			hadError = true;
 			if(Modes.isIncluded(modes, "car")&&options.isSet("traveltimes")) {
 				System.err.println("Error: Joining edges is currently not possible when using time-dependent travel times.");
 				hadError = true;
