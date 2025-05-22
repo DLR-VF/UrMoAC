@@ -37,8 +37,9 @@
 	* The option **--prunning.remove-geometries** will remove the edge geometries after mapping sources/destiations for reducing the memory footprint; You will be warned, when using in combination with **--direct-output** as this is the only output that needs edge geometries
 	* The computation uses a less complex algorithm when computing unimodal accessibilities
 	* Added the option **--prunning.remove-dead-ends** for removing unused dead ends (ones that do not have an origin / a destination)
+	* added option **--prunning.precompute-tt** which forces UrMoAC to precompute travel times; works for unimodal computation only and only if no variabel speed time lines are loaded
 * added incline to edges, use **--net.no-incline** to ignore it (may be incomplete)
-* added option **--prunning.precompute-tt** which forces UrMoAC to precompute travel times; works for unimodal computation only and only if no variabel speed time lines are loaded
+
 		
 ### Continuous Integration 
 
