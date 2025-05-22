@@ -180,7 +180,7 @@ def commit_roads(conn, cursor, schema, dbprefix):
         else:
             mode_mit = 'f'
         incline = sr["incline"] if sr["incline"] is not None else "NULL"
-        cursor.execute("INSERT INTO %s.%s_network(oid, nodefrom, nodeto, numlanes, length, vmax, street_type, capacity, mode_walk, mode_bike, mode_pt, mode_mit, modes, nodes, sidewalk, cycleway, surface, lit, name, geom) VALUES('%s', %s, %s, %s, %s, %s, '%s', -1, '%s', '%s', '%s', '%s', %s, '{%s}', '%s', '%s', '%s', '%s', '%s', ST_GeomFromText('LINESTRING(%s)', 4326))" % (schema, dbprefix, sr["id"], sr["fromNode"], sr["toNode"], sr["lanes"], -1, sr["vmax"], sr["osm_type"], mode_ped, mode_bic, mode_pt, mode_mit, sr["modes"], sr["nodes"], sr["sidewalk"], sr["cycleway"], sr["surface"], sr["lit"], sr["name"], sr["shape"]))
+        cursor.execute("INSERT INTO %s.%s_network(oid, nodefrom, nodeto, numlanes, length, vmax, street_type, capacity, mode_walk, mode_bike, mode_pt, mode_mit, modes, nodes, sidewalk, cycleway, surface, lit, name, incline, geom) VALUES('%s', %s, %s, %s, %s, %s, '%s', -1, '%s', '%s', '%s', '%s', %s, '{%s}', '%s', '%s', '%s', '%s', '%s', %s, ST_GeomFromText('LINESTRING(%s)', 4326))" % (schema, dbprefix, sr["id"], sr["fromNode"], sr["toNode"], sr["lanes"], -1, sr["vmax"], sr["osm_type"], mode_ped, mode_bic, mode_pt, mode_mit, sr["modes"], sr["nodes"], sr["sidewalk"], sr["cycleway"], sr["surface"], sr["lit"], sr["name"], incline, sr["shape"]))
     conn.commit()
     del storedRoads[:]
 
@@ -600,14 +600,19 @@ def build_ways(src_db, dest_db, dropprevious, append, unconsumed_file, errorneou
                             incline = 6
                         elif incline=="down":
                             incline = -6
+                        elif incline.startswith("up"):
+                            incline = float(incline.replace("up_", "").replace("up", "").replace("<", "").replace(">", "").replace(",", ".").replace("%", "").replace(" ", "").strip())
+                        elif incline.startswith("down"):
+                            incline = -abs(float(incline.replace("down_", "").replace("down", "").replace("<", "").replace(">", "").replace(",", ".").replace("%", "").replace(" ", "").strip()))
                         elif incline.find("%")>0:
-                            incline = float(incline.replace("%", ""))
+                            incline = float(incline.replace("<", "").replace(">", "").replace(",", ".").replace("%", "").replace(" ", "").strip())
                         elif incline.find("°")>0:
-                            incline = math.tan(float(incline.replace("°", ""))*math.pi/180.)*100.
+                            incline = math.tan(float(incline.replace("<", "").replace(">", "").replace(",", ".").replace("°", "").replace(" ", "").strip())*math.pi/180.)*100.
                         else:
                             incline = None
                 except:
                     print (f"Invalid incline value '{incline}'")
+                    incline = None
                 #
                 hDef = db.get_way(hID)[0]
                 hNodes = db.getNodes_preserveOrder(hDef[1])
@@ -640,9 +645,8 @@ def build_ways(src_db, dest_db, dropprevious, append, unconsumed_file, errorneou
                             add_road(upperType, "f%s#%s" % (hID, index), nodeIDs[0], nodeIDs[-1], htype, modesF, numLanes, vmax, nodeIDs, sidewalk, cycleway, surface, lit, name, incline, ",".join(hGeom))
                             num += 1
                         if modesB!=0:
-                            if incline is not None:
-                                incline *= -1
-                            add_road(upperType, "b%s#%s" % (hID, index), nodeIDs[-1], nodeIDs[0], htype, modesB, numLanes, vmax, reversed(nodeIDs), sidewalk, cycleway, surface, lit, name, incline, ",".join(reversed(hGeom)))
+                            rev_incline = -incline if incline is not None else None
+                            add_road(upperType, "b%s#%s" % (hID, index), nodeIDs[-1], nodeIDs[0], htype, modesB, numLanes, vmax, reversed(nodeIDs), sidewalk, cycleway, surface, lit, name, rev_incline, ",".join(reversed(hGeom)))
                             num += 1
                         hGeom = []
                         hGeom.append("%s %s" % (p[0], p[1]))
@@ -655,7 +659,8 @@ def build_ways(src_db, dest_db, dropprevious, append, unconsumed_file, errorneou
                         add_road(upperType, "f%s#%s" % (hID, index), nodeIDs[0], nodeIDs[-1], htype, modesF, numLanes, vmax, nodeIDs, sidewalk, cycleway, surface, lit, name, incline, ",".join(hGeom))
                         num += 1
                     if modesB!=0:     
-                        add_road(upperType, "b%s#%s" % (hID, index), nodeIDs[-1], nodeIDs[0], htype, modesB, numLanes, vmax, reversed(nodeIDs), sidewalk, cycleway, surface, lit, name, -incline, ",".join(reversed(hGeom)))
+                        rev_incline = -incline if incline is not None else None
+                        add_road(upperType, "b%s#%s" % (hID, index), nodeIDs[-1], nodeIDs[0], htype, modesB, numLanes, vmax, reversed(nodeIDs), sidewalk, cycleway, surface, lit, name, rev_incline, ",".join(reversed(hGeom)))
                         num += 1
 
                 unconsumed = params.get_unconsumed(["source:lit", "note:name", "postal_code", "name:ru", "created_by", "old_name", "trail_visibility", "source:maxspeed", "source"])
