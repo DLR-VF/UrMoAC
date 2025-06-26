@@ -7,6 +7,7 @@ Frequently Asked Questions
 
 We always encourage you to use the last stable release, because you can easily refer to it as every stable release has an own DOI. Of course, a release may contain bugs or lack features you need.
 
+
 ## Reported Errors
 
 ### Why do I get "Duplicate object '0' occurred."?
