@@ -43,7 +43,8 @@ def test_wkt2geometry_point2(capsys):
 
 def test_wkt2geometry_point3(capsys):
     ret = wkt.wkt2geometry("POINT(EMPTY)")
-    assert ret==None
+    assert type(ret)==type(wkt.Point(None))
+    assert ret._shape is None
 
 
 def test_wkt2geometry_linestring1(capsys):
@@ -68,7 +69,8 @@ def test_wkt2geometry_linestring4(capsys):
 
 def test_wkt2geometry_linestring5(capsys):
     ret = wkt.wkt2geometry("LINESTRING(EMPTY)")
-    assert ret==None
+    assert type(ret)==type(wkt.LineString(None))
+    assert ret._shape is None
 
 
 def test_wkt2geometry_multilinestring1(capsys):
@@ -103,7 +105,8 @@ def test_wkt2geometry_multilinestring7(capsys):
 
 def test_wkt2geometry_multilinestring8(capsys):
     ret = wkt.wkt2geometry("MULTILINESTRING(EMPTY)")
-    assert ret==None
+    assert type(ret)==type(wkt.MultiLineString(None))
+    assert ret._shape is None
 
 
 def test_wkt2geometry_polygon1(capsys):
@@ -138,7 +141,8 @@ def test_wkt2geometry_polygon6(capsys):
 
 def test_wkt2geometry_polygon7(capsys):
     ret = wkt.wkt2geometry("POLYGON(EMPTY)")
-    assert ret==None
+    assert type(ret)==type(wkt.Polygon(None))
+    assert ret._shape is None
 
 
 def test_wkt2geometry_multipolygon1(capsys):
@@ -188,7 +192,8 @@ def test_wkt2geometry_multipolygon9(capsys):
 
 def test_wkt2geometry_multipolygon10(capsys):
     ret = wkt.wkt2geometry("MULTIPOLYGON(EMPTY)")
-    assert ret==None
+    assert type(ret)==type(wkt.MultiPolygon(None))
+    assert ret._shape is None
 
 
 # plain parsing to lists

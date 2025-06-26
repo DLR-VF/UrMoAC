@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-# ===========================================================================
 """Defines geometry objects and parses WKT."""
 # ===========================================================================
 __author__     = "Daniel Krajzewicz"
@@ -141,6 +139,16 @@ class Geometry:
         return self._shape
 
 
+    def wkt(self):
+        """Returns the WKT representation of this geometry"""
+        raise ValueError("abstract Geometry type") # pragma: no cover
+
+
+    def reproject(self, transformer):
+        """Reprojects this geometry"""
+        raise ValueError("abstract Geometry type") # pragma: no cover
+
+
 
 class Point(Geometry):
     """A point"""
@@ -155,13 +163,33 @@ class Point(Geometry):
 
     def artist(self, **kwargs):
         """Returns a matplotlib artist that represents this geometry"""
+        if self._shape is None:
+            raise ValueError("This geometry is empty")
         import matplotlib.patches
         return matplotlib.patches.Circle(self._shape, **kwargs)
 
 
     def bounds(self):
         """Returns the bounds of this geometry"""
+        if self._shape is None:
+            raise ValueError("This geometry is empty")
         return [self._shape[0], self._shape[1], self._shape[0], self._shape[1]]
+
+
+    def wkt(self):
+        """Returns the WKT representation of this geometry"""
+        if self._shape is None:
+            return "POINT(EMPTY)"
+        return f"POINT({self._shape[0]} {self._shape[1]})"
+
+
+    def reproject(self, transformer):
+        """Reprojects this geometry"""
+        if self._shape is None:
+            return
+        self._shape = transformer.transform(self._shape[0], self._shape[1])
+
+
 
 
 
@@ -178,6 +206,8 @@ class LineString(Geometry):
 
     def artist(self, **kwargs):
         """Returns a matplotlib artist that represents this geometry"""
+        if self._shape is None:
+            raise ValueError("This geometry is empty")
         import matplotlib.patches
         import matplotlib.path
         path = matplotlib.path.Path(self._shape, closed=False)
@@ -186,6 +216,8 @@ class LineString(Geometry):
 
     def bounds(self):
         """Returns the bounds of this geometry"""
+        if self._shape is None:
+            raise ValueError("This geometry is empty")
         bounds = [self._shape[0][0], self._shape[0][1], self._shape[0][0], self._shape[0][1]]
         for p in self._shape:
             bounds[0] = min(bounds[0], p[0])
@@ -194,6 +226,25 @@ class LineString(Geometry):
             bounds[3] = max(bounds[3], p[1])
         return bounds
 
+
+    def wkt(self):
+        """Returns the WKT representation of this geometry"""
+        if self._shape is None:
+            return "LINESTRING(EMPTY)"
+        npoly = ["%s %s" % (p[0], p[1]) for p in self._shape]
+        npoly = ", ".join(npoly)
+        return f"LINESTRING({npoly})"
+
+
+    def reproject(self, transformer):
+        """Reprojects this geometry"""
+        if self._shape is None:
+            return
+        nshape = []
+        for p in self._shape:
+            pn = transformer.transform(p[0], p[1])
+            nshape.append(pn)
+        self._shape = nshape
 
     
     
@@ -211,6 +262,8 @@ class Polygon(Geometry):
 
     def artist(self, **kwargs):
         """Returns a matplotlib artist that represents this geometry"""
+        if self._shape is None:
+            raise ValueError("This geometry is empty")
         import matplotlib.patches
         import matplotlib.path
         s, c = encode_complex_polygon(self._shape, True)
@@ -220,6 +273,8 @@ class Polygon(Geometry):
 
     def bounds(self):
         """Returns the bounds of this geometry"""
+        if self._shape is None:
+            raise ValueError("This geometry is empty")
         bounds = [self._shape[0][0][0], self._shape[0][0][1], self._shape[0][0][0], self._shape[0][0][1]]
         for poly in self._shape:
             for p in poly:
@@ -231,15 +286,32 @@ class Polygon(Geometry):
 
 
     def wkt(self):
+        """Returns the WKT representation of this geometry"""
+        if self._shape is None:
+            return "POLYGON(EMPTY)"
         d = []
         for poly in self._shape:
             npoly = ["%s %s" % (p[0], p[1]) for p in poly]
-            d.append("(" + ",".join(npoly) + ")")
-        d = ",".join(d)
-        return "'POLYGON(" + d + ")'"
+            d.append("(" + ", ".join(npoly) + ")")
+        d = ", ".join(d)
+        return "POLYGON(" + d + ")"
 
 
-    
+    def reproject(self, transformer):
+        """Reprojects this geometry"""
+        if self._shape is None:
+            return
+        nshape = []
+        for poly in self._shape:
+            npoly = []
+            for p in poly:
+                pn = transformer.transform(p[0], p[1])
+                npoly.append(pn)
+            nshape.append(npoly)
+        self._shape = nshape
+
+
+
 
 
 class MultiLineString(Geometry):
@@ -255,6 +327,8 @@ class MultiLineString(Geometry):
 
     def artist(self, **kwargs):
         """Returns a matplotlib artist that represents this geometry"""
+        if self._shape is None:
+            raise ValueError("This geometry is empty")
         import matplotlib.patches
         import matplotlib.path
         s, c = encode_complex_polygon(self._shape, False)
@@ -264,15 +338,42 @@ class MultiLineString(Geometry):
 
     def bounds(self):
         """Returns the bounds of this geometry"""
+        if self._shape is None:
+            raise ValueError("This geometry is empty")
         bounds = [self._shape[0][0][0], self._shape[0][0][1], self._shape[0][0][0], self._shape[0][0][1]]
-        for line in self._shape:
-            for p in line:
+        for linestring in self._shape:
+            for p in linestring:
                 bounds[0] = min(bounds[0], p[0])
                 bounds[1] = min(bounds[1], p[1])
                 bounds[2] = max(bounds[2], p[0])
                 bounds[3] = max(bounds[3], p[1])        
         return bounds
+    
+    
+    def wkt(self):
+        """Returns the WKT representation of this geometry"""
+        if self._shape is None:
+            return "MULTILINESTRING(EMPTY)"
+        d = []
+        for linestring in self._shape:
+            nls = ["%s %s" % (p[0], p[1]) for p in linestring]
+            d.append("(" + ", ".join(nls) + ")")
+        d = ", ".join(d)
+        return "MULTILINESTRING(" + d + ")"
 
+
+    def reproject(self, transformer):
+        """Reprojects this geometry"""
+        if self._shape is None:
+            return
+        nshape = []
+        for linestring in self._shape:
+            nls = []
+            for p in linestring:
+                pn = transformer.transform(p[0], p[1])
+                nls.append(pn)
+            nshape.append(nls)
+        self._shape = nshape
     
 
 
@@ -289,6 +390,8 @@ class MultiPolygon(Geometry):
 
     def artist(self, **kwargs):
         """Returns a matplotlib artist that represents this geometry"""
+        if self._shape is None:
+            raise ValueError("This geometry is empty")
         import matplotlib.patches
         import matplotlib.path
         ss = []
@@ -303,6 +406,8 @@ class MultiPolygon(Geometry):
 
     def bounds(self):
         """Returns the bounds of this geometry"""
+        if self._shape is None:
+            raise ValueError("This geometry is empty")
         bounds = None
         for cpoly in self._shape:
             for poly in cpoly:
@@ -317,6 +422,39 @@ class MultiPolygon(Geometry):
                     bounds[2] = max(bounds[2], p[0])
                     bounds[3] = max(bounds[3], p[1])        
         return bounds
+    
+    
+    def wkt(self):
+        """Returns the WKT representation of this geometry"""
+        if self._shape is None:
+            raise "MULTIPOLYGON(EMPTY)"
+        ds = []
+        for cpoly in self._shape:
+            d = []
+            for poly in cpoly:
+                npoly = ["%s %s" % (p[0], p[1]) for p in poly]
+                d.append("(" + ", ".join(npoly) + ")")
+            ds.append("(" + ", ".join(d) + ")")
+        ds = ", ".join(ds)
+        return "MULTIPOLYGON(" + ds + ")"
+
+
+    def reproject(self, transformer):
+        """Reprojects this geometry"""
+        if self._shape is None:
+            return
+        nshape = []
+        for cpoly in self._shape:
+            ncpoly = []
+            for poly in cpoly:
+                npoly = []
+                for p in poly:
+                    pn = transformer.transform(p[0], p[1])
+                    npoly.append(pn)
+                ncpoly.append(npoly)
+            nshape.append(ncpoly)
+        self._shape = nshape
+
 
     
 # --- function definitions --------------------------------------------------
@@ -453,23 +591,23 @@ def wkt2geometry(wkt):
     wkt = wkt.upper()
     if wkt.startswith("POINT"):
         shape = parse_POINT2D(wkt)
-        if shape==None: return None
+        if shape==None: return Point(None)
         return Point(shape)
     elif wkt.startswith("LINESTRING"):
         shape = parse_LINESTRING2D(wkt)
-        if shape==None: return None
+        if shape==None: return LineString(None)
         return LineString(shape)
     elif wkt.startswith("MULTILINESTRING"):
         shape = parse_MULTILINESTRING2D(wkt)
-        if shape==None: return None
+        if shape==None: return MultiLineString(None)
         return MultiLineString(shape)
     elif wkt.startswith("POLYGON"):
         shape = parse_POLYGON2D(wkt)
-        if shape==None: return None
+        if shape==None: return Polygon(None)
         return Polygon(shape)
     elif wkt.startswith("MULTIPOLYGON"):
         shape = parse_MULTIPOLYGON2D(wkt)
-        if shape==None: return None
+        if shape==None: return MultiPolygon(None)
         return MultiPolygon(shape)
     else:
         raise ValueError("Unknown geometry '%s'" % wkt)
