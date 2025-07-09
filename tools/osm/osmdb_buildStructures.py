@@ -33,14 +33,16 @@ import os
 import psycopg2
 import datetime
 import math
+import configparser
 import osm
 import argparse 
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join(script_dir, '..', 'helper')
 sys.path.append(mymodule_dir)
 from wkt import *
-from geom_helper import *
-
+#from geom_helper import *
+from structure_defs import geom_helper
+from structure_defs import wkt
 
 # --- data definitions ------------------------------------------------------
 """A map from a data type to the respective tags"""
@@ -101,10 +103,12 @@ class OSMExtractor:
                 self._defs["rel"].append(l.strip())
             else:
                 self._defs[subtype].append(l.strip())
+
+        #print(self._defs)
         return self._defs
     
 
-    def _get_objects(self, conn, cursor, schema, prefix, subtype, op, k, v):
+    def _get_objects(self, conn, cursor, schema, prefix, subtype, op, k, v, region):
         """Returns the IDs of the objects in the given OSM table that match the given definitions 
         :param conn: The connection to the database
         :type conn: psycopg2.extensions.connection
@@ -132,21 +136,115 @@ class OSMExtractor:
             ret.add(11071436)
         return ret
         """
+        if v=="*":
+            prev=''
+            vdash=''
+            v=''
+            op=''
+        else:
+            prev=' and v'
+            vdash='\''
+
+
         if k=="*": # fetch all
             cursor.execute("SELECT id FROM %s.%s_%s" % (schema, prefix, subtype))
-        elif v=='*': # fetch all with a matching key
-            cursor.execute("SELECT id FROM %s.%s_%s WHERE k='%s'" % (schema, prefix, subtype2tag[subtype], k))
+        #elif v=='*': # fetch all with a matching key
+        #    cursor.execute("SELECT id FROM %s.%s_%s WHERE k='%s'" % (schema, prefix, subtype2tag[subtype], k))
         else: 
             # fetch all with a key/value pair
-            cursor.execute("SELECT id FROM %s.%s_%s WHERE k='%s' AND v%s'%s'" % (schema, prefix, subtype2tag[subtype], k, op, v))
+
+            #TODO Marlon kann der area selector hier rein?
+            #region='berlin'
+            if region == 'germany':
+                pass
+            elif 'nuts3_' in region:
+                areacat = 'bezeichnung'
+                areaspec = region.split('_')[1]
+            else:
+                areacat = 'land'
+                areaspec = region
+
+            if subtype == 'node':
+                if region == 'germany':
+                    query = "SELECT id FROM %s.%s_%s WHERE k='%s' %s%s%s%s%s" % (schema, prefix, subtype2tag[subtype], k,
+                                                                              prev, op, vdash, v, vdash)
+                else:
+                    query= """  SELECT pointpositions.id    
+                                FROM
+                                    (SELECT tags.id as id, node.pos as geom 
+                                    FROM
+                                        (SELECT id
+                                        FROM %s.%s_ntag
+                                        where k = '%s' %s%s%s%s%s) as tags
+                                    LEFT JOIN %s.%s_node as node
+                                    ON tags.id=node.id) as pointpositions
+                                INNER JOIN (SELECT * FROM osmextract.area WHERE %s = '%s') as zelle
+                                on ST_Within(pointpositions.geom, zelle.geom); """%(schema, prefix, k, prev, op, vdash, v, vdash, schema, prefix, areacat, areaspec)
+                print(query)
+
+
+            elif subtype == 'way':
+                if region == 'germany':
+                    query = "SELECT * from %s.%s_wtag WHERE k='%s' %s%s%s%s%s;" % (schema, prefix, k, prev, op, vdash, v, vdash)
+                else:
+                    query = """
+                    SELECT pointpositions.id as id
+                    FROM
+                        (SELECT tway.id as id, node.pos as geom
+                        FROM
+                            (SELECT tag.id as id, way.refs as refs
+                            FROM
+                                (SELECT id 
+                                FROM %s.%s_wtag
+                                where k = '%s' %s%s%s%s%s) as tag
+                            LEFT JOIN %s.%s_way as way
+                            ON tag.id = way.id) as tway
+                        LEFT JOIN %s.%s_node as node
+                        on tway.refs[1] = node.id) as pointpositions
+                    INNER JOIN (SELECT * FROM osmextract.area WHERE %s = '%s') as zelle
+                    on ST_Within(pointpositions.geom, zelle.geom);""" % (schema, prefix, k, prev, op, vdash,v,vdash, schema,
+                                                                   prefix, schema, prefix,
+                                                                   areacat, areaspec)
+                print(query)
+
+            else:
+                if region == 'germany':
+                    query = "SELECT id FROM %s.%s_%s WHERE k='%s' %s%s%s%s%s" % (schema, prefix, subtype2tag[subtype], k, prev, op, vdash, v, vdash)
+                # TODO was ist mit nodes beim 'member'?!?
+                else:
+                    query ="""  SELECT DISTINCT node.id
+                                FROM
+                                    (SELECT way.id as id, nodes.pos
+                                    FROM                
+                                        (SELECT members.id as id, ways.refs as refs
+                                        FROM
+                                            (SELECT tags.id as id, member.elemid as elemid
+                                            FROM
+                                                (SELECT id
+                                                FROM %s.%s_rtag
+                                                WHERE k = '%s' %s%s%s%s%s) as tags
+                                            LEFT JOIN (SELECT rid, elemid FROM %s.%s_member WHERE type = 'way') as member 
+                                            ON tags.id=member.rid) as members
+                                        LEFT JOIN %s.%s_way as ways
+                                        ON members.elemid=ways.id) as way
+                                    LEFT JOIN %s.%s_node as nodes
+                                    ON way.refs[1]=nodes.id) as node
+                                INNER JOIN (SELECT * FROM osmextract.area WHERE %s='%s') as zelle
+                                on ST_Within(node.pos, zelle.geom);                   
+                    """ % (schema, prefix, k, prev, op, vdash, v, vdash, schema, prefix, schema, prefix, schema, prefix, areacat, areaspec)
+                print(query)
+            cursor.execute(query)
+
+
         conn.commit()
         for r in cursor.fetchall():
             ret.add(int(r[0]))
         # !!! add option for extracting (a) certain structure/s by id
+        #print(ret)
         return ret
 
 
-    def get_object_ids(self, conn, cursor, schema, prefix):
+    def get_object_ids(self, conn, cursor, schema, prefix, region):
         """Returns the IDs of the objects in the given OSM data that match the given definitions 
         :param conn: The connection to the database
         :type conn: psycopg2.extensions.connection
@@ -167,12 +265,12 @@ class OSMExtractor:
                 for sd in subdefs:
                     sd = sd.strip()
                     if sd=="*":
-                        oss = self._get_objects(conn, cursor, schema, prefix, subtype, "*", "*", "*")
+                        oss = self._get_objects(conn, cursor, schema, prefix, subtype, "*", "*", "*", region)
                     else:
                         for op in ["!=", "!~", "=", "~"]:
                             if sd.find(op)>=0:
                                 k,v = sd.split(op)
-                                oss = self._get_objects(conn, cursor, schema, prefix, subtype, op, k, v)
+                                oss = self._get_objects(conn, cursor, schema, prefix, subtype, op, k, v, region)
                                 break
                     if collected!=None:
                         collected = collected.intersection(oss)
@@ -277,7 +375,7 @@ class OSMExtractor:
                 for r in cursor.fetchall():
                     area.add_way(osm.OSMWay(int(r[0]), r[1]))
                     npoints.append(r[1])
-        missingNODEids = set.union(*npoints)    
+        missingNODEids = set.union(*npoints)
         # collect nodes
         print (" ... for nodes")
         if len(missingNODEids)!=0:
@@ -286,7 +384,7 @@ class OSMExtractor:
                 cursor.execute("SELECT id,ST_AsText(pos) FROM %s.%s_node WHERE id in (%s)" % (schema, prefix, idstr))
                 conn.commit()
                 for r in cursor.fetchall():
-                    area.add_node(osm.OSMNode(int(r[0]), parse_POINT2D(r[1])))
+                    area.add_node(osm.OSMNode(int(r[0]), wkt.parse_POINT2D(r[1])))
         # clear - no longer used
         missingNODEids = []
         missingWAYids = []
@@ -294,7 +392,7 @@ class OSMExtractor:
         return area
 
 
-    def _check_commit(self, forced, entries, types, conn, cursor, schema, name):
+    def _check_commit(self, forced, entries, types, conn, cursor, schema, name, region):
         """Inserts read objects if forced or if their number is higher than 10000
         :param entries: Descriptions of the objects to insert
         :type entries: list[str]
@@ -313,16 +411,16 @@ class OSMExtractor:
         if len(entries)==0:
             return
         args = ','.join(cursor.mogrify("(%s, %s, %s, ST_GeomFromText(%s, 4326), ST_GeomFromText(%s, 4326), ST_Centroid(ST_ConvexHull(ST_GeomFromText(%s, 4326))))", i).decode('utf-8') for i in entries)
-        cursor.execute("INSERT INTO %s.%s(id, oid, type, polygon, geom_collection, centroid) VALUES " % (schema, name) + (args))
+        cursor.execute("INSERT INTO %s.%s_%s(id, oid, type, polygon, geom_collection, centroid) VALUES " % (schema, name, region) + (args))
         conn.commit()
         args = ','.join(cursor.mogrify("(%s, %s, %s)", i).decode('utf-8') for i in types)
-        cursor.execute("INSERT INTO %s.%s_types(id, oid, type) VALUES " % (schema, name) + (args))
+        cursor.execute("INSERT INTO %s.%s_%s_types(id, oid, type) VALUES " % (schema, name, region) + (args))
         conn.commit()
         del entries[:]
         del types[:]
         
 
-    def _add_item(self, entries, types, item, conn, cursor, schema, name):
+    def _add_item(self, entries, types, item, conn, cursor, schema, name, region):
         """Prebuilds the given item's insertion string and checks whether it shall be submitted
         :param entries: Descriptions of the objects to insert to extend
         :type entries: list[str]
@@ -355,32 +453,39 @@ class OSMExtractor:
             for i,p1 in enumerate(polys):
                 for j,p2 in enumerate(polys):
                     if i==j: continue
-                    if polygon_in_polygon(p1[0], p2[0]): toRemove.append(i)
-                    if polygon_in_polygon(p2[0], p1[0]): toRemove.append(j)
+                    if geom_helper.polygon_in_polygon(p1[0], p2[0]): toRemove.append(i)
+                    if geom_helper.polygon_in_polygon(p2[0], p1[0]): toRemove.append(j)
             npolys = []
             for i,p in enumerate(polys):
                 if i in toRemove: continue
                 npolys.append(p)
             polys = npolys
             #
-            npolys = []
-            for poly in polys:
+            #npolys = []
+            #print(polys)
+            for idx, poly in enumerate(polys):
+                npolys = []
+                #print(poly)
                 npoly = []
                 for polypart in poly:
                     npolypart = "(" + ",".join(["%s %s" % (p[0], p[1]) for p in polypart]) + ")"
                     npoly.append(npolypart)
                 npolys.append("(" + ",".join(npoly) + ")")
-            polys = "MULTIPOLYGON(" + ",".join(npolys) + ")"
-            centroid = polys
+                newoid= str(id)+"_"+str(idx)
+                #poly1 = "MULTIPOLYGON(" + ",".join(npolys) + ")"
+                poly1 = "MULTIPOLYGON(" + ",".join(npolys) + ")"
+            #centroid = polys
+                centroid = poly1
+                entries.append([id, newoid, type, poly1, geom, centroid])
         else:
             polys = "MULTIPOLYGON EMPTY"
-        entries.append([id, oid, type, polys, geom, centroid])
+            entries.append([id, oid, type, polys, geom, centroid])
         for t in self._id2type[type][oid]:
             types.append([id, oid, t])
-        self._check_commit(False, entries, types, conn, cursor, schema, name)
+        self._check_commit(False, entries, types, conn, cursor, schema, name, region)
 
 
-    def store_objects(self, area, conn, cursor, schema, name):
+    def store_objects(self, area, conn, cursor, schema, name, region):
         """Stores objects and their geometries in the given table(s)
         
         :param conn: The connection to the database
@@ -398,16 +503,16 @@ class OSMExtractor:
         fr = 0
         for rID in self._objectIDs["rel"]:
             if area._relations[rID].build_geometry(area):
-                self._add_item(entries, types, area._relations[rID], conn, cursor, schema, name)
+                self._add_item(entries, types, area._relations[rID], conn, cursor, schema, name, region)
             else: fr += 1
         fw = 0
         for wID in self._objectIDs["way"]:
             if area._ways[wID].build_geometry(area):
-                self._add_item(entries, types, area._ways[wID], conn, cursor, schema, name)
+                self._add_item(entries, types, area._ways[wID], conn, cursor, schema, name, region)
             else: fw += 1
         for nID in self._objectIDs["node"]:
-            self._add_item(entries, types, area._nodes[nID], conn, cursor, schema, name)
-        self._check_commit(True, entries, types, conn, cursor, schema, name)
+            self._add_item(entries, types, area._nodes[nID], conn, cursor, schema, name, region)
+        self._check_commit(True, entries, types, conn, cursor, schema, name, region)
         #
         return len(self._objectIDs["node"])+len(self._objectIDs["way"])+len(self._objectIDs["rel"]), fw, fr
 
@@ -425,9 +530,139 @@ class OSMExtractor:
                     fd.write("%s;%s;%s\n" % (type, self._idMapping[type][id], id))
 
 
+def storeAreaCalculator(conn, cursor, schema, prefix, dschema, name, region, dropprevious):
+    #if dropprevious:
+    #    cursor.execute("DROP TABLE IF EXISTS %s.%s_%s" % (dschema, name, region))
+
+    cursor.execute("""ALTER TABLE %s.%s_%s
+                        ADD COLUMN buildingcat text;
+                        ALTER TABLE %s.%s_%s
+                        ADD COLUMN share decimal;
+    
+                  """  % (dschema, name, region, dschema, name, region))
+    conn.commit()
+    query = """SELECT * FROM %s.%s_%s""" % (dschema, name, region)
+
+    cursor.execute(query)
+    shoplist=cursor.fetchall()
+    if shoplist:
+        #print(shoplist)
+        i = 0
+        for shop in shoplist:
+            #print(shop)
+            i+=1
+            id = shop[0]
+            if i % 20 == 0:
+                print(str(i) + ' out of ' + str(len(shoplist)) + ' locations examined.')
+            if shop[4] != '0106000020E610000000000000':
+                #print(shop[4])
+                #TODO Marlon should this be a pass to count for supermarkets in their own buildings as well?
+                continue
+            else:
+
+                query = """SELECT *
+                            FROM
+                            %s.buildings_%s
+                            WHERE
+                            ST_Contains(polygon, (
+                                SELECT centroid
+                            FROM %s.%s_%s
+                            WHERE id = '%s'));""" % (dschema, region, dschema, name, region, id)
+                #print(query)
+                cursor.execute(query)
+                building = cursor.fetchone()
+            if building:
+                #print(id)
+                #print(building[0])
+                cursor.execute("""SELECT * FROM %s.buildings_%s_types
+                                    where id = '%s'""" %(dschema, region, building[0]))
+                buildingtags = cursor.fetchone()
+
+
+                cursor.execute("""
+                                SELECT COUNT (contain.id)
+                                FROM (SELECT node.id as id
+                                        FROM (	SELECT *
+                                                FROM %s.buildings_%s
+                                                where id = '%s')as building
+                                        INNER JOIN %s.%s_node as node
+                                        ON ST_WITHIN(node.pos, building.polygon)) as contain
+                                LEFT JOIN %s.%s_ntag as tags
+                                ON contain.id = tags.id
+                                where tags.k = 'shop'
+                """ % (dschema, region, building[0], schema, prefix, schema, prefix))
+                shopcount=cursor.fetchone()
+                #print(buildingtags[2])
+                #print(shopcount)
+                #print(building[4])
+                """if shopcount[0] <2:
+                    shopshare=0.8
+                elif shopcount[0] <6:
+                    shopshare = 0.5
+                else:
+                    shopshare = 0.2
+                print(shopshare)"""
+                cursor.execute( """ UPDATE %s.%s_%s
+                                    SET  buildingcat = '%s', share = '%s', polygon = ST_GeomFromEWKB(decode('%s', 'hex'))
+                                    WHERE id = '%s'""" % (dschema, name, region, buildingtags[2], shopcount[0], building[4], id ))
+                conn.commit()
+        #TODO Marlon lieber würde ich hier committen, aber für testing lieber oben
+        #conn.commit()
+
+def parkCalculator(conn, cursor, schema, prefix, dschema, name, region, dropprevious):
+    cursor.execute("""ALTER TABLE %s.%s_%s
+                        ADD COLUMN thingswithin text;
+                        ALTER TABLE %s.%s_%s
+                        ADD COLUMN playgrounds float;
+
+                  """ % (dschema, name, region, dschema, name, region))
+    conn.commit()
+    query = """SELECT * FROM %s.%s_%s""" % (dschema, name, region)
+
+    cursor.execute(query)
+    parklist=cursor.fetchall()
+    if parklist:
+        #print(shoplist)
+        i = 0
+        for park in parklist:
+            id = park[0]
+            #print(shop)
+            i+=1
+            if i % 20 == 0:
+                print(str(i) + ' out of ' + str(len(parklist)) + ' locations examined.')
+            cursor.execute("""
+                                            SELECT COUNT (contain.id)
+                                            FROM (SELECT node.id as id
+                                                    FROM (	SELECT *
+                                                            FROM %s.parks_%s
+                                                            where id = '%s')as park
+                                                    INNER JOIN %s.%s_node as node
+                                                    ON ST_WITHIN(node.pos, park.polygon)) as contain
+                                            LEFT JOIN %s.%s_ntag as tags
+                                            ON contain.id = tags.id
+                                            where tags.v = 'playground'
+                            """ % (dschema, region, park[0], schema, prefix, schema, prefix))
+            playgroundcount = cursor.fetchone()
+            # print(buildingtags[2])
+            # print(shopcount)
+            # print(building[4])
+            """if shopcount[0] <2:
+                shopshare=0.8
+            elif shopcount[0] <6:
+                shopshare = 0.5
+            else:
+                shopshare = 0.2
+            print(shopshare)"""
+            cursor.execute(""" UPDATE %s.%s_%s
+                                                SET   playgrounds = '%s'
+                                                WHERE id = '%s'""" % (dschema, name, region,
+                                                                      playgroundcount[0], id))
+            conn.commit()
+
+
 # --- function definitions --------------------------------------------------
 # --- main
-def build_structures(srcdb, deffile, dstdb, dropprevious, append, verbose):
+def build_structures(srcdb, deffile, dstdb, dropprevious, append, verbose, region, calculator):
     t1 = datetime.datetime.now()
     # -- open connection
     (host, db, schema_prefix, user, password) = srcdb.split(",")
@@ -440,7 +675,7 @@ def build_structures(srcdb, deffile, dstdb, dropprevious, append, verbose):
     print ("Loading definition of things to extract")
     extractor.load_definitions(deffile)
     print ("Determining object IDs")
-    extractor.get_object_ids(conn, cursor, schema, prefix)
+    extractor.get_object_ids(conn, cursor, schema, prefix, region)
     print ("Collecting object geometries")
     area = extractor.collect_referenced_objects(conn, cursor, schema, prefix)
 
@@ -448,25 +683,26 @@ def build_structures(srcdb, deffile, dstdb, dropprevious, append, verbose):
     # --- open connection
     print ("Building destination databases")
     (host, db, schema_name, user, password) = dstdb.split(",")
-    schema, name = schema_name.split(".")
+    dschema, name = schema_name.split(".")
     conn2 = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
     cursor2 = conn2.cursor()
     # --- build tables
     if dropprevious:
-        cursor2.execute("DROP TABLE IF EXISTS %s.%s" % (schema, name))
+        cursor2.execute("DROP TABLE IF EXISTS %s.%s_%s" % (dschema, name, region))
     if not append:
-        cursor2.execute("CREATE TABLE %s.%s ( id bigint, oid bigint, type varchar(4) );" % (schema, name))
-        cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'centroid', 4326, 'POINT', 2);" % (schema, name))
-        cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'polygon', 4326, 'MULTIPOLYGON', 2);" % (schema, name))
-        cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'geom_collection', 4326, 'GEOMETRYCOLLECTION', 2);" % (schema, name))
-        cursor2.execute("DROP TABLE IF EXISTS %s.%s_types" % (schema, name))
-        cursor2.execute("CREATE TABLE %s.%s_types (id bigint, oid bigint, type text);" % (schema, name))
+        cursor2.execute("CREATE TABLE %s.%s_%s ( id bigint, oid text, type varchar(4) );" % (dschema, name, region))
+        cursor2.execute("SELECT AddGeometryColumn('%s', '%s_%s', 'centroid', 4326, 'POINT', 2);" % (dschema, name, region))
+        cursor2.execute("SELECT AddGeometryColumn('%s', '%s_%s', 'polygon', 4326, 'MULTIPOLYGON', 2);" % (dschema, name, region))
+        #cursor2.execute("SELECT AddGeometryColumn('%s', '%s_%s', 'geom_collection', 4326, 'GEOMETRYCOLLECTION', 2);" % (dschema, name, region))
+        cursor2.execute("Alter Table %s.%s_%s Add geom_collection text;" %(dschema, name, region))
+        cursor2.execute("DROP TABLE IF EXISTS %s.%s_%s_types" % (dschema, name, region))
+        cursor2.execute("CREATE TABLE %s.%s_%s_types (id bigint, oid text, type text);" % (dschema, name, region))
         conn2.commit()
     # --- insert objects
     print ("Building and storing objects")
-    num, fw, fr = extractor.store_objects(area, conn2, cursor2, schema, name)
+    num, fw, fr = extractor.store_objects(area, conn2, cursor2, dschema, name, region)
     # --- write mapping of duplicate ids
-    extractor.save_mapping_if_exists(name + "_mapping.txt")
+    extractor.save_mapping_if_exists("C:\\git\\UrMoAC\\tools\\osm\\"+name + "_mapping.txt")
     # --- finish
     t2 = datetime.datetime.now()
     dt = t2-t1
@@ -474,6 +710,11 @@ def build_structures(srcdb, deffile, dstdb, dropprevious, append, verbose):
     print (" in %s" % dt)
     if fw>0: print (" %s ways could not be build" % fw)
     if fr>0: print (" %s relations could not be build" % fr)
+    if calculator:
+        print('Examining locations.')
+        storeAreaCalculator(conn, cursor, schema, prefix, dschema, name, region, dropprevious)
+    #parkCalculator(conn, cursor, schema, prefix, dschema, name, region, dropprevious)
+
 
 
 
@@ -508,6 +749,8 @@ def main(arguments=None):
     parser.add_argument('-A', '--append', action='store_true', help="Append read data to existing tables")
     parser.add_argument('--version', action='version', version='%(prog)s 0.8.2')
     parser.add_argument("-v", "--verbose", action="store_true", help="Print what is being done")
+    parser.add_argument("-e", "--region", help='Defines the region (state or NUTS3) in which the system is build. Defaults to \'germany\' as a whole.')
+    parser.add_argument('-u', '--calculator', action='store_true',help='For applicable POIs, this will add an approximate value of area used.')
     parser.set_defaults(**defaults)
     args = parser.parse_args(remaining_argv)
 
@@ -533,8 +776,24 @@ def main(arguments=None):
             print ("osmdb_buildStructures: error: %s" % e, file=sys.stderr)
         print ("osmdb_buildStructures: quitting on error.", file=sys.stderr)
         return 1
+    gegenden = ['badenwuerttemberg', 'bayern', 'berlin', 'brandenburg', 'bremen', 'hamburg', 'hessen', 'mecklenburgvorpommern',
+                'niedersachsen', 'nordrheinwestfalen', 'rheinlandpfalz', 'saarland', 'sachsen', 'sachsenanhalt', 'schleswig-holstein', 'thueringen']
+    if args.region is None:
+        args.region = 'germany'
+    elif args.region not in gegenden:
+        if "nuts3_" in args.region:
+            print('Bei Auswahl auf Kreisebene ist darauf zu achten, dass ggf. die Bezeichung in der Datenbank angepasst werden muss (lowercase, keine leer oder sonderzeichen).')
+        else:
+            gegendstring = ''
+            for g in gegenden:
+                gegendstring = gegendstring + ', ' + g
+            errors.append(
+                "region chosen not available;\n must be \'germany\', in: " + gegendstring +" or follow the pattern \'nuts3_<Kreisname in lowercase ohne Leer- oder Sonderzeichen>\'")
+    if args.calculator is not None:
+        print('Bitte stellen Sie sicher, dass die \'building\' tabelle für die entsprechende Region bereits erstellt wurde.')
 
-    return build_structures(args.OSMdatabase, args.definition, args.output, args.dropprevious, args.append, args.verbose)
+    #TODO marlon if calculator return build_structures(buildings)
+    return build_structures(args.OSMdatabase, args.definition, args.output, args.dropprevious, args.append, args.verbose, args.region, args.calculator)
 
 
 # -- main check

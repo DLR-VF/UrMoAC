@@ -1,0 +1,12 @@
+[*]
+<outline>
+<outer>
+<inner>
+
+
+leisure~dog_park
+leisure~playground
+leisure~park
+
+    
+    

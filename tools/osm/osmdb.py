@@ -76,17 +76,36 @@ class OSMDB:
 
   
     # --- node i/o helper ---------------------------------
-    def get_node(self, nID):
+    def get_node(self, nID, area):
         """Returns the node defined by the given id
         :param nID: The ID of the node to retrieve
         :type nID: int
         :return: The node, given as ID and position
         :rtype: 
         """
-        query = "SELECT * from %s.%s_node WHERE id='%s';" % (self._schema, self._dbprefix, nID)
+
+        if 'nuts3_' in area:
+            areacat = 'bezeichnung'
+            areaspec = area.split('_')[1]
+        else:
+            areacat = 'land'
+            areaspec = area
+
+        if area == 'germany':
+            query = "SELECT * from %s.%s_node WHERE id='%s';" % (self._schema, self._dbprefix, nID)
+        else:
+            query = """
+            SELECT n.id, n.pos
+            FROM %s.%s_node n, osmextract.area l
+            WHERE l.%s = '%s'
+            AND n.id = '%s'
+            AND ST_Within(n.pos, l.geom);
+            """ % (self._schema, self._dbprefix, areacat, areaspec, nID)
+
         return self._execute_fetch_all(query)
-  
-  
+
+
+
     def getNodeKV_forID(self, nid):
         """Returns the parameter of a node
         :param nID: The ID of the node to retrieve
@@ -159,8 +178,11 @@ class OSMDB:
                 print ("Warning: node %s is not known" % n)
                 continue
             ret.append([n, n2pos[n]])
-        return ret  
+        return ret
 
+    def getNodeValue_withKeyAndID(self, elem, key):
+        query = "SELECT DISTINCT v FROM %s.%s_ntag WHERE id = '%s' AND k = '%s';" % (self._schema, self._dbprefix, elem, key)
+        return self._execute_fetch_all(query)
 
     
     # --- way i/o helper ----------------------------------
@@ -186,17 +208,45 @@ class OSMDB:
         query = "SELECT * from %s.%s_wtag WHERE id='%s';" % (self._schema, self._dbprefix, wID)
         return self._execute_fetch_all(query)
 
-  
-    def getWayKV_withMatchingKey(self, key):
+
+
+
+    def getWayKV_withMatchingKey(self, key, area):
         """Returns the IDs and parameter of all ways with the given key
         :param key: The key to get the IDs and parameter for
         :type key: str
         :return: The IDs and parameter with the given key as id/key/value tuples
-        :rtype: 
+        :rtype:
         """
-        query = "SELECT * from %s.%s_wtag WHERE k='%s';" % (self._schema, self._dbprefix, key)
-        return self._execute_fetch_all(query)
-  
+        if 'nuts3_' in area:
+            areacat = 'bezeichnung'
+            areaspec = area.split('_')[1]
+        else:
+            areacat = 'land'
+            areaspec = area
+        if area == 'germany' :
+            query = "SELECT * from %s.%s_wtag WHERE k='%s';" % (self._schema, self._dbprefix, key)
+            return self._execute_fetch_all(query)
+        else:
+            query = """
+            SELECT waynodes.id as id, waynodes.k as k, waynodes.v as v
+            FROM
+                (SELECT tway.id as id, tway.k as k, tway.v as v, node.pos as geom
+                FROM
+                    (SELECT tag.id as id, k, v, refs
+                    FROM
+                        (SELECT id, k, v 
+                        FROM %s.%s_wtag
+                        where k = '%s') as tag
+                    LEFT JOIN %s.%s_way as way
+                    ON tag.id = way.id) as tway
+                LEFT JOIN %s.%s_node as node
+                on tway.refs[1] = node.id) as waynodes
+            INNER JOIN (SELECT * FROM osmextract.area WHERE %s = '%s') as zelle
+            on ST_Within(waynodes.geom, zelle.geom);""" % (self._schema, self._dbprefix, key, self._schema, self._dbprefix, self._schema, self._dbprefix, areacat, areaspec)
+            print(query)
+            return self._execute_fetch_all(query)
+    
   
     def getWayKV_withMatchingKeyValue(self, key, value):
         """Returns the IDs and parameter of all ways with the given key and the given value
@@ -258,8 +308,85 @@ class OSMDB:
         query = "SELECT * from %s.%s_member WHERE rid=%s ORDER BY idx;" % (self._schema, self._dbprefix, rID)
         return self._execute_fetch_all(query)
 
-  
+    def lightrailsort(self, lrID):
+        query = """SELECT ST_Within(waynodes.geom, zelle.geom)
+                    FROM
+                        (SELECT way.id as id, node.pos as geom
+                        FROM
+                            (SELECT id, refs
+                            FROM %s.%s_way
+                            where id = '%s') as way
+                        LEFT JOIN %s.%s_node as node
+                        on way.refs[1] = node.id) as waynodes
+                    INNER JOIN (SELECT * FROM osmextract.area WHERE land = 'hamburg' or land = 'berlin') as zelle
+                    on ST_DWithin(waynodes.geom, zelle.geom, 0.05);
+                    """ % (self._schema, self._dbprefix, lrID, self._schema, self._dbprefix, )
+        if self._execute_fetch_all(query):
+            return 'light_rail'
+        else:
+            return 'stadtbahn'
 
-    
-    
-    
+    def subwaysort(self, subID):
+        query = """SELECT ST_Within(waynodes.geom, zelle.geom)
+                    FROM
+                        (SELECT way.id as id, node.pos as geom
+                        FROM
+                            (SELECT id, refs
+                            FROM %s.%s_way
+                            where id = '%s') as way
+                        LEFT JOIN %s.%s_node as node
+                        on way.refs[1] = node.id) as waynodes
+                    INNER JOIN (SELECT * FROM osmextract.area WHERE land = 'hamburg' or 
+                                                                    land = 'berlin' or 
+                                                                    bezeichnung = 'muenchen' or
+                                                                    bezeichnung = 'nuernberg') as zelle
+                    on ST_DWithin(waynodes.geom, zelle.geom, 0.05);
+                    """ % (self._schema, self._dbprefix, subID, self._schema, self._dbprefix, )
+        if self._execute_fetch_all(query):
+            return 'subway'
+        else:
+            return 'stadtbahn'
+
+
+    def getStops(self, area, mode, dschema, dprefix):
+        if mode == 'railway':
+            tramstop = ''
+            ptstop = ''
+        else:
+            tramstop = ' or v = \'tram_stop\''
+        query = """SELECT DISTINCT loc.id as id, loc.k as k, loc.v as v, loc.geom as geom
+                    FROM 
+                        (Select tags.id as id, tags.k as k, tags.v as v, node.pos as geom
+                        FROM 
+                            (SELECT id, k, v
+                            FROM %s.%s_ntag
+                            where k = 'railway' and (v = 'station' or v = 'halt' or v = 'stop'%s)) as tags
+                        LEFT JOIN %s.%s_node as node
+                        ON tags.id = node.id) as loc
+                    INNER JOIN %s.%s_%s_%s_network as network
+                    on ST_DWithin(loc.geom, network.geom, 0.0002)""" % (self._schema, self._dbprefix, tramstop, self._schema, self._dbprefix, dschema, dprefix, area, mode)
+        print(query)
+        return self._execute_fetch_all(query)
+
+    def fetchCloseStops(self, ID, area, mode, dschema, dprefix):
+        query = """SELECT *
+                    FROM %s.%s_%s_%s_stops as stops
+                    WHERE ST_DWithin((	SELECT DISTINCT geom 
+					                    FROM %s.%s_%s_%s_stops
+					                    WHERE id = '%s'),
+					                    stops.geom, 0.002)
+        """ % (dschema, dprefix, area, mode, dschema, dprefix, area, mode, ID)
+        return self._execute_fetch_all(query)
+
+    """  
+        def getWayKV_withMatchingKey(self, key, area):
+            Returns the IDs and parameter of all ways with the given key
+            :param key: The key to get the IDs and parameter for
+            :type key: str
+            :return: The IDs and parameter with the given key as id/key/value tuples
+            :rtype: 
+
+            query = "SELECT * from %s.%s_wtag WHERE k='%s';" % (self._schema, self._dbprefix, key)
+            return self._execute_fetch_all(query)
+     """
+

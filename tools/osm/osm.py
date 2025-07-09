@@ -27,8 +27,10 @@ import copy
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join(script_dir, '..', 'helper')
 sys.path.append(mymodule_dir)
-from wkt import *
-from geom_helper import *
+#from wkt import *
+#from geom_helper import *
+from structure_defs import geom_helper
+from structure_defs import wkt
 
 
 # --- class definitions -----------------------------------------------------
@@ -87,7 +89,7 @@ class OSMNode(OSMElement):
         :return: The geometry type (GeometryType.POINT)
         :rtype: GeometryType
         """
-        return GeometryType.POINT
+        return wkt.GeometryType.POINT
 
 
 
@@ -153,8 +155,8 @@ class OSMWay(OSMElement):
         :rtype: GeometryType
         """
         if self.geom[0]==self.geom[-1]:
-            return GeometryType.POLYGON
-        return GeometryType.LINESTRING
+            return wkt.GeometryType.POLYGON
+        return wkt.GeometryType.LINESTRING
     
     
 
@@ -206,11 +208,11 @@ class OSMRelation(OSMElement):
             i.possibleFollowers = []
         # fill consecution list
         for i,w1 in enumerate(roleItems):
-            if w1.get_geometry_type()!=GeometryType.LINESTRING:
+            if w1.get_geometry_type()!=wkt.GeometryType.LINESTRING:
                 continue
             for j,w2 in enumerate(roleItems):
                 if i==j: continue
-                if w2.get_geometry_type()!=GeometryType.LINESTRING:
+                if w2.get_geometry_type()!=wkt.GeometryType.LINESTRING:
                     continue
                 if w1.geom[-1]==w2.geom[0]: # ok, plain continuation
                     w1.possibleFollowers.append([j, 0])
@@ -388,8 +390,8 @@ class OSMRelation(OSMElement):
                     for q2 in range(q1+1, len(ngeom)):
                         p21 = ngeom[q2-1]
                         p22 = ngeom[q2]
-                        intersection = lineLineIntersection(p11[0], p11[1], p12[0], p12[1], p21[0], p21[1], p22[0], p22[1])
-                        if intersection and (distance(intersection, p11)<.00001 or distance(intersection, p12)<.00001):
+                        intersection = geom_helper.lineLineIntersection(p11[0], p11[1], p12[0], p12[1], p21[0], p21[1], p22[0], p22[1])
+                        if intersection and (geom_helper.distance(intersection, p11)<.00001 or geom_helper.distance(intersection, p12)<.00001):
                             intersection = None
                         if intersection:
                             valid = False
@@ -490,14 +492,14 @@ class OSMRelation(OSMElement):
             # add all elements that do not need any continuations (are a closed polygon or point)
             leftItems = []
             for r in roles[role]:
-                if r.get_geometry_type()==GeometryType.POINT:
+                if r.get_geometry_type()==wkt.GeometryType.POINT:
                     self.geom[role].append(r)
-                elif r.get_geometry_type()==GeometryType.POLYGON:
-                    asign = signed_area(r.geom)
+                elif r.get_geometry_type()==wkt.GeometryType.POLYGON:
+                    asign = geom_helper.signed_area(r.geom)
                     if (asign>0 and role=="inner") or (asign<0 and role=="outer"):
                         r.geom.reverse()
                     self.geom[role].append(r)
-                elif r.get_geometry_type()==GeometryType.GEOMETRYCOLLECTION:
+                elif r.get_geometry_type()==wkt.GeometryType.GEOMETRYCOLLECTION:
                     self.geom[role].append(r)
                 else:
                     leftItems.append(r)
@@ -524,7 +526,7 @@ class OSMRelation(OSMElement):
                     # build a new item
                     polys = ngeomss[valids.index(True)]
                     for poly in polys:
-                        asign = signed_area(poly)
+                        asign = geom_helper.signed_area(poly)
                         if asign<0:
                             poly.reverse()
                         self.geom[role].append(OSMWay(-1, [], poly))
@@ -536,7 +538,7 @@ class OSMRelation(OSMElement):
         :return: The geometry type (GeometryType.GEOMETRYCOLLECTION)
         :rtype: GeometryType
         """
-        return GeometryType.GEOMETRYCOLLECTION
+        return wkt.GeometryType.GEOMETRYCOLLECTION
 
 
     def get_description_with_polygons(self):
@@ -552,20 +554,20 @@ class OSMRelation(OSMElement):
                 id, type, outerpolys, outer = o.get_description_with_polygons()
                 if not outer.startswith("POLYGON"):
                     continue
-                if signed_area(outerpolys[0][0])<0: outerpolys[0][0].reverse()
+                if geom_helper.signed_area(outerpolys[0][0])<0: outerpolys[0][0].reverse()
                 seen.add(o)
                 if "inner" in self.geom:
                     inners = []
                     for i in self.geom["inner"]:
                         if i in seen:
                             continue
-                        if i.get_geometry_type()!=GeometryType.LINESTRING and i.get_geometry_type()!=GeometryType.POLYGON:
+                        if i.get_geometry_type()!=wkt.GeometryType.LINESTRING and i.get_geometry_type()!=wkt.GeometryType.POLYGON:
                             continue
                         id, type, innerpolys, inner = i.get_description_with_polygons()
                         if not inner.startswith("POLYGON"):
                             continue
-                        if polygon_in_polygon(innerpolys[0][0], outerpolys[0][0]):
-                            if signed_area(innerpolys[0][0])>0: innerpolys[0][0].reverse()
+                        if geom_helper.polygon_in_polygon(innerpolys[0][0], outerpolys[0][0]):
+                            if geom_helper.signed_area(innerpolys[0][0])>0: innerpolys[0][0].reverse()
                             inners.append(innerpolys[0][0])
                             seen.add(i)
                     if len(inners)!=0:
