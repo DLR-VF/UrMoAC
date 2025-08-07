@@ -122,32 +122,30 @@ class Geometry:
         """
         self._type = type
         self._shape = shape
-
     
     def artist(self):
         """Returns a matplotlib artist that represents this geometry"""
         raise ValueError("abstract Geometry type") # pragma: no cover
 
-
     def bounds(self):
         """Returns the bounds of this geometry"""
         raise ValueError("abstract Geometry type") # pragma: no cover
-
 
     def shape(self):
         """Returns the shape of this geometry"""
         return self._shape
 
-
     def wkt(self):
         """Returns the WKT representation of this geometry"""
         raise ValueError("abstract Geometry type") # pragma: no cover
-
 
     def reproject(self, transformer):
         """Reprojects this geometry"""
         raise ValueError("abstract Geometry type") # pragma: no cover
 
+    def is_empty(self):
+        """Returns whether the geometry is empty"""
+        return self._shape is None
 
 
 class Point(Geometry):
@@ -160,7 +158,6 @@ class Point(Geometry):
         """
         Geometry.__init__(self, GeometryType.POINT, shape)
 
-
     def artist(self, **kwargs):
         """Returns a matplotlib artist that represents this geometry"""
         if self._shape is None:
@@ -168,20 +165,17 @@ class Point(Geometry):
         import matplotlib.patches
         return matplotlib.patches.Circle(self._shape, **kwargs)
 
-
     def bounds(self):
         """Returns the bounds of this geometry"""
         if self._shape is None:
             raise ValueError("This geometry is empty")
         return [self._shape[0], self._shape[1], self._shape[0], self._shape[1]]
 
-
     def wkt(self):
         """Returns the WKT representation of this geometry"""
         if self._shape is None:
             return "POINT(EMPTY)"
         return f"POINT({self._shape[0]} {self._shape[1]})"
-
 
     def reproject(self, transformer):
         """Reprojects this geometry"""
@@ -203,16 +197,14 @@ class LineString(Geometry):
         """
         Geometry.__init__(self, GeometryType.LINESTRING, shape)
 
-
     def artist(self, **kwargs):
         """Returns a matplotlib artist that represents this geometry"""
         if self._shape is None:
-            raise ValueError("This geometry is empty")
+            return
         import matplotlib.patches
         import matplotlib.path
         path = matplotlib.path.Path(self._shape, closed=False)
         return matplotlib.patches.PathPatch(path, fill=False, **kwargs)
-
 
     def bounds(self):
         """Returns the bounds of this geometry"""
@@ -226,7 +218,6 @@ class LineString(Geometry):
             bounds[3] = max(bounds[3], p[1])
         return bounds
 
-
     def wkt(self):
         """Returns the WKT representation of this geometry"""
         if self._shape is None:
@@ -234,7 +225,6 @@ class LineString(Geometry):
         npoly = ["%s %s" % (p[0], p[1]) for p in self._shape]
         npoly = ", ".join(npoly)
         return f"LINESTRING({npoly})"
-
 
     def reproject(self, transformer):
         """Reprojects this geometry"""
@@ -309,7 +299,6 @@ class Polygon(Geometry):
                 npoly.append(pn)
             nshape.append(npoly)
         self._shape = nshape
-
 
 
 
