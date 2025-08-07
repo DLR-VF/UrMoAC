@@ -132,7 +132,8 @@ public class DBEdge {
 		geom = _geom;
 		length = _length;
 		incline = _incline;
-		length = Math.sqrt(length*length + incline*incline);
+		double height_diff = length * incline / 100.;   
+		length = Math.sqrt(length*length + height_diff*height_diff);
 		_from.addOutgoing(this);
 		_to.addIncoming(this);
 	}
