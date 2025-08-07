@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-# ===========================================================================
 """Defines modes of transport for the OSM importer."""
 # ===========================================================================
 __author__     = "Daniel Krajzewicz"

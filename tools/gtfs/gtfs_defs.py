@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-# ===========================================================================
 """GTFS definitions built automatically using parse_reference.py"""
 # ===========================================================================
 __author__     = "Daniel Krajzewicz"

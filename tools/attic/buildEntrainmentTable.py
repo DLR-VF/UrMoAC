@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-# ===========================================================================
 """This is a very simple tool to demonstrate how an entrainment table
 looks like.
 

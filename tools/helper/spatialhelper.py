@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-# ===========================================================================
 """Methods for computing boundaries and centers."""
 # ===========================================================================
 __author__     = "Daniel Krajzewicz"

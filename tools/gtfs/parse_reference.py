@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-# ===========================================================================
 """Builds gtfs_defs.py from a local copy of the GTFS definition"""
 # ===========================================================================
 __author__     = "Daniel Krajzewicz"
