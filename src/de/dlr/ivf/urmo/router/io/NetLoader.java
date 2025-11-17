@@ -139,7 +139,11 @@ public class NetLoader {
 			connection.setAutoCommit(true);
 			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 			((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-			String query = "SELECT oid,nodefrom,nodeto,mode_walk,mode_bike,mode_mit,"+vmax+",length,incline,ST_AsBinary(ST_TRANSFORM(" + geomS + "," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, "net");
+			String query = "SELECT oid,nodefrom,nodeto,mode_walk,mode_bike,mode_mit,"+vmax+",length";
+			if(!ignoreIncline) {
+				query += ",incline";
+			}
+			query += ",ST_AsBinary(ST_TRANSFORM(" + geomS + "," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, "net");
 			if(netBoundary!=null) {
 				query += " WHERE ST_Within(ST_Transform(" + geomS + "," + epsg + "), ST_GeomFromText('" + netBoundary.toText() + "', " + epsg + "))";
 			}
