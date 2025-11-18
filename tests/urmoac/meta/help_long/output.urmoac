@@ -17,6 +17,8 @@ Usage:
                                    areas.
   --to-agg                       Defines the data source of destination
                                    aggregation areas.
+  --to-types                     Defines the data source of destination to types
+                                   map.
   -p, --pt                       Defines the GTFS-based public transport
                                    representation.
   --traveltimes                  Defines the data source of traveltimes.
@@ -127,6 +129,7 @@ Usage:
   --pt-output                    Defines the public transport output to
                                    generate.
   -d, --direct-output            Defines the direct output to generate.
+  --process-output               Defines the process output to generate.
   --origins-to-road-output       Defines the output of the mapping between
                                    origins and the network.
   --destinations-to-road-output  Defines the output of the mapping between

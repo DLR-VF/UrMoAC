@@ -6,6 +6,7 @@
    <mode></mode>
    <from-agg></from-agg>
    <to-agg></to-agg>
+   <to-types></to-types>
    <pt></pt>
    <traveltimes></traveltimes>
    <epsg></epsg>
@@ -71,6 +72,7 @@
    <edges-output></edges-output>
    <pt-output></pt-output>
    <direct-output></direct-output>
+   <process-output></process-output>
    <origins-to-road-output></origins-to-road-output>
    <destinations-to-road-output></destinations-to-road-output>
    <subnets-output></subnets-output>
