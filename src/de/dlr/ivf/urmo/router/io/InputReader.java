@@ -26,6 +26,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Vector;
@@ -499,6 +500,16 @@ public class InputReader {
 	// --------------------------------------------------------
 	// geometry loading
 	// --------------------------------------------------------
+	/** @brief Returns the defined geometry
+	 * 
+	 * If def is a tuple of four floats, the respective bounding box is returned.
+	 * Otherwise the geometry is loaded using the def, @see loadGeometry.
+	 * @param def The definition of the geometry (bounding box or source)
+	 * @param what The name of the loaded element
+	 * @param epsg The epsg to apply
+	 * @return The parsed / loaded geometry
+	 * @throws IOException
+	 */
 	public static Geometry getGeometry(String def, String what, int epsg) throws IOException {
 		if("".equals(def)) {
 			return null;
@@ -520,9 +531,6 @@ public class InputReader {
 		}
 		return loadGeometry(def, what, epsg);
 	}
-	
-	
-	
 	
 	
 	/** @brief Loads a geometry
@@ -735,6 +743,7 @@ public class InputReader {
 	// --------------------------------------------------------
 	/** @brief Loads mode change locations
 	 * @param def The source definition (unparsed)
+	 * @param net The network to add the locations to
 	 * @return Whether the locations could be loaded
 	 * @throws IOException When something fails
 	 */
@@ -832,6 +841,105 @@ public class InputReader {
 	    } while(line!=null);
 		br.close();
 		return !hadError;
+	}
+	
+	
+	
+	// --------------------------------------------------------
+	// types loading
+	// --------------------------------------------------------
+	/** @brief Loads od-connections
+	 * @param def The source definition (unparsed)
+	 * @param name The name of the loaded element
+	 * @return The loaded od-connections
+	 * @throws IOException When something fails
+	 */
+	public static HashMap<Long, Set<String>> loadTypes(String def, String name) throws IOException {
+		Utils.Format format = Utils.getFormat(def);
+		String[] inputParts = Utils.getParts(format, def, name);
+		switch(format) {
+		case FORMAT_POSTGRES:
+		case FORMAT_SQLITE:
+			return loadTypesFromDB(format, inputParts, name);
+		case FORMAT_CSV:
+			return loadTypesFromCSVFile(inputParts[0], name);
+		case FORMAT_WKT:
+		case FORMAT_SHAPEFILE:
+		case FORMAT_GEOPACKAGE:
+		case FORMAT_SUMO:
+			throw new IOException("Reading '" + name + "' from " + Utils.getFormatMMLName(format) + " is not supported.");
+		default:
+			throw new IOException("Could not recognize the format used for '" + name + "'.");
+		}
+	}
+
+
+	/** @brief Loads od-connections from a database
+	 * @param format The used format
+	 * @param inputParts The source definition
+	 * @return The loaded od-connections
+	 * @throws IOException When something fails
+	 */
+	private static HashMap<Long, Set<String>> loadTypesFromDB(Utils.Format format, String[] inputParts, String name) throws IOException {
+		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
+		try {
+			Class.forName("org.sqlite.JDBC");
+			Class.forName("org.postgresql.Driver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		try {
+			Connection connection = Utils.getConnection(format, inputParts, name);
+			connection.setAutoCommit(true);
+			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
+			String query = "SELECT id,type FROM " + Utils.getTableName(format, inputParts, name) + ";";
+			Statement s = connection.createStatement();
+			ResultSet rs = s.executeQuery(query);
+			HashMap<Long, Set<String>> ret =  new HashMap<Long, Set<String>>();
+			while (rs.next()) {
+				long id = rs.getLong("id");
+				if(!ret.containsKey(id)) {
+					ret.put(id, new HashSet<String>());
+				}
+				ret.get(id).add(rs.getString("type"));
+			}
+			rs.close();
+			s.close();
+			connection.close();
+			return ret;
+		} catch (SQLException e) {
+			throw new IOException(e);
+		}
+	}
+
+
+	/** @brief Loads od-connections from a csv file
+	 * @param fileName The name of the file to read od-connections from
+	 * @return The loaded od-connections
+	 * @throws IOException When something fails
+	 */
+	private static HashMap<Long, Set<String>> loadTypesFromCSVFile(String fileName, String name) throws IOException {
+		HashMap<Long, Set<String>> ret =  new HashMap<Long, Set<String>>();
+		BufferedReader br = new BufferedReader(new FileReader(fileName));
+		String line = null;
+		do {
+			line = br.readLine();
+			if(line==null || line.length()==0 || line.charAt(0)=='#') {
+				continue;
+			}
+			String[] vals = line.trim().split(";");
+			try {
+				long id = Long.parseLong(vals[0]);
+				if(!ret.containsKey(id)) {
+					ret.put(id, new HashSet<String>());
+				}
+				ret.get(id).add(vals[1]);
+			} catch(NumberFormatException e) {
+				System.err.println("Broken type definition in '" + fileName + "': " + line + ".");
+			}
+	    } while(line!=null);
+		br.close();
+		return ret;
 	}
 	
 	

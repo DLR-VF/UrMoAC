@@ -52,7 +52,7 @@ public class EdgeMappingWriter extends BasicCombinedWriter {
 	 */
 	public EdgeMappingWriter(Utils.Format format, String[] inputParts, int precision, 
 			boolean dropPrevious, int epsg) throws IOException {
-		super(format, inputParts, "X-to-road-output", precision, dropPrevious, "(id bigint, rid text, rpos real, dist real)");
+		super(format, inputParts, "X-to-road-output", precision, dropPrevious, false, "(id bigint, rid text, rpos real, dist real)");
 		addGeometryColumn("conn", epsg, "LINESTRING", 2);
 	}
 

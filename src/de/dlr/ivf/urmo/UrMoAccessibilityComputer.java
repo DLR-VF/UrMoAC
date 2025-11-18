@@ -56,11 +56,12 @@ import de.dlr.ivf.urmo.router.mivspeeds.SpeedModel;
 import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
 import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;
-import de.dlr.ivf.urmo.router.output.Aggregator;
+import de.dlr.ivf.urmo.router.output.AggregatorBase;
 import de.dlr.ivf.urmo.router.output.CrossingTimesWriter;
-import de.dlr.ivf.urmo.router.output.DijkstraResultsProcessor;
+import de.dlr.ivf.urmo.router.output.ResultsProcessor;
 import de.dlr.ivf.urmo.router.output.DirectWriter;
 import de.dlr.ivf.urmo.router.output.NetErrorsWriter;
+import de.dlr.ivf.urmo.router.output.ProcessWriter;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.DBODRelation;
@@ -99,7 +100,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	/// @brief The route weight computation function
 	private AbstractRouteWeightFunction measure = null; // TODO: add documentation on github
 	/// @brief The results processor
-	private DijkstraResultsProcessor resultsProcessor = null;
+	private ResultsProcessor resultsProcessor = null;
 	/// @brief Starting time for routing
 	private int time = -1;
 	/// @brief Allowed modes
@@ -112,6 +113,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	private long seenODs = 0;
 	/// @brief Whether an error occurred
 	boolean hadError = false;
+	HashMap<Long, Set<String>> toTypes = null; 
 
 	
 	
@@ -148,6 +150,12 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("from-agg", "Defines the data source of origin aggregation areas.");
 		options.add("to-agg", new Option_String());
 		options.setDescription("to-agg", "Defines the data source of destination aggregation areas.");
+		/*
+		options.add("from-types", new Option_String());
+		options.setDescription("from-types", "Defines the data source of origin to types map.");
+		*/
+		options.add("to-types", new Option_String());
+		options.setDescription("to-types", "Defines the data source of destination to types map.");
 		options.add("pt", 'p', new Option_String());
 		options.setDescription("pt", "Defines the GTFS-based public transport representation.");
 		options.add("traveltimes", new Option_String());
@@ -295,6 +303,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("pt-output", "Defines the public transport output to generate.");
 		options.add("direct-output", 'd', new Option_String());
 		options.setDescription("direct-output", "Defines the direct output to generate.");
+		options.add("process-output", new Option_String());
+		options.setDescription("process-output", "Defines the process output to generate.");
 		options.add("origins-to-road-output", new Option_String());
 		options.setDescription("origins-to-road-output", "Defines the output of the mapping between origins and the network.");
 		options.add("destinations-to-road-output", new Option_String());
@@ -644,6 +654,21 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			toAggLayer = InputReader.loadLayer(options, toAggBoundary, "to-agg", null, true, epsg); 
 			if (verbose) System.out.println(" " + toAggLayer.getObjects().size() + " destination aggregation geometries loaded");
 		}
+		// from types
+		/*
+		HashMap<Long, Set<String>> fromTypes = null; 
+		if (options.isSet("from-types")) {
+			if (verbose) System.out.println("Reading assigned origin types");
+			fromTypes = InputReader.loadTypes(options.getString("from-types"), "from-types"); 
+			if (verbose) System.out.println(" " + fromTypes.size() + " read origin type assigments");
+		}
+		*/
+		// to types
+		if (options.isSet("to-types")) {
+			if (verbose) System.out.println("Reading assigned destination types");
+			toTypes = InputReader.loadTypes(options.getString("to-types"), "to-types"); 
+			if (verbose) System.out.println(" " + toTypes.size() + " read destination type assigments");
+		}
 		
 		// travel times
 		if (options.isSet("traveltimes")) {
@@ -687,6 +712,23 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			if (verbose) System.out.println(" loaded");
 		}
 
+		// -------- simplify the network#1
+		if(!hadError&&options.getBool("prunning.join-similar")) {
+			//System.err.println("Error: Joining edges is currently not working. Come back :-)");
+			//hadError = true;
+			if(Modes.isIncluded(modes, "car")&&options.isSet("traveltimes")) {
+				System.err.println("Error: Joining edges is currently not possible when using time-dependent travel times.");
+				hadError = true;
+			} if(modes.size()>1) {
+				System.err.println("Error: Joining edges is currently not possible when using more than one mode.");
+				hadError = true;
+			} else {
+				Mode m = modes.get(0);
+				net.joinSimilar(m.vmax, m.id);
+				if (verbose) System.out.println(" " + net.getNumEdges() + " remaining after joining similar edges.");
+			}
+		}
+		
 		// -------- compute (and optionally write) nearest edges
 		// compute nearest edges
 		if (verbose) System.out.println("Computing access from the origins to the network");
@@ -702,7 +744,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			OutputBuilder.writeEdgeAllocation("destinations-to-road-output", options, nearestToEdges, epsg);
 		}
 		
-		// -------- simplify the network
+		// -------- simplify the network#2
 		if(!hadError&&options.getBool("prunning.remove-geometries")) {
 			if (verbose) System.out.println("Nullifying edge geometries...");
 			if(options.isSet("direct-output")) {
@@ -727,35 +769,15 @@ public class UrMoAccessibilityComputer implements IDGiver {
 				net.precomputeTTs(m.vmax);
 			}
 		}
-		if(!hadError&&options.getBool("prunning.join-similar")) {
-			System.err.println("Error: Joining edges is currently not working. Come back :-)");
-			hadError = true;
-			if(Modes.isIncluded(modes, "car")&&options.isSet("traveltimes")) {
-				System.err.println("Error: Joining edges is currently not possible when using time-dependent travel times.");
-				hadError = true;
-			} if(modes.size()>1) {
-				System.err.println("Error: Joining edges is currently not possible when using more than one mode.");
-				hadError = true;
-			} else {
-				Mode m = modes.get(0);
-				net.joinSimilar(m.vmax, m.id);
-				if (verbose) System.out.println(" " + net.getNumEdges() + " remaining after joining similar edges.");
-			}
-		}
 
 		// -------- build outputs
 		@SuppressWarnings("rawtypes")
-		Vector<Aggregator> aggregators = OutputBuilder.buildOutputs(options, fromLayer, fromAggLayer, toLayer, toAggLayer, epsg);
+		Vector<AggregatorBase> aggregators = OutputBuilder.buildOutputs(options, fromLayer, fromAggLayer, /*fromTypes,*/ toLayer, toAggLayer, toTypes, epsg);
 		DirectWriter dw = OutputBuilder.buildDirectOutput(options, epsg, nearestToEdges);
+		ProcessWriter tl = OutputBuilder.buildProcessWriter(options);
 		time = options.getInteger("time");
-		int maxNumber = options.isSet("max-number") ? options.getInteger("max-number") : -1;
-		double maxTT = options.isSet("max-tt") ? options.getDouble("max-tt") : -1;
-		double maxDistance = options.isSet("max-distance") ? options.getDouble("max-distance") : -1;
-		double maxVar = options.isSet("max-variable-sum") ? options.getDouble("max-variable-sum") : -1;
-		boolean shortestOnly = options.getBool("shortest");
-		boolean needsPT = options.getBool("requirespt");
-		resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, maxNumber, maxTT, maxDistance, maxVar, shortestOnly, needsPT); 
-		
+		boolean needsPT = options.getBool("requirespt"); // !!!
+		resultsProcessor = new ResultsProcessor(time, dw, tl, aggregators, needsPT); 
 		// -------- measure
 		measure = new RouteWeightFunction_TT_ModeSpeed();
 		if(options.isSet("routing-measure")) {
@@ -819,11 +841,11 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		Vector<Thread> threads = new Vector<>();
 		for (int i=0; i<numThreads; ++i) {
 			if(connections==null) {
-				Thread t = new Thread(new ComputingThread_Plain(this, measure, resultsProcessor, time, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly, options.isSet("pt")));
+				Thread t = new Thread(new ComputingThread_Plain(this, measure, resultsProcessor, time, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly, options.isSet("pt"), toTypes));
 				threads.add(t);
 		        t.start();
 			} else {
-				Thread t = new Thread(new ComputingThread_OD(this, measure, resultsProcessor, time, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly, options.isSet("pt")));
+				Thread t = new Thread(new ComputingThread_OD(this, measure, resultsProcessor, time, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly));
 				threads.add(t);
 		        t.start();
 			}

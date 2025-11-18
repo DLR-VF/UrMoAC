@@ -39,7 +39,7 @@ public class CrossingTimesWriter extends BasicCombinedWriter {
 	 * @throws IOException When something fails
 	 */
 	public CrossingTimesWriter(Utils.Format format, String[] inputParts, boolean dropPrevious) throws IOException {
-		super(format, inputParts, "crossing-times", 1, dropPrevious, "(from_edge text, to_edge text, delay real)");
+		super(format, inputParts, "crossing-times", 1, dropPrevious, false, "(from_edge text, to_edge text, delay real)");
 	}
 	
 
@@ -57,7 +57,7 @@ public class CrossingTimesWriter extends BasicCombinedWriter {
 	 * @brief Writes the delay to get from from_edge to to_edge
 	 * @param from The origin edge
 	 * @param to The destination edge
-	 * @param delay The delay time
+	 * @param value The value (delay time)
 	 * @throws IOException When something fails
 	 */
 	public void writeCrossingTime(String from, String to, double value) throws IOException {

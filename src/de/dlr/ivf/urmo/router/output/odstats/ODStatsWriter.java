@@ -87,10 +87,11 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 	 * @param inputParts The definition of the input/output origin/destination
 	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
+	 * @param haveTypes Whether destinations may have different types 
 	 * @throws IOException When something fails
 	 */
-	public ODStatsWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious) throws IOException {
-		super(format, inputParts, "od-ext-stats", precision, dropPrevious, 
+	public ODStatsWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious, boolean haveTypes) throws IOException {
+		super(format, inputParts, "od-ext-stats", precision, dropPrevious, haveTypes,
 				"(fid bigint, sid bigint, num bigint, "
 				+ "avg_distance real, avg_tt real, avg_value real, avg_kcal real, avg_price real, avg_co2 real, "
 				+ "med_distance real, med_tt real, med_value real, med_kcal real, med_price real, med_co2 real, "
@@ -115,10 +116,11 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 	/** 
 	 * @brief Writes the results to the open database / file
 	 * @param result The result to write
+	 * @param destType The type of the destination
 	 * @throws IOException When something fails
 	 */
 	@Override
-	public void writeResult(ODSingleStatsResult result) throws IOException {
+	public void writeResult(ODSingleStatsResult result, String destType) throws IOException {
 		Stats distD = new Stats(result.allDistances);
 		Stats ttD = new Stats(result.allTravelTimes);
 		Stats valuesD = new Stats(result.allValues);
@@ -136,6 +138,9 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 				insertIntoPS(_ps, kcalsD, 7);
 				insertIntoPS(_ps, pricesD, 8);
 				insertIntoPS(_ps, CO2D, 9);
+				if(_haveTypes) {
+					_ps.setString(45, destType);
+				}
 				_ps.addBatch();
 				++batchCount;
 				if(batchCount>10000) {
@@ -146,14 +151,18 @@ public class ODStatsWriter extends AbstractResultsWriter<ODSingleStatsResult> {
 				throw new IOException(ex);
 			}
 		} else {
-			_fileWriter.append(result.originID + ";" + result.destID + ";" + result.allCO2s.size()
-					+ ";" + String.format(Locale.US, _FS, distD.avg) + ";" + String.format(Locale.US, _FS, ttD.avg) + ";" + String.format(Locale.US, _FS, valuesD.avg) + ";" + String.format(Locale.US, _FS, kcalsD.avg) + ";" + String.format(Locale.US, _FS, pricesD.avg) + ";" + String.format(Locale.US, _FS, CO2D.avg)
-					+ ";" + String.format(Locale.US, _FS, distD.med) + ";" + String.format(Locale.US, _FS, ttD.med) + ";" + String.format(Locale.US, _FS, valuesD.med) + ";" + String.format(Locale.US, _FS, kcalsD.med) + ";" + String.format(Locale.US, _FS, pricesD.med) + ";" + String.format(Locale.US, _FS, CO2D.med)
-					+ ";" + String.format(Locale.US, _FS, distD.min) + ";" + String.format(Locale.US, _FS, ttD.min) + ";" + String.format(Locale.US, _FS, valuesD.min) + ";" + String.format(Locale.US, _FS, kcalsD.min) + ";" + String.format(Locale.US, _FS, pricesD.min) + ";" + String.format(Locale.US, _FS, CO2D.min)
-					+ ";" + String.format(Locale.US, _FS, distD.max) + ";" + String.format(Locale.US, _FS, ttD.max) + ";" + String.format(Locale.US, _FS, valuesD.max) + ";" + String.format(Locale.US, _FS, kcalsD.max) + ";" + String.format(Locale.US, _FS, pricesD.max) + ";" + String.format(Locale.US, _FS, CO2D.max)
-					+ ";" + String.format(Locale.US, _FS, distD.p15) + ";" + String.format(Locale.US, _FS, ttD.p15) + ";" + String.format(Locale.US, _FS, valuesD.p15) + ";" + String.format(Locale.US, _FS, kcalsD.p15) + ";" + String.format(Locale.US, _FS, pricesD.p15) + ";" + String.format(Locale.US, _FS, CO2D.p15)
-					+ ";" + String.format(Locale.US, _FS, distD.p85) + ";" + String.format(Locale.US, _FS, ttD.p85) + ";" + String.format(Locale.US, _FS, valuesD.p85) + ";" + String.format(Locale.US, _FS, kcalsD.p85) + ";" + String.format(Locale.US, _FS, pricesD.p85) + ";" + String.format(Locale.US, _FS, CO2D.p85)
-					+ "\n");
+			_fileWriter.append(Long.toString(result.originID)).append(";").append(Long.toString(result.destID)).append(";");
+			_fileWriter.append(Integer.toString(result.allCO2s.size())).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, distD.avg)).append(";").append(String.format(Locale.US, _FS, ttD.avg)).append(";").append(String.format(Locale.US, _FS, valuesD.avg)).append(";").append(String.format(Locale.US, _FS, kcalsD.avg)).append(";").append(String.format(Locale.US, _FS, pricesD.avg)).append(";").append(String.format(Locale.US, _FS, CO2D.avg)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, distD.med)).append(";").append(String.format(Locale.US, _FS, ttD.med)).append(";").append(String.format(Locale.US, _FS, valuesD.med)).append(";").append(String.format(Locale.US, _FS, kcalsD.med)).append(";").append(String.format(Locale.US, _FS, pricesD.med)).append(";").append(String.format(Locale.US, _FS, CO2D.med)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, distD.min)).append(";").append(String.format(Locale.US, _FS, ttD.min)).append(";").append(String.format(Locale.US, _FS, valuesD.min)).append(";").append(String.format(Locale.US, _FS, kcalsD.min)).append(";").append(String.format(Locale.US, _FS, pricesD.min)).append(";").append(String.format(Locale.US, _FS, CO2D.min)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, distD.max)).append(";").append(String.format(Locale.US, _FS, ttD.max)).append(";").append(String.format(Locale.US, _FS, valuesD.max)).append(";").append(String.format(Locale.US, _FS, kcalsD.max)).append(";").append(String.format(Locale.US, _FS, pricesD.max)).append(";").append(String.format(Locale.US, _FS, CO2D.max)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, distD.p15)).append(";").append(String.format(Locale.US, _FS, ttD.p15)).append(";").append(String.format(Locale.US, _FS, valuesD.p15)).append(";").append(String.format(Locale.US, _FS, kcalsD.p15)).append(";").append(String.format(Locale.US, _FS, pricesD.p15)).append(";").append(String.format(Locale.US, _FS, CO2D.p15)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, distD.p85)).append(";").append(String.format(Locale.US, _FS, ttD.p85)).append(";").append(String.format(Locale.US, _FS, valuesD.p85)).append(";").append(String.format(Locale.US, _FS, kcalsD.p85)).append(";").append(String.format(Locale.US, _FS, pricesD.p85)).append(";").append(String.format(Locale.US, _FS, CO2D.p85));
+			if(_haveTypes) {
+				_fileWriter.append(";").append(destType);
+			}
+			_fileWriter.append("\n");
 		}
 	}
 

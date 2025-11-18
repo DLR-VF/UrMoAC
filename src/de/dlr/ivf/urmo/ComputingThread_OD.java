@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2016-2025
+ * Institute of Transport Research
+ * German Aerospace Center
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of the "UrMoAC" accessibility tool
+ * https://github.com/DLR-VF/UrMoAC
+ * Licensed under the Eclipse Public License 2.0
+ * 
+ * German Aerospace Center (DLR)
+ * Institute of Transport Research (VF)
+ * Rutherfordstraße 2
+ * 12489 Berlin
+ * Germany
+ * http://www.dlr.de/vf
+ */
 package de.dlr.ivf.urmo;
 
 import java.io.IOException;
@@ -7,24 +25,22 @@ import java.util.Vector;
 
 import de.dlr.ivf.urmo.router.algorithms.routing.AbstractRouteWeightFunction;
 import de.dlr.ivf.urmo.router.algorithms.routing.BoundDijkstra_Full;
+import de.dlr.ivf.urmo.router.algorithms.routing.DijkstraResultsStorage;
 import de.dlr.ivf.urmo.router.algorithms.routing.IBoundDijkstra;
 import de.dlr.ivf.urmo.router.modes.Mode;
-import de.dlr.ivf.urmo.router.output.DijkstraResultsProcessor;
+import de.dlr.ivf.urmo.router.output.ResultsProcessor;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBODRelationExt;
 
-/** @class ComputingThread
- * 
- * A thread which polls for new origins, computes the accessibility and
- * writes the results before asking for the next one
+/** @class ComputingThread_OD
+ * @brief A thread that computes connections between origin/destination pairs
  * @author Daniel Krajzewicz
- * @todo refactor - od-connections and usual use cases should use own according computation classes
  */
 public class ComputingThread_OD implements Runnable {
 	/// @brief The parent to get information from
 	private UrMoAccessibilityComputer parent;
 	/// @brief The results processor to use
-	private DijkstraResultsProcessor resultsProcessor;
+	private ResultsProcessor resultsProcessor;
 	/// @brief The routing measure to use
 	private AbstractRouteWeightFunction measure;
 	/// @brief The start time of routing
@@ -42,8 +58,6 @@ public class ComputingThread_OD implements Runnable {
 	/// @brief Whether only the shortest connection shall be found 
 	private boolean shortestOnly;
 	
-	private boolean hasPT;
-	
 	/**
 	 * @brief Constructor
 	 * @param _parent The parent to get information from
@@ -58,9 +72,9 @@ public class ComputingThread_OD implements Runnable {
 	 * @param _shortestOnly Whether only the shortest connection shall be found 
 	 */
 	public ComputingThread_OD(UrMoAccessibilityComputer _parent, 
-			AbstractRouteWeightFunction _measure, DijkstraResultsProcessor _resultsProcessor,
+			AbstractRouteWeightFunction _measure, ResultsProcessor _resultsProcessor,
 			int _time, Vector<Mode> _modes, int _boundNumber, double _boundTT, 
-			double _boundDist, double _boundVar, boolean _shortestOnly, boolean _hasPT) {
+			double _boundDist, double _boundVar, boolean _shortestOnly) {
 		super();
 		parent = _parent;
 		resultsProcessor = _resultsProcessor;
@@ -73,7 +87,6 @@ public class ComputingThread_OD implements Runnable {
 		boundDist = _boundDist;
 		boundVar = _boundVar;
 		shortestOnly = _shortestOnly;
-		hasPT = _hasPT;
 	}
 	
 	
@@ -88,15 +101,16 @@ public class ComputingThread_OD implements Runnable {
 		try {
 			DBODRelationExt od = null;
 			do {
+				long beg = System.nanoTime();
 				od = parent.getNextOD();
 				if(od==null) {
 					continue;
 				}
 				Set<DBEdge> destinations = new HashSet<>();
 				destinations.add(od.toEdge);
-				IBoundDijkstra bd = new BoundDijkstra_Full(modes, measure, od.fromMR, boundNumber, boundTT, boundDist, boundVar, shortestOnly, time);
-				bd.run(parent.nearestToEdges.keySet(), parent.nearestToEdges);
-				resultsProcessor.process(od.fromMR, bd, od.destination);
+				IBoundDijkstra bd = new BoundDijkstra_Full(modes, measure, od.fromMR, boundNumber, boundTT, boundDist, boundVar, shortestOnly, time, null);
+				DijkstraResultsStorage drs = bd.run(parent.nearestToEdges.keySet(), parent.nearestToEdges);
+				resultsProcessor.process(beg, bd.getSeenEdgesNum(), bd.getSeenNodesNum(), od.fromMR, drs, od.destination);
 			} while(od!=null&&!parent.hadError);
 		} catch (IOException e) {
 			e.printStackTrace();
