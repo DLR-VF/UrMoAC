@@ -1,7 +1,7 @@
 # UrMoAC
 
-# ![logo.png](https://raw.githubusercontent.com/DLR-VF/UrMoAC/master/logo.png) UrMoAC
-[![License: EPL2](https://img.shields.io/badge/license-EPL2-green)](https://github.com/DLR-VF/UrMoAC/blob/master/LICENSE.md)
+[![Logo](https://raw.githubusercontent.com/DLR-VF/UrMoAC/main/docs/images/UrMoAC.png)](https://raw.githubusercontent.com/DLR-VF/UrMoAC/main/docs/images/UrMoAC.png)
+[![License: EPL2](https://img.shields.io/badge/license-EPL2-green)](https://github.com/DLR-VF/UrMoAC/blob/main/LICENSE.md)
 [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13234444-blue)](https://doi.org/10.5281/zenodo.13234444)
 [![Documentation Status](https://readthedocs.org/projects/urmoac/badge/?version=latest)](https://urmoac.readthedocs.io/en/latest/?badge=latest)
 ![Build Status](https://github.com/DLR-VF/UrMoAC/actions/workflows/maven_build.yml/badge.svg)
@@ -36,7 +36,7 @@ Please consult the section *Links* below for further information sources.
 
 ## Installation
 
-**UrMoAC** is written in the [Java](https://www.java.com/) programming language. You need [Java](https://www.java.com/) to run it. The easiest way to install it is to download the .jar-file from the latest [release](https://github.com/DLR-VF/UrMoAC/releases). Further possibilities to run it are given at [Installation](https://github.com/DLR-VF/UrMoAC/blob/master/docs/mkdocs/Installation.md).
+**UrMoAC** is written in the [Java](https://www.java.com/) programming language. You need [Java](https://www.java.com/) to run it. The easiest way to install it is to download the .jar-file from the latest [release](https://github.com/DLR-VF/UrMoAC/releases). Further possibilities to run it are given at [Installation](https://urmoac.readthedocs.io/en/latest/Installation.html).
 
 ## Usage examples
 
@@ -46,7 +46,7 @@ A most basic call may look as following:
 java -jar UrMoAC.jar --from origins.csv --to destinations.csv --net network.csv --od-output nm_output.csv --mode bike --time 0 --epsg 0
 ```
 
-Which would compute the accessibility of the destinations stored in ```destinations.csv``` starting at the origins stored in ```origins.csv``` along the road network stored in ```network.csv``` for the transport mode bike. Information about the used file formats are given at [Input Data Formats](https://github.com/DLR-VF/UrMoAC/blob/master/docs/mkdocs/InputDataFormats.md).
+Which would compute the accessibility of the destinations stored in ```destinations.csv``` starting at the origins stored in ```origins.csv``` along the road network stored in ```network.csv``` for the transport mode bike. Information about the used file formats are given at [Input Data Formats](https://urmoac.readthedocs.io/en/latest/input_formats/OriginsDestinations.html) and subsequent pages.
 
 ## License
 
@@ -77,4 +77,4 @@ You may find further information about **UrMoAC** at the following pages:
 
 ## Legal
 
-Please find additional legal information at [Legal](https://github.com/DLR-VF/UrMoAC/blob/master/docs/mkdocs/Legal.md).
+Please find additional legal information at [Legal](https://urmoac.readthedocs.io/en/latest/Legal.html) and subsequent pages.
