@@ -22,7 +22,7 @@ import java.io.IOException;
 
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 
-/** @interface CrossingTimesModel
+/** @interface ICrossingTimesModel
  * @brief An interface for models that add delays when crossing a road
  * @author Daniel Krajzewicz
  */

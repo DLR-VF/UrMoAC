@@ -43,7 +43,7 @@ import de.dlr.ivf.urmo.router.gtfs.GTFSTrip;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
 
 /**
- * @class GTFSReader_File
+ * @class GTFSReader_DB
  * @brief Reads a GTFS plan from the DB
  * @author Daniel Krajzewicz
  */

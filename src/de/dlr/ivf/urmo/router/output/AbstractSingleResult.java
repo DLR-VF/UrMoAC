@@ -60,7 +60,7 @@ public abstract class AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Computes the distance and the travel time
-	 * @param dr The path between the origin and the destination
+	 * @param result The path between the origin and the destination
 	 */
 	public AbstractSingleResult(SingleODResult result) {
 		MapResult from = result.origin;

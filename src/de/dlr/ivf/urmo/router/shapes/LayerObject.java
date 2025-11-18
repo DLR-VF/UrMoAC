@@ -44,7 +44,6 @@ public class LayerObject implements EdgeMappable {
 
 	/**
 	 * @brief Constructor
-	 * @param _id The application's running object id
 	 * @param _outerID The original id of the object (in the database, e.g.)
 	 * @param _attachedVar An optionally attached variable value
 	 * @param _geom The object's geometry (usually its position)

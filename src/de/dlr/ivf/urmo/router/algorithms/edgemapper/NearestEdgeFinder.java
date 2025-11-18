@@ -45,7 +45,7 @@ import de.dlr.ivf.urmo.router.shapes.GeomHelper;
  * 
  * The class uses threads to compute the positions of a given set of object (positions) to the 
  * road network. Threads are implemented as an inner class. Each thread asks for the next object
- * to map using the @see getNextMappable method and returns the result using the @addResult method.
+ * to map using the @see getNextMappable method and returns the result using the @see addResult method.
  * The search for the nearest edges uses an @see STRtree. 
  * 
  * Optionally (only in case of destination) the objects are as well assigned to the opposite edge.
@@ -280,7 +280,9 @@ public class NearestEdgeFinder {
 
 	/**
 	 * @brief Builds and returns the mapping of objects to edges
-	 * @param addToEdge if set, the objects will be added to the respectively found edges
+	 * @param addToEdge If set, the objects will be added to the respectively found edges
+	 * @param withOpposites Whether the object should be added to opposite edges as well
+	 * @param numThreads The number of threads to use
 	 * @return The map of objects to edges
 	 */
 	public HashMap<DBEdge, Vector<MapResult>> getNearestEdges(boolean addToEdge, boolean withOpposites, int numThreads) {

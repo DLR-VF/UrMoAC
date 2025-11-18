@@ -61,12 +61,16 @@ public class NetLoader {
 	/** @brief Loads the road network
 	 * @param idGiver Instance supporting running ids 
 	 * @param def Source definition
+	 * @param netBoundary The boundary to apply
 	 * @param vmaxAttr The attribute (column) to read the maximum velocity from 
+	 * @param geomS The name of the column to read the geometry from
 	 * @param epsg The projection
 	 * @param modes The modes for which the network shall be loaded
 	 * @param errorsWriter The writer to report errors to
 	 * @param reportAllErrors If set, all errors are reported, not only the first one
 	 * @param patchErrors If set, false lengths and vmax are patched
+	 * @param ignoreIncline Whether no incline shall be loaded
+	 * @param ctm The crossing delay model to use
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */

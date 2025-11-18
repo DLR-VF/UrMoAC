@@ -30,7 +30,7 @@ import de.dlr.ivf.urmo.router.output.CrossingTimesWriter;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNode;
 
-/** @class CrossingTimesModel
+/** @class CrossingTimesModel_CTM1
  * @brief A simple model for adding delays when crossing a road
  * @author Daniel Krajzewicz
  */
@@ -74,6 +74,7 @@ public class CrossingTimesModel_CTM1 implements ICrossingTimesModel {
 	
 	
 	/** @brief Constructor 
+	 * @param _writer The (optional) delay time writer
 	 */
 	public CrossingTimesModel_CTM1(CrossingTimesWriter _writer) {
 		writer = _writer;

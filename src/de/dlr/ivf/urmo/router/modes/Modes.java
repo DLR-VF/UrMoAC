@@ -45,8 +45,8 @@ public class Modes {
 	static public long customAllowedAt = 0;
 
 
-	/**
-	 * @brief Initialises the known modes information
+	/** @brief Initialises the known modes information
+	 * @param walkingSpeed The walking speed to use
 	 */
 	public static void init(double walkingSpeed) {
 		mml2mode = new HashMap<>();
@@ -143,7 +143,7 @@ public class Modes {
 	/**
 	 * @brief Returns whether a named mode is included in the modes' list
 	 * @param modes The modes list
-	 * @param modes The mode name to check
+	 * @param modeName The mode name to check
 	 * @return Whether the named mode is within the list
 	 */
 	public static boolean isIncluded(Vector<Mode> modes, String modeName) {

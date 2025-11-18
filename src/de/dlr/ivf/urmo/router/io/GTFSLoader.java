@@ -30,7 +30,7 @@ import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
 
 /**
- * @class GTFSReader
+ * @class GTFSLoader
  * @brief Reads a GTFS plan from a DB or a file
  * @author Daniel Krajzewicz
  */

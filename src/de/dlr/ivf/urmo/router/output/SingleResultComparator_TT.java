@@ -24,7 +24,7 @@ import java.util.Comparator;
 import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 
 /**
- * @class AbstractSingleResultComparator_TT
+ * @class SingleResultComparator_TT
  * @brief A comparator object for sorting AbstractSingleResult by their travel time (then by origin/destination IDs)
  * @author Daniel Krajzewicz
  */

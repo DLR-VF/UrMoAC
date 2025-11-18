@@ -75,6 +75,9 @@ public class DBNet {
 	/**
 	 * @brief Constructor
 	 * @param _idGiver The id supplier to use
+	 * @param _log The error writer
+	 * @param _reportAllIssues Whether all network errors shall be printed
+	 * @param _patchErrors Whether network errors shall be solved
 	 */
 	public DBNet(IDGiver _idGiver, NetErrorsWriter _log, boolean _reportAllIssues, boolean _patchErrors) {
 		idGiver = _idGiver;
@@ -96,7 +99,8 @@ public class DBNet {
 	 * @param _vmax Maximum velocity allowed at this edge
 	 * @param _geom The geometry of the edge
 	 * @param _length The length of the edge
-	 * @return The built edge
+	 * @param _incline The incline of the edge
+	 * @return Whether an error occurred
 	 * @throws IOException 
 	 */
 	public boolean addEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length, double _incline) throws IOException {
@@ -208,7 +212,10 @@ public class DBNet {
 
 	/**
 	 * @brief Adds a node to this road network
+	 * 
+	 * The node is added only, if no other node with the same ID exists
 	 * @param node The node to add
+	 * @return Whether the node was added
 	 */
 	public boolean addNode(DBNode node) {
 		if(nodes.containsKey(node.getID())) {
@@ -220,8 +227,12 @@ public class DBNet {
 
 
 	/**
-	 * @brief Adds a node to this road network
+	 * @brief Adds a node to this road network if it did not exist before
+	 * 
+	 * todo: recheck
 	 * @param node The node to add
+	 * @param origName The initial name of the node
+	 * @return Whether the node was added
 	 */
 	public boolean addNode(DBNode node, String origName) {
 		if(!name2nodeID.containsKey(origName)) {
@@ -263,7 +274,12 @@ public class DBNet {
 		return getNode(id, pos);
 	}
 
-	
+
+	/** @brief Returns the node with the given ID if known
+	 * 
+	 * @param sid The ID of the node to return
+	 * @return null if the node is not known, the node otherwise
+	 */
 	public DBNode getExistingNode(String sid) {
 		if(!name2nodeID.containsKey(sid)) {
 			return null;
@@ -337,6 +353,7 @@ public class DBNet {
 	/**
 	 * @brief Checks which edges are not connected to the major part of the network and removes them
 	 * @param report Whether the removal of edges shall be reported
+	 * @return Clusters of removed unconnected edges
 	 */
 	public HashMap<Integer, Set<DBEdge>> dismissUnconnectedEdges(boolean report) {
 		HashMap<DBEdge, Integer> edge2cluster = new HashMap<>();
@@ -537,6 +554,10 @@ public class DBNet {
 	}
 
 
+	/** @brief Recomputed edge speeds
+	 * 
+	 * @param speedModel The speed model to use
+	 */
 	public void applyVMaxModel(SpeedModel speedModel) {
 		for (DBEdge e : name2edge.values()) {
 			e.setVMax(speedModel.compute(e, 0));
@@ -544,6 +565,8 @@ public class DBNet {
 	}
 	
 	
+	/** @brief Remoes all edge geometries
+	 */
 	public void nullifyEdgeGeometries() {
 		for (DBEdge e : name2edge.values()) {
 			e.nullifyGeometry();
@@ -551,6 +574,10 @@ public class DBNet {
 	}
 
 
+	/** @brief Removes all dead-end edges that do not have origins / destinations
+	 * @param nearestFromEdges The map of edges to origins
+	 * @param nearestToEdges The map of edges to destinations
+	 */
 	public void removeUnusedDeadEnds(HashMap<DBEdge, Vector<MapResult>> nearestFromEdges, HashMap<DBEdge, Vector<MapResult>> nearestToEdges) {
 		Set<DBEdge> toRemove = new HashSet<>();
 		for (DBEdge e : name2edge.values()) {
@@ -592,6 +619,10 @@ public class DBNet {
 	}
 
 
+	/** @brief Precomputes travel time for all edges
+	 * 
+	 * @param ivmax The maximum velocity of the mode
+	 */
 	public void precomputeTTs(double ivmax) {
 		for (DBEdge e : name2edge.values()) {
 			e.precomputeTT(ivmax);
@@ -599,6 +630,12 @@ public class DBNet {
 	}
 	
 	
+	/** @brief Joins similar edges
+	 * 	
+	 * @param ivmax The maximum velocity of the mode
+	 * @param mode The mode ID
+	 * @throws IOException When something fails
+	 */
 	public void joinSimilar(double ivmax, long mode) throws IOException {
 		// determine candidates
 		HashMap<DBEdge, DBEdge> candidates = new HashMap<>();
@@ -699,6 +736,13 @@ public class DBNet {
 	}
 
 
+	/** @brief Returns the edge the given edge was replaced by, if existing
+	 * 
+	 * @param e The edge
+	 * @param skip The set of edges to skip
+	 * @param replaced The map of already replaced edges
+	 * @return Returns the edge the given one was replaced by
+	 */
 	private DBEdge checkNextJoinReplacement(DBEdge e, Set<DBEdge> skip, HashMap<DBEdge, DBEdge> replaced) {
 		if(skip.contains(e)) {
 			return null;

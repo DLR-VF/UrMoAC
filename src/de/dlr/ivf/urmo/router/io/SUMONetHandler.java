@@ -32,7 +32,7 @@ import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.DBNode;
 
-/** @class SUMOLayerHandler
+/** @class SUMONetHandler
  * @brief Parses a SUMO-net-file 
  * @author Daniel Krajzewicz
  */

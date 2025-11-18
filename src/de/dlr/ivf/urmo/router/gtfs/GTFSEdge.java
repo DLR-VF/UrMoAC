@@ -55,6 +55,7 @@ public class GTFSEdge extends DBEdge {
 	 * @param _vmax The maximum velocity allowed at this edge
 	 * @param _geom The geometry of this edge
 	 * @param _length The length of this edge
+	 * @param _incline The incline of the edge
 	 * @param _route The route that realises this connection between two nodes
 	 */
 	public GTFSEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom,

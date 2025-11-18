@@ -172,12 +172,15 @@ public class DBNode {
 	}
 
 
+	/** @brief Replace the first by the second edge within incoming edges
+	 * @param e The edge to replace
+	 * @param by The edge to replace by
+	 */
 	public void replaceIncoming(DBEdge e, DBEdge by) {
 		incoming.remove(e);
 		incoming.add(by);
 	}
 
-	
 	
 	/**
 	 * @brief Removes the given edge from the ones that start at this node
@@ -188,6 +191,10 @@ public class DBNode {
 	}
 
 	
+	/** @brief Replace the first by the second edge within outgoing edges
+	 * @param e The edge to replace
+	 * @param by The edge to replace by
+	 */
 	public void replaceOutgoing(DBEdge e, DBEdge by) {
 		outgoing.remove(e);
 		outgoing.add(by);
@@ -195,8 +202,6 @@ public class DBNode {
 			incEdge.replaceOutgoing(e, by);
 		}
 	}
-
-	
 	
 	
 	/** @brief Returns the coordinate

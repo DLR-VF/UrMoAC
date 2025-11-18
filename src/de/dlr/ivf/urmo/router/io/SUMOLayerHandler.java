@@ -44,7 +44,6 @@ public class SUMOLayerHandler extends DefaultHandler {
 	
 	/** @brief Constructor
 	 * @param layer The layer to add the read objects to
-	 * @param idGiver Object that supports (running) IDs
 	 */
 	public SUMOLayerHandler(Layer layer) {
 		_layer = layer;

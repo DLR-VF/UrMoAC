@@ -50,7 +50,7 @@ import de.dlr.ivf.urmo.router.shapes.DBNode;
 import de.dlr.ivf.urmo.router.shapes.GeomHelper;
 
 /**
- * @class GTFSReader_File
+ * @class AbstractGTFSReader
  * @brief Abstract class for reading GTFS data
  * @author Daniel Krajzewicz
  */
@@ -68,10 +68,10 @@ public abstract class AbstractGTFSReader {
 
 	
 	/** @brief Constructor
-	 * @param net The network to use
-	 * @param epsg The used projection
-	 * @param date The date to read the GTFS information for
-     * @param allowedCarrier List of allowed carriers (todo: recheck)
+	 * @param _net The network to use
+	 * @param _epsg The used projection
+	 * @param _date The date to read the GTFS information for
+     * @param _allowedCarrier List of allowed carriers (todo: recheck)
      */
 	public AbstractGTFSReader(DBNet _net, int _epsg, String _date, Vector<Integer> _allowedCarrier) {
 		net = _net;
