@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024
+ * Copyright (c) 2016-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
