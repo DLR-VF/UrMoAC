@@ -38,7 +38,8 @@
 	* The computation uses a less complex algorithm when computing unimodal accessibilities
 	* Added the option **--prunning.remove-dead-ends** for removing unused dead ends (ones that do not have an origin / a destination)
 	* added option **--prunning.precompute-tt** which forces UrMoAC to precompute travel times; works for unimodal computation only and only if no variabel speed time lines are loaded
-* added incline to edges, use **--net.no-incline** to ignore it (may be incomplete)
+	* added option **--prunning.join-similar** which joins network edges with similar attributes
+* added incline to edges; being somehow under development, use **--net.incline** to enable it
 
 		
 ### Continuous Integration 

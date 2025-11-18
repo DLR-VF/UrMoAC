@@ -13,6 +13,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --mode _[&apos;car&apos;, &lsquo;foot&rsquo;, &lsquo;bike&rsquo;]_<br>-m _[&apos;car&apos;, &lsquo;foot&rsquo;, &lsquo;bike&rsquo;]_ | N/A (__mandatory__) | The transport mode to use. |
 | --from-agg _&lt;OBJECT_SOURCE&gt;_ | N/A (optional) | Defines the data source of origin aggregation areas. |
 | --to-agg _&lt;OBJECT_SOURCE&gt;_ | N/A (optional) | Defines the data source of destination aggregation areas. |
+| --to-types _&lt;TYPES_SOURCE&gt;_ | N/A (optional) | Defines the data source of destination to types map. |
 | --pt _&lt;GTFS_TABLES_PREFIX&gt;_<br>-p _&lt;GTFS_TABLES_PREFIX&gt;_ | N/A (optional) | Defines the GTFS-based public transport representation. |
 | --traveltimes _&lt;TT_SOURCE&gt;_ | N/A (optional) | Defines the data source of traveltimes. |
 | --epsg _&lt;EPSG_NUMBER&gt;_ | N/A (__mandatory__) | The EPSG projection to use. |
@@ -44,7 +45,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --net.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the network. |
 | --net.keep-subnets | N/A (optional) | When set, unconnected network parts are not removed. |
 | --net.patch-errors | N/A (optional) | When set, broken edge lengths and speeds will be patched. |
-| --net.no-incline | N/A (optional) | Ignores loaded incline information. |
+| --net.incline | N/A (optional) | Loads incline information. |
 | --pt.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the PT offer. |
 
 
@@ -66,6 +67,9 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --routing-measure [&apos;tt_mode&apos;, &lsquo;price_tt&rsquo;, &lsquo;interchanges_tt&rsquo;, &lsquo;maxinterchanges_tt&rsquo;] | N/A (optional) | The measure to use during the routing. |
 | --routing-measure.param1 _&lt;DOUBLE&gt;_ | N/A (optional) | The parameter for the first routing measure&apos;s variable. |
 | --routing-measure.param2 _&lt;DOUBLE&gt;_ | N/A (optional) | The parameter for the second routing measure&apos;s variable. |
+| --crossing-model _&lt;MODEL_NAME&gt;_ | N/A (optional) | The crossing model to use during the routing ['none', 'ctm1']. |
+| --crossing-model.param1 _&lt;DOUBLE&gt;_ | N/A (optional) | First parameter of the chosen crossing model. |
+| --crossing-model.param2 _&lt;DOUBLE&gt;_ | N/A (optional) | Second parameter of the chosen crossing model. |
 
 ## Network Simplification Options
 | Option  | Default | Explanation |
@@ -73,6 +77,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --prunning.remove-geometries | N/A (optional) | Removes edge geometries. |
 | --prunning.remove-dead-ends | N/A (optional) | Removes dead ends with no objects. |
 | --prunning.precompute-tt | N/A (optional) | Precomputes travel times. |
+| --prunning.join-similar | N/A (optional) | Joins edges with similar attributes. |
 
 ## Public Transport options
 | Option  | Default | Explanation |
@@ -101,6 +106,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --edges-output _&lt;OUTPUT&gt;_<br>-e _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the edges output. |
 | --pt-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the public transport output. |
 | --direct-output _&lt;OUTPUT&gt;_<br>-d _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the direct output. |
+| --process-output _&lt;OUTPUT&gt;_<br>-d _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the process output to generate. |
 | --origins-to-road-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines output of the mapping between from-objects to the road. |
 | --destinations-to-road-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines output of the mapping between to-objects to the road. |
 | --subnets-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the output of subnets. |
