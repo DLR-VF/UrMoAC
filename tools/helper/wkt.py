@@ -3,7 +3,7 @@
 """Defines geometry objects and parses WKT."""
 # ===========================================================================
 __author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright 2022-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__copyright__  = "Copyright 2022-2025, Institute of Transport Research, German Aerospace Center (DLR)"
 __credits__    = ["Daniel Krajzewicz"]
 __license__    = "EPL 2.0"
 __version__    = "0.8.2"
@@ -147,6 +147,9 @@ class Geometry:
         """Returns whether the geometry is empty"""
         return self._shape is None
 
+    def to_shapely(self):
+        raise ValueError("abstract Geometry type") # pragma: no cover
+
 
 class Point(Geometry):
     """A point"""
@@ -183,8 +186,9 @@ class Point(Geometry):
             return
         self._shape = transformer.transform(self._shape[0], self._shape[1])
 
-
-
+    def to_shapely(self):
+        import shapely
+        return shapely.Point(self._shape[0], self._shape[1])
 
 
 class LineString(Geometry):
@@ -236,6 +240,9 @@ class LineString(Geometry):
             nshape.append(pn)
         self._shape = nshape
 
+    def to_shapely(self):
+        import shapely
+        return shapely.LineString(self._shape)
     
     
 
@@ -364,6 +371,9 @@ class MultiLineString(Geometry):
             nshape.append(nls)
         self._shape = nshape
     
+    def to_shapely(self):
+        import shapely
+        return shapely.MultiLineString(self._shape)
 
 
 class MultiPolygon(Geometry):
@@ -444,7 +454,14 @@ class MultiPolygon(Geometry):
             nshape.append(ncpoly)
         self._shape = nshape
 
-
+    
+    def to_shapely(self): # !!!
+        import shapely
+        try:
+            return shapely.MultiPolygon(self._shape)
+        except:
+            return shapely.Polygon(self._shape[0][0])
+        
     
 # --- function definitions --------------------------------------------------
 def parse_POINT2D(which):

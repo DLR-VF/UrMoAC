@@ -3,7 +3,7 @@
 """Tests for wkt.py"""
 # ===========================================================================
 __author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright 2023-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__copyright__  = "Copyright 2023-2025, Institute of Transport Research, German Aerospace Center (DLR)"
 __credits__    = ["Daniel Krajzewicz"]
 __license__    = "EPL 2.0"
 __version__    = "0.8.2"

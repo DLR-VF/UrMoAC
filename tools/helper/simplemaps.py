@@ -3,7 +3,7 @@
 """Some simple maps for data categorization."""
 # ===========================================================================
 __author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright 2020-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__copyright__  = "Copyright 2020-2025, Institute of Transport Research, German Aerospace Center (DLR)"
 __credits__    = ["Daniel Krajzewicz"]
 __license__    = "EPL 2.0"
 __version__    = "0.8.2"

@@ -36,6 +36,7 @@ def test_main_empty(capsys):
     captured = capsys.readouterr()
     assert captured.out == ""
     assert captured.err.replace("__main__.py", "osm2db.py") == """usage: osmdb_buildWays [-h] [-c FILE] [--version] [-o OUTPUT] [-R] [-A]
+                       [--with-parking]
                        [--unconsumed-output UNCONSUMED_OUTPUT]
                        [--errorneous-output ERRORNEOUS_OUTPUT] [-v]
                        OSM-database
@@ -54,6 +55,7 @@ def test_main_help(capsys):
     captured = capsys.readouterr()
     assert captured.err == ""
     assert captured.out.replace("__main__.py", "osm2db.py") == """usage: osmdb_buildWays [-h] [-c FILE] [--version] [-o OUTPUT] [-R] [-A]
+                       [--with-parking]
                        [--unconsumed-output UNCONSUMED_OUTPUT]
                        [--errorneous-output ERRORNEOUS_OUTPUT] [-v]
                        OSM-database
@@ -76,6 +78,7 @@ options:
                         <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>
   -R, --dropprevious    Delete destination tables if already existing
   -A, --append          Append read data to existing tables
+  --with-parking        Adds on-road parking information
   --unconsumed-output UNCONSUMED_OUTPUT
                         Writes not consumed attributes to the given file
   --errorneous-output ERRORNEOUS_OUTPUT

@@ -30,6 +30,79 @@ import math
 from osmmodes import *
 
 
+
+# --- value definitions -----------------------------------------------------
+access_allows = {
+    "yes":True,
+    "private":True,
+    "no":False,
+    "permissive":True,
+    "agricultural":False,
+    "use_sidepath":True,
+    "delivery":True,
+    "designated":True,
+    "dismount":True,
+    "discouraged":True,
+    "forestry":False,
+    "destination":True,
+    "customers":True,
+    "official":True, # should be "designated"
+    "emergency":False,
+    "service":True,
+}
+
+
+# http://wiki.openstreetmap.org/wiki/OSM_tags_for_routing/Access-Restrictions#Germany
+highways = {
+    "highway_motorway":{"mode":MOTORISED, "vmax":160, "oneway":True, "lanes":2},
+    "highway_motorway_link":{"mode":MOTORISED, "vmax":80, "oneway":True, "lanes":1},
+    "highway_trunk":{"mode":ALL, "vmax":100, "lanes":2},
+    "highway_trunk_link":{"mode":ALL, "vmax":80, "lanes":1},
+    "highway_primary":{"mode":ALL, "vmax":100, "lanes":2}, 
+    "highway_primary_link":{"mode":ALL, "vmax":80, "lanes":1},
+    "highway_secondary":{"mode":ALL, "vmax":100, "lanes":2}, 
+    "highway_secondary_link":{"mode":ALL, "vmax":80, "lanes":1},
+    "highway_tertiary":{"mode":ALL, "vmax":80, "lanes":1},
+    "highway_tertiary_link":{"mode":ALL, "vmax":80, "lanes":1},
+    "highway_unclassified":{"mode":ALL, "vmax":80, "lanes":1},
+    "highway_residential":{"mode":ALL, "vmax":50, "lanes":1},
+    "highway_living_street":{"mode":ALL, "vmax":10, "lanes":1},
+    "highway_road":{"mode":ALL, "vmax":30, "lanes":1},
+    #"highway_proposed":{"mode":ALL, "vmax":50, "lanes":1},
+    #"highway_construction":{"mode":ALL, "vmax":50, "lanes":1},
+    "highway_service":{"mode":ALL, "vmax":20, "lanes":1},
+    "highway_track":{"mode":ALL, "vmax":20, "lanes":1},  # all only if destination (http://wiki.openstreetmap.org/wiki/OSM_tags_for_routing/Access-Restrictions#Germany)
+    "highway_services":{"mode":ALL, "vmax":20, "lanes":1},
+    "highway_unsurfaced":{"mode":ALL, "vmax":30, "lanes":1},
+
+    # TODO: we should decide which of the following ones may be used by which mode
+    "highway_path":{"mode":SOFT, "vmax":10, "lanes":1},
+    "highway_bridleway":{"mode":HORSE|FOOT, "vmax":10, "lanes":1},
+    "highway_cycleway":{"mode":BICYCLE, "vmax":10, "lanes":1},
+    "highway_pedestrian":{"mode":FOOT, "vmax":10, "lanes":1},
+    "highway_footway":{"mode":FOOT, "vmax":10, "lanes":1},
+    "highway_step":{"mode":SOFT, "vmax":10, "lanes":1},
+    "highway_steps":{"mode":SOFT, "vmax":10, "lanes":1},
+    "highway_stairs":{"mode":SOFT, "vmax":10, "lanes":1},
+    "highway_bus_guideway":{"mode":BUS, "vmax":50, "lanes":1},
+  
+    # 
+    "highway_raceway":{"mode":CLOSED, "vmax":160, "lanes":1},
+    "highway_ford":{"mode":CLOSED, "vmax":10, "lanes":1},
+
+    "railway_rail":{"mode":RAIL, "vmax":300, "oneway":True, "lanes":1},
+    "railway_tram":{"mode":RAIL, "vmax":100, "oneway":True, "lanes":1},
+    "railway_light_rail":{"mode":RAIL, "vmax":100, "oneway":True, "lanes":1},
+    "railway_subway":{"mode":RAIL, "vmax":100, "oneway":True, "lanes":1},
+    "railway_preserved":{"mode":RAIL, "vmax":100, "oneway":True, "lanes":1}
+}
+
+
+"""The list of read roads """
+storedRoads = []
+
+
+
 # --- class definitions -----------------------------------------------------
 class Params:
     """Stores the parameter of a OSM-object and controls their usage."""
@@ -41,16 +114,16 @@ class Params:
         self._errorneous = {}  
   
   
-    def get(self, which, defaultValue=None):
+    def get(self, which, default_value=None):
         """Returns the named parameter's value or the default value if the parameter is not known
         :param which: The name of the parameter
         :type which: str
-        :param defaultValue: The default value to return
-        :type defaultValue: str
+        :param default_value: The default value to return
+        :type default_value: str
         :return: The named parameter's value or the default
         :rtype: str
         """       
-        return self._params[which] if which in self._params else defaultValue
+        return self._params[which] if which in self._params else default_value
 
 
     def consume(self, which):
@@ -59,6 +132,21 @@ class Params:
         :type which: str
         """       
         self._consumed.add(which)
+
+
+    def get_and_consume(self, which, default_value=None):
+        """Returns the named parameter's value or the default value if the parameter is not known.
+        Marks the named parameter as consumed
+        :param which: The name of the parameter
+        :type which: str
+        :param default_value: The default value to return
+        :type default_value: str
+        :return: The named parameter's value or the default
+        :rtype: str
+        """       
+        v = self.get(which, default_value)
+        self.consume(which)
+        return v
 
 
     def mark_bad(self, which):
@@ -102,13 +190,7 @@ def parse_point(which):
     return [ float(xy[0]), float(xy[1]) ]
   
   
-  
-"""The list of read roads """
-storedRoads = []
-
-
-
-def add_road(upperType, rID, fromNode, toNode, rtype, modes, numLanes, vmax, rNodes, sidewalk, cycleway, surface, lit, name, incline, rGeom):
+def add_road(upperType, rID, fromNode, toNode, rtype, modes, numLanes, vmax, rNodes, sidewalk, cycleway, surface, lit, name, incline, parking, rGeom):
     """Adds the defined road to the list of read roads
     :param upperType: The upper type of the road (unused)
     :type upperType: str
@@ -141,21 +223,14 @@ def add_road(upperType, rID, fromNode, toNode, rtype, modes, numLanes, vmax, rNo
     :param rGeom: The geometry of this road
     :type rGeom:  
     """
-    rep = {"id":rID, "fromNode":fromNode, "toNode":toNode, "osm_type":rtype, "modes":modes, "nodes":','.join([str(x) for x in rNodes]), "lanes":numLanes, "vmax":vmax, "sidewalk":sidewalk, "cycleway":cycleway, "surface":surface, "name":name, "shape":rGeom, "lit":lit, "incline":incline}
+    rep = {"id":rID, "fromNode":fromNode, "toNode":toNode, "osm_type":rtype, "modes":modes, "nodes":','.join([str(x) for x in rNodes]), "lanes":numLanes, "vmax":vmax, "sidewalk":sidewalk, "cycleway":cycleway, "surface":surface, "name":name, "shape":rGeom, "lit":lit, "incline":incline, "parking":parking}
     storedRoads.append(rep)
 
 
-def commit_roads(conn, cursor, schema, dbprefix):
+def commit_roads(dst_db, add_parking):
     """Commits tored roads to the given database
-    :param conn: The connection to the database
-    :type conn: psycopg2.extensions.connection
-    :param cursor: The cursor used to write to the database
-    :type cursor: psycopg2.extensions.cursor
-    :param schema: The database schema to use
-    :type schema: str
-    :param dbprefix: The OSM database prefix to use
-    :type dbprefix: str
     """
+    #roads_to_add = []
     for sr in storedRoads:
         if (sr["modes"]&FOOT)!=0:
             mode_ped = 't'
@@ -178,58 +253,18 @@ def commit_roads(conn, cursor, schema, dbprefix):
         else:
             mode_mit = 'f'
         incline = sr["incline"] if sr["incline"] is not None else "NULL"
-        cursor.execute("INSERT INTO %s.%s_network(oid, nodefrom, nodeto, numlanes, length, vmax, street_type, capacity, mode_walk, mode_bike, mode_pt, mode_mit, modes, nodes, sidewalk, cycleway, surface, lit, name, incline, geom) VALUES('%s', %s, %s, %s, %s, %s, '%s', -1, '%s', '%s', '%s', '%s', %s, '{%s}', '%s', '%s', '%s', '%s', '%s', %s, ST_GeomFromText('LINESTRING(%s)', 4326))" % (schema, dbprefix, sr["id"], sr["fromNode"], sr["toNode"], sr["lanes"], -1, sr["vmax"], sr["osm_type"], mode_ped, mode_bic, mode_pt, mode_mit, sr["modes"], sr["nodes"], sr["sidewalk"], sr["cycleway"], sr["surface"], sr["lit"], sr["name"], incline, sr["shape"]))
-    conn.commit()
+        #roads_to_add.append((sr["id"], sr["fromNode"], sr["toNode"], sr["lanes"], -1, sr["vmax"], sr["osm_type"], mode_ped, mode_bic, mode_pt, mode_mit, sr["modes"], sr["nodes"], sr["sidewalk"], sr["cycleway"], sr["surface"], sr["lit"], sr["name"], sr["incline"], sr["shape"]))
+        if not add_parking:
+            dst_db.execute("INSERT INTO %s(oid, nodefrom, nodeto, numlanes, length, vmax, street_type, mode_walk, mode_bike, mode_pt, mode_mit, modes, nodes, sidewalk, cycleway, surface, lit, name, incline, geom) VALUES('%s', %s, %s, %s, %s, %s, '%s', '%s', '%s', '%s', '%s', %s, '{%s}', '%s', '%s', '%s', '%s', '%s', %s, ST_GeomFromText('LINESTRING(%s)', 4326))" % (dst_db.get_table_path(), sr["id"], sr["fromNode"], sr["toNode"], sr["lanes"], -1, sr["vmax"], sr["osm_type"], mode_ped, mode_bic, mode_pt, mode_mit, sr["modes"], sr["nodes"], sr["sidewalk"], sr["cycleway"], sr["surface"], sr["lit"], sr["name"], incline, sr["shape"]))
+        else:
+            dst_db.execute("INSERT INTO %s(oid, nodefrom, nodeto, numlanes, length, vmax, street_type, mode_walk, mode_bike, mode_pt, mode_mit, modes, nodes, sidewalk, cycleway, surface, lit, name, incline, parking, parking_orientation, parking_restriction, parking_access, parking_maxstay, geom) VALUES('%s', %s, %s, %s, %s, %s, '%s', '%s', '%s', '%s', '%s', %s, '{%s}', '%s', '%s', '%s', '%s', '%s', %s, '%s', '%s', '%s', '%s', '%s', ST_GeomFromText('LINESTRING(%s)', 4326))" % (dst_db.get_table_path(), sr["id"], sr["fromNode"], sr["toNode"], sr["lanes"], -1, sr["vmax"], sr["osm_type"], mode_ped, mode_bic, mode_pt, mode_mit, sr["modes"], sr["nodes"], sr["sidewalk"], sr["cycleway"], sr["surface"], sr["lit"], sr["name"], incline, sr["parking"][0], sr["parking"][1], sr["parking"][2], sr["parking"][3], sr["parking"][4], sr["shape"]))
+    #args = ','.join(cursor.mogrify("(%s, %s, %s, %s, %s, %s, %s, -1, %s, %s, %s, %s, %s, {%s}, '%s', '%s', '%s', '%s', '%s', ST_GeomFromText('LINESTRING(%s)', 4326))", i).decode('utf-8') for i in roads_to_add)
+    #cursor.execute(f"INSERT INTO {schema}.{dbprefix}_network(oid, nodefrom, nodeto, numlanes, length, vmax, street_type, capacity, mode_walk, mode_bike, mode_pt, mode_mit, modes, nodes, sidewalk, cycleway, surface, lit, name, incline, geom) VALUES " + (args))
+    dst_db.commit()
     del storedRoads[:]
 
 
-                                   
-                                   
-# http://wiki.openstreetmap.org/wiki/OSM_tags_for_routing/Access-Restrictions#Germany
-highways = {
-    "highway_motorway":{"mode":MOTORISED, "vmax":160, "oneway":True, "lanes":2},
-    "highway_motorway_link":{"mode":MOTORISED, "vmax":80, "oneway":True, "lanes":1},
-    "highway_trunk":{"mode":ALL, "vmax":100, "lanes":2},
-    "highway_trunk_link":{"mode":ALL, "vmax":80, "lanes":1},
-    "highway_primary":{"mode":ALL, "vmax":100, "lanes":2}, 
-    "highway_primary_link":{"mode":ALL, "vmax":80, "lanes":1},
-    "highway_secondary":{"mode":ALL, "vmax":100, "lanes":2}, 
-    "highway_secondary_link":{"mode":ALL, "vmax":80, "lanes":1},
-    "highway_tertiary":{"mode":ALL, "vmax":80, "lanes":1},
-    "highway_tertiary_link":{"mode":ALL, "vmax":80, "lanes":1},
-    "highway_unclassified":{"mode":ALL, "vmax":80, "lanes":1},
-    "highway_residential":{"mode":ALL, "vmax":50, "lanes":1},
-    "highway_living_street":{"mode":ALL, "vmax":10, "lanes":1},
-    "highway_road":{"mode":ALL, "vmax":30, "lanes":1},
-    #"highway_proposed":{"mode":ALL, "vmax":50, "lanes":1},
-    #"highway_construction":{"mode":ALL, "vmax":50, "lanes":1},
-    "highway_service":{"mode":ALL, "vmax":20, "lanes":1},
-    "highway_track":{"mode":ALL, "vmax":20, "lanes":1},  # all only if destination (http://wiki.openstreetmap.org/wiki/OSM_tags_for_routing/Access-Restrictions#Germany)
-    "highway_services":{"mode":ALL, "vmax":20, "lanes":1},
-    "highway_unsurfaced":{"mode":ALL, "vmax":30, "lanes":1},
-
-    # TODO: we should decide which of the following ones may be used by which mode
-    "highway_path":{"mode":SOFT, "vmax":10, "lanes":1},
-    "highway_bridleway":{"mode":HORSE, "vmax":10, "lanes":1},
-    "highway_cycleway":{"mode":BICYCLE|MOPED, "vmax":10, "lanes":1},
-    "highway_pedestrian":{"mode":FOOT, "vmax":10, "lanes":1},
-    "highway_footway":{"mode":FOOT, "vmax":10, "lanes":1},
-    "highway_step":{"mode":SOFT, "vmax":10, "lanes":1},
-    "highway_steps":{"mode":SOFT, "vmax":10, "lanes":1},
-    "highway_stairs":{"mode":SOFT, "vmax":10, "lanes":1},
-    "highway_bus_guideway":{"mode":BUS, "vmax":50, "lanes":1},
-  
-    # 
-    "highway_raceway":{"mode":CLOSED, "vmax":160, "lanes":1},
-    "highway_ford":{"mode":CLOSED, "vmax":10, "lanes":1},
-
-    "railway_rail":{"mode":RAIL, "vmax":300, "oneway":True, "lanes":1},
-    "railway_tram":{"mode":RAIL, "vmax":100, "oneway":True, "lanes":1},
-    "railway_light_rail":{"mode":RAIL, "vmax":100, "oneway":True, "lanes":1},
-    "railway_subway":{"mode":RAIL, "vmax":100, "oneway":True, "lanes":1},
-    "railway_preserved":{"mode":RAIL, "vmax":100, "oneway":True, "lanes":1}
-}
-
+ 
 
 def get_directional_modes(rid, defaultOneway, params, modesF):
     """Returns the list of modes allowed on this road in both directions
@@ -267,10 +302,10 @@ def get_directional_modes(rid, defaultOneway, params, modesF):
         for m in modes1:
             modeAccess = params.get("oneway:"+modes1[m]["mml"])
             params.consume("oneway:"+modes1[m]["mml"])
-            if modeAccess not in accessAllows:
+            if modeAccess not in access_allows:
                 params.mark_bad("oneway:"+modes1[m]["mml"])
                 continue
-            if accessAllows[modeAccess]:
+            if access_allows[modeAccess]:
                 modesB = modesB | m
             else:
                 modesB = modesB & ~m
@@ -282,10 +317,10 @@ def get_directional_modes(rid, defaultOneway, params, modesF):
         for m in modes1:
             modeAccess = params.get("oneway:"+modes1[m]["mml"])
             params.consume("oneway:"+modes1[m]["mml"])
-            if modeAccess not in accessAllows:
+            if modeAccess not in access_allows:
                 params.mark_bad("oneway:"+modes1[m]["mml"])
                 continue
-            if accessAllows[modeAccess]:
+            if access_allows[modeAccess]:
                 modesF = modesF | m
             else:
                 modesF = modesF & ~m
@@ -333,20 +368,29 @@ def get_lane_number(defaultLanes, params):
     :param params: The road's parameter
     :type params: Params
     """
-    lanes = params.get("lanes")
-    if lanes==None:
-        return defaultLanes
-    l = defaultLanes
-    if lanes.find(";")>=0:
-        vals = lanes.split(";")
-        l = min([int(l) for l in vals])
-    else:
+    lanesF = defaultLanes
+    lanesB = defaultLanes
+    lanes = params.get_and_consume("lanes")
+    if lanes is not None:
+        if lanes.find(";")>=0:
+            vals = lanes.split(";")
+            l = min([int(l) for l in vals])
+        else:
+            try: 
+                l = int(lanes)
+            except:
+                params.mark_bad("lanes") 
+    if params.get("lanes:forward") is not None:
         try: 
-            l = int(lanes)
+            lanesF = int(params.get_and_consume("lanes:forward"))
         except:
-            params.mark_bad("lanes") 
-    params.consume("lanes")
-    return l
+            params.mark_bad("lanes:forward") 
+    if params.get("lanes:backward") is not None:
+        try: 
+            lanesB = int(params.get_and_consume("lanes:backward"))
+        except:
+            params.mark_bad("lanes:backward") 
+    return lanesF, lanesB
 
 
 def get_vmax(defaultSpeed, params):
@@ -378,27 +422,6 @@ def get_vmax(defaultSpeed, params):
     return v
 
 
-
-accessAllows = {
-    "yes":True,
-    "private":True,
-    "no":False,
-    "permissive":True,
-    "agricultural":False,
-    "use_sidepath":True,
-    "delivery":True,
-    "designated":True,
-    "dismount":True,
-    "discouraged":True,
-    "forestry":False,
-    "destination":True,
-    "customers":True,
-    "official":True, # should be "designated"
-    "emergency":False,
-    "service":True,
-}
-
-
 def get_modes(rid, defaultModes, params):
     """Determines and returns the mode restrictions of this road
     :param rid: The ID of this road
@@ -409,49 +432,72 @@ def get_modes(rid, defaultModes, params):
     :type params: Params
     """
     # check for motorroad information (http://wiki.openstreetmap.org/wiki/OSM_tags_for_routing/Access-Restrictions#Germany)
-    motorroad = params.get("motorroad")
+    motorroad = params.get_and_consume("motorroad")
     if motorroad=="yes":
         defaultModes = defaultModes & ~SOFT
         defaultModes = defaultModes & ~MOPED
     if motorroad not in ["yes", "no"]: params.mark_bad("motorroad")
-    params.consume("motorroad")
     # check for sidewalks
-    sidewalk = params.get("sidewalk")
+    sidewalk = params.get_and_consume("sidewalk")
     if sidewalk in ["sidewalk", "crossing", "left", "right", "both", "yes"]:
         defaultModes = defaultModes | FOOT
     if sidewalk not in ["none", "no", "sidewalk", "crossing", "left", "right", "both", "yes", "separate"]:
         params.mark_bad("sidewalk")
-    params.consume("sidewalk")
     # check for cycleways
-    cycleway = params.get("cycleway")
+    cycleway = params.get_and_consume("cycleway")
     if cycleway in ["track", "opposite_track", "segregated", "lane", "shared_lane", "opposite_lane", "share_busway", "right", "opposite", "yes", "shared"]:
         defaultModes = defaultModes | BICYCLE
     if cycleway not in ["track", "opposite_track", "segregated", "lane", "none", "shared_lane", "opposite_lane", "crossing", "share_busway", "right", "no", "opposite", "yes", "shared"]:
         params.mark_bad("cycleway")
-    params.consume("cycleway")
     # check for access restrictions
     # - global
-    access = params.get("access")
-    params.consume("access")
+    access = params.get_and_consume("access")
     if access!=None:
-        if access not in accessAllows:
+        if access not in access_allows:
             params.mark_bad("access")
         else:  
-            if not accessAllows[access]:
+            if not access_allows[access]:
                 defaultModes = defaultModes & ~ALL
     # - per mode
     for m in modes1:
-        modeAccess = params.get(modes1[m]["mml"])
-        params.consume(modes1[m]["mml"])
-        if modeAccess not in accessAllows:
+        modeAccess = params.get_and_consume(modes1[m]["mml"])
+        if modeAccess not in access_allows:
             params.mark_bad(modes1[m]["mml"])
             continue
-        if accessAllows[modeAccess]:
+        if access_allows[modeAccess]:
             defaultModes = defaultModes | m
         else:
             defaultModes = defaultModes & ~m
     return defaultModes, cycleway, sidewalk
 
+
+def get_directional(hID, params, what, dismiss=[]):
+    retF = None
+    retB = None
+    v = params.get_and_consume(what % "both")
+    if v is not None and v not in dismiss:
+        retF = v
+        retB = v
+    #params.consume(what % "both")
+    v = params.get_and_consume(what % "right")
+    if v is not None and v not in dismiss:
+        retF = v
+    #params.consume(what % "right")
+    v = params.get_and_consume(what % "left")
+    if v is not None and v not in dismiss:
+        retB = v
+    #params.consume(what % "left")
+    return retF, retB
+    
+
+def get_directional_parking(hID, params, modesF, modesB):
+    parkingF, parkingB = get_directional(hID, params, "parking:%s", ["no"])
+    orientationF, orientationB = get_directional(hID, params, "parking:%s:orientation")
+    restrictionF, restrictionB = get_directional(hID, params, "parking:%s:restriction")
+    accessF, accessB = get_directional(hID, params, "parking:%s:access")
+    maxstayF, maxstayB = get_directional(hID, params, "parking:%s:maxstay")
+    return [parkingF, orientationF, restrictionF, accessF, maxstayF], [parkingB, orientationB, restrictionB, accessB, maxstayB]
+               
                
 def get_params_class(params):
     """Build a parameter class using the given parameter
@@ -464,30 +510,53 @@ def get_params_class(params):
     for p in params:
         ret._params[p[1]] = p[2]
     return ret 
-  
+
+
+def get_directional_incline(params):
+    inclineF = params.get_and_consume("incline")
+    if inclineF is None:
+        return None, None
+    try:
+        if inclineF=="up":
+            inclineF = 6
+        elif inclineF=="down":
+            inclineF = -6
+        elif inclineF.startswith("up"):
+            inclineF = float(inclineF.replace("up_", "").replace("up", "").replace("<", "").replace(">", "").replace(",", ".").replace("%", "").replace(" ", "").strip())
+        elif inclineF.startswith("down"):
+            inclineF = -abs(float(inclineF.replace("down_", "").replace("down", "").replace("<", "").replace(">", "").replace(",", ".").replace("%", "").replace(" ", "").strip()))
+        elif inclineF.find("%")>0:
+            inclineF = float(inclineF.replace("<", "").replace(">", "").replace(",", ".").replace("%", "").replace(" ", "").strip())
+        elif inclineF.find("Â°")>0:
+            inclineF = math.tan(float(inclineF.replace("<", "").replace(">", "").replace(",", ".").replace("Â°", "").replace(" ", "").strip())*math.pi/180.)#*100.
+        else:
+            inclineF = None
+    except:
+        params.mark_bad("incline")
+        inclineF = None
+    if inclineF is None:
+        return None, None
+    return inclineF, -inclineF
 
 
 # --- main
-def build_ways(src_db, dest_db, dropprevious, append, unconsumed_file, errorneous_file, verbose):
+def build_ways(src_def, dst_def, dropprevious, add_parking, append, unconsumed_file, errorneous_file, verbose):
     """Main method"""
-    (host, db, schema_prefix, user, password) = src_db.split(",")
-    schema, prefix = schema_prefix.split(".")
     t1 = datetime.datetime.now()
-    conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
-    cursor = conn.cursor()
-    db = osmdb.OSMDB(schema, prefix, conn, cursor)
+    src_db = osmdb.OSMDB(src_def)
+    dst_db = osmdb.DB(dst_def)
     unconsumed_output = io.open(unconsumed_file, 'w', encoding='utf8') if unconsumed_file is not None else None
     errorneous_output = io.open(errorneous_file, 'w', encoding='utf8') if errorneous_file is not None else None
     # (re) create tables
-    if db.table_exists(schema, prefix+"_network"):
+    if dst_db.table_exists():
         if dropprevious:
-            cursor.execute("""DROP TABLE %s.%s_network;""" % (schema, prefix))
-            conn.commit()
+            dst_db.execute(f"DROP TABLE {dst_db.get_table_path()};")
+            dst_db.commit()
         elif not append:
             print ("osmdb_buildWays: error: destination table already exist", file=sys.stderr)
             return 1
     if not append:
-        cursor.execute("""CREATE TABLE %s.%s_network (
+        dst_db.execute(f"""CREATE TABLE {dst_db.get_table_path()} (
             id serial PRIMARY KEY,
             oid text,
             nodefrom bigint, 
@@ -496,7 +565,6 @@ def build_ways(src_db, dest_db, dropprevious, append, unconsumed_file, errorneou
             length double precision,
             vmax double precision,
             street_type text,
-            capacity double precision,
             mode_walk boolean,
             mode_bike boolean,
             mode_pt boolean,
@@ -510,9 +578,15 @@ def build_ways(src_db, dest_db, dropprevious, append, unconsumed_file, errorneou
             lit text,
             name text,
             incline real    
-        );""" % (schema, prefix))
-        cursor.execute("""SELECT AddGeometryColumn('%s', '%s_network', 'geom', 4326, 'LINESTRING', 2);""" % (schema, prefix))
-        conn.commit()
+        );""")
+        if add_parking:
+            dst_db.execute(f"ALTER TABLE {dst_db.get_table_path()} ADD parking VARCHAR;")
+            dst_db.execute(f"ALTER TABLE {dst_db.get_table_path()} ADD parking_orientation VARCHAR;")
+            dst_db.execute(f"ALTER TABLE {dst_db.get_table_path()} ADD parking_restriction VARCHAR;")
+            dst_db.execute(f"ALTER TABLE {dst_db.get_table_path()} ADD parking_access VARCHAR;")
+            dst_db.execute(f"ALTER TABLE {dst_db.get_table_path()} ADD parking_maxstay VARCHAR;")
+        dst_db.execute(f"SELECT AddGeometryColumn('{dst_db.get_table_schema()}', '{dst_db.get_table_name()}', 'geom', 4326, 'LINESTRING', 2);")
+        dst_db.commit()
 
     # get roads and railroads with some typical classes
     seen = set()
@@ -520,7 +594,7 @@ def build_ways(src_db, dest_db, dropprevious, append, unconsumed_file, errorneou
     unrecognized = {}
     print ("Determining used nodes")
     for upperType in ["highway", "railway"]:
-        IDs = db.getWayKV_withMatchingKey(upperType)
+        IDs = src_db.getWayKV_withMatchingKey(upperType)
         # get nodes usage
         # currently in memory; this will fail for larger networks
         for i,h in enumerate(IDs):
@@ -536,7 +610,7 @@ def build_ways(src_db, dest_db, dropprevious, append, unconsumed_file, errorneou
                 unrecognized[htype] = unrecognized[htype] + 1
             else:
                 seen.add(hID)
-                hDef = db.get_way(hID)
+                hDef = src_db.get_way(hID)
                 for n in hDef[0][1]:
                     if n in nodes:
                         nodes[n] = nodes[n] + 1
@@ -546,14 +620,14 @@ def build_ways(src_db, dest_db, dropprevious, append, unconsumed_file, errorneou
     if len(unrecognized)>0 and verbose:
         print ("The following types were not recognised and will be thereby dismissed:")
         for u in unrecognized:
-            print (" %s (%s instances)" % (u, unrecognized[u]))
+            print (f" {u} ({unrecognized[u]} instances)")
 
     seen = set()
     num = 0
     print ("Building roads")
     for upperType in ["highway", "railway"]:
         # build roads by splitting geometry
-        IDs = db.getWayKV_withMatchingKey(upperType)
+        IDs = src_db.getWayKV_withMatchingKey(upperType)
         for i,h in enumerate(IDs):
             hID = h[0]
             if hID in seen:
@@ -561,125 +635,98 @@ def build_ways(src_db, dest_db, dropprevious, append, unconsumed_file, errorneou
             htype = h[1]+"_"+h[2]
             if htype not in highways:
                 continue
-            else:
-                seen.add(hID)
-                # get and check params
-                params = get_params_class(db.getWayKV_forID(hID))
-      
-                defaultModes = highways[htype]["mode"]
-                if upperType=="highway" and params.get("railway")!=None:
-                    ut2 = "railway_" + params.get("railway")
-                    if ut2 in highways:
-                        defaultModes = defaultModes | highways[ut2]["mode"] 
-                if upperType=="railway" and params.get("highway")!=None:
-                    ut2 = "highway_" + params.get("highway")
-                    if ut2 in highways:
-                        defaultModes = defaultModes | highways[ut2]["mode"] 
-                modes, cycleway, sidewalk = get_modes(hID, defaultModes, params)
-                defaultOneway = "oneway" in highways[htype] and highways[htype]["oneway"] 
-                modesF, modesB = get_directional_modes(hID, defaultOneway, params, modes) # !!! hier - nun die Richtungsabhaengigen dinge        
-      
-                numLanes = get_lane_number(highways[htype]["lanes"], params)
-                vmax = get_vmax(highways[htype]["vmax"], params)
-                name = params.get("name", "")
-                params.consume("name")
-                name = name.replace("'", "") # TODO: patch!
-                lit = params.get("lit")
-                params.consume("lit")
-                surface = params.get("surface")
-                params.consume("surface")
-                params.consume("highway")
-                params.consume("railway")
-                incline = params.get("incline")
-                params.consume("incline")
-                try:
-                    if incline is not None:
-                        if incline=="up":
-                            incline = 6
-                        elif incline=="down":
-                            incline = -6
-                        elif incline.startswith("up"):
-                            incline = float(incline.replace("up_", "").replace("up", "").replace("<", "").replace(">", "").replace(",", ".").replace("%", "").replace(" ", "").strip())
-                        elif incline.startswith("down"):
-                            incline = -abs(float(incline.replace("down_", "").replace("down", "").replace("<", "").replace(">", "").replace(",", ".").replace("%", "").replace(" ", "").strip()))
-                        elif incline.find("%")>0:
-                            incline = float(incline.replace("<", "").replace(">", "").replace(",", ".").replace("%", "").replace(" ", "").strip())
-                        elif incline.find("°")>0:
-                            incline = math.tan(float(incline.replace("<", "").replace(">", "").replace(",", ".").replace("°", "").replace(" ", "").strip())*math.pi/180.)*100.
-                        else:
-                            incline = None
-                except:
-                    print (f"Invalid incline value '{incline}'")
-                    incline = None
-                #
-                hDef = db.get_way(hID)[0]
-                hNodes = db.getNodes_preserveOrder(hDef[1])
-                
-                # we may have to split the road to avoid loops
-                b = 0
-                e = 1
-                splits = [False]*len(hDef[1])
-                while e<len(hDef[1]):
-                  if hDef[1][e] in hDef[1][b:e]:
+
+            seen.add(hID)
+            # get and check params
+            params = get_params_class(src_db.getWayKV_forID(hID))
+            # modes (in both directions)
+            defaultModes = highways[htype]["mode"]
+            if upperType=="highway" and params.get("railway")!=None:
+                ut2 = "railway_" + params.get("railway")
+                if ut2 in highways:
+                    defaultModes = defaultModes | highways[ut2]["mode"] 
+            if upperType=="railway" and params.get("highway")!=None:
+                ut2 = "highway_" + params.get("highway")
+                if ut2 in highways:
+                    defaultModes = defaultModes | highways[ut2]["mode"] 
+            modes, cycleway, sidewalk = get_modes(hID, defaultModes, params)
+            defaultOneway = "oneway" in highways[htype] and highways[htype]["oneway"] 
+            modesF, modesB = get_directional_modes(hID, defaultOneway, params, modes)
+            parkingF, parkingB = get_directional_parking(hID, params, modesF, modesB)
+            lanesF, lanesB = get_lane_number(highways[htype]["lanes"], params)
+            inclineF, inclineB = get_directional_incline(params)
+            vmax = get_vmax(highways[htype]["vmax"], params)
+            name = params.get_and_consume("name", "").replace("'", "") # TODO: patch!
+            lit = params.get_and_consume("lit")
+            surface = params.get_and_consume("surface")
+            params.consume("highway")
+            params.consume("railway")
+            hDef = src_db.get_way(hID)[0]
+            hNodes = src_db.getNodes_preserveOrder(hDef[1])
+            
+            # we may have to split the road to avoid loops
+            b = 0
+            e = 1
+            splits = [False]*len(hDef[1])
+            while e<len(hDef[1]):
+                if hDef[1][e] in hDef[1][b:e]:
                     splits[e-1] = True
                     b = e
-                  e = e + 1
-                
-                index = 0
-                ni = 0
-                hGeom = []
-                nodeIDs = []
-                while ni!=len(hNodes):
-                    n = hNodes[ni]
-                    p = parse_point(n[1])
-                    nodeIDs.append(n[0])
+                e = e + 1
+            
+            index = 0
+            ni = 0
+            hGeom = []
+            nodeIDs = []
+            while ni!=len(hNodes):
+                n = hNodes[ni]
+                p = parse_point(n[1])
+                nodeIDs.append(n[0])
+                hGeom.append(f"{p[0]} {p[1]}")
+                if n[0] not in nodes:
+                    print (f"osmdb_buildWays: error: way {hID} has a node {n[0]} not seen before; all nodes: {n}", file=sys.stderr)
+                    return 1
+                if (nodes[n[0]]>1 or splits[ni]) and ni>0:
+                    # store the road
+                    if modesF!=0:
+                        add_road(upperType, f"f{hID}#{index}", nodeIDs[0], nodeIDs[-1], htype, modesF, lanesF, vmax, nodeIDs, sidewalk, cycleway, surface, lit, name, inclineF, parkingF, ",".join(hGeom))
+                        num += 1
+                    if modesB!=0:
+                        add_road(upperType, f"b{hID}#{index}", nodeIDs[-1], nodeIDs[0], htype, modesB, lanesB, vmax, reversed(nodeIDs), sidewalk, cycleway, surface, lit, name, inclineB, parkingB, ",".join(reversed(hGeom)))
+                        num += 1
+                    hGeom = []
                     hGeom.append("%s %s" % (p[0], p[1]))
-                    if n[0] not in nodes:
-                        print ("osmdb_buildWays: error: way %s has a node %s not seen before; all nodes: %s" % (hID, n[0], n), file=sys.stderr)
-                        return 1
-                    if (nodes[n[0]]>1 or splits[ni]) and ni>0:
-                        # store the road
-                        if modesF!=0:
-                            add_road(upperType, "f%s#%s" % (hID, index), nodeIDs[0], nodeIDs[-1], htype, modesF, numLanes, vmax, nodeIDs, sidewalk, cycleway, surface, lit, name, incline, ",".join(hGeom))
-                            num += 1
-                        if modesB!=0:
-                            rev_incline = -incline if incline is not None else None
-                            add_road(upperType, "b%s#%s" % (hID, index), nodeIDs[-1], nodeIDs[0], htype, modesB, numLanes, vmax, reversed(nodeIDs), sidewalk, cycleway, surface, lit, name, rev_incline, ",".join(reversed(hGeom)))
-                            num += 1
-                        hGeom = []
-                        hGeom.append("%s %s" % (p[0], p[1]))
-                        nodeIDs = []
-                        nodeIDs.append(n[0])
-                        index = index + 1
-                    ni = ni + 1
-                if len(hGeom)>1: 
-                    if modesF!=0:     
-                        add_road(upperType, "f%s#%s" % (hID, index), nodeIDs[0], nodeIDs[-1], htype, modesF, numLanes, vmax, nodeIDs, sidewalk, cycleway, surface, lit, name, incline, ",".join(hGeom))
-                        num += 1
-                    if modesB!=0:     
-                        rev_incline = -incline if incline is not None else None
-                        add_road(upperType, "b%s#%s" % (hID, index), nodeIDs[-1], nodeIDs[0], htype, modesB, numLanes, vmax, reversed(nodeIDs), sidewalk, cycleway, surface, lit, name, rev_incline, ",".join(reversed(hGeom)))
-                        num += 1
-
+                    nodeIDs = []
+                    nodeIDs.append(n[0])
+                    index = index + 1
+                ni = ni + 1
+            if len(hGeom)>1: 
+                if modesF!=0:     
+                    add_road(upperType, f"f{hID}#{index}", nodeIDs[0], nodeIDs[-1], htype, modesF, lanesF, vmax, nodeIDs, sidewalk, cycleway, surface, lit, name, inclineF, parkingF, ",".join(hGeom))
+                    num += 1
+                if modesB!=0:     
+                    add_road(upperType, f"b{hID}#{index}", nodeIDs[-1], nodeIDs[0], htype, modesB, lanesB, vmax, reversed(nodeIDs), sidewalk, cycleway, surface, lit, name, inclineB, parkingB, ",".join(reversed(hGeom)))
+                    num += 1
+            
+            if unconsumed_output is not None: 
                 unconsumed = params.get_unconsumed(["source:lit", "note:name", "postal_code", "name:ru", "created_by", "old_name", "trail_visibility", "source:maxspeed", "source"])
-                if unconsumed_output is not None and len(unconsumed)>0: 
-                    unconsumed_output.write(u"%s:%s\n" % (hID, str(unconsumed)))
-                if errorneous_output is not None and len(params._errorneous)>0:
-                    errorneous_output.write(u"%s:%s\n" % (hID, str(params._errorneous)))
-
+                if len(unconsumed)>0: 
+                    unconsumed_output.write(f"{hID}:{unconsumed}\n")
+            if errorneous_output is not None and len(params._errorneous)>0:
+                errorneous_output.write(f"{hID}:{params._errorneous}\n")
+            
             if len(storedRoads)>10000:
-                commit_roads(db._conn, db._cursor, schema, prefix)
-    commit_roads(db._conn, db._cursor, schema, prefix)
-    cursor.execute("UPDATE %s.%s_network SET length=ST_Length(geom::geography);" % (schema, prefix))
-    conn.commit()
+                commit_roads(dst_db, add_parking)
+    commit_roads(dst_db, add_parking)
+    dst_db.execute(f"UPDATE {dst_db.get_table_path()} SET length=ST_Length(geom::geography);")
+    dst_db.execute(f"UPDATE {dst_db.get_table_path()} SET vmax=5 WHERE vmax=0;")
     if unconsumed_output is not None:
         unconsumed_output.close()
     if errorneous_output is not None:
         errorneous_output.close()
     t2 = datetime.datetime.now()
     dt = t2-t1
-    print ("Built %s roads" % num)
-    print (" in %s" % dt)
+    print (f"Built {num} roads in {dt}")
 
 
 # --- function definitions --------------------------------------------------
@@ -696,7 +743,7 @@ def main(arguments=None):
     args, remaining_argv = conf_parser.parse_known_args(arguments)
     if args.config is not None:
         if not os.path.exists(args.config):
-            print ("osmdb_buildWays: error: configuration file '%s' does not exist" % str(args.config), file=sys.stderr)
+            print (f"osmdb_buildWays: error: configuration file '{args.config}' does not exist", file=sys.stderr)
             raise SystemExit(2)
         config = configparser.ConfigParser()
         config.read([args.config])
@@ -711,6 +758,9 @@ def main(arguments=None):
             + ' should be a string of the form <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>')
     parser.add_argument('-R', '--dropprevious', action='store_true', help="Delete destination tables if already existing")
     parser.add_argument('-A', '--append', action='store_true', help="Append read data to existing tables")
+    parser.add_argument('--with-parking', action='store_true', help="Adds on-road parking information")
+    #parser.add_argument('--with-lit', action='store_true', help="Adds on-road parking information")
+    #parser.add_argument('--with-width', action='store_true', help="Adds on-road parking information")
     parser.add_argument('--unconsumed-output', default=None, help="Writes not consumed attributes to the given file")
     parser.add_argument('--errorneous-output', default=None, help="Writes errorneous items to the given file")
     parser.add_argument("-v", "--verbose", action="store_true", help="Print what is being done")
@@ -740,12 +790,12 @@ def main(arguments=None):
     if len(errors)!=0:
         parser.print_usage(sys.stderr)
         for e in errors:
-            print ("osmdb_buildWays: error: %s" % e, file=sys.stderr)
+            print (f"osmdb_buildWays: error: {e}", file=sys.stderr)
         print ("osmdb_buildWays: quitting on error.", file=sys.stderr)
         return 1
     
     # build
-    return build_ways(args.OSMdatabase, output, args.dropprevious, args.append, args.unconsumed_output, args.errorneous_output, args.verbose)
+    return build_ways(args.OSMdatabase, output, args.dropprevious, args.with_parking, args.append, args.unconsumed_output, args.errorneous_output, args.verbose)
 
 
 # -- main check
