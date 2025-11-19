@@ -266,15 +266,23 @@ def load_shapes(source, projection, asCentroid=False, idField="id", geomField="p
 
 
 def load_measures(source, measure, norm, minV, maxV, isochrone):
-    (host, db, tableFull, user, password) = source.split(",")
-    (schema, table) = tableFull.split(".")
-    conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
-    cursor = conn.cursor()
-    id_field = "fid" if not isochrone else "sid"
-    cursor.execute("SELECT %s,%s FROM %s.%s" % (id_field, measure, schema, table))
     obj2value = {}
-    for r in cursor.fetchall():
-        obj2value[int(r[0])] = float(r[1]) / norm
+    if source.endswith(".csv"):
+        id_field_idx = 0 if not isochrone else 1
+        measure_idx = int(measure)
+        with open(source) as fd:
+            for l in fd.readlines():
+                vals = l.strip().split(";")
+                obj2value[int(vals[id_field_idx])] = float(vals[measure_idx]) / norm
+    else:
+        (host, db, tableFull, user, password) = source.split(",")
+        (schema, table) = tableFull.split(".")
+        conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
+        cursor = conn.cursor()
+        id_field = "fid" if not isochrone else "sid"
+        cursor.execute("SELECT %s,%s FROM %s.%s" % (id_field, measure, schema, table))
+        for r in cursor.fetchall():
+            obj2value[int(r[0])] = float(r[1]) / norm
     if minV is not None: 
         for o in obj2value: obj2value[o] = max(minV, obj2value[o])
     if maxV is not None:
