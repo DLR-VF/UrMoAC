@@ -2,7 +2,7 @@
 
 Each version should include a matching documentation.
 
-Currently, the documentation is built from the github-wiki using [MkDocs](https://www.mkdocs.org/).
+The documentation is built from the files located in ```docs``` using ```mkdocs```.
 
 ## Install mkdocs
 Install mkdocs using
@@ -15,17 +15,10 @@ Additionally, you need [material for mkdocs](https://squidfunk.github.io/mkdocs-
 
 ## Building the documentation
 
-To build the documentation start the script &ldquo;build_docs.py&rdquo; located in the project&apos;s &ldquo;docs&rdquo; directory. You need Python version 3.0 or higher with mkdocs installed to do so. 
+To build the documentation open the command line and run 
 
-```...>python build_docs.py```
+```mkdocs build```
 
-
-The script will download the wiki, build the docs and start the server.
-
-The documentation is then available at http://127.0.0.1:8000/
-
-To create a static documentation, execute:
-
-```...>mkdocs build```
+You will get a folder named ```site``` that contains the docs.
 
 
