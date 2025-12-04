@@ -69,6 +69,7 @@ And / or use the DOI: [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.
 Authors:
 
 * [Daniel Krajzewicz](https://github.com/dkrajzew) 
+* [Alain Schengen](https://github.com/aschengen) 
 * [Simon Nieland](https://github.com/SimonNieland) 
 * [Yannick Voigt](https://github.com/y-voigt)
 * Logo by [Madeleine Hüger](mailto:madeleinehueger@gmail.com)
