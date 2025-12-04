@@ -9,7 +9,7 @@ __author__     = "Daniel Krajzewicz"
 __copyright__  = "Copyright 2016-2025, Institute of Transport Research, German Aerospace Center (DLR)"
 __credits__    = ["Daniel Krajzewicz"]
 __license__    = "EPL 2.0"
-__version__    = "0.8.2"
+__version__    = "0.10.0"
 __maintainer__ = "Daniel Krajzewicz"
 __email__      = "daniel.krajzewicz@dlr.de"
 __status__     = "Production"
@@ -714,12 +714,12 @@ def build_ways(src_def, dst_def, dropprevious, add_parking, append, unconsumed_f
                     unconsumed_output.write(f"{hID}:{unconsumed}\n")
             if errorneous_output is not None and len(params._errorneous)>0:
                 errorneous_output.write(f"{hID}:{params._errorneous}\n")
-            
             if len(storedRoads)>10000:
                 commit_roads(dst_db, add_parking)
     commit_roads(dst_db, add_parking)
     dst_db.execute(f"UPDATE {dst_db.get_table_path()} SET length=ST_Length(geom::geography);")
     dst_db.execute(f"UPDATE {dst_db.get_table_path()} SET vmax=5 WHERE vmax=0;")
+    dst_db.commit()
     if unconsumed_output is not None:
         unconsumed_output.close()
     if errorneous_output is not None:
@@ -753,7 +753,7 @@ def main(arguments=None):
         epilog='(c) Copyright 2016-2025, German Aerospace Center (DLR)')
     parser.add_argument('OSMdatabase', metavar='OSM-database', help='The definition of the database to read data from;\n'
             + ' should be a string of the form <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.8.2')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.10.0')
     parser.add_argument('-o', '--output', help='The definition of the table to write the network to;\n'
             + ' should be a string of the form <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>')
     parser.add_argument('-R', '--dropprevious', action='store_true', help="Delete destination tables if already existing")

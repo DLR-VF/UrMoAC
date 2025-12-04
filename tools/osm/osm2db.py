@@ -9,7 +9,7 @@ __author__     = "Daniel Krajzewicz"
 __copyright__  = "Copyright 2016-2025, Institute of Transport Research, German Aerospace Center (DLR)"
 __credits__    = ["Daniel Krajzewicz"]
 __license__    = "EPL 2.0"
-__version__    = "0.8.2"
+__version__    = "0.10.0"
 __maintainer__ = "Daniel Krajzewicz"
 __email__      = "daniel.krajzewicz@dlr.de"
 __status__     = "Production"
@@ -285,7 +285,7 @@ def main(arguments=None):
     parser.add_argument('OSMdatabase', metavar='OSM-database', help='The definition of the database to write the data into;\n'
             + ' should be a string of the form <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>')
     parser.add_argument('OSMfile', metavar='OSM-file', help='The OSM-file to read')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.8.2')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.10.0')
     parser.add_argument('-R', '--dropprevious', action='store_true', help="Delete destination tables if already existing")
     parser.add_argument('-A', '--append', action='store_true', help="Append read data to existing tables")
     parser.add_argument("-v", "--verbose", action="store_true", help="Print what is being done")

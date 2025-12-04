@@ -6,7 +6,7 @@ __author__     = "Daniel Krajzewicz"
 __copyright__  = "Copyright 2023-2025, Institute of Transport Research, German Aerospace Center (DLR)"
 __credits__    = ["Daniel Krajzewicz"]
 __license__    = "EPL 2.0"
-__version__    = "0.8.0"
+__version__    = "0.10.0"
 __maintainer__ = "Daniel Krajzewicz"
 __email__      = "daniel.krajzewicz@dlr.de"
 __status__     = "Production"
@@ -176,7 +176,7 @@ def parse_arguments(arguments):
     parser = argparse.ArgumentParser(prog='plot_area', parents=[conf_parser], 
         description='Plots accessibility measures on a map', 
         epilog='(c) Copyright 2023-2025, German Aerospace Center (DLR)')
-    parser.add_argument('--version', action='version', version='%(prog)s 0.8.2')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.10.0')
     parser.add_argument("-f", "--from", dest="objects", default=None, help="Defines the objects (origins) to load")
     parser.add_argument("--from.id", dest="objectsID", default="id", help="Defines the name of the field to read the object ids from")
     parser.add_argument("--from.geom", dest="objectsGeom", default="geom", help="Defines the name of the field to read the object geometries from")
@@ -272,6 +272,8 @@ def load_measures(source, measure, norm, minV, maxV, isochrone):
         measure_idx = int(measure)
         with open(source) as fd:
             for l in fd.readlines():
+                if l.startswith("#"):
+                    continue
                 vals = l.strip().split(";")
                 obj2value[int(vals[id_field_idx])] = float(vals[measure_idx]) / norm
     else:
