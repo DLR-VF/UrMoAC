@@ -45,7 +45,6 @@
    <max-variable-sum></max-variable-sum>
    <shortest></shortest>
    <requirespt></requirespt>
-   <clip-to-net></clip-to-net>
    <routing-measure></routing-measure>
    <routing-measure.param1></routing-measure.param1>
    <routing-measure.param2></routing-measure.param2>

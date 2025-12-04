@@ -1,5 +1,5 @@
-Urban Mobility Accessibility Computer (UrMoAC) v0.8.2
-  (c) German Aerospace Center (DLR), 2016-2021
+Urban Mobility Accessibility Computer (UrMoAC) v0.10.0
+  (c) German Aerospace Center (DLR), 2016-2025
   https://github.com/DLR-VF/UrMoAC
 
 Usage:
@@ -84,8 +84,6 @@ Usage:
   --shortest                     Searches only one destination per origin.
   --requirespt                   When set, only information that contains a PT
                                    part are stored.
-  --clip-to-net                  When set, origins, destinations, and pt is
-                                   clipped at the network boundaries.
   --routing-measure              The measure to use during the routing
                                    ['tt_mode', 'price_tt', 'interchanges_tt',
                                    'maxinterchanges_tt'].
