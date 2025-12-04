@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024
+ * Copyright (c) 2017-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -54,7 +54,7 @@ public class DirectWriter extends BasicCombinedWriter {
 	 * @throws IOException When something fails
 	 */
 	public DirectWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious, int epsg) throws IOException {
-		super(format, inputParts, "direct-output", precision, dropPrevious,
+		super(format, inputParts, "direct-output", precision, dropPrevious, false,
 				"(fid bigint, sid bigint, edge text, line text, mode text, tt real, node text, idx integer)");
 		addGeometryColumn("geom", epsg, "LINESTRING", 2);
 	}
@@ -75,10 +75,8 @@ public class DirectWriter extends BasicCombinedWriter {
 
 	/**
 	 * @brief Writes the "direct" representation of the result
-	 * @param originID The ID of the origin
-	 * @param destinationID The ID of the destination
-	 * @param destPath The path between the origin and the destination
-	 * @throws SQLException When something fails
+	 * @param result The path between an origin and a destination
+	 * @param beginTime The begin time of routing
 	 * @throws IOException When something fails
 	 */
 	public synchronized void writeResult(SingleODResult result, int beginTime) throws IOException {
@@ -109,13 +107,6 @@ public class DirectWriter extends BasicCombinedWriter {
 				if(result.origin.edge==result.destination.edge) {
 					beg = result.origin.pos;
 					end = result.destination.pos;
-					/*
-					if(beg>end) {
-						double tmp = beg;
-						beg = end;
-						end = tmp;
-					}
-					*/
 				} else {
 					beg = result.origin.edge.getLength() - result.origin.pos;
 					end = result.destination.pos;
@@ -170,15 +161,6 @@ public class DirectWriter extends BasicCombinedWriter {
 						+ "\n");
 			}
 			++index;
-		}
-		//}
-		if (intoDB()) {
-			try {
-				_ps.executeBatch();
-				_connection.commit();
-			} catch (SQLException ex) {
-				throw new IOException(ex);
-			}	
 		}
 	}
 

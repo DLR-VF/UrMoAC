@@ -1,14 +1,9 @@
-## Please cite the tool as:
+## Citation
 
 <a name="1">[1]</a> Krajzewicz, Daniel and Heinrichs, Dirk and Cyganski, Rita (2017) [_Intermodal Contour Accessibility Measures Computation Using the &lsquo;UrMo Accessibility Computer&rsquo;_](https://elib.dlr.de/118235/). International Journal On Advances in Systems and Measurements, 10 (3&4), pp. 111&ndash;123. IARIA.
 
-You probably want as well use UrMoAC's DOI (version 0.8.2): [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13234444-blue)](https://doi.org/10.5281/zenodo.13234444)
+You probably want as well use UrMoAC's DOI (version 0.10.0): [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.17814529-blue)](https://doi.org/10.5281/zenodo.17814529)
 
-## Past version DOIs
-
-* version 0.8.2: [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13234444-blue)](https://doi.org/10.5281/zenodo.13234444)
-* <del>version 0.8.0: [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13142701-blue)](https://doi.org/10.5281/zenodo.13142701)</del>
-* version 0.6.0: [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.79406006-blue)](https://doi.org/10.5281/zenodo.7940600)
 
 ## Other rather technical descriptions of UrMoAC
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024
+ * Copyright (c) 2016-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -42,6 +42,7 @@ import de.dlr.ivf.urmo.router.gtfs.GTFSRoute;
 import de.dlr.ivf.urmo.router.gtfs.GTFSStop;
 import de.dlr.ivf.urmo.router.gtfs.GTFSTrip;
 import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
+import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
@@ -49,7 +50,7 @@ import de.dlr.ivf.urmo.router.shapes.DBNode;
 import de.dlr.ivf.urmo.router.shapes.GeomHelper;
 
 /**
- * @class GTFSReader_File
+ * @class AbstractGTFSReader
  * @brief Abstract class for reading GTFS data
  * @author Daniel Krajzewicz
  */
@@ -57,26 +58,26 @@ public abstract class AbstractGTFSReader {
 	/// @brief A list of week day names
 	public static String[] weekdays = { "", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday" };
 	/// @brief The network to use
-	protected DBNet _net;
+	protected DBNet net;
 	/// @brief The used projection
-	protected int _epsg;
+	protected int epsg;
 	/// @brief List of allowed carriers (todo: recheck)
-	protected Vector<Integer> _allowedCarrier;
+	protected Vector<Integer> allowedCarrier;
 	/// @brief The date to read the GTFS information for
-	protected String _date;
+	protected String date;
 
 	
 	/** @brief Constructor
-	 * @param net The network to use
-	 * @param epsg The used projection
-	 * @param date The date to read the GTFS information for
-     * @param allowedCarrier List of allowed carriers (todo: recheck)
+	 * @param _net The network to use
+	 * @param _epsg The used projection
+	 * @param _date The date to read the GTFS information for
+     * @param _allowedCarrier List of allowed carriers (todo: recheck)
      */
-	public AbstractGTFSReader(DBNet net, int epsg, String date, Vector<Integer> allowedCarrier) {
-		_net = net;
-		_epsg = epsg;
-		_allowedCarrier = allowedCarrier;
-		_date = date;
+	public AbstractGTFSReader(DBNet _net, int _epsg, String _date, Vector<Integer> _allowedCarrier) {
+		net = _net;
+		epsg = _epsg;
+		allowedCarrier = _allowedCarrier;
+		date = _date;
 	}
 	
 	
@@ -176,12 +177,16 @@ public abstract class AbstractGTFSReader {
 			Vector<EdgeMappable> stopsV = new Vector<>();
 			readStops(stops, id2stop, stopsV);
 			// map stops to edges
-			long accessModes = Modes.getMode("foot").id|Modes.getMode("bike").id;
-			NearestEdgeFinder nef = new NearestEdgeFinder(stopsV, _net, accessModes);
+			//long accessModes = Modes.getMode("foot").id|Modes.getMode("bike").id;
+			Vector<Mode> accessModes = new Vector<>();
+			accessModes.add(Modes.getMode("foot"));
+			accessModes.add(Modes.getMode("bike"));
+			long uAccessModes = Modes.getCombinedModeIDs(accessModes);
+			NearestEdgeFinder nef = new NearestEdgeFinder(stopsV, net, accessModes);
 			HashMap<DBEdge, Vector<MapResult>> edge2stops = nef.getNearestEdges(false, false, numThreads);
 			// connect stops to network
 			if(verbose) System.out.println(" ... connecting stops ...");
-			int failed = connectStops(edge2stops, accessModes);
+			int failed = connectStops(edge2stops, uAccessModes);
 			if(verbose) System.out.println(" " + failed + " stations could not be allocated");
 			// read routes
 			if(verbose) System.out.println(" ... reading routes ...");
@@ -191,11 +196,11 @@ public abstract class AbstractGTFSReader {
 			int dateI = 0;
 			Date dateD = null;
 			int dayOfWeek = 0;
-			if(!"".equals(_date)) {
-				dateI = parseDate(_date);
+			if(!"".equals(date)) {
+				dateI = parseDate(date);
 				SimpleDateFormat parser = new SimpleDateFormat("yyyyMMdd");
 		        try {
-					dateD = parser.parse(_date);
+					dateD = parser.parse(date);
 					Calendar c = Calendar.getInstance();
 					c.setTime(dateD);
 					dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
@@ -213,8 +218,12 @@ public abstract class AbstractGTFSReader {
 			if(verbose) System.out.println(" ... reading trips ...");
 			HashMap<String, GTFSTrip> trips = new HashMap<>();
 			readTrips(services, routes, dateI, trips);
+			if(trips.size()==0) {
+				System.err.println("No trips were loaded. May be a false date information.");
+				return null;
+			}
 			// build intermediate container 
-			GTFSData ret = new GTFSData(_net, entrainmentMap, stops, routes, trips);
+			GTFSData ret = new GTFSData(net, entrainmentMap, stops, routes, trips);
 			
 			// read stop times, add to the read GTFS data
 			if(verbose) System.out.println(" ... reading stop times ...");
@@ -320,15 +329,15 @@ public abstract class AbstractGTFSReader {
 				double stopDist = mrv.lastElement().dist;
 				Coordinate pos = GeomHelper.getPointAtDistance(e.getGeometry(), stopEdgePos-seen);
 				String stopID = "stop@" + stopEdgePos;
-				DBNode intermediateNode = _net.getNode(_net.getNextID(), pos);
+				DBNode intermediateNode = net.getNode(net.getNextID(), pos);
 				// build this side access
 				geom = GeomHelper.getGeomUntilDistance(lastGeom, stopEdgePos-seen);
-				if(!_net.addEdge(e.getID()+"-"+stopID, e.getFromNode(), intermediateNode, e.getModes(), e.getVMax(), geom, geom.getLength())) {
+				if(!net.addEdge(e.getID()+"-"+stopID, e.getFromNode(), intermediateNode, e.getModes(), e.getVMax(), geom, Math.max(0.1, geom.getLength()), 0)) {
 					throw new ParseException("Could not allocate edge '" + e.getID()+"-"+stopID+ "'");
 				}
 				lastGeom = GeomHelper.getGeomBehindDistance(lastGeom, stopEdgePos-seen);
 				String nextEdgeName = stopID+"-"+e.getID();
-				if(!_net.addEdge(nextEdgeName, intermediateNode, e.getToNode(), e.getModes(), e.getVMax(), lastGeom, lastGeom.getLength())) {
+				if(!net.addEdge(nextEdgeName, intermediateNode, e.getToNode(), e.getModes(), e.getVMax(), lastGeom, Math.max(0.1, lastGeom.getLength()), 0)) {
 					throw new ParseException("Could not allocate edge '" +stopID+ "-"+e.getID() + "'");
 				}
 				// build (optional) opposite side access
@@ -336,11 +345,11 @@ public abstract class AbstractGTFSReader {
 				if(opp!=null) {
 					lastOppGeom = GeomHelper.getGeomUntilDistance(opp.getGeometry(), opp.getLength()-seen-stopEdgePos);
 					nextOppEdgeName = opp.getID()+"-"+stopID;
-					if(!_net.addEdge(nextOppEdgeName, opp.getFromNode(), intermediateNode, opp.getModes(), opp.getVMax(), lastOppGeom, lastOppGeom.getLength())) {
+					if(!net.addEdge(nextOppEdgeName, opp.getFromNode(), intermediateNode, opp.getModes(), opp.getVMax(), lastOppGeom, Math.max(0.1, lastOppGeom.getLength()), 0)) {
 						throw new ParseException("Could not allocate edge '" + opp.getID()+"-"+stopID + "'");
 					}
 					geom = GeomHelper.getGeomBehindDistance(opp.getGeometry(), opp.getLength()-seen-stopEdgePos);
-					if(!_net.addEdge(stopID+"-"+opp.getID(), intermediateNode, opp.getToNode(), opp.getModes(), opp.getVMax(), geom, geom.getLength())) {
+					if(!net.addEdge(stopID+"-"+opp.getID(), intermediateNode, opp.getToNode(), opp.getModes(), opp.getVMax(), geom, Math.max(0.1, geom.getLength()), 0)) {
 						throw new ParseException("Could not allocate edge '" + stopID+"-"+opp.getID() + "'");
 					}
 				}
@@ -352,22 +361,22 @@ public abstract class AbstractGTFSReader {
 					edgeCoords[0] = new Coordinate(intermediateNode.getCoordinate());
 					edgeCoords[1] = new Coordinate(stop.getCoordinate());
 					geom = e.getGeometry().getFactory().createLineString(edgeCoords);
-					if(!_net.addEdge("on-"+stop.mid, intermediateNode, stop, accessModes, 50, geom, Math.max(stopDist, 0.1))) {
+					if(!net.addEdge("on-"+stop.mid, intermediateNode, stop, accessModes, 50, geom, Math.max(stopDist, 0.1), 0)) {
 						throw new ParseException("Could not allocate edge '" + "on-"+stop.mid + "'");
 					}
 					edgeCoords[0] = new Coordinate(stop.getCoordinate());
 					edgeCoords[1] = new Coordinate(intermediateNode.getCoordinate());
 					geom = e.getGeometry().getFactory().createLineString(edgeCoords);
-					if(!_net.addEdge("off-"+stop.mid, stop, intermediateNode, accessModes, 50, geom, Math.max(stopDist, 0.1))) {
+					if(!net.addEdge("off-"+stop.mid, stop, intermediateNode, accessModes, 50, geom, Math.max(stopDist, 0.1), 0)) {
 						throw new ParseException("Could not allocate edge '" + "off-"+stop.mid + "'");
 					}
 				}
 				// remove initial edges
-				_net.removeEdge(e);
-				e = _net.getEdgeByName(nextEdgeName);
+				net.removeEdge(e);
+				e = net.getEdgeByName(nextEdgeName);
 				if(opp!=null) {
-					_net.removeEdge(opp);
-					opp = _net.getEdgeByName(nextOppEdgeName);
+					net.removeEdge(opp);
+					opp = net.getEdgeByName(nextOppEdgeName);
 				}
 			}
 		}

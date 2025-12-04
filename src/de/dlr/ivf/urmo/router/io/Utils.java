@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024
+ * Copyright (c) 2016-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -179,7 +179,6 @@ public class Utils {
 		} else if(input.endsWith(".net.xml") || input.endsWith(".poi.xml") || input.endsWith(".dump.xml")) {
 			return Format.FORMAT_SUMO;
 		}   
-		
 		return Format.FORMAT_UNKNOWN;
 	}
 

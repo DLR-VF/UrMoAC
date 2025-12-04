@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024
+ * Copyright (c) 2016-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -32,12 +32,16 @@ import de.dks.utils.options.OptionsCont;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.output.AbstractResultsWriter;
 import de.dlr.ivf.urmo.router.output.AbstractSingleResult;
-import de.dlr.ivf.urmo.router.output.Aggregator;
+import de.dlr.ivf.urmo.router.output.AggregatorBase;
+import de.dlr.ivf.urmo.router.output.Aggregator_MultiType;
+import de.dlr.ivf.urmo.router.output.Aggregator_SingleType;
+import de.dlr.ivf.urmo.router.output.CrossingTimesWriter;
 import de.dlr.ivf.urmo.router.output.DirectWriter;
 import de.dlr.ivf.urmo.router.output.EdgeMappingWriter;
 import de.dlr.ivf.urmo.router.output.MeasurementGenerator;
 import de.dlr.ivf.urmo.router.output.NetClusterWriter;
 import de.dlr.ivf.urmo.router.output.NetErrorsWriter;
+import de.dlr.ivf.urmo.router.output.ProcessWriter;
 import de.dlr.ivf.urmo.router.output.edge_use.EUMeasuresGenerator;
 import de.dlr.ivf.urmo.router.output.edge_use.EUSingleResult;
 import de.dlr.ivf.urmo.router.output.edge_use.EUWriter;
@@ -71,89 +75,91 @@ public class OutputBuilder {
 	 * @param fromAggLayer The origin aggregation data
 	 * @param toLayer  The destinations
 	 * @param toAggLayer The destination aggregation data
+	 * @param toTypes The map of destination types
 	 * @param epsg The projection
 	 * @return Built output devices
 	 * @throws IOException When something fails
 	 */
 	@SuppressWarnings("rawtypes")
-	public static Vector<Aggregator> buildOutputs(OptionsCont options, Layer fromLayer, Layer fromAggLayer, 
-			Layer toLayer, Layer toAggLayer, int epsg) throws IOException {
-		Vector<Aggregator> aggregators = new Vector<>();
+	public static Vector<AggregatorBase> buildOutputs(OptionsCont options, Layer fromLayer, Layer fromAggLayer, 
+			Layer toLayer, Layer toAggLayer, HashMap<Long, Set<String>> toTypes, int epsg) throws IOException {
+		Vector<AggregatorBase> aggregators = new Vector<>();
 		boolean dropExistingTables = options.getBool("dropprevious");
 		boolean aggAllFrom = options.isSet("from-agg") && options.getString("from-agg").equals("all");
 		boolean aggAllTo = options.isSet("to-agg") && options.getString("to-agg").equals("all");
+		boolean haveTypes = toTypes!=null && toTypes.size()!=0;
 		int precision = options.getInteger("precision");
 		String comment = options.getBool("comment") ? buildComment(options) : null;
 		if (options.isSet("od-output")) {
 			try {
 				ODMeasuresGenerator mgNM = new ODMeasuresGenerator();
-				AbstractResultsWriter<ODSingleResult> writer = buildNMOutput(options.getString("od-output"), precision, dropExistingTables);
+				AbstractResultsWriter<ODSingleResult> writer = buildNMOutput(options.getString("od-output"), precision, dropExistingTables, haveTypes);
 				writer.createInsertStatement(epsg);
-				Aggregator<ODSingleResult> agg = buildAggregator(mgNM, options.getBool("shortest"), 
-						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+				AggregatorBase<ODSingleResult> agg = buildAggregator(mgNM, options.getBool("shortest"), 
+						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, /*fromTypes,*/ toLayer, toAggLayer, toTypes, writer, comment);
 				aggregators.add(agg);
 			} catch(IOException e) {
-				throw new IOException("Exception '" + e.getMessage() + "' occured while building the od-output.");
+				throw new IOException("Exception '" + e.getMessage() + "' occurred while building the od-output.");
 			}
 		}
 		if (options.isSet("ext-od-output")) {
 			try {
 				ODExtendedMeasuresGenerator mg = new ODExtendedMeasuresGenerator();
-				AbstractResultsWriter<ODSingleExtendedResult> writer = buildExtNMOutput(options.getString("ext-od-output"), precision, dropExistingTables);
+				AbstractResultsWriter<ODSingleExtendedResult> writer = buildExtNMOutput(options.getString("ext-od-output"), precision, dropExistingTables, haveTypes);
 				writer.createInsertStatement(epsg);
-				Aggregator<ODSingleExtendedResult> agg = buildAggregator(mg, options.getBool("shortest"), 
-						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+				AggregatorBase<ODSingleExtendedResult> agg = buildAggregator(mg, options.getBool("shortest"), 
+						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, /*fromTypes,*/ toLayer, toAggLayer, toTypes, writer, comment);
 				aggregators.add(agg);
 			} catch(IOException e) {
-				throw new IOException("Exception '" + e.getMessage() + "' occured while building the ext-od-output.");
+				throw new IOException("Exception '" + e.getMessage() + "' occurred while building the ext-od-output.");
 			}
 		}
 		if (options.isSet("stat-od-output")) {
 			try {
 				ODStatsMeasuresGenerator mg = new ODStatsMeasuresGenerator();
-				AbstractResultsWriter<ODSingleStatsResult> writer = buildStatNMOutput(options.getString("stat-od-output"), precision, dropExistingTables);
+				AbstractResultsWriter<ODSingleStatsResult> writer = buildStatNMOutput(options.getString("stat-od-output"), precision, dropExistingTables, haveTypes);
 				writer.createInsertStatement(epsg);
-				Aggregator<ODSingleStatsResult> agg = buildAggregator(mg, options.getBool("shortest"), 
-						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+				AggregatorBase<ODSingleStatsResult> agg = buildAggregator(mg, options.getBool("shortest"), 
+						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, /*fromTypes,*/ toLayer, toAggLayer, toTypes, writer, comment);
 				aggregators.add(agg);
 			} catch(IOException e) {
-				throw new IOException("Exception '" + e.getMessage() + "' occured while building the stat-od-output.");
+				throw new IOException("Exception '" + e.getMessage() + "' occurred while building the stat-od-output.");
 			}
 		}
 		if (options.isSet("interchanges-output")) {
 			try {
 				InterchangeMeasuresGenerator mg = new InterchangeMeasuresGenerator();
-				AbstractResultsWriter<InterchangeSingleResult> writer = buildInterchangeOutput(options.getString("interchanges-output"), precision, dropExistingTables);
+				AbstractResultsWriter<InterchangeSingleResult> writer = buildInterchangeOutput(options.getString("interchanges-output"), precision, dropExistingTables, haveTypes);
 				writer.createInsertStatement(epsg);
-				Aggregator<InterchangeSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
-						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+				AggregatorBase<InterchangeSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
+						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, /*fromTypes,*/ toLayer, toAggLayer, toTypes, writer, comment);
 				aggregators.add(agg);
 			} catch(IOException e) {
-				throw new IOException("Exception '" + e.getMessage() + "' occured while building the interchanges-output.");
+				throw new IOException("Exception '" + e.getMessage() + "' occurred while building the interchanges-output.");
 			}
 		}
 		if (options.isSet("edges-output")) {
 			try {
 				EUMeasuresGenerator mg = new EUMeasuresGenerator();
-				AbstractResultsWriter<EUSingleResult> writer = buildEUOutput(options.getString("edges-output"), precision, dropExistingTables);
+				AbstractResultsWriter<EUSingleResult> writer = buildEUOutput(options.getString("edges-output"), precision, dropExistingTables, haveTypes);
 				writer.createInsertStatement(epsg);
-				Aggregator<EUSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
-						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+				AggregatorBase<EUSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
+						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, /*fromTypes,*/ toLayer, toAggLayer, toTypes, writer, comment);
 				aggregators.add(agg);
 			} catch(IOException e) {
-				throw new IOException("Exception '" + e.getMessage() + "' occured while building the edges-output.");
+				throw new IOException("Exception '" + e.getMessage() + "' occurred while building the edges-output.");
 			}
 		}
 		if (options.isSet("pt-output")) {
 			try {
 				PTODMeasuresGenerator mg = new PTODMeasuresGenerator();
-				AbstractResultsWriter<PTODSingleResult> writer = buildPTODOutput(options.getString("pt-output"), precision, dropExistingTables);
+				AbstractResultsWriter<PTODSingleResult> writer = buildPTODOutput(options.getString("pt-output"), precision, dropExistingTables, haveTypes);
 				writer.createInsertStatement(epsg);
-				Aggregator<PTODSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
-						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, toLayer, toAggLayer, writer, comment);
+				AggregatorBase<PTODSingleResult> agg = buildAggregator(mg, options.getBool("shortest"), 
+						aggAllFrom, aggAllTo, fromLayer, fromAggLayer, /*fromTypes,*/ toLayer, toAggLayer, toTypes, writer, comment);
 				aggregators.add(agg);
 			} catch(IOException e) {
-				throw new IOException("Exception '" + e.getMessage() + "' occured while building the pt-output.");
+				throw new IOException("Exception '" + e.getMessage() + "' occurred while building the pt-output.");
 			}
 		}
 		return aggregators;
@@ -183,9 +189,36 @@ public class OutputBuilder {
 			}
 			return dw;
 		} catch(IOException e) {
-			throw new IOException("Exception '" + e.getMessage() + "' occured while building the direct-output.");
+			throw new IOException("Exception '" + e.getMessage() + "' occurred while building the direct-output.");
 		}
 	}
+	
+	
+	/** @brief Builds a "process" output
+	 * @param options The options that include the output definition
+	 * @return The process writer device
+	 * @throws IOException When something fails
+	 */
+	public static ProcessWriter buildProcessWriter(OptionsCont options) throws IOException {
+		if (!options.isSet("process-output")) {
+			return null;
+		}
+		try {
+			int precision = options.getInteger("precision");
+			String d = options.getString("process-output");
+			Utils.Format format = Utils.getFormat(d);
+			String[] inputParts = Utils.getParts(format, d, "process-output");
+			ProcessWriter tl = new ProcessWriter(format, inputParts, precision, options.getBool("dropprevious"));
+			tl.createInsertStatement(0);
+			if(options.getBool("comment")) {
+				tl.addComment(buildComment(options));
+			}
+			return tl;
+		} catch(IOException e) {
+			throw new IOException("Exception '" + e.getMessage() + "' occurred while building the direct-output.");
+		}
+	}
+	
 
 	
 	/**
@@ -212,7 +245,7 @@ public class OutputBuilder {
 			emw.writeResults(nearestEdges);
 			emw.close();
 		} catch(IOException e) {
-			throw new IOException("Exception '" + e.getMessage() + "' occured while building the " + outputName + ".");
+			throw new IOException("Exception '" + e.getMessage() + "' occurred while building the " + outputName + ".");
 		}
 	}
 
@@ -240,12 +273,32 @@ public class OutputBuilder {
 	}
 
 	
-	public static NetErrorsWriter buildNetErrorsWriter(String d, boolean dropPrevious) throws IOException {
-		Utils.Format format = Utils.getFormat(d);
-		String[] inputParts = Utils.getParts(format, d, "pt-output");
+	/** @brief Builds a writer that stores network loading errors
+	 * 
+	 * @param outputDefinition The definition of the output
+	 * @param dropPrevious Whether prior reports with the same name shall be deleted
+	 * @return The built writer
+	 * @throws IOException
+	 */
+	public static NetErrorsWriter buildNetErrorsWriter(String outputDefinition, boolean dropPrevious) throws IOException {
+		Utils.Format format = Utils.getFormat(outputDefinition);
+		String[] inputParts = Utils.getParts(format, outputDefinition, "net-errors");
 		return new NetErrorsWriter(format, inputParts, dropPrevious);
 	}
 	
+	
+	/** @brief Builds a writer that stores crossing times
+	 * 
+	 * @param outputDefinition The definition of the output
+	 * @param dropPrevious Whether prior reports with the same name shall be deleted
+	 * @return The built writer
+	 * @throws IOException
+	 */
+	public static CrossingTimesWriter buildCrossingTimesWriter(String outputDefinition, boolean dropPrevious) throws IOException {
+		Utils.Format format = Utils.getFormat(outputDefinition);
+		String[] inputParts = Utils.getParts(format, outputDefinition, "crossing-times");
+		return new CrossingTimesWriter(format, inputParts, dropPrevious);
+	}
 	
 
 	/**
@@ -278,6 +331,7 @@ public class OutputBuilder {
 	            		value = value.substring(0, value.lastIndexOf(',')+1) + "xxx";
 	            	}
 	            }
+	            value = value.replace('\'', '_');
 	            ps.print(": " + value );
 	            ps.println();
 	        }
@@ -304,13 +358,18 @@ public class OutputBuilder {
 	 * @return The built aggregator
 	 * @throws IOException When something fails
 	 */
-	@SuppressWarnings("rawtypes")
-	private static <T extends AbstractSingleResult> Aggregator<T> buildAggregator(MeasurementGenerator measuresGenerator,
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static <T extends AbstractSingleResult> AggregatorBase<T> buildAggregator(MeasurementGenerator measuresGenerator,
 			boolean shortest, boolean aggAllFrom, boolean aggAllTo, 
-			Layer fromLayer, Layer fromAggLayer, Layer toLayer, Layer toAggLayer,
+			Layer fromLayer, Layer fromAggLayer, // HashMap<Long, Set<String>> fromTypes, 
+			Layer toLayer, Layer toAggLayer, HashMap<Long, Set<String>> toTypes, 
 			AbstractResultsWriter<T> writer, String comment) throws IOException {
-		@SuppressWarnings("unchecked")
-		Aggregator<T> agg = new Aggregator<T>(measuresGenerator, fromLayer, shortest);
+		AggregatorBase<T> agg = null;
+		if(toTypes!=null) {
+			agg = new Aggregator_MultiType<T>(measuresGenerator, fromLayer, shortest, toTypes);
+		} else {
+			agg = new Aggregator_SingleType<T>(measuresGenerator, fromLayer, shortest);
+		}
 		if (fromAggLayer != null) {
 			agg.setOriginAggregation(fromLayer, fromAggLayer);
 		} else if (aggAllFrom) {
@@ -338,10 +397,10 @@ public class OutputBuilder {
 	 * @return The built output
 	 * @throws IOException When something fails
 	 */
-	private static AbstractResultsWriter<ODSingleResult> buildNMOutput(String d, int precision, boolean dropPrevious) throws IOException {
+	private static AbstractResultsWriter<ODSingleResult> buildNMOutput(String d, int precision, boolean dropPrevious, boolean haveTypes) throws IOException {
 		Utils.Format format = Utils.getFormat(d);
 		String[] inputParts = Utils.getParts(format, d, "od-output");
-		return new ODWriter(format, inputParts, precision, dropPrevious);
+		return new ODWriter(format, inputParts, precision, dropPrevious, haveTypes);
 	}
 	
 
@@ -353,10 +412,10 @@ public class OutputBuilder {
 	 * @return The built output
 	 * @throws IOException When something fails
 	 */
-	private static AbstractResultsWriter<ODSingleExtendedResult> buildExtNMOutput(String d, int precision, boolean dropPrevious) throws IOException {
+	private static AbstractResultsWriter<ODSingleExtendedResult> buildExtNMOutput(String d, int precision, boolean dropPrevious, boolean haveTypes) throws IOException {
 		Utils.Format format = Utils.getFormat(d);
 		String[] inputParts = Utils.getParts(format, d, "ext-od-output");
-		return new ODExtendedWriter(format, inputParts, precision, dropPrevious);
+		return new ODExtendedWriter(format, inputParts, precision, dropPrevious, haveTypes);
 	}
 	
 
@@ -368,10 +427,10 @@ public class OutputBuilder {
 	 * @return The built output
 	 * @throws IOException When something fails
 	 */
-	private static AbstractResultsWriter<ODSingleStatsResult> buildStatNMOutput(String d, int precision, boolean dropPrevious) throws IOException {
+	private static AbstractResultsWriter<ODSingleStatsResult> buildStatNMOutput(String d, int precision, boolean dropPrevious, boolean haveTypes) throws IOException {
 		Utils.Format format = Utils.getFormat(d);
 		String[] inputParts = Utils.getParts(format, d, "stat-od-output");
-		return new ODStatsWriter(format, inputParts, precision, dropPrevious);
+		return new ODStatsWriter(format, inputParts, precision, dropPrevious, haveTypes);
 	}
 	
 
@@ -383,10 +442,10 @@ public class OutputBuilder {
 	 * @return The built output
 	 * @throws IOException When something fails
 	 */
-	private static AbstractResultsWriter<InterchangeSingleResult> buildInterchangeOutput(String d, int precision, boolean dropPrevious) throws IOException {
+	private static AbstractResultsWriter<InterchangeSingleResult> buildInterchangeOutput(String d, int precision, boolean dropPrevious, boolean haveTypes) throws IOException {
 		Utils.Format format = Utils.getFormat(d);
 		String[] inputParts = Utils.getParts(format, d, "interchanges-output");
-		return new InterchangeWriter(format, inputParts, precision, dropPrevious);
+		return new InterchangeWriter(format, inputParts, precision, dropPrevious, haveTypes);
 	}
 	
 
@@ -398,10 +457,10 @@ public class OutputBuilder {
 	 * @return The built output
 	 * @throws IOException When something fails
 	 */
-	private static AbstractResultsWriter<EUSingleResult> buildEUOutput(String d, int precision, boolean dropPrevious) throws IOException {
+	private static AbstractResultsWriter<EUSingleResult> buildEUOutput(String d, int precision, boolean dropPrevious, boolean haveTypes) throws IOException {
 		Utils.Format format = Utils.getFormat(d);
 		String[] inputParts = Utils.getParts(format, d, "edges-output");
-		return new EUWriter(format, inputParts, precision, dropPrevious);
+		return new EUWriter(format, inputParts, precision, dropPrevious, haveTypes);
 	}
 	
 	
@@ -413,10 +472,10 @@ public class OutputBuilder {
 	 * @return The built output
 	 * @throws IOException When something fails
 	 */
-	private static AbstractResultsWriter<PTODSingleResult> buildPTODOutput(String d, int precision, boolean dropPrevious) throws IOException {
+	private static AbstractResultsWriter<PTODSingleResult> buildPTODOutput(String d, int precision, boolean dropPrevious, boolean haveTypes) throws IOException {
 		Utils.Format format = Utils.getFormat(d);
 		String[] inputParts = Utils.getParts(format, d, "pt-output");
-		return new PTODWriter(format, inputParts, precision, dropPrevious);
+		return new PTODWriter(format, inputParts, precision, dropPrevious, haveTypes);
 	}
 	
 }

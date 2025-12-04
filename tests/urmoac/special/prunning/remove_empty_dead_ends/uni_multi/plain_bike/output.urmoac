@@ -1,0 +1,13 @@
+Reading the road network
+ 5 edges loaded (6 nodes)
+Checking for connectivity...
+ 5 remaining after removing unconnected ones.
+Reading origin places
+ 3 origin places loaded
+Reading destination places
+ 3 destination places loaded
+Computing access from the origins to the network
+Computing egress from the network to the destinations
+Computing shortest paths between 3 origin and 3 destination edges
+ 1 of 3 edges 2 of 3 edges 3 of 3 edges
+done.

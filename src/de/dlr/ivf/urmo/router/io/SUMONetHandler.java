@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024
+ * Copyright (c) 2021-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -32,7 +32,7 @@ import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.DBNode;
 
-/** @class SUMOLayerHandler
+/** @class SUMONetHandler
  * @brief Parses a SUMO-net-file 
  * @author Daniel Krajzewicz
  */
@@ -161,7 +161,7 @@ public class SUMONetHandler extends DefaultHandler {
 				DBNode fromNode = _net.getNode(_from, cs[0]);
 				DBNode toNode = _net.getNode(_to, cs[cs.length - 1]);
 				try {
-					_net.addEdge(_id, fromNode, toNode, modes, _maxLaneSpeed, geom2, length);
+					_net.addEdge(_id, fromNode, toNode, modes, _maxLaneSpeed, geom2, length, 0);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

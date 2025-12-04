@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024
+ * Copyright (c) 2016-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -34,8 +34,6 @@ import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
  * @author Daniel Krajzewicz
  */
 public class LayerObject implements EdgeMappable {
-	/// @brief The application's running object id
-	private long id;
 	/// @brief The original id of the object (in the database, e.g.)
 	private long outerID;
 	/// @brief An optionally attached variable value
@@ -46,29 +44,14 @@ public class LayerObject implements EdgeMappable {
 
 	/**
 	 * @brief Constructor
-	 * @param _id The application's running object id
 	 * @param _outerID The original id of the object (in the database, e.g.)
 	 * @param _attachedVar An optionally attached variable value
 	 * @param _geom The object's geometry (usually its position)
 	 */
-	public LayerObject(long _id, long _outerID, double _attachedVar, Geometry _geom) {
-		id = _id;
+	public LayerObject(long _outerID, double _attachedVar, Geometry _geom) {
 		outerID = _outerID;
 		geom = _geom;
-		if(_attachedVar>1) {
-			int bla = 0;
-			bla = bla + 1;
-		}
 		attachedVar = _attachedVar;
-	}
-
-
-	/**
-	 * @brief Returns the object's application id
-	 * @return An id unique within the application
-	 */
-	public long getUniqueID() {
-		return id;
 	}
 
 

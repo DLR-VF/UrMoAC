@@ -9,3 +9,7 @@ subnets
 
 # mode settings
 modes
+
+# diverse network prunning methods
+prunning
+

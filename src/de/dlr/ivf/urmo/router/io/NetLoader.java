@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024
+ * Copyright (c) 2016-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -26,6 +26,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Vector;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -42,6 +43,8 @@ import org.locationtech.jts.io.WKTReader;
 import org.postgresql.PGConnection;
 import org.xml.sax.SAXException;
 
+import de.dlr.ivf.urmo.router.algorithms.routing.CrossingTimesModel_CTM1;
+import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.output.NetErrorsWriter;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
@@ -58,29 +61,39 @@ public class NetLoader {
 	/** @brief Loads the road network
 	 * @param idGiver Instance supporting running ids 
 	 * @param def Source definition
+	 * @param netBoundary The boundary to apply
 	 * @param vmaxAttr The attribute (column) to read the maximum velocity from 
+	 * @param geomS The name of the column to read the geometry from
 	 * @param epsg The projection
-	 * @param uModes The modes for which the network shall be loaded
+	 * @param modes The modes for which the network shall be loaded
+	 * @param errorsWriter The writer to report errors to
+	 * @param reportAllErrors If set, all errors are reported, not only the first one
+	 * @param patchErrors If set, false lengths and vmax are patched
+	 * @param ignoreIncline Whether no incline shall be loaded
+	 * @param ctm The crossing delay model to use
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	public static DBNet loadNet(IDGiver idGiver, String def, String netBoudary, String vmaxAttr, String geomS, int epsg, long uModes, NetErrorsWriter errorsWriter) throws IOException {
+	public static DBNet loadNet(IDGiver idGiver, String def, Geometry netBoundary, String vmaxAttr, String geomS, int epsg, Vector<Mode> modes, 
+			NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors, boolean ignoreIncline,
+			CrossingTimesModel_CTM1 ctm) throws IOException {
 		Utils.Format format = Utils.getFormat(def);
 		String[] inputParts = Utils.getParts(format, def, "net");
+		long uModes = Modes.getCombinedModeIDs(modes);
 		DBNet net = null;
 		switch(format) {
 		case FORMAT_POSTGRES:
 		case FORMAT_SQLITE:
-			net = loadNetFromDB(idGiver, format, inputParts, netBoudary, vmaxAttr, geomS, epsg, uModes, errorsWriter);
+			net = loadNetFromDB(idGiver, format, inputParts, netBoundary, vmaxAttr, geomS, epsg, uModes, errorsWriter, reportAllErrors, patchErrors, ignoreIncline);
 			break;
 		case FORMAT_CSV:
-			net = loadNetFromCSVFile(idGiver, inputParts[0], uModes, errorsWriter);
+			net = loadNetFromCSVFile(idGiver, inputParts[0], uModes, errorsWriter, reportAllErrors, patchErrors);
 			break;
 		case FORMAT_WKT:
-			net = loadNetFromWKTFile(idGiver, inputParts[0], uModes, errorsWriter);
+			net = loadNetFromWKTFile(idGiver, inputParts[0], uModes, errorsWriter, reportAllErrors, patchErrors);
 			break;
 		case FORMAT_SUMO:
-			net = loadNetFromSUMOFile(idGiver, inputParts[0], uModes, errorsWriter);
+			net = loadNetFromSUMOFile(idGiver, inputParts[0], uModes, errorsWriter, reportAllErrors, patchErrors);
 			break;
 		case FORMAT_GEOPACKAGE:
 			throw new IOException("Reading 'net' from " + Utils.getFormatMMLName(format) + " is not supported.");
@@ -88,10 +101,16 @@ public class NetLoader {
 			throw new IOException("Could not recognize the format used for GTFS.");
 		}
 		if(net==null) {
+			if(errorsWriter!=null) errorsWriter.close();
 			throw new IOException("The network could not be loaded");
 		}
 		// set opposite edges; add opposite pedestrian edges if foot is used
 		net.extendDirections((uModes&Modes.getMode("foot").id)!=0);
+		// compute crossing times
+		if(ctm!=null) {
+			net.computeCrossingTimes(ctm);
+			ctm.closeWriter();
+		}
 		return net;
 	}
 
@@ -103,10 +122,15 @@ public class NetLoader {
 	 * @param vmax The attribute (column) to read the maximum velocity from 
 	 * @param epsg The projection
 	 * @param uModes The modes for which the network shall be loaded
+	 * @param errorsWriter The writer to report errors to
+	 * @param reportAllErrors If set, all errors are reported, not only the first one
+	 * @param patchErrors If set, false lengths and vmax are patched
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromDB(IDGiver idGiver, Utils.Format format, String[] inputParts, String netBoudary, String vmax, String geomS, int epsg, long uModes, NetErrorsWriter errorsWriter) throws IOException {
+	private static DBNet loadNetFromDB(IDGiver idGiver, Utils.Format format, String[] inputParts, Geometry netBoundary, 
+			String vmax, String geomS, int epsg, long uModes, NetErrorsWriter errorsWriter, 
+			boolean reportAllErrors, boolean patchErrors, boolean ignoreIncline) throws IOException {
 		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
 		try {
 			Class.forName("org.sqlite.JDBC");
@@ -119,15 +143,19 @@ public class NetLoader {
 			connection.setAutoCommit(true);
 			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 			((PGConnection) connection).addDataType("geometry", org.postgis.PGgeometry.class);
-			String query = "SELECT oid,nodefrom,nodeto,mode_walk,mode_bike,mode_mit,"+vmax+",length,ST_AsBinary(ST_TRANSFORM(" + geomS + "," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, "net");
-			if(netBoudary!=null) {
-				query += " WHERE ST_Within(ST_TRANSFORM(" + geomS + "," + epsg + "), " + netBoudary + ")";
+			String query = "SELECT oid,nodefrom,nodeto,mode_walk,mode_bike,mode_mit,"+vmax+",length";
+			if(!ignoreIncline) {
+				query += ",incline";
+			}
+			query += ",ST_AsBinary(ST_TRANSFORM(" + geomS + "," + epsg + ")) FROM " + Utils.getTableName(format, inputParts, "net");
+			if(netBoundary!=null) {
+				query += " WHERE ST_Within(ST_Transform(" + geomS + "," + epsg + "), ST_GeomFromText('" + netBoundary.toText() + "', " + epsg + "))";
 			}
 			query += ";";
 			Statement s = connection.createStatement();
 			ResultSet rs = s.executeQuery(query);
 			WKBReader wkbRead = new WKBReader();
-			DBNet net = new DBNet(idGiver, errorsWriter, false); // todo: implement report settings
+			DBNet net = new DBNet(idGiver, errorsWriter, reportAllErrors, patchErrors);
 			boolean ok = true;
 			boolean warnedDeprecatedGeom = false;
 			while (rs.next()) {
@@ -160,7 +188,11 @@ public class NetLoader {
 				Coordinate[] cs = geom2.getCoordinates();
 				DBNode fromNode = net.getNode(rs.getLong("nodefrom"), cs[0]);
 				DBNode toNode = net.getNode(rs.getLong("nodeto"), cs[cs.length - 1]);
-				ok &= net.addEdge(rs.getString("oid"), fromNode, toNode, modes, rs.getDouble(vmax) / 3.6, geom2, rs.getDouble("length"));
+				double incline = ignoreIncline ? 0 : rs.getDouble("incline");
+				if (rs.wasNull()) {
+					incline = 0;
+				}
+				ok &= net.addEdge(rs.getString("oid"), fromNode, toNode, modes, rs.getDouble(vmax) / 3.6, geom2, rs.getDouble("length"), incline);
 			}
 			rs.close();
 			s.close();
@@ -176,11 +208,14 @@ public class NetLoader {
 	 * @param idGiver Instance supporting running ids 
 	 * @param fileName The file to read the network from
 	 * @param uModes The modes for which the network shall be loaded
+	 * @param errorsWriter The writer to report errors to
+	 * @param reportAllErrors If set, all errors are reported, not only the first one
+	 * @param patchErrors If set, false lengths and vmax are patched
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromCSVFile(IDGiver idGiver, String fileName, long uModes, NetErrorsWriter errorsWriter) throws IOException {
-		DBNet net = new DBNet(idGiver, errorsWriter, false); // todo: implement report settings
+	private static DBNet loadNetFromCSVFile(IDGiver idGiver, String fileName, long uModes, NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors) throws IOException {
+		DBNet net = new DBNet(idGiver, errorsWriter, reportAllErrors, patchErrors);
 		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
 		// https://stackoverflow.com/questions/1388602/do-i-need-to-close-both-filereader-and-bufferedreader
 		@SuppressWarnings("resource")
@@ -213,7 +248,7 @@ public class NetLoader {
 			DBNode fromNode = net.getNode(Long.parseLong(vals[1]), coords[0]);
 			DBNode toNode = net.getNode(Long.parseLong(vals[2]), coords[coords.length - 1]);
 			LineString ls = gf.createLineString(coords);
-			ok &= net.addEdge(vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, ls, Double.parseDouble(vals[7]));
+			ok &= net.addEdge(vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, ls, Double.parseDouble(vals[7]), 0);
 	    } while(line!=null);
 		br.close();
 		return ok ? net : null;
@@ -224,12 +259,15 @@ public class NetLoader {
 	 * @param idGiver Instance supporting running ids 
 	 * @param fileName The file to read the network from
 	 * @param uModes The modes for which the network shall be loaded
+	 * @param errorsWriter The writer to report errors to
+	 * @param reportAllErrors If set, all errors are reported, not only the first one
+	 * @param patchErrors If set, false lengths and vmax are patched
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromWKTFile(IDGiver idGiver, String fileName, long uModes, NetErrorsWriter errorsWriter) throws IOException {
+	private static DBNet loadNetFromWKTFile(IDGiver idGiver, String fileName, long uModes, NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors) throws IOException {
 		try {
-			DBNet net = new DBNet(idGiver, errorsWriter, false); // todo: implement report settings
+			DBNet net = new DBNet(idGiver, errorsWriter, reportAllErrors, patchErrors);
 			WKTReader wktReader = new WKTReader();
 			BufferedReader br = new BufferedReader(new FileReader(fileName));
 			String line = null;
@@ -252,7 +290,7 @@ public class NetLoader {
 				Coordinate cs[] = geom.getCoordinates();
 				DBNode fromNode = net.getNode(Long.parseLong(vals[1]), cs[0]);
 				DBNode toNode = net.getNode(Long.parseLong(vals[2]), cs[cs.length - 1]);
-				ok &= net.addEdge(vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, geom, Double.parseDouble(vals[7]));
+				ok &= net.addEdge(vals[0], fromNode, toNode, modes, Double.parseDouble(vals[6]) / 3.6, geom, Double.parseDouble(vals[7]), 0);
 		    } while(line!=null);
 			br.close();
 			return ok ? net : null;
@@ -266,12 +304,15 @@ public class NetLoader {
 	 * @param idGiver Instance supporting running ids 
 	 * @param fileName The file to read the network from
 	 * @param uModes The modes for which the network shall be loaded
+	 * @param errorsWriter The writer to report errors to
+	 * @param reportAllErrors If set, all errors are reported, not only the first one
+	 * @param patchErrors If set, false lengths and vmax are patched
 	 * @return The loaded net
 	 * @throws IOException When something fails 
 	 */
-	private static DBNet loadNetFromSUMOFile(IDGiver idGiver, String fileName, long uModes, NetErrorsWriter errorsWriter) throws IOException {
+	private static DBNet loadNetFromSUMOFile(IDGiver idGiver, String fileName, long uModes, NetErrorsWriter errorsWriter, boolean reportAllErrors, boolean patchErrors) throws IOException {
 		try {
-			DBNet net = new DBNet(idGiver, errorsWriter, false); // todo: implement report settings
+			DBNet net = new DBNet(idGiver, errorsWriter, reportAllErrors, patchErrors);
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 	        SAXParser saxParser = factory.newSAXParser();
 	        SUMONetHandler handler = new SUMONetHandler(net, uModes);

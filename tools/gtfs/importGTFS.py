@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-# ===========================================================================
 """Imports a GTFS data set into a database
 
 Call with
@@ -11,10 +9,10 @@ where
 """
 # ===========================================================================
 __author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright 2016-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__copyright__  = "Copyright 2016-2025, Institute of Transport Research, German Aerospace Center (DLR)"
 __credits__    = ["Daniel Krajzewicz"]
 __license__    = "EPL 2.0"
-__version__    = "0.8.2"
+__version__    = "0.10.0"
 __maintainer__ = "Daniel Krajzewicz"
 __email__      = "daniel.krajzewicz@dlr.de"
 __status__     = "Production"
@@ -30,6 +28,7 @@ import psycopg2
 import sys
 import os.path
 import io
+import argparse
 import gtfs_defs
 
 
@@ -60,24 +59,28 @@ gtfs2postgres = {
 class GTFSImporter:
     """A class for importing GTFS data into a database"""
 
-    def __init__(self, srcFolder, dbDef):
+    def __init__(self, src_folder, db_definition, append, dropprevious, verbose):
         """Initialises the importer
-        :param srcFolder: The folder to read data from
-        :type srcFolder: str
-        :param dbDef: The definition of the database to write the data to
-        :type dbDef: str
+        :param src_folder: The folder to read data from
+        :type src_folder: str
+        :param db_definition: The definition of the database to write the data to
+        :type db_definition: str
         """
-        self._srcFolder = srcFolder
-        (self._host, self._db, schema_prefix, self._user, self._password) = dbDef.split(",")
+        self._src_folder = src_folder
+        (self._host, self._db, schema_prefix, self._user, self._password) = db_definition.split(",")
         self._schema, self._tablePrefix = schema_prefix.split(".")
         # connect to db
         self._conn = psycopg2.connect("host='%s' dbname='%s' user='%s' password='%s'" % (self._host, self._db, self._user, self._password))
         self._cursor = self._conn.cursor()
-
+        self._append = append
+        self._verbose = verbose
+        self._dropprevious = dropprevious
+        
         
     def drop_tables(self):
         """Drops existing database tables"""
-        print ("Removing old tables")
+        if self._verbose: 
+            print ("Removing old tables")
         for td in gtfs_defs.tableDefinitions:
             self._cursor.execute("DROP TABLE IF EXISTS %s.%s_%s;" % (self._schema, self._tablePrefix, td))
         self._conn.commit()
@@ -89,18 +92,18 @@ class GTFSImporter:
         :type line: str
         """
         vals = line.split(",")
-        nVals = []
+        new_vals = []
         hadQuotes = False
         for v in vals:
             v2 = v
             if hadQuotes: # had a quote before?
                 # then append current entry to the last one
-                nVals[-1] = nVals[-1] + "," + v2
+                new_vals[-1] = new_vals[-1] + "," + v2
                 if len(v2)>0 and v2[-1]=='"': # ends with a quote?
                     # move to next entry
                     hadQuotes = False
                     # remove the quote
-                    nVals[-1] = nVals[-1][:-1]
+                    new_vals[-1] = new_vals[-1][:-1]
                 continue
             if len(v2)>0 and v2[0]=='"': # starts with a quote?
                 # mark as having a quote, remove quote
@@ -110,50 +113,59 @@ class GTFSImporter:
                     # remove quote, plain element
                     v2 = v2[:-1]
                     hadQuotes = False
-            nVals.append(v2)
-        return nVals
+            new_vals.append(v2)
+        return new_vals
 
 
-    def _get_columns_to_write(self, fileType, l):
+    def _get_columns_to_write(self, file_type, l):
         """Determines which fields shall be imported 
-        :param fileType: The fileType type to read and import
-        :type fileType: str
+        :param file_type: The file type to read and import
+        :type file_type: str
         :param l: The header line
         :type l: str
         """
-        origNames = l.strip().split(",")
-        for i,n in enumerate(origNames):
-            origNames[i] = n.replace('"', '').strip()
+        orig_names = l.strip().split(",")
+        for i,n in enumerate(orig_names):
+            orig_names[i] = n.replace('"', '').strip()
         columns = []
         srcIndices = []
-        for n in gtfs_defs.tableDefinitions[fileType]:
-            if n[0] not in origNames:
+        for n in gtfs_defs.tableDefinitions[file_type]:
+            if n[0] not in orig_names:
                 if n[2]==gtfs_defs.Presence.REQUIRED:
-                    print (" Required column '%s' is missing. Aborting..." % (n[0]))
+                    print (" Required column '%s' is missing. Aborting..." % (n[0]), file=sys.stderr)
                     return False
             else:
                 columns.append(n)
-                srcIndices.append(origNames.index(n[0]))
+                srcIndices.append(orig_names.index(n[0]))
         return columns, srcIndices
   
 
-    def _import_table(self, fileType):
+    def _import_table(self, file_type):
         """Reads a single GTFS file and writes its contents into a table
-        :param fileType: The fileType type to read and import
-        :type fileType: str
+        :param file_type: The file type to read and import
+        :type file_type: str
         @see https://www.geeksforgeeks.org/python-psycopg2-insert-multiple-rows-with-one-query/
         """
-        fileName = os.path.join(self._srcFolder, fileType + ".txt")
-        print (" Processing " + fileName)
-        fd = io.open(fileName, 'r', encoding='utf-8-sig')
+        file_name = os.path.join(self._src_folder, file_type + ".txt")
+        if self._verbose: print (" Processing " + file_name)
+        #
+        self._cursor.execute("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='%s' AND table_name='%s_%s');" % (self._schema, self._tablePrefix, file_type))
+        self._conn.commit()   
+        ret = self._cursor.fetchall()
+        if ret[0][0] and not self._append:
+            print ("Table %s.%s_%s already exists. Aborting. Consider adding the option --dropprevious." % (self._schema, self._tablePrefix, file_type))
+            sys.exit(2)
+        #
+        fd = io.open(file_name, 'r', encoding='utf-8-sig')
         first = True
         num = 0
         entries = []
         # go throught the file
         for l in fd:
-            if first: # first element (header)?
+            build_table = first and not self._append
+            if build_table:
                 # collect known fields
-                columns, srcIndices = self._get_columns_to_write(fileType, l)
+                columns, srcIndices = self._get_columns_to_write(file_type, l)
                 # build the insertion string
                 hasPosition = False
                 newNames = []
@@ -168,7 +180,7 @@ class GTFSImporter:
                     namesDB = namesDB + ", pos" 
                 placeHolders = "(" + placeHolders + ")"
                 # build the table
-                call = "CREATE TABLE %s.%s_%s ( " % (self._schema, self._tablePrefix, fileType)
+                call = "CREATE TABLE %s.%s_%s ( " % (self._schema, self._tablePrefix, file_type)
                 for ie,e in enumerate(columns):
                     if ie>0: call = call + ", "
                     call = call + "%s %s" % (e[0], gtfs2postgres[e[1]])
@@ -176,8 +188,10 @@ class GTFSImporter:
                 self._cursor.execute(call)
                 self._conn.commit()
                 if hasPosition:
-                    self._cursor.execute("SELECT AddGeometryColumn('%s', '%s_%s', 'pos', 4326, 'POINT', 2);" % (self._schema, self._tablePrefix, fileType))
+                    self._cursor.execute("SELECT AddGeometryColumn('%s', '%s_%s', 'pos', 4326, 'POINT', 2);" % (self._schema, self._tablePrefix, file_type))
                     self._conn.commit()
+
+            if first:
                 # skipt to first entry
                 first = False
                 continue
@@ -217,52 +231,66 @@ class GTFSImporter:
             if num%10000==0 and num!=0:
                 # insert into db
                 args = ','.join(self._cursor.mogrify(placeHolders, i).decode('utf-8') for i in entries)
-                self._cursor.execute("INSERT INTO %s.%s_%s (%s) VALUES " % (self._schema, self._tablePrefix, fileType, namesDB) + (args))
+                self._cursor.execute("INSERT INTO %s.%s_%s (%s) VALUES " % (self._schema, self._tablePrefix, file_type, namesDB) + (args))
                 self._conn.commit()
                 entries.clear()
         # commit
         if len(entries)!=0:
             args = ','.join(self._cursor.mogrify(placeHolders, i).decode('utf-8') for i in entries)
-            self._cursor.execute("INSERT INTO %s.%s_%s (%s) VALUES " % (self._schema, self._tablePrefix, fileType, namesDB) + (args))
+            self._cursor.execute("INSERT INTO %s.%s_%s (%s) VALUES " % (self._schema, self._tablePrefix, file_type, namesDB) + (args))
             self._conn.commit()
         if num==0:
-            print ("  No data found! Table %s.%s_%s will be deleted." % (self._schema, self._tablePrefix, fileType))
-            self._cursor.execute("DROP TABLE IF EXISTS %s.%s_%s;" % (self._schema, self._tablePrefix, fileType))
+            if self._verbose:
+                print ("  No data found! Table %s.%s_%s will be deleted." % (self._schema, self._tablePrefix, file_type))
+            self._cursor.execute("DROP TABLE IF EXISTS %s.%s_%s;" % (self._schema, self._tablePrefix, file_type))
             self._conn.commit()
 
 
     def import_files(self):
         """Goes through the tables and imports existing ones"""
-        print ("Importing data")
+        if self._verbose:
+            print ("Importing data")
         for td in gtfs_defs.tableDefinitions:
             # skip non-existing, optional files
-            if td in gtfs_defs.optionalTables and not os.path.exists(os.path.join(self._srcFolder, td+".txt")):
-                print (" The non-mandatory file '%s.txt' is missing.txt. Ignoring." % td)
+            if td in gtfs_defs.optionalTables and not os.path.exists(os.path.join(self._src_folder, td+".txt")):
+                if self._verbose:
+                    print (" The non-mandatory file '%s.txt' is missing.txt. Ignoring." % td)
                 continue
-            if not os.path.exists(os.path.join(self._srcFolder, td+".txt")):
-                print (" Mandatory file '%s.txt' is missing. Aborting"% td)
-                sys.exit()
+            if not os.path.exists(os.path.join(self._src_folder, td+".txt")):
+                print (" Mandatory file '%s.txt' is missing. Aborting" % td, file=sys.stderr)
+                sys.exit(2)
             self._import_table(td)
         self._cursor.execute("CREATE INDEX ON %s.%s_stop_times (trip_id);"  % (self._schema, self._tablePrefix) )
         self._conn.commit()
 
 
+    def add_stop_ids(self):
+        """Adds a running numerical ID to the bus stops"""
+        if self._verbose:
+            print ("Adding IDs to stops")
+        self._cursor.execute("ALTER TABLE %s.%s_stops ADD COLUMN id SERIAL PRIMARY KEY;"  % (self._schema, self._tablePrefix) )
+        self._conn.commit()
+        
+
     def add_lines_to_stops(self):
         """Adds line information to stops
         :todo Move to a GTFS-manipulating class?
         """
-        print ("Extending stops by lines")
-        print (" ...retrieving routes")
+        if self._verbose:
+            print ("Extending stops by lines")
+            print (" ...retrieving routes")
         route2line = {}
         self._cursor.execute("SELECT route_id,route_short_name from %s.%s_routes;" % (self._schema, self._tablePrefix))
         for t in self._cursor.fetchall():
             route2line[t[0]] = t[1]
-        print (" ...retrieving trips")
+        if self._verbose:
+            print (" ...retrieving trips")
         trip2route = {}
         self._cursor.execute("SELECT trip_id,route_id from %s.%s_trips;" % (self._schema, self._tablePrefix))
         for t in self._cursor.fetchall():
             trip2route[t[0]] = t[1]
-        print (" ...retrieving stop times")
+        if self._verbose:
+            print (" ...retrieving stop times")
         stop2lines = {}
         self._cursor.execute("SELECT trip_id,stop_id from %s.%s_stop_times;" % (self._schema, self._tablePrefix))
         for t in self._cursor.fetchall():
@@ -271,7 +299,8 @@ class GTFSImporter:
             if t[1] not in stop2lines:
                 stop2lines[t[1]] = set()
             stop2lines[t[1]].add(line)
-        print (" ...extending stops")
+        if self._verbose:
+            print (" ...extending stops")
         self._cursor.execute("ALTER TABLE %s.%s_stops ADD lines text" % (self._schema, self._tablePrefix))
         self._conn.commit()
         for n,s in enumerate(stop2lines):
@@ -284,44 +313,78 @@ class GTFSImporter:
 
 # --- function definitions --------------------------------------------------
 # -- main
-def import_gtfs(input_folder, target_db):
+def main(arguments=None):
     """Main method"""
+    # parse options
+    if arguments is None:
+        arguments = sys.argv[1:]
+    # https://stackoverflow.com/questions/3609852/which-is-the-best-way-to-allow-configuration-options-be-overridden-at-the-comman
+    defaults = {}
+    conf_parser = argparse.ArgumentParser(prog='importGTFS', add_help=False)
+    conf_parser.add_argument("-c", "--config", metavar="FILE", help="Reads the named configuration file")
+    args, remaining_argv = conf_parser.parse_known_args(arguments)
+    if args.config is not None:
+        if not os.path.exists(args.config):
+            print ("importGTFS: error: configuration file '%s' does not exist" % str(args.config), file=sys.stderr)
+            raise SystemExit(2)
+        config = configparser.ConfigParser()
+        config.read([args.config])
+        defaults.update(dict(config.items("DEFAULT")))
+    parser = argparse.ArgumentParser(prog='importGTFS', parents=[conf_parser], 
+        description='Imports a GTFS file set into a PostGIS database', 
+        epilog='(c) Copyright 2016-2025, German Aerospace Center (DLR)')
+    parser.add_argument('GTFSdatabase', metavar='GTFS-database', help='The definition of the database to write the data into;'
+            + ' should be a string of the form <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>')
+    parser.add_argument('GTFSfolder', metavar='GTFS-folder', help='The folder the GTFS files are located in')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.10.0')
+    parser.add_argument('-R', '--dropprevious', action='store_true', help="Delete destination tables if already existing")
+    parser.add_argument('-A', '--append', action='store_true', help="Append read data to existing tables")
+    parser.add_argument('-C', '--keep-open', dest='keep_open', action='store_true', help="If not set, line information is not added to stops")
+    parser.add_argument('-I', '--add-ids', dest="add_ids", action='store_true', help="Whan set, adds integer ids to stops")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Print what is being done")
+    parser.set_defaults(**defaults)
+    args = parser.parse_args(remaining_argv)
+
     # check and parse command line parameter and input files
+    errors = []
     # - input folder
-    if not os.path.exists(input_folder):
-        print ("The folder '" + input_folder + "' to import GTFS from does not exist.")
-        sys.exit()
+    if not os.path.exists(args.GTFSfolder):
+        errors.append("The folder " + args.GTFSfolder + " to import GTFS from does not exist.")
     # - input files
-    error = False
     for f in ["agency", "calendar", "routes", "stop_times", "stops", "trips"]:
-        fn = os.path.join(input_folder, f+".txt")
+        fn = os.path.join(args.GTFSfolder, f+".txt")
         if not os.path.exists(fn):
-            print ("The mandatory file '" + fn + "' to import GTFS from does not exist.")
-            error = True
-    if error:
-        sys.exit()
+            errors.append("The mandatory file '" + fn + "' to import GTFS from does not exist.")
     # - output db
-    if len(target_db.split(","))<5:
-        print ("Missing values in target database definition; should be: <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>")
-        sys.exit()
+    if len(args.GTFSdatabase.split(","))!=5:
+        errors.append("Missing values in target database definition;\n must be: <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>")
+    elif args.GTFSdatabase.split(",")[2].count(".")!=1:
+        errors.append("The second field of the target database definition must have the format <SCHEMA>.<TABLE_PREFIX>")
+    # - report
+    if len(errors)!=0:
+        parser.print_usage(sys.stderr)
+        for e in errors:
+            print ("importGTFS: error: %s" % e, file=sys.stderr)
+        print ("importGTFS: quitting on error.", file=sys.stderr)
+        return 1
         
     # build the importer
-    importer = GTFSImporter(input_folder, target_db)
+    importer = GTFSImporter(args.GTFSfolder, args.GTFSdatabase, args.append, args.dropprevious, args.verbose)
     # drop existing tables
-    importer.drop_tables()
+    if args.dropprevious:
+        importer.drop_tables()
     # import data
     importer.import_files()
+    # extend stops by (numerical) ids
+    if args.add_ids:
+        importer.add_stop_ids()
     # extend stops by lines
-    importer.add_lines_to_stops()
+    if not args.keep_open:
+        importer.add_lines_to_stops()
+    return 0
 
 
 # -- main check
 if __name__ == '__main__':
-    if len(sys.argv)<3:
-        print (""""Error: Parameter is missing\nPlease run with:
-    importGTFS.py <INPUT_FOLDER> <TARGET_DB_DEFINITION>
-where
-    <TARGET_DB_DEFINITION> is <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>""")
-        sys.exit(1)
-    import_gtfs(sys.argv[1], sys.argv[2])
+    sys.exit(main(sys.argv[1:]))
   

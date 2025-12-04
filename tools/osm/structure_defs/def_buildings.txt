@@ -1,10 +1,4 @@
-[node]
-building=*
-
-[way]
-building=*
-
-[rel]
+[*]
 <outline>
 <outer>
 <inner>

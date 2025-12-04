@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024
+ * Copyright (c) 2017-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -60,7 +60,7 @@ public abstract class AbstractSingleResult {
 	 * @brief Constructor 
 	 * 
 	 * Computes the distance and the travel time
-	 * @param dr The path between the origin and the destination
+	 * @param result The path between the origin and the destination
 	 */
 	public AbstractSingleResult(SingleODResult result) {
 		MapResult from = result.origin;

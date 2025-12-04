@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-# ===========================================================================
 """Builds a table with defined structures (not the network) using an 
 OSM-database representation.
 
@@ -14,10 +12,10 @@ and <OUTPUT_TABLE> is defined as:
 """
 # ===========================================================================
 __author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright 2016-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__copyright__  = "Copyright 2016-2025, Institute of Transport Research, German Aerospace Center (DLR)"
 __credits__    = ["Daniel Krajzewicz"]
 __license__    = "EPL 2.0"
-__version__    = "0.8.2"
+__version__    = "0.10.0"
 __maintainer__ = "Daniel Krajzewicz"
 __email__      = "daniel.krajzewicz@dlr.de"
 __status__     = "Production"
@@ -34,7 +32,8 @@ import psycopg2
 import datetime
 import math
 import osm
-
+import argparse 
+import configparser
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join(script_dir, '..', 'helper')
 sys.path.append(mymodule_dir)
@@ -72,6 +71,8 @@ class OSMExtractor:
         self._objectGeoms = { "node": {}, "way": {}, "rel": {} }
         # seen IDs for removing duplicate IDs
         self._idMapping = { "node": {}, "way": {}, "rel": {} }
+        # map of load definitions to ids
+        self._id2type = { "node": {}, "way": {}, "rel": {} }
     
 
     def load_definitions(self, file_name):
@@ -82,7 +83,8 @@ class OSMExtractor:
         fd = open(file_name)
         subtype = ""
         for l in fd:
-            if len(l.strip())==0: continue # skip empty lines
+            if len(l.strip())==0: 
+                continue # skip empty lines
             elif l[0]=='#': continue # skip comments
             elif l[0]=='[':
                 # parse subtype
@@ -93,7 +95,12 @@ class OSMExtractor:
                 self._roles.add(l[1:l.find('>')].strip())
                 continue
             # parse definition
-            self._defs[subtype].append(l.strip())
+            if subtype=="*":
+                self._defs["node"].append(l.strip())
+                self._defs["way"].append(l.strip())
+                self._defs["rel"].append(l.strip())
+            else:
+                self._defs[subtype].append(l.strip())
         return self._defs
     
 
@@ -126,12 +133,12 @@ class OSMExtractor:
         return ret
         """
         if k=="*": # fetch all
-            cursor.execute("SELECT id FROM %s.%s_%s" % (schema, prefix, subtype))
+            cursor.execute(f"SELECT id FROM {schema}.{prefix}_{subtype}")
         elif v=='*': # fetch all with a matching key
-            cursor.execute("SELECT id FROM %s.%s_%s WHERE k='%s'" % (schema, prefix, subtype2tag[subtype], k))
+            cursor.execute(f"SELECT id FROM {schema}.{prefix}_{subtype2tag[subtype]} WHERE k='{k}'")
         else: 
             # fetch all with a key/value pair
-            cursor.execute("SELECT id FROM %s.%s_%s WHERE k='%s' AND v%s'%s'" % (schema, prefix, subtype2tag[subtype], k, op, v))
+            cursor.execute(f"SELECT id FROM {schema}.{prefix}_{subtype2tag[subtype]} WHERE k='{k}' AND v{op}'{v}'")
         conn.commit()
         for r in cursor.fetchall():
             ret.add(int(r[0]))
@@ -152,7 +159,6 @@ class OSMExtractor:
         :todo: Make database connection an attribute of the class
         """
         for subtype in ["node", "way", "rel"]:
-            print (" ... for %s" % subtype)
             for definition in self._defs[subtype]:
                 # get objects
                 subdefs = definition.split("&")
@@ -161,8 +167,6 @@ class OSMExtractor:
                     sd = sd.strip()
                     if sd=="*":
                         oss = self._get_objects(conn, cursor, schema, prefix, subtype, "*", "*", "*")
-                        k = "*"
-                        v = "*"
                     else:
                         for op in ["!=", "!~", "=", "~"]:
                             if sd.find(op)>=0:
@@ -173,11 +177,15 @@ class OSMExtractor:
                         collected = collected.intersection(oss)
                     else:
                         collected = oss
+                    for os in oss:
+                        if os not in self._id2type[subtype]:
+                            self._id2type[subtype][os] = []
+                        self._id2type[subtype][os].append(sd)
                 if len(self._objectIDs[subtype])==0:
                     self._objectIDs[subtype] = collected
                 else:
                     self._objectIDs[subtype] = self._objectIDs[subtype].union(collected) 
-            print (" ... %s found" % len(self._objectIDs[subtype]))
+            print (f" ... {len(self._objectIDs[subtype])} of type '{subtype}' found")
             # !!! make this optional
             #for o in self._objectIDs[subtype]:
             #  print ("%s %s" % (subtype, o))
@@ -197,7 +205,7 @@ class OSMExtractor:
                     if id not in seenIDs:
                         seenIDs.add(id)
                         self._idMapping[subtype][pid] = id
-                        print (" Found duplicate id '%s'. Renaming %s to '%s'." % (pid, subtype, id))
+                        print (f" Found duplicate id '{pid}'. Renaming {subtype} to '{id}'.")
                         break
    
    
@@ -231,7 +239,7 @@ class OSMExtractor:
             missingRELidsN = set()
             for mRELids in divide_chunks(missingRELids, 10000):
                 idstr = ",".join([str(id) for id in mRELids])
-                cursor.execute("SELECT rid,elemid,type,role FROM %s.%s_member WHERE rid in (%s) ORDER BY rid,role,idx" % (schema, prefix, idstr))
+                cursor.execute(f"SELECT rid,elemid,type,role FROM {schema}.{prefix}_member WHERE rid in ({idstr}) ORDER BY rid,role,idx")
                 conn.commit()
                 for r in cursor.fetchall():
                     # close the currently processed relation if a new starts
@@ -245,7 +253,7 @@ class OSMExtractor:
                     relation.add_member(iid, r[2], r[3])
                     if r[2]=="rel" or r[2]=="relation":
                         if iid==int(r[0]):
-                            print ("Self-referencing relation %s" % r[0])
+                            print (f"Self-referencing relation {r[0]}")
                             continue
                         if iid not in seenRELs:
                             missingRELidsN.add(iid)
@@ -254,7 +262,7 @@ class OSMExtractor:
                     elif r[2]=="node":
                         missingNODEids.add(iid)
                     else:
-                        print ("Check type '%s'" % r[2])
+                        print (f"Check type '{r[2]}'")
             missingRELids = list(missingRELidsN)
         # collect ways
         print (" ... for ways")
@@ -263,7 +271,7 @@ class OSMExtractor:
         if len(missingWAYids)!=0:
             for mWAYids in divide_chunks(list(missingWAYids), 10000):
                 idstr = ",".join([str(id) for id in mWAYids])
-                cursor.execute("SELECT id,refs FROM %s.%s_way WHERE id in (%s)" % (schema, prefix, idstr))
+                cursor.execute(f"SELECT id,refs FROM {schema}.{prefix}_way WHERE id in ({idstr})")
                 conn.commit()
                 for r in cursor.fetchall():
                     area.add_way(osm.OSMWay(int(r[0]), r[1]))
@@ -274,7 +282,7 @@ class OSMExtractor:
         if len(missingNODEids)!=0:
             for mNODEids in divide_chunks(list(missingNODEids), 10000):
                 idstr = ",".join([str(id) for id in mNODEids])
-                cursor.execute("SELECT id,ST_AsText(pos) FROM %s.%s_node WHERE id in (%s)" % (schema, prefix, idstr))
+                cursor.execute(f"SELECT id,ST_AsText(pos) FROM {schema}.{prefix}_node WHERE id in ({idstr})")
                 conn.commit()
                 for r in cursor.fetchall():
                     area.add_node(osm.OSMNode(int(r[0]), parse_POINT2D(r[1])))
@@ -285,7 +293,7 @@ class OSMExtractor:
         return area
 
 
-    def _check_commit(self, forced, entries, conn, cursor, schema, name):
+    def _check_commit(self, forced, entries, types, conn, cursor, schema, name):
         """Inserts read objects if forced or if their number is higher than 10000
         :param entries: Descriptions of the objects to insert
         :type entries: list[str]
@@ -303,17 +311,23 @@ class OSMExtractor:
             return
         if len(entries)==0:
             return
-        args = ','.join(cursor.mogrify("(%s, %s, ST_GeomFromText(%s, 4326), ST_GeomFromText(%s, 4326), ST_Centroid(ST_ConvexHull(ST_GeomFromText(%s, 4326))))", i).decode('utf-8') for i in entries)
-        cursor.execute("INSERT INTO %s.%s(id, type, polygon, geom_collection, centroid) VALUES " % (schema, name) + (args))
+        args = ','.join(cursor.mogrify("(%s, %s, %s, ST_GeomFromText(%s, 4326), ST_GeomFromText(%s, 4326), ST_Centroid(ST_ConvexHull(ST_GeomFromText(%s, 4326))))", i).decode('utf-8') for i in entries)
+        cursor.execute("INSERT INTO %s.%s(id, oid, type, polygon, geom_collection, centroid) VALUES " % (schema, name) + (args))
+        conn.commit()
+        args = ','.join(cursor.mogrify("(%s, %s, %s)", i).decode('utf-8') for i in types)
+        cursor.execute("INSERT INTO %s.%s_types(id, oid, type) VALUES " % (schema, name) + (args))
         conn.commit()
         del entries[:]
+        del types[:]
         
 
-    def _add_item(self, entries, item, conn, cursor, schema, name):
+    def _add_item(self, entries, types, item, conn, cursor, schema, name):
         """Prebuilds the given item's insertion string and checks whether it shall be submitted
         :param entries: Descriptions of the objects to insert to extend
         :type entries: list[str]
-        :param item: The item to add to the objects
+        :param types: The types of the objects to add
+        :type types: list[str]
+        :param item: The item to add to the objects and types
         :type item: 
         :param conn: The connection to the database
         :type conn: psycopg2.extensions.connection
@@ -325,12 +339,13 @@ class OSMExtractor:
         :type name: str
         :todo: Make database connection an attribute of the class
         """
-        id, type, polys, geom = item.get_description_with_polygons()
+        oid, type, polys, geom = item.get_description_with_polygons()
         if len(geom)==0:
-            print ("Missing geometry for %s %s" % (geom[1], geom[0]))
+            print (f"Missing geometry for {geom[1]} {geom[0]}")
             return
-        if id in self._idMapping[type]:
-            id = self._idMapping[type][id]
+        id = oid
+        if oid in self._idMapping[type]:
+            id = self._idMapping[type][oid]
         geom = "GEOMETRYCOLLECTION(" + geom + ")"
         centroid = geom
         if polys!=None and len(polys)!=0:
@@ -358,8 +373,10 @@ class OSMExtractor:
             centroid = polys
         else:
             polys = "MULTIPOLYGON EMPTY"
-        entries.append([id, type, polys, geom, centroid])
-        self._check_commit(False, entries, conn, cursor, schema, name)
+        entries.append([id, oid, type, polys, geom, centroid])
+        for t in self._id2type[type][oid]:
+            types.append([id, oid, t])
+        self._check_commit(False, entries, types, conn, cursor, schema, name)
 
 
     def store_objects(self, area, conn, cursor, schema, name):
@@ -375,20 +392,22 @@ class OSMExtractor:
         :type name: str
         :todo: Make database connection an attribute of the class
         """
-        geometries = []
+        entries = []
+        types = []
         fr = 0
         for rID in self._objectIDs["rel"]:
             if area._relations[rID].build_geometry(area):
-                self._add_item(geometries, area._relations[rID], conn, cursor, schema, name)
+                self._add_item(entries, types, area._relations[rID], conn, cursor, schema, name)
             else: fr += 1
         fw = 0
         for wID in self._objectIDs["way"]:
             if area._ways[wID].build_geometry(area):
-                self._add_item(geometries, area._ways[wID], conn, cursor, schema, name)
+                self._add_item(entries, types, area._ways[wID], conn, cursor, schema, name)
             else: fw += 1
         for nID in self._objectIDs["node"]:
-            self._add_item(geometries, area._nodes[nID], conn, cursor, schema, name)
-        self._check_commit(True, geometries, conn, cursor, schema, name)
+            self._add_item(entries, types, area._nodes[nID], conn, cursor, schema, name)
+        self._check_commit(True, entries, types, conn, cursor, schema, name)
+        #
         return len(self._objectIDs["node"])+len(self._objectIDs["way"])+len(self._objectIDs["rel"]), fw, fr
 
 
@@ -402,17 +421,17 @@ class OSMExtractor:
         with open(filename, "w") as fd:
             for type in self._idMapping:
                 for id in self._idMapping[type]:
-                    fd.write("%s;%s;%s\n" % (type, self._idMapping[type][id], id))
+                    fd.write(f"{type};{self._idMapping[type][id]};{id}\n")
 
 
 # --- function definitions --------------------------------------------------
 # --- main
-def main(srcdb, deffile, dstdb):       
+def build_structures(srcdb, deffile, dstdb, dropprevious, append, verbose):
     t1 = datetime.datetime.now()
     # -- open connection
     (host, db, schema_prefix, user, password) = srcdb.split(",")
     schema, prefix = schema_prefix.split(".")
-    conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
+    conn = psycopg2.connect(f"dbname='{db}' user='{user}' host='{host}' password='{password}'")
     cursor = conn.cursor()
 
     # -- load definitions of things to extract
@@ -429,15 +448,19 @@ def main(srcdb, deffile, dstdb):
     print ("Building destination databases")
     (host, db, schema_name, user, password) = dstdb.split(",")
     schema, name = schema_name.split(".")
-    conn2 = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
+    conn2 = psycopg2.connect(f"dbname='{db}' user='{user}' host='{host}' password='{password}'")
     cursor2 = conn2.cursor()
     # --- build tables
-    cursor2.execute("DROP TABLE IF EXISTS %s.%s" % (schema, name))
-    cursor2.execute("CREATE TABLE %s.%s ( id bigint, type varchar(4) );" % (schema, name))
-    cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'centroid', 4326, 'POINT', 2);" % (schema, name))
-    cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'polygon', 4326, 'MULTIPOLYGON', 2);" % (schema, name))
-    cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'geom_collection', 4326, 'GEOMETRYCOLLECTION', 2);" % (schema, name))
-    conn2.commit()
+    if dropprevious:
+        cursor2.execute("DROP TABLE IF EXISTS %s.%s" % (schema, name))
+    if not append:
+        cursor2.execute("CREATE TABLE %s.%s ( id bigint, oid bigint, type varchar(4) );" % (schema, name))
+        cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'centroid', 4326, 'POINT', 2);" % (schema, name))
+        cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'polygon', 4326, 'MULTIPOLYGON', 2);" % (schema, name))
+        cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'geom_collection', 4326, 'GEOMETRYCOLLECTION', 2);" % (schema, name))
+        cursor2.execute("DROP TABLE IF EXISTS %s.%s_types" % (schema, name))
+        cursor2.execute("CREATE TABLE %s.%s_types (id bigint, oid bigint, type text);" % (schema, name))
+        conn2.commit()
     # --- insert objects
     print ("Building and storing objects")
     num, fw, fr = extractor.store_objects(area, conn2, cursor2, schema, name)
@@ -452,17 +475,68 @@ def main(srcdb, deffile, dstdb):
     if fr>0: print (" %s relations could not be build" % fr)
 
 
+
+# --- function definitions --------------------------------------------------
+# -- main
+def main(arguments=None):
+    """Main method"""
+    # parse options
+    if arguments is None:
+        arguments = sys.argv[1:]
+    # https://stackoverflow.com/questions/3609852/which-is-the-best-way-to-allow-configuration-options-be-overridden-at-the-comman
+    defaults = {}
+    conf_parser = argparse.ArgumentParser(prog='osmdb_buildStructures', add_help=False)
+    conf_parser.add_argument("-c", "--config", metavar="FILE", help="Reads the named configuration file")
+    args, remaining_argv = conf_parser.parse_known_args(arguments)
+    if args.config is not None:
+        if not os.path.exists(args.config):
+            print ("osmdb_buildStructures: error: configuration file '%s' does not exist" % str(args.config), file=sys.stderr)
+            raise SystemExit(2)
+        config = configparser.ConfigParser()
+        config.read([args.config])
+        defaults.update(dict(config.items("DEFAULT")))
+    parser = argparse.ArgumentParser(prog='osmdb_buildStructures', parents=[conf_parser], 
+        description='Builds an road network table using an OSM-database representation', 
+        epilog='(c) Copyright 2016-2025, German Aerospace Center (DLR)')
+    parser.add_argument('OSMdatabase', metavar='OSM-database', help='The definition of the database to read data from;\n'
+            + ' should be a string of the form <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>')
+    parser.add_argument('definition', help='Defines the file to load the definitions of things to extract from')
+    parser.add_argument('output', metavar='OSM-database', help='The definition of the database to read data from;\n'
+            + ' should be a string of the form <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>')
+    parser.add_argument('-R', '--dropprevious', action='store_true', help="Delete destination tables if already existing")
+    parser.add_argument('-A', '--append', action='store_true', help="Append read data to existing tables")
+    parser.add_argument('--version', action='version', version='%(prog)s 0.10.0')
+    parser.add_argument("-v", "--verbose", action="store_true", help="Print what is being done")
+    parser.set_defaults(**defaults)
+    args = parser.parse_args(remaining_argv)
+
+    # check and parse command line parameter and input files
+    errors = []
+    # - input db
+    if len(args.OSMdatabase.split(","))!=5:
+        errors.append("Missing values in target database definition;\n must be: <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>")
+    elif args.OSMdatabase.split(",")[2].count(".")!=1:
+        errors.append("The second field of the target database definition must have the format <SCHEMA>.<TABLE_PREFIX>")
+    # - output db
+    if len(args.output.split(","))!=5:
+        errors.append("Missing values in target database definition;\n must be: <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>")
+    elif args.output.split(",")[2].count(".")!=1:
+        errors.append("The second field of the target database definition must have the format <SCHEMA>.<TABLE_PREFIX>")
+    # - definition file
+    if not os.path.exists(args.definition):
+        errors.append(f"Missing definition file '{args.definition}'")
+    # - report
+    if len(errors)!=0:
+        parser.print_usage(sys.stderr)
+        for e in errors:
+            print ("osmdb_buildStructures: error: %s" % e, file=sys.stderr)
+        print ("osmdb_buildStructures: quitting on error.", file=sys.stderr)
+        return 1
+
+    return build_structures(args.OSMdatabase, args.definition, args.output, args.dropprevious, args.append, args.verbose)
+
+
 # -- main check
 if __name__ == '__main__':
-    if len(sys.argv)<4:
-        print ("""Error: Parameter is missing
-Please run with:
-    osmdb_buildStructures.py <INPUT_TABLES_PREFIX> <DEF_FILE> <OUTPUT_TABLE>
-where <INPUT_TABLES_PREFIX> is defined as:
-    <HOST>,<DB>,<SCHEMA>,<PREFIX>,<USER>,<PASSWD>  
-and <OUTPUT_TABLE> is defined as:
-    <HOST>,<DB>,<SCHEMA>,<NAME>,<USER>,<PASSWD>""")
-        sys.exit(1)
-    main(sys.argv[1], sys.argv[2], sys.argv[3])
-    sys.exit(0)
+    sys.exit(main(sys.argv[1:]))
     

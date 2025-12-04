@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-# ===========================================================================
 """OSM database representation."""
 # ===========================================================================
 __author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright 2016-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__copyright__  = "Copyright 2016-2025, Institute of Transport Research, German Aerospace Center (DLR)"
 __credits__    = ["Daniel Krajzewicz"]
 __license__    = "EPL 2.0"
-__version__    = "0.8.2"
+__version__    = "0.10.0"
 __maintainer__ = "Daniel Krajzewicz"
 __email__      = "daniel.krajzewicz@dlr.de"
 __status__     = "Production"
@@ -23,26 +21,59 @@ import psycopg2
 
 
 # --- class definitions -----------------------------------------------------
-class OSMDB:
+class DB:
     """A connection to a database representation of an OSM area."""
   
-    def __init__(self, schema, dbprefix, conn, cursor):
+    def __init__(self, dbdef):
         """Constructor
         
         Initialises the connection
-        :param schema: The database schema to write the data to
-        :type schema: str
-        :param dbprefix: The database prefix to write the data to
-        :type dbprefix: str
-        :param conn: The connection to the database
-        :type conn: psycopg2.extensions.connection
-        :param cursor: The cursor used to write to the database
-        :type cursor: psycopg2.extensions.cursor
         """
-        self._schema = schema
-        self._dbprefix = dbprefix
-        self._conn = conn
-        self._cursor = cursor
+        (host, db, schema_prefix, user, password) = dbdef.split(",")
+        self._schema, self._prefix = schema_prefix.split(".")
+        self._conn = psycopg2.connect(f"dbname='{db}' user='{user}' host='{host}' password='{password}'")
+        self._cursor = self._conn.cursor()
+    
+    def table_exists(self, name=None):
+        """Returns whether the given table already exists
+        :param name: The name of the table
+        :type name: str
+        :return: Whether the table already exists
+        :rtype: bool
+        """
+        if name is None:
+            name = self._prefix
+        # http://stackoverflow.com/questions/20582500/how-to-check-if-a-table-exists-in-a-given-schema
+        self._cursor.execute("""SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='%s' AND table_name ='%s');""" % (self._schema, name))
+        self._conn.commit()   
+        ret = self._cursor.fetchall()
+        return ret[0][0]
+
+
+    def get_table_path(self):
+        return self._schema + "." + self._prefix
+
+    def get_table_name(self):
+        return self._prefix
+
+    def get_table_schema(self):
+        return self._schema
+
+    def execute(self, what):
+        self._cursor.execute(what)
+
+    def commit(self):
+        self._conn.commit()
+
+
+class OSMDB(DB):
+    """A connection to a database representation of an OSM area."""
+  
+    def __init__(self, dbdef):
+        """Constructor
+        
+        """
+        DB.__init__(self, dbdef)
     
 
     
@@ -58,20 +89,6 @@ class OSMDB:
         return self._cursor.fetchall()      
 
 
-    def table_exists(self, schema, name):
-        """Returns whether the given table already exists
-        :param schema: The schema the table is located in
-        :type schema: str
-        :param dbprefix: The name of the table
-        :type dbprefix: str
-        :return: Whether the table already exists
-        :rtype: bool
-        """
-        # http://stackoverflow.com/questions/20582500/how-to-check-if-a-table-exists-in-a-given-schema
-        self._cursor.execute("""SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='%s' AND table_name ='%s');""" % (schema, name))
-        self._conn.commit()   
-        ret = self._cursor.fetchall()
-        return ret[0][0]
   
 
   
@@ -83,7 +100,7 @@ class OSMDB:
         :return: The node, given as ID and position
         :rtype: 
         """
-        query = "SELECT * from %s.%s_node WHERE id='%s';" % (self._schema, self._dbprefix, nID)
+        query = "SELECT * from %s.%s_node WHERE id='%s';" % (self._schema, self._prefix, nID)
         return self._execute_fetch_all(query)
   
   
@@ -94,7 +111,7 @@ class OSMDB:
         :return: The parameter of the node as ID/key/value tuples
         :rtype: 
         """
-        query = "SELECT * from %s.%s_ntag WHERE id='%s';" % (self._schema, self._dbprefix, nid)
+        query = "SELECT * from %s.%s_ntag WHERE id='%s';" % (self._schema, self._prefix, nid)
         return self._execute_fetch_all(query)
   
   
@@ -105,7 +122,7 @@ class OSMDB:
         :return: The ids and parameter with the given key as id/key/value tuples
         :rtype: 
         """
-        query = "SELECT * from %s.%s_ntag WHERE k='%s';" % (self._schema, self._dbprefix, key)
+        query = "SELECT * from %s.%s_ntag WHERE k='%s';" % (self._schema, self._prefix, key)
         return self._execute_fetch_all(query)
   
     
@@ -118,7 +135,7 @@ class OSMDB:
         :return: The ids and parameter with the given key and value as id/key/value tuples
         :rtype: 
         """
-        query = "SELECT * from %s.%s_ntag WHERE (k='%s' AND v='%s');" % (self._schema, self._dbprefix, key, value)
+        query = "SELECT * from %s.%s_ntag WHERE (k='%s' AND v='%s');" % (self._schema, self._prefix, key, value)
         return self._execute_fetch_all(query)
 
 
@@ -132,7 +149,7 @@ class OSMDB:
         :return: The IDs and positions of the named nodes
         :rtype: 
         """
-        query = "SELECT id,ST_AsText(pos) from %s.%s_node WHERE id in ("+','.join([str(x) for x in nIDs])+");" % (self._schema, self._dbprefix)
+        query = "SELECT id,ST_AsText(pos) from %s.%s_node WHERE id in ("+','.join([str(x) for x in nIDs])+");" % (self._schema, self._prefix)
         return self._execute_fetch_all(query)
   
   
@@ -148,7 +165,7 @@ class OSMDB:
         """
         rep = ','.join([str(x) for x in nIDs])
         # http://stackoverflow.com/questions/866465/sql-order-by-the-in-value-list
-        query = "SELECT id, ST_AsText(pos) from %s.%s_node WHERE id in (%s);" % (self._schema, self._dbprefix, rep)
+        query = "SELECT id, ST_AsText(pos) from %s.%s_node WHERE id in (%s);" % (self._schema, self._prefix, rep)
         nodes = self._execute_fetch_all(query)
         n2pos = {}
         for n in nodes:
@@ -172,7 +189,7 @@ class OSMDB:
         :return: The way, given as id and referenced items
         :rtype: 
         """
-        query = "SELECT id,refs from %s.%s_way WHERE id='%s';" % (self._schema, self._dbprefix, wID)
+        query = "SELECT id,refs from %s.%s_way WHERE id='%s';" % (self._schema, self._prefix, wID)
         return self._execute_fetch_all(query)
   
 
@@ -183,7 +200,7 @@ class OSMDB:
         :return: The parameter of the way as id/key/value tuples
         :rtype: 
         """
-        query = "SELECT * from %s.%s_wtag WHERE id='%s';" % (self._schema, self._dbprefix, wID)
+        query = "SELECT * from %s.%s_wtag WHERE id='%s';" % (self._schema, self._prefix, wID)
         return self._execute_fetch_all(query)
 
   
@@ -194,7 +211,7 @@ class OSMDB:
         :return: The IDs and parameter with the given key as id/key/value tuples
         :rtype: 
         """
-        query = "SELECT * from %s.%s_wtag WHERE k='%s';" % (self._schema, self._dbprefix, key)
+        query = "SELECT * from %s.%s_wtag WHERE k='%s';" % (self._schema, self._prefix, key)
         return self._execute_fetch_all(query)
   
   
@@ -207,7 +224,7 @@ class OSMDB:
         :return: The IDs and parameter with the given key and value as id/key/value tuples
         :rtype: 
         """
-        query = "SELECT * from %s.%s_wtag WHERE k='%s' AND v='%s';" % (self._schema, self._dbprefix, key, value)
+        query = "SELECT * from %s.%s_wtag WHERE k='%s' AND v='%s';" % (self._schema, self._prefix, key, value)
         return self._execute_fetch_all(query)
 
 
@@ -220,7 +237,7 @@ class OSMDB:
         :return: The parameter of the node as id/key/value tuples
         :rtype: 
         """
-        query = "SELECT * from %s.%s_rtag WHERE id='%s';" % (self._schema, self._dbprefix, wID)
+        query = "SELECT * from %s.%s_rtag WHERE id='%s';" % (self._schema, self._prefix, wID)
         return self._execute_fetch_all(query)
   
   
@@ -231,7 +248,7 @@ class OSMDB:
         :return: The IDs and parameter with the given key as id/key/value tuples
         :rtype: 
         """
-        query = "SELECT * from %s.%s_rtag WHERE k='%s';" % (self._schema, self._dbprefix, key)
+        query = "SELECT * from %s.%s_rtag WHERE k='%s';" % (self._schema, self._prefix, key)
         return self._execute_fetch_all(query)
   
 
@@ -244,7 +261,7 @@ class OSMDB:
         :return: The IDs and parameter with the given key and value as id/key/value tuples
         :rtype: 
         """
-        query = "SELECT * from %s.%s_rtag WHERE k='%s' AND v='%s';" % (self._schema, self._dbprefix, key, value)
+        query = "SELECT * from %s.%s_rtag WHERE k='%s' AND v='%s';" % (self._schema, self._prefix, key, value)
         return self._execute_fetch_all(query)
   
 
@@ -255,7 +272,7 @@ class OSMDB:
         :return: The members of the given relation
         :rtype: 
         """
-        query = "SELECT * from %s.%s_member WHERE rid=%s ORDER BY idx;" % (self._schema, self._dbprefix, rID)
+        query = "SELECT * from %s.%s_member WHERE rid=%s ORDER BY idx;" % (self._schema, self._prefix, rID)
         return self._execute_fetch_all(query)
 
   

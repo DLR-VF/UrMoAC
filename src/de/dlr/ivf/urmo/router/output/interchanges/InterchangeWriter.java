@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024
+ * Copyright (c) 2017-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -45,10 +45,11 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 	 * @param inputParts The definition of the input/output source/destination
 	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
+	 * @param haveTypes Whether destinations may have different types 
 	 * @throws IOException When something fails
 	 */
-	public InterchangeWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious) throws IOException {
-		super(format, inputParts, "interchanges-output", precision, dropPrevious, 
+	public InterchangeWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious, boolean haveTypes) throws IOException {
+		super(format, inputParts, "interchanges-output", precision, dropPrevious, haveTypes,
 				"(fid bigint, sid bigint, halt text, line_from text, line_to text, num bigint, tt real)");
 	}
 
@@ -66,10 +67,11 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 	/** 
 	 * @brief Writes the results to the open database / file
 	 * @param result The result to write
+	 * @param destType The type of the destination
 	 * @throws IOException When something fails
 	 */
 	@Override
-	public void writeResult(InterchangeSingleResult result) throws IOException {
+	public void writeResult(InterchangeSingleResult result, String destType) throws IOException {
 		if (intoDB()) {
 			try {
 				for(String id : result.stats.keySet()) {
@@ -83,6 +85,9 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 							_ps.setString(5, lineIDs[1]);
 							_ps.setLong(6, ssstats.get(id2).number);
 							_ps.setFloat(7, (float) ssstats.get(id2).weightedTT);
+							if(_haveTypes) {
+								_ps.setString(8, destType);
+							}
 							_ps.addBatch();
 							++batchCount;
 					}
@@ -99,10 +104,13 @@ public class InterchangeWriter extends AbstractResultsWriter<InterchangeSingleRe
 				Map<String, InterchangeParam> ssstats = result.stats.get(id);
 				for(String id2 : ssstats.keySet()) {
 					String[] lineIDs = InterchangeSingleResult.splitLinesKey(id2);
-					_fileWriter.append(result.originID + ";" + result.destID + ";" + id + ";" + 
-							lineIDs[0] + ";" + lineIDs[1] + ";" 
-							+ ssstats.get(id2).number + ";" 
-							+ String.format(Locale.US, _FS, ssstats.get(id2).weightedTT) + "\n");
+					_fileWriter.append(Long.toString(result.originID)).append(";").append(Long.toString(result.destID)).append(";").append(id).append(";");
+					_fileWriter.append(lineIDs[0]).append(";").append(lineIDs[1]).append(";");
+					_fileWriter.append(Long.toString(ssstats.get(id2).number)).append(";").append(String.format(Locale.US, _FS, ssstats.get(id2).weightedTT));
+					if(_haveTypes) {
+						_fileWriter.append(";").append(destType);
+					}
+					_fileWriter.append("\n");
 				}
 			}
 			

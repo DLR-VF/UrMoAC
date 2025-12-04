@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024
+ * Copyright (c) 2016-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -42,21 +42,26 @@ import de.dks.utils.options.OptionsTypedFileIO;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.NearestEdgeFinder;
 import de.dlr.ivf.urmo.router.algorithms.routing.AbstractRouteWeightFunction;
+import de.dlr.ivf.urmo.router.algorithms.routing.CrossingTimesModel_CTM1;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_ExpInterchange_TT;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_MaxInterchange_TT;
 import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_Price_TT;
-import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_TT_Modes;
+import de.dlr.ivf.urmo.router.algorithms.routing.RouteWeightFunction_TT_ModeSpeed;
+import de.dlr.ivf.urmo.router.gtfs.GTFSData;
 import de.dlr.ivf.urmo.router.io.GTFSLoader;
 import de.dlr.ivf.urmo.router.io.InputReader;
 import de.dlr.ivf.urmo.router.io.NetLoader;
 import de.dlr.ivf.urmo.router.io.OutputBuilder;
+import de.dlr.ivf.urmo.router.mivspeeds.SpeedModel;
 import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
 import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;
-import de.dlr.ivf.urmo.router.output.Aggregator;
-import de.dlr.ivf.urmo.router.output.DijkstraResultsProcessor;
+import de.dlr.ivf.urmo.router.output.AggregatorBase;
+import de.dlr.ivf.urmo.router.output.CrossingTimesWriter;
+import de.dlr.ivf.urmo.router.output.ResultsProcessor;
 import de.dlr.ivf.urmo.router.output.DirectWriter;
 import de.dlr.ivf.urmo.router.output.NetErrorsWriter;
+import de.dlr.ivf.urmo.router.output.ProcessWriter;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.DBODRelation;
@@ -95,13 +100,11 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	/// @brief The route weight computation function
 	private AbstractRouteWeightFunction measure = null; // TODO: add documentation on github
 	/// @brief The results processor
-	private DijkstraResultsProcessor resultsProcessor = null;
+	private ResultsProcessor resultsProcessor = null;
 	/// @brief Starting time for routing
 	private int time = -1;
 	/// @brief Allowed modes
-	private long modes = -1;
-	/// @brief Initial mode
-	private long initMode = -1;
+	private Vector<Mode> modes = null;
 	/// @brief list of connections to process
 	Vector<DBODRelation> connections = null;
 	/// @brief A point to the currently processed connection
@@ -110,6 +113,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	private long seenODs = 0;
 	/// @brief Whether an error occurred
 	boolean hadError = false;
+	HashMap<Long, Set<String>> toTypes = null; 
 
 	
 	
@@ -127,7 +131,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	private static OptionsCont getCMDOptions(String[] args) {
 		// set up options
 		OptionsCont options = new OptionsCont();
-		options.setHelpHeadAndTail("Urban Mobility Accessibility Computer (UrMoAC) v0.8.2\n  (c) German Aerospace Center (DLR), 2016-2021\n  https://github.com/DLR-VF/UrMoAC\n\nUsage:\n"
+		options.setHelpHeadAndTail("Urban Mobility Accessibility Computer (UrMoAC) v0.10.0\n  (c) German Aerospace Center (DLR), 2016-2025\n  https://github.com/DLR-VF/UrMoAC\n\nUsage:\n"
 				+"  java -jar UrMoAC.jar --help\n"
 				+"  java -jar UrMoAC.jar --from origins.csv --to destinations.csv --net network.csv\n    --od-output nm_output.csv --mode bike --time 0\n", "");
 		
@@ -146,6 +150,12 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("from-agg", "Defines the data source of origin aggregation areas.");
 		options.add("to-agg", new Option_String());
 		options.setDescription("to-agg", "Defines the data source of destination aggregation areas.");
+		/*
+		options.add("from-types", new Option_String());
+		options.setDescription("from-types", "Defines the data source of origin to types map.");
+		*/
+		options.add("to-types", new Option_String());
+		options.setDescription("to-types", "Defines the data source of destination to types map.");
 		options.add("pt", 'p', new Option_String());
 		options.setDescription("pt", "Defines the GTFS-based public transport representation.");
 		options.add("traveltimes", new Option_String());
@@ -156,6 +166,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("time", "The time the trips start at in seconds.");
 		options.add("od-connections", new Option_String());
 		options.setDescription("od-connections", "The OD connections to compute.");
+		options.add("mode-changes", new Option_String());
+		options.setDescription("mode-changes", "Load places where the mode of transport can be changed (no pt).");
 		
 		options.beginSection("Input Adaptation");
 		options.add("from.filter", 'F', new Option_String());
@@ -164,34 +176,50 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("from.id", "Defines the column name of the origins' ids.");
 		options.add("from.geom", new Option_String("geom"));
 		options.setDescription("from.geom", "Defines the column name of the origins' geometries.");
+		options.add("from.boundary", new Option_String(""));
+		options.setDescription("from.boundary", "Defines a boundary for the origins.");
 		options.add("to.filter", 'T', new Option_String());
 		options.setDescription("to.filter", "Defines a filter for destinations to load.");
 		options.add("to.id", new Option_String("id"));
 		options.setDescription("to.id", "Defines the column name of the destinations' ids.");
 		options.add("to.geom", new Option_String("geom"));
 		options.setDescription("to.geom", "Defines the column name of the destinations' geometries.");
+		options.add("to.boundary", new Option_String(""));
+		options.setDescription("to.boundary", "Defines a boundary for the destinations.");
 		options.add("from-agg.filter", new Option_String());
 		options.setDescription("from-agg.filter", "Defines a filter for origin aggregation areas to load.");
 		options.add("from-agg.id", new Option_String("id"));
 		options.setDescription("from-agg.id", "Defines the column name of the origins aggregation areas' ids.");
 		options.add("from-agg.geom", new Option_String("geom"));
 		options.setDescription("from-agg.geom", "Defines the column name of the origins aggregation areas' geometries.");
+		options.add("from-agg.boundary", new Option_String(""));
+		options.setDescription("from-agg.boundary", "Defines a boundary for the origins aggregation areas.");
 		options.add("to-agg.filter", new Option_String());
-		options.setDescription("to-agg.filter", "Defines a filter for destination aggregation areas to load.");
+		options.setDescription("to-agg.filter", "Defines a filter for destinations aggregation areas to load.");
 		options.add("to-agg.id", new Option_String("id"));
-		options.setDescription("to-agg.id", "Defines the column name of the destination aggregation areas' ids.");
+		options.setDescription("to-agg.id", "Defines the column name of the destinations aggregation areas' ids.");
 		options.add("to-agg.geom", new Option_String("geom"));
-		options.setDescription("to-agg.geom", "Defines the column name of the destination aggregation areas' geometries.");
+		options.setDescription("to-agg.geom", "Defines the column name of the destinations aggregation areas' geometries.");
+		options.add("to-agg.boundary", new Option_String(""));
+		options.setDescription("to-agg.boundary", "Defines a boundary for the destinations aggregation areas.");
 		options.add("net.vmax", new Option_String("vmax"));
 		options.setDescription("net.vmax", "Defines the column name of networks's vmax attribute.");
+		options.add("net.vmax-model", new Option_String("none"));
+		options.setDescription("net.vmax-model", "Defines the model to use for adapting edge speeds ['none', 'vmm1'].");
 		options.add("net.geom", new Option_String("geom"));
 		options.setDescription("net.geom", "Defines the column name of the network's geometries.");
-		options.add("net.boundary", new Option_String());
+		options.add("net.boundary", new Option_String(""));
 		options.setDescription("net.boundary", "Defines a boundary for the network.");
-		options.add("keep-subnets", new Option_Bool());
-		options.setDescription("keep-subnets", "When set, unconnected network parts are not removed.");
+		options.add("net.keep-subnets", new Option_Bool());
+		options.setDescription("net.keep-subnets", "When set, unconnected network parts are not removed.");
+		options.add("net.patch-errors", new Option_Bool());
+		options.setDescription("net.patch-errors", "When set, broken edge lengths and speeds will be patched.");
+		options.add("net.incline", new Option_Bool());
+		options.setDescription("net.incline", "Uses incline information.");
+		options.add("pt.boundary", new Option_String(""));
+		options.setDescription("pt.boundary", "Defines a boundary for the PT offer.");
 
-		options.beginSection("Weighting Options");
+		options.beginSection("O/D Weighting Options");
 		options.add("weight", 'W', new Option_String(""));
 		options.setDescription("weight", "An optional weighting attribute for the origins.");
 		options.add("variable", 'V', new Option_String(""));
@@ -210,18 +238,30 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("shortest", "Searches only one destination per origin.");
 		options.add("requirespt", new Option_Bool());
 		options.setDescription("requirespt", "When set, only information that contains a PT part are stored.");
-		options.add("clip-to-net", new Option_Bool());
-		options.setDescription("clip-to-net", "When set, origins, destinations, and pt is clipped at the network boundaries.");
-		options.add("measure", new Option_String());
-		options.setDescription("measure", "The measure to use during the routing ['tt_mode', 'price_tt', 'interchanges_tt', 'maxinterchanges_tt'].");
-		options.add("measure-param1", new Option_Double());
-		options.setDescription("measure-param1", "First parameter of the chosen weight function.");
-		options.add("measure-param2", new Option_Double());
-		options.setDescription("measure-param2", "Second parameter of the chosen weight function.");
+		options.add("routing-measure", new Option_String());
+		options.setDescription("routing-measure", "The measure to use during the routing ['tt_mode', 'price_tt', 'interchanges_tt', 'maxinterchanges_tt'].");
+		options.add("routing-measure.param1", new Option_Double());
+		options.setDescription("routing-measure.param1", "First parameter of the chosen weight function.");
+		options.add("routing-measure.param2", new Option_Double());
+		options.setDescription("routing-measure.param2", "Second parameter of the chosen weight function.");
+		options.add("crossing-model", new Option_String("none"));
+		options.setDescription("crossing-model", "The crossing model to use during the routing ['none', 'ctm1'].");
+		options.add("crossing-model.param1", new Option_Double());
+		options.setDescription("crossing-model.param1", "First parameter of the chosen crossing model.");
+		options.add("crossing-model.param2", new Option_Double());
+		options.setDescription("crossing-model.param2", "Second parameter of the chosen crossing model.");
 		
+		options.beginSection("Network Simplification Options");
+		options.add("prunning.remove-geometries", new Option_Bool());
+		options.setDescription("prunning.remove-geometries", "Removes edge geometries.");
+		options.add("prunning.remove-dead-ends", new Option_Bool());
+		options.setDescription("prunning.remove-dead-ends", "Removes dead ends with no objects.");
+		options.add("prunning.precompute-tt", new Option_Bool());
+		options.setDescription("prunning.precompute-tt", "Precomputes travel times.");
+		options.add("prunning.join-similar", new Option_Bool());
+		options.setDescription("prunning.join-similar", "Joins edges with similar attributes.");
+				
 		options.beginSection("Public Transport Options");
-		options.add("pt-boundary", new Option_String());
-		options.setDescription("pt-boundary", "Defines the data source of the boundary for the PT offer.");
 		options.add("date", new Option_String());
 		options.setDescription("date", "The date for which the accessibilities shall be computed.");
 		options.add("entrainment", 'E', new Option_String());
@@ -229,7 +269,9 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.add("pt-restriction", new Option_String());
 		options.setDescription("pt-restriction", "Restrictions to usable GTFS carriers.");
 		
-		options.beginSection("Custom Mode Options");
+		options.beginSection("Mode Options");
+		options.add("foot.vmax", new Option_Double(3.6));
+		options.setDescription("foot.vmax", "Sets the maximum walking speed (default: 3.6 km/h).");
 		options.add("custom.vmax", new Option_Double());
 		options.setDescription("custom.vmax", "Maximum velocity of the custom mode.");
 		options.add("custom.kkc-per-hour", new Option_Double());
@@ -259,14 +301,18 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("pt-output", "Defines the public transport output to generate.");
 		options.add("direct-output", 'd', new Option_String());
 		options.setDescription("direct-output", "Defines the direct output to generate.");
+		options.add("process-output", new Option_String());
+		options.setDescription("process-output", "Defines the process output to generate.");
 		options.add("origins-to-road-output", new Option_String());
 		options.setDescription("origins-to-road-output", "Defines the output of the mapping between origins and the network.");
 		options.add("destinations-to-road-output", new Option_String());
 		options.setDescription("destinations-to-road-output", "Defines the output of the mapping between destinations and the network.");
-		options.add("write.subnets", new Option_String());
-		options.setDescription("write.subnets", "Defines the output for subnets.");
-		options.add("write.net-errors", new Option_String());
-		options.setDescription("write.net-errors", "Defines the output for network errors and warnings.");
+		options.add("subnets-output", new Option_String());
+		options.setDescription("subnets-output", "Defines the output for subnets.");
+		options.add("net-errors-output", new Option_String());
+		options.setDescription("net-errors-output", "Defines the output for network errors and warnings.");
+		options.add("crossings-output", new Option_String());
+		options.setDescription("crossings-output", "Defines the output for crossing times.");
 		options.add("dropprevious", new Option_Bool());
 		options.setDescription("dropprevious", "When set, previous output with the same name is replaced.");
 		options.add("precision", new Option_Integer(2));
@@ -279,6 +325,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("threads", "The number of threads to use.");
 		options.add("verbose", 'v', new Option_Bool());
 		options.setDescription("verbose", "Prints what is being done.");
+		options.add("net.report-all-errors", new Option_Bool());
+		options.setDescription("net.report-all-errors", "When set, all errors are printed.");
 		options.add("subnets-summary", new Option_Bool());
 		options.setDescription("subnets-summary", "Prints a summary on found subnets.");
 		options.add("save-config", new Option_String());
@@ -379,13 +427,30 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			}
 		}
 		//
-		if(options.isSet("measure")) {
-			String t = options.getString("measure");
+		if(options.isSet("routing-measure")) {
+			String t = options.getString("routing-measure");
 			if(!"tt_mode".equals(t)&&!"price_tt".equals(t)&&!"interchanges_tt".equals(t)&&!"maxinterchanges_tt".equals(t)) {
-				System.err.println("Unknown measure '" + t + "'; allowed are: 'tt_mode', 'price_tt', 'interchanges_tt', and 'maxinterchanges_tt'.");
+				System.err.println("Unknown routing measure '" + t + "'; allowed are: 'tt_mode', 'price_tt', 'interchanges_tt', and 'maxinterchanges_tt'.");
 				check = false;
 			}
 		}
+		//
+		if(options.isSet("crossing-model")) {
+			String t = options.getString("crossing-model");
+			if(!"none".equals(t)&&!"ctm1".equals(t)) {
+				System.err.println("Unknown crossing model '" + t + "'; allowed are: 'none', 'ctm1'.");
+				check = false;
+			}
+		}
+		//
+		if(options.isSet("net.vmax-model")) {
+			String t = options.getString("net.vmax-model");
+			if(!"none".equals(t)&&!"vmm1".equals(t)) {
+				System.err.println("Unknown vmax model '" + t + "'; allowed are: 'none', 'vmm1'.");
+				check = false;
+			}
+		}
+		//
 		if (!check) {
 			return null;
 		}
@@ -439,8 +504,8 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	 */
 	protected boolean checkParameterOptions(OptionsCont options, int num) {
 		for(int i=0; i<num; ++i) {
-			if(!options.isSet("measure-param"+(i+1))) {
-				System.err.println("Error: value for route weighting function #"+(i+1)+" is missing; use --measure-param"+(i+1)+" <DOUBLE>.");
+			if(!options.isSet("routing-measure.param"+(i+1))) {
+				System.err.println("Error: value for route weighting function #"+(i+1)+" is missing; use --routing-measure.param"+(i+1)+" <DOUBLE>.");
 				hadError = true;
 			}
 		}
@@ -474,18 +539,16 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		verbose = options.getBool("verbose");
 		// -------- modes
 		// ------ set up and parse modes
-		Modes.init();
+		Modes.init(options.getDouble("foot.vmax"));
 		if (!options.isSet("mode")) {
 			throw new IOException("At least one allowed mode must be given.");
 		}
-		Vector<Mode> modesV = getModes(options.getString("mode"));
-		if (modesV == null) {
+		modes = getModes(options.getString("mode"));
+		if (modes == null) {
 			throw new IOException("The mode(s) '" + options.getString("mode") + "' is/are not known.");
 		}
-		modes = Modes.getCombinedModeIDs(modesV);
-		initMode = modesV.get(0).id;
 		// ------ reset custom mode if used
-		if((modes&Modes.getMode("custom").id)!=0) { // 
+		if(Modes.isIncluded(modes, "custom")) {
 			double custom_vmax = options.isSet("custom.vmax") ? options.getDouble("custom.vmax") : -1;
 			double custom_kkc = options.isSet("custom.kkc-per-hour") ? options.getDouble("custom.kkc-per-hour") : -1;
 			double custom_co2 = options.isSet("custom.co2-per-km") ? options.getDouble("custom.co2-per-km") : -1;
@@ -511,6 +574,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			throw new IOException("An EPSG to use for projection must be given.");
 		}
 		int epsg = options.getInteger("epsg");
+		// !!! todo: check epsg for using metric coordinates
 		// -------- loading
 		boolean dismissWeight = !options.isSet("from-agg");
 		if(dismissWeight && !options.isDefault("weight")) {
@@ -522,29 +586,42 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			throw new IOException("A network must be given.");
 		}
 		if (verbose) System.out.println("Reading the road network");
-		NetErrorsWriter netErrorsOutput = options.isSet("write.net-errors") 
-				? OutputBuilder.buildNetErrorsWriter(options.getString("write.net-errors"), options.getBool("dropprevious")) : null;  
-		String netBoundary = options.isSet("net.boundary") ? options.getString("net.boundary") : null;  
-		DBNet net = NetLoader.loadNet(this, options.getString("net"), netBoundary, options.getString("net.vmax"), options.getString("net.geom"), epsg, modes, netErrorsOutput);
+		NetErrorsWriter netErrorsOutput = options.isSet("net-errors-output") 
+				? OutputBuilder.buildNetErrorsWriter(options.getString("net-errors-output"), options.getBool("dropprevious")) : null;  
+		Geometry netBoundary = InputReader.getGeometry(options.getString("net.boundary"), "net.boundary", epsg);  
+		CrossingTimesWriter ctmWriter = null;
+		if(options.isSet("crossings-output")) {
+			if("none".equals(options.getString("crossing-model"))) {
+				System.err.println("Warning: a writer for crossing times is defined, but no model to compute them.");
+			} else {
+				ctmWriter = OutputBuilder.buildCrossingTimesWriter(options.getString("crossings-output"), options.getBool("dropprevious"));
+			}
+		}
+		CrossingTimesModel_CTM1 ctm = "ctm1".equals(options.getString("crossing-model")) ? new CrossingTimesModel_CTM1(ctmWriter) : null;
+		DBNet net = NetLoader.loadNet(this, options.getString("net"), netBoundary, options.getString("net.vmax"), options.getString("net.geom"), 
+				epsg, modes, netErrorsOutput, options.getBool("net.report-all-errors"), options.getBool("net.patch-errors"),
+				!options.getBool("net.incline"), ctm);
+		if (net.getNumEdges()==0) {
+			throw new IOException("No network edges loaded.");
+		}
 		if (verbose) System.out.println(" " + net.getNumEdges() + " edges loaded (" + net.getNodes().size() + " nodes)");
-		if(!options.getBool("keep-subnets")) {
+		if(!options.getBool("net.keep-subnets")) {
 			if (verbose) System.out.println("Checking for connectivity...");
 			HashMap<Integer, Set<DBEdge>> clusters = net.dismissUnconnectedEdges(options.getBool("subnets-summary"));
-			if (options.isSet("write.subnets")) {
-				OutputBuilder.writeSubnets("write.subnets", options, clusters);
+			if (options.isSet("subnets-output")) {
+				OutputBuilder.writeSubnets("subnets-output", options, clusters);
 			}
 			if (verbose) System.out.println(" " + net.getNumEdges() + " remaining after removing unconnected ones.");
 		}
-		Geometry bounds = null;
-		if(options.getBool("clip-to-net")) {
-			bounds = net.getBounds();
-		} else if (options.isSet("pt-boundary")) {
-			bounds = InputReader.loadGeometry(options.getString("pt-boundary"), "pt-boundary", epsg);
+		if(options.isSet("net.vmax-model")&&"vmm1".equals(options.getString("net.vmax-model"))) {
+			if (verbose) System.out.println(" ... recomputing edge vmax.");
+			net.applyVMaxModel(new SpeedModel());
 		}
-
+		
 		// from
 		if (verbose) System.out.println("Reading origin places");
-		Layer fromLayer = InputReader.loadLayer(options, bounds, "from", "weight", dismissWeight, this, epsg); 
+		Geometry fromBoundary = InputReader.getGeometry(options.getString("from.boundary"), "from.boundary", epsg);
+		Layer fromLayer = InputReader.loadLayer(options, fromBoundary, "from", "weight", dismissWeight, epsg); 
 		if (verbose) System.out.println(" " + fromLayer.getObjects().size() + " origin places loaded");
 		if (fromLayer.getObjects().size()==0) {
 			hadError = true;
@@ -554,12 +631,14 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		Layer fromAggLayer = null;
 		if (options.isSet("from-agg") && !options.getString("from-agg").equals("all")) {
 			if (verbose) System.out.println("Reading origin aggregation zones");
-			fromAggLayer = InputReader.loadLayer(options, bounds, "from-agg", null, true, this, epsg);
+			Geometry fromAggBoundary = InputReader.getGeometry(options.getString("from-agg.boundary"), "from-agg.boundary", epsg);
+			fromAggLayer = InputReader.loadLayer(options, fromAggBoundary, "from-agg", null, true, epsg);
 			if (verbose) System.out.println(" " + fromAggLayer.getObjects().size() + " origin aggregation geometries loaded");
 		}
 		// to
 		if (verbose) System.out.println("Reading destination places");
-		Layer toLayer = InputReader.loadLayer(options, bounds, "to", "variable", false, this, epsg);
+		Geometry toBoundary = InputReader.getGeometry(options.getString("to.boundary"), "to", epsg);
+		Layer toLayer = InputReader.loadLayer(options, toBoundary, "to", "variable", false, epsg);
 		if (verbose) System.out.println(" " + toLayer.getObjects().size() + " destination places loaded");
 		if (toLayer.getObjects().size()==0) {
 			hadError = true;
@@ -568,9 +647,25 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		// to aggregation
 		Layer toAggLayer = null;
 		if (options.isSet("to-agg") && !options.getString("to-agg").equals("all")) {
-			if (verbose) System.out.println("Reading sink aggregation zones");
-			toAggLayer = InputReader.loadLayer(options, bounds, "to-agg", null, true, this, epsg); 
-			if (verbose) System.out.println(" " + toAggLayer.getObjects().size() + " sink aggregation geometries loaded");
+			if (verbose) System.out.println("Reading destination aggregation zones");
+			Geometry toAggBoundary = InputReader.getGeometry(options.getString("to-agg.boundary"), "to-agg.boundary", epsg);
+			toAggLayer = InputReader.loadLayer(options, toAggBoundary, "to-agg", null, true, epsg); 
+			if (verbose) System.out.println(" " + toAggLayer.getObjects().size() + " destination aggregation geometries loaded");
+		}
+		// from types
+		/*
+		HashMap<Long, Set<String>> fromTypes = null; 
+		if (options.isSet("from-types")) {
+			if (verbose) System.out.println("Reading assigned origin types");
+			fromTypes = InputReader.loadTypes(options.getString("from-types"), "from-types"); 
+			if (verbose) System.out.println(" " + fromTypes.size() + " read origin type assigments");
+		}
+		*/
+		// to types
+		if (options.isSet("to-types")) {
+			if (verbose) System.out.println("Reading assigned destination types");
+			toTypes = InputReader.loadTypes(options.getString("to-types"), "to-types"); 
+			if (verbose) System.out.println(" " + toTypes.size() + " read destination type assigments");
 		}
 		
 		// travel times
@@ -590,7 +685,20 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		// public transport network
 		if (options.isSet("pt")) {
 			if (verbose) System.out.println("Reading the public transport network");
-			GTFSLoader.load(options, bounds, net, entrainmentMap, epsg, options.getInteger("threads"), verbose);
+			Geometry ptBoundary = InputReader.getGeometry(options.getString("pt.boundary"), "pt.boundary", epsg);
+			GTFSData gtfs = GTFSLoader.load(options, ptBoundary, net, entrainmentMap, epsg, options.getInteger("threads"), verbose);
+			if(gtfs==null) {
+				return false;
+			}
+			if (verbose) System.out.println(" loaded");
+		}
+		
+		// mode changes
+		if (options.isSet("mode-changes")) {
+			if (verbose) System.out.println("Reading mode change locations");
+			if(!InputReader.loadModeChangeLocations(options.getString("mode-changes"), net)) {
+				return false;
+			}
 			if (verbose) System.out.println(" loaded");
 		}
 
@@ -602,10 +710,27 @@ public class UrMoAccessibilityComputer implements IDGiver {
 			if (verbose) System.out.println(" loaded");
 		}
 
+		// -------- simplify the network#1
+		if(!hadError&&options.getBool("prunning.join-similar")) {
+			//System.err.println("Error: Joining edges is currently not working. Come back :-)");
+			//hadError = true;
+			if(Modes.isIncluded(modes, "car")&&options.isSet("traveltimes")) {
+				System.err.println("Error: Joining edges is currently not possible when using time-dependent travel times.");
+				hadError = true;
+			} if(modes.size()>1) {
+				System.err.println("Error: Joining edges is currently not possible when using more than one mode.");
+				hadError = true;
+			} else {
+				Mode m = modes.get(0);
+				net.joinSimilar(m.vmax, m.id);
+				if (verbose) System.out.println(" " + net.getNumEdges() + " remaining after joining similar edges.");
+			}
+		}
+		
 		// -------- compute (and optionally write) nearest edges
 		// compute nearest edges
 		if (verbose) System.out.println("Computing access from the origins to the network");
-		NearestEdgeFinder nef1 = new NearestEdgeFinder(fromLayer.getObjects(), net, initMode);
+		NearestEdgeFinder nef1 = new NearestEdgeFinder(fromLayer.getObjects(), net, modes);
 		nearestFromEdges = nef1.getNearestEdges(false, false, options.getInteger("threads"));
 		if (options.isSet("origins-to-road-output")) {
 			OutputBuilder.writeEdgeAllocation("origins-to-road-output", options, nearestFromEdges, epsg);
@@ -616,24 +741,45 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		if (options.isSet("destinations-to-road-output")) {
 			OutputBuilder.writeEdgeAllocation("destinations-to-road-output", options, nearestToEdges, epsg);
 		}
+		
+		// -------- simplify the network#2
+		if(!hadError&&options.getBool("prunning.remove-geometries")) {
+			if (verbose) System.out.println("Nullifying edge geometries...");
+			if(options.isSet("direct-output")) {
+				System.err.println("Warning: Removing edge geometries will reduce the quality of direct output!");
+			}
+			net.nullifyEdgeGeometries();
+		}
+		if(!hadError&&options.getBool("prunning.remove-dead-ends")) {
+			if (verbose) System.out.println("Removing unused dead ends...");
+			net.removeUnusedDeadEnds(nearestFromEdges, nearestToEdges);
+			if (verbose) System.out.println(" " + net.getNumEdges() + " remaining after removing empty dead ends.");
+		}
+		if(!hadError&&options.getBool("prunning.precompute-tt")) {
+			if(Modes.isIncluded(modes, "car")&&options.isSet("traveltimes")) {
+				System.err.println("Error: Travel time precomputation is not possible when using time-dependent travel times.");
+				hadError = true;
+			} if(modes.size()>1) {
+				System.err.println("Error: Travel time precomputation is not possible when using more than one mode.");
+				hadError = true;
+			} else {
+				Mode m = modes.get(0);
+				net.precomputeTTs(m.vmax);
+			}
+		}
 
 		// -------- build outputs
 		@SuppressWarnings("rawtypes")
-		Vector<Aggregator> aggregators = OutputBuilder.buildOutputs(options, fromLayer, fromAggLayer, toLayer, toAggLayer, epsg);
+		Vector<AggregatorBase> aggregators = OutputBuilder.buildOutputs(options, fromLayer, fromAggLayer, /*fromTypes,*/ toLayer, toAggLayer, toTypes, epsg);
 		DirectWriter dw = OutputBuilder.buildDirectOutput(options, epsg, nearestToEdges);
+		ProcessWriter tl = OutputBuilder.buildProcessWriter(options);
 		time = options.getInteger("time");
-		int maxNumber = options.isSet("max-number") ? options.getInteger("max-number") : -1;
-		double maxTT = options.isSet("max-tt") ? options.getDouble("max-tt") : -1;
-		double maxDistance = options.isSet("max-distance") ? options.getDouble("max-distance") : -1;
-		double maxVar = options.isSet("max-variable-sum") ? options.getDouble("max-variable-sum") : -1;
-		boolean shortestOnly = options.getBool("shortest");
-		boolean needsPT = options.getBool("requirespt");
-		resultsProcessor = new DijkstraResultsProcessor(time, dw, aggregators, maxNumber, maxTT, maxDistance, maxVar, shortestOnly, needsPT); 
-		
+		boolean needsPT = options.getBool("requirespt"); // !!!
+		resultsProcessor = new ResultsProcessor(time, dw, tl, aggregators, needsPT); 
 		// -------- measure
-		measure = new RouteWeightFunction_TT_Modes();
-		if(options.isSet("measure")) {
-			String t = options.getString("measure");
+		measure = new RouteWeightFunction_TT_ModeSpeed();
+		if(options.isSet("routing-measure")) {
+			String t = options.getString("routing-measure");
 			if("price_tt".equals(t)) {
 				measure = new RouteWeightFunction_Price_TT();
 			} else if("interchanges_tt".equals(t)) {
@@ -641,13 +787,13 @@ public class UrMoAccessibilityComputer implements IDGiver {
 					hadError = true;
 					return false;
 				} 
-				measure = new RouteWeightFunction_ExpInterchange_TT(options.getDouble("measure-param1"), options.getDouble("measure-param2"));
+				measure = new RouteWeightFunction_ExpInterchange_TT(options.getDouble("routing-measure.param1"), options.getDouble("routing-measure.param2"));
 			} else if("maxinterchanges_tt".equals(t)) {
 				if(!checkParameterOptions(options, 1)) {
 					hadError = true;
 					return false;
 				}
-				measure = new RouteWeightFunction_MaxInterchange_TT((int) options.getDouble("measure-param1"));
+				measure = new RouteWeightFunction_MaxInterchange_TT((int) options.getDouble("routing-measure.param1"));
 			} else if(!"tt_mode".equals(t)) {
 				System.err.println("Error: the route weight function '" + t + "' is not known.");
 				hadError = true;
@@ -692,10 +838,17 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		seenEdges = 0;
 		Vector<Thread> threads = new Vector<>();
 		for (int i=0; i<numThreads; ++i) {
-			Thread t = new Thread(new ComputingThread(this, measure, resultsProcessor, time, initMode, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly));
-			threads.add(t);
-	        t.start();
+			if(connections==null) {
+				Thread t = new Thread(new ComputingThread_Plain(this, measure, resultsProcessor, time, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly, options.isSet("pt"), toTypes));
+				threads.add(t);
+		        t.start();
+			} else {
+				Thread t = new Thread(new ComputingThread_OD(this, measure, resultsProcessor, time, modes, maxNumber, maxTT, maxDistance, maxVar, shortestOnly));
+				threads.add(t);
+		        t.start();
+			}
 		}
+		// close threads after computation
 		for(Thread t : threads) {
 			try {
 				t.join();

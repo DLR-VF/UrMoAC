@@ -1,17 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-# ===========================================================================
-"""Imports an OSM-file into the database.
+"""Imports an OSM-file into a PostGIS database.
 
 Call with
    osm2db.py <HOST>,<DB>,<SCHEMA>.<PREFIX>,<USER>,<PASSWD> <FILE>"""
 # ===========================================================================
 __author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright 2016-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__copyright__  = "Copyright 2016-2025, Institute of Transport Research, German Aerospace Center (DLR)"
 __credits__    = ["Daniel Krajzewicz"]
 __license__    = "EPL 2.0"
-__version__    = "0.8.2"
+__version__    = "0.10.0"
 __maintainer__ = "Daniel Krajzewicz"
 __email__      = "daniel.krajzewicz@dlr.de"
 __status__     = "Production"
@@ -28,6 +26,7 @@ import sys
 import datetime
 from xml.sax import saxutils, make_parser, handler
 import psycopg2
+import argparse
 import osm
 
 
@@ -36,7 +35,7 @@ import osm
 class OSMReader(handler.ContentHandler):
     """A reader that parses an OSM XML file and writes it to a database."""
 
-    def __init__(self, schema, dbprefix, conn, cursor):
+    def __init__(self, schema, dbprefix, conn, cursor, verbose):
         """Initialises the reader
         :param schema: The database schema to write the data to
         :type schema: str
@@ -50,6 +49,7 @@ class OSMReader(handler.ContentHandler):
         self._fname = schema+"."+dbprefix
         self._conn = conn
         self._cursor = cursor
+        self._verbose = verbose
         self._last = None
         self._elements = []
         self._nodes = []
@@ -168,7 +168,8 @@ class OSMReader(handler.ContentHandler):
             args = ','.join(self._cursor.mogrify("(%s, %s, %s, %s, %s)", i).decode('utf-8') for i in members_to_add)
             self._cursor.execute("INSERT INTO %s_member(rid, elemID, type, role, idx) VALUES " % (self._fname) + (args))
         #
-        print (" %s nodes (%s keys), %s ways (%s keys), and %s relations (%s keys, %s members)" % (len(self._nodes), n_ntags, len(self._ways), n_wtags, len(self._relations), n_rtags, n_rmembers))
+        if self._verbose:
+            print (" %s nodes (%s keys), %s ways (%s keys), and %s relations (%s keys, %s members)" % (len(self._nodes), n_ntags, len(self._ways), n_wtags, len(self._relations), n_rtags, n_rmembers))
         self.stats["nodes"] = self.stats["nodes"] + len(self._nodes)
         self.stats["ways"] = self.stats["ways"] + len(self._ways)
         self.stats["node_attrs"] = self.stats["node_attrs"] + n_ntags
@@ -185,7 +186,7 @@ class OSMReader(handler.ContentHandler):
 
 # --- function definitions --------------------------------------------------
 # --- main 
-def osm2db(db_def, input_file):
+def osm2db(db_def, input_file, dropprevious, append, verbose):
     """Main method
     :param db_def: The definition of the database tables to generate
     :type db_def: str
@@ -207,38 +208,42 @@ def osm2db(db_def, input_file):
     conn.commit()   
     ret = cursor.fetchall()
     if ret[0][0]:
-        # delete if already existing
-        # @TODO: ask user whether really to delete
-        cursor.execute("DROP TABLE %s.%s_member;" % (schema, prefix))
-        cursor.execute("DROP TABLE %s.%s_rtag;" % (schema, prefix))
-        cursor.execute("DROP TABLE %s.%s_wtag;" % (schema, prefix))
-        cursor.execute("DROP TABLE %s.%s_ntag;" % (schema, prefix))
-        cursor.execute("DROP TABLE %s.%s_rel;" % (schema, prefix))
-        cursor.execute("DROP TABLE %s.%s_way;" % (schema, prefix))
-        cursor.execute("DROP TABLE %s.%s_node;" % (schema, prefix))
-        conn.commit()
+        if dropprevious:
+            # delete if already existing
+            cursor.execute("DROP TABLE %s.%s_member;" % (schema, prefix))
+            cursor.execute("DROP TABLE %s.%s_rtag;" % (schema, prefix))
+            cursor.execute("DROP TABLE %s.%s_wtag;" % (schema, prefix))
+            cursor.execute("DROP TABLE %s.%s_ntag;" % (schema, prefix))
+            cursor.execute("DROP TABLE %s.%s_rel;" % (schema, prefix))
+            cursor.execute("DROP TABLE %s.%s_way;" % (schema, prefix))
+            cursor.execute("DROP TABLE %s.%s_node;" % (schema, prefix))
+            conn.commit()
+        elif not append:
+            print ("osm2db: error: destination tables already exist", file=sys.stderr)
+            return 1
     
     # build the tables
-    cursor.execute("CREATE TABLE %s.%s_node (id bigint PRIMARY KEY);" % (schema, prefix))
-    cursor.execute("CREATE TABLE %s.%s_way (id bigint PRIMARY KEY, refs bigint[]);" % (schema, prefix))
-    cursor.execute("CREATE TABLE %s.%s_rel (id bigint PRIMARY KEY);" % (schema, prefix))
-    cursor.execute("SELECT AddGeometryColumn('%s', '%s_node', 'pos', 4326, 'POINT', 2, true);" % (schema, prefix))
-    # --- tags
-    cursor.execute("CREATE TABLE %s.%s_ntag ( id bigint REFERENCES %s.%s_node (id), k text, v text );" % (schema, prefix, schema, prefix))
-    cursor.execute("CREATE INDEX ON %s.%s_ntag (id);" % (schema, prefix))
-    cursor.execute("CREATE TABLE %s.%s_wtag ( id bigint REFERENCES %s.%s_way (id), k text, v text );" % (schema, prefix, schema, prefix))
-    cursor.execute("CREATE INDEX ON %s.%s_wtag (id);" % (schema, prefix))
-    cursor.execute("CREATE TABLE %s.%s_rtag ( id bigint REFERENCES %s.%s_rel (id), k text, v text );" % (schema, prefix, schema, prefix))
-    cursor.execute("CREATE INDEX ON %s.%s_rtag (id);" % (schema, prefix))
-    cursor.execute("CREATE TABLE %s.%s_member ( rid bigint REFERENCES %s.%s_rel (id), elemID bigint, type text, role text, idx integer );" % (schema, prefix, schema, prefix))
-    cursor.execute("CREATE INDEX ON %s.%s_member (rid);" % (schema, prefix))
-    cursor.execute("CREATE INDEX ON %s.%s_member (elemID);" % (schema, prefix))
-    conn.commit()
+    if not append:
+        cursor.execute("CREATE TABLE %s.%s_node (id bigint PRIMARY KEY);" % (schema, prefix))
+        cursor.execute("CREATE TABLE %s.%s_way (id bigint PRIMARY KEY, refs bigint[]);" % (schema, prefix))
+        cursor.execute("CREATE TABLE %s.%s_rel (id bigint PRIMARY KEY);" % (schema, prefix))
+        cursor.execute("SELECT AddGeometryColumn('%s', '%s_node', 'pos', 4326, 'POINT', 2, true);" % (schema, prefix))
+        # --- tags
+        cursor.execute("CREATE TABLE %s.%s_ntag ( id bigint REFERENCES %s.%s_node (id), k text, v text );" % (schema, prefix, schema, prefix))
+        cursor.execute("CREATE INDEX ON %s.%s_ntag (id);" % (schema, prefix))
+        cursor.execute("CREATE TABLE %s.%s_wtag ( id bigint REFERENCES %s.%s_way (id), k text, v text );" % (schema, prefix, schema, prefix))
+        cursor.execute("CREATE INDEX ON %s.%s_wtag (id);" % (schema, prefix))
+        cursor.execute("CREATE TABLE %s.%s_rtag ( id bigint REFERENCES %s.%s_rel (id), k text, v text );" % (schema, prefix, schema, prefix))
+        cursor.execute("CREATE INDEX ON %s.%s_rtag (id);" % (schema, prefix))
+        cursor.execute("CREATE TABLE %s.%s_member ( rid bigint REFERENCES %s.%s_rel (id), elemID bigint, type text, role text, idx integer );" % (schema, prefix, schema, prefix))
+        cursor.execute("CREATE INDEX ON %s.%s_member (rid);" % (schema, prefix))
+        cursor.execute("CREATE INDEX ON %s.%s_member (elemID);" % (schema, prefix))
+        conn.commit()
 
     # parsing the document and adding contents to the db
-    print ("Parsing '%s'..." % sys.argv[2])
+    print (f"Parsing '{input_file}'...")
     parser = make_parser()
-    r = OSMReader(schema, prefix, conn, cursor)
+    r = OSMReader(schema, prefix, conn, cursor, verbose)
     parser.setContentHandler(r)
     parser.parse(input_file)
     r._check_commit(True)
@@ -254,14 +259,59 @@ def osm2db(db_def, input_file):
     print (" %s relations with %s members and %s attributes" % (r.stats["rels"], r.stats["n_rmembers"], r.stats["rel_attrs"]))
     dt = t2-t1
     print ("In %s" % dt)
+    return 0
+
+
+def main(arguments=None):
+    """main function"""
+    # parse options
+    if arguments is None:
+        arguments = sys.argv[1:]
+    # https://stackoverflow.com/questions/3609852/which-is-the-best-way-to-allow-configuration-options-be-overridden-at-the-comman
+    defaults = {}
+    conf_parser = argparse.ArgumentParser(prog='osm2db', add_help=False)
+    conf_parser.add_argument("-c", "--config", metavar="FILE", help="Reads the named configuration file")
+    args, remaining_argv = conf_parser.parse_known_args(arguments)
+    if args.config is not None:
+        if not os.path.exists(args.config):
+            print ("osm2db: error: configuration file '%s' does not exist" % str(args.config), file=sys.stderr)
+            raise SystemExit(2)
+        config = configparser.ConfigParser()
+        config.read([args.config])
+        defaults.update(dict(config.items("DEFAULT")))
+    parser = argparse.ArgumentParser(prog='osm2db', parents=[conf_parser], 
+        description='Imports an OSM file into a PostGIS database', 
+        epilog='(c) Copyright 2016-2025, German Aerospace Center (DLR)')
+    parser.add_argument('OSMdatabase', metavar='OSM-database', help='The definition of the database to write the data into;\n'
+            + ' should be a string of the form <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>')
+    parser.add_argument('OSMfile', metavar='OSM-file', help='The OSM-file to read')
+    parser.add_argument('--version', action='version', version='%(prog)s 0.10.0')
+    parser.add_argument('-R', '--dropprevious', action='store_true', help="Delete destination tables if already existing")
+    parser.add_argument('-A', '--append', action='store_true', help="Append read data to existing tables")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Print what is being done")
+    parser.set_defaults(**defaults)
+    args = parser.parse_args(remaining_argv)
+
+    # check and parse command line parameter and input files
+    errors = []
+    # - output db
+    if len(args.OSMdatabase.split(","))!=5:
+        errors.append("Missing values in target database definition;\n must be: <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>")
+    elif args.OSMdatabase.split(",")[2].count(".")!=1:
+        errors.append("The second field of the target database definition must have the format <SCHEMA>.<TABLE_PREFIX>")
+    # - report
+    if len(errors)!=0:
+        parser.print_usage(sys.stderr)
+        for e in errors:
+            print ("osm2db: error: %s" % e, file=sys.stderr)
+        print ("osm2db: quitting on error.", file=sys.stderr)
+        return 2
+
+    # run
+    return osm2db(args.OSMdatabase, args.OSMfile, args.dropprevious, args.append, args.verbose)
 
 
 # -- main check
 if __name__ == '__main__':
-    if len(sys.argv)<3:
-        print ("""Error: Parameter is missing
-Please run with:
-    osm2db.py <HOST>,<DB>,<SCHEMA>.<PREFIX>,<USER>,<PASSWD> <FILE>""")
-        sys.exit(1)
-    osm2db(sys.argv[1], sys.argv[2])
-    sys.exit(0)
+    sys.exit(main(sys.argv[1:]))
+

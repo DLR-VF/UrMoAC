@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-# ===========================================================================
 """A network representation."""
 # ===========================================================================
 __author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright 2023-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__copyright__  = "Copyright 2023-2025, Institute of Transport Research, German Aerospace Center (DLR)"
 __credits__    = ["Daniel Krajzewicz"]
 __license__    = "EPL 2.0"
-__version__    = "0.8.2"
+__version__    = "0.10.0"
 __maintainer__ = "Daniel Krajzewicz"
 __email__      = "daniel.krajzewicz@dlr.de"
 __status__     = "Production"
@@ -119,7 +117,7 @@ class Net:
         t1 = datetime.datetime.now()
         fd = open(file, "rb")
         network = pickle.load(fd)
-        fd.close()
+        #fd.close()
         t2 = datetime.datetime.now()
         if reportDuration: print(t2 - t1)
         return network
@@ -128,21 +126,27 @@ class Net:
         self._rtree = rtree.index.Index()
         self._rtree.interleaved = True
         for ei,edge in enumerate(self._edges):
-            self._rtree.add(ei, edge.getBounds())
+            self._rtree.add(ei, edge.bounds())
         return self._rtree
-
+    
+    def net_with_types(self, types):
+        net = Net()
+        for edge in self._edges:
+            if edge.data()["street_type"] not in types:
+                continue
+            net.addEdge(edge)
+        return net
 
 # --- function definitions ----------------------------------------------------
-def _loadNetFromDB(d, proj, stringData=[], vmaxS="vmax"):
+def _loadNetFromDB(d, proj, stringData=[], vmaxS="vmax", geom_field="geom"):
     import psycopg2, wkt
-    print (d)
-    dbd = d.split(";")
+    dbd = d.split(",")
     conn = psycopg2.connect("host='%s' dbname='%s' user='%s' password='%s'" % (dbd[0], dbd[1], dbd[3], dbd[4]))
     cursor = conn.cursor()
     add = ""
     if stringData:
         add = "," + ",".join(stringData)
-    cursor.execute("SELECT oid,ST_AsText(ST_TRANSFORM(geom, %s))%s FROM %s;" % (proj, add, dbd[2]))
+    cursor.execute("SELECT oid,ST_AsText(ST_TRANSFORM(%s, %s))%s FROM %s;" % (geom_field, proj, add, dbd[2]))
     net = Net()
     for r in cursor.fetchall():
         data = {}

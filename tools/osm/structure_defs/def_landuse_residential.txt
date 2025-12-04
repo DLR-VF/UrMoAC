@@ -1,10 +1,1 @@
-[node]
-landuse~residential
-
-[way]
-landuse~residential
-
-[rel]
-landuse~residential
-
-
+[*]

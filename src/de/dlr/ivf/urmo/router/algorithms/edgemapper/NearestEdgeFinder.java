@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024
+ * Copyright (c) 2016-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -30,6 +30,8 @@ import org.locationtech.jts.index.strtree.ItemBoundable;
 import org.locationtech.jts.index.strtree.ItemDistance;
 import org.locationtech.jts.index.strtree.STRtree;
 
+import de.dlr.ivf.urmo.router.modes.Mode;
+import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
 import de.dlr.ivf.urmo.router.shapes.GeomHelper;
@@ -43,7 +45,7 @@ import de.dlr.ivf.urmo.router.shapes.GeomHelper;
  * 
  * The class uses threads to compute the positions of a given set of object (positions) to the 
  * road network. Threads are implemented as an inner class. Each thread asks for the next object
- * to map using the @see getNextMappable method and returns the result using the @addResult method.
+ * to map using the @see getNextMappable method and returns the result using the @see addResult method.
  * The search for the nearest edges uses an @see STRtree. 
  * 
  * Optionally (only in case of destination) the objects are as well assigned to the opposite edge.
@@ -173,6 +175,7 @@ public class NearestEdgeFinder {
 			// get the next nearest edges
 			DBEdge found = (DBEdge) tree.nearestNeighbour(mappable.getEnvelope(), mappable, itemDist);
 			if(found==null) {
+				System.err.println("No matching edge found for item '" + mappable.getOuterID() + "'");
 				return; // @todo add error message
 			}
 			// check opposite
@@ -237,9 +240,9 @@ public class NearestEdgeFinder {
 	 * @param _net The network to use
 	 * @param _modes Bitset of usable transport modes
 	 */
-	public NearestEdgeFinder(Vector<EdgeMappable> _objects, DBNet _net, long _modes) {
+	public NearestEdgeFinder(Vector<EdgeMappable> _objects, DBNet _net, Vector<Mode> _modes) {
 		objects = _objects;
-		modes = _modes;
+		modes = Modes.getCombinedModeIDs(_modes);
 		tree = _net.getModedSpatialIndex(modes);
 		geometryFactory = _net.getGeometryFactory();
 	}
@@ -277,7 +280,9 @@ public class NearestEdgeFinder {
 
 	/**
 	 * @brief Builds and returns the mapping of objects to edges
-	 * @param addToEdge if set, the objects will be added to the respectively found edges
+	 * @param addToEdge If set, the objects will be added to the respectively found edges
+	 * @param withOpposites Whether the object should be added to opposite edges as well
+	 * @param numThreads The number of threads to use
 	 * @return The map of objects to edges
 	 */
 	public HashMap<DBEdge, Vector<MapResult>> getNearestEdges(boolean addToEdge, boolean withOpposites, int numThreads) {

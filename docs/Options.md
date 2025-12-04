@@ -13,11 +13,13 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --mode _[&apos;car&apos;, &lsquo;foot&rsquo;, &lsquo;bike&rsquo;]_<br>-m _[&apos;car&apos;, &lsquo;foot&rsquo;, &lsquo;bike&rsquo;]_ | N/A (__mandatory__) | The transport mode to use. |
 | --from-agg _&lt;OBJECT_SOURCE&gt;_ | N/A (optional) | Defines the data source of origin aggregation areas. |
 | --to-agg _&lt;OBJECT_SOURCE&gt;_ | N/A (optional) | Defines the data source of destination aggregation areas. |
+| --to-types _&lt;TYPES_SOURCE&gt;_ | N/A (optional) | Defines the data source of destination to types map. |
 | --pt _&lt;GTFS_TABLES_PREFIX&gt;_<br>-p _&lt;GTFS_TABLES_PREFIX&gt;_ | N/A (optional) | Defines the GTFS-based public transport representation. |
 | --traveltimes _&lt;TT_SOURCE&gt;_ | N/A (optional) | Defines the data source of traveltimes. |
-| --epsg _&lt;EPSG_NUMBER&gt;_ | N/A (mandatory) | The EPSG projection to use. |
-| --time _&lt;TIMES&gt;_ | N/A (mandatory) | The time the trips start at in seconds. |
+| --epsg _&lt;EPSG_NUMBER&gt;_ | N/A (__mandatory__) | The EPSG projection to use. |
+| --time _&lt;TIMES&gt;_ | N/A (__mandatory__) | The time the trips start at in seconds. |
 | --od-connections _&lt;OD_SOURCE&gt;_ | N/A (optional) | When set, O/D-connections to compute are read from the given data source. |
+| --mode-changes _&lt;CHANGES_SOURCE&gt;_ | N/A (optional) | Load places where the mode of transport can be changed (no pt). |
 
 ### Input adaptation
 | Option  | Default | Explanation |
@@ -25,20 +27,30 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --from.filter _&lt;FILTER&gt;_<br>-F _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for origins to load. |
 | --from.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the origins&apos; ids. |
 | --from.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the origins&apos; geometries. |
+| --from.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the origins. |
 | --to.filter _&lt;FILTER&gt;_<br>-T _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for destinations to load. |
 | --to.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the destinations&apos; ids. |
 | --to.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the destinations&apos; geometries. |
+| --to.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the destinations. |
 | --from-agg.filter _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for origins aggregations&apos; to load. |
 | --from-agg.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the origins aggregations&apos; ids. |
 | --from-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the origins aggregations&apos; geometries. |
-| --to-agg.filter _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for destination aggregations&apos; to load. |
-| --to-agg.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the destination aggregations&apos; ids. |
-| --to-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the destination aggregations&apos; geometries. |
+| --from-agg.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the origins aggregation areas. |
+| --to-agg.filter _&lt;FILTER&gt;_ | N/A (optional) | Defines a filter for destinations aggregation areas to load. |
+| --to-agg.id _&lt;COLUMN_NAME&gt;_ | &ldquo;id&rdquo; | Defines the column name of the destinations aggregation areas&apos; ids. |
+| --to-agg.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;geom&rdquo; | Defines the column name of the destinations aggregation areas&apos; geometries. |
+| --to-agg.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the destinations aggregation areas. |
 | --net.vmax _&lt;COLUMN_NAME&gt;_ | &ldquo;vmax&rdquo; | Defines the column name of networks&apos;s vmax attribute. |
-| --keep-subnets | N/A (optional) | When set, unconnected network parts are not removed. |
-| --net.boundary _&lt;POSTGIS_GEOMETRY&gt;_ | N/A (optional)| Defines a boundary for the network. Please note that this option is experimental and works with networks loaded from PostGIS only. |
+| --net.vmax-model _&lt;MODEL_NAME&gt;_ | &ldquo;none&rdquo; | Defines the model to use for adapting edge speeds  ['none', 'vmm1']. |
+| --net.geom _&lt;COLUMN_NAME&gt;_ | &ldquo;&rdquo; | Defines the column name of the network's geometries. |
+| --net.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the network. |
+| --net.keep-subnets | N/A (optional) | When set, unconnected network parts are not removed. |
+| --net.patch-errors | N/A (optional) | When set, broken edge lengths and speeds will be patched. |
+| --net.incline | N/A (optional) | Loads incline information. |
+| --pt.boundary _&lt;GEOM_SOURCE&gt;_ or _&lt;BOUNDING_BOX&gt;_ | &ldquo;&rdquo; | Defines a boundary for the PT offer. |
 
-## Weighting options
+
+## O/D Weighting options
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
 | --weight _&lt;FIELD&gt;_<br>-W _&lt;FIELD&gt;_ | None/empty | An optional weighting attribute for the origins. |
@@ -53,22 +65,33 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --max-variable-sum _&lt;DOUBLE&gt;_ | N/A (optional) | The maximum sum of variable&apos;s values to collect. |
 | --shortest | N/A (optional) | Searches only one destination per origin. |
 | --requirespt | N/A (optional) | When set, only information that contains a PT part are stored. |
-| --measure [&apos;tt_mode&apos;, &lsquo;price_tt&rsquo;, &lsquo;interchanges_tt&rsquo;, &lsquo;maxinterchanges_tt&rsquo;] | N/A (optional) | The measure to use during the routing. |
-| --measure-param1 _&lt;DOUBLE&gt;_ | N/A (optional) | The parameter for the first routing measure&apos;s variable. |
-| --measure-param2 _&lt;DOUBLE&gt;_ | N/A (optional) | The parameter for the second routing measure&apos;s variable. |
+| --routing-measure [&apos;tt_mode&apos;, &lsquo;price_tt&rsquo;, &lsquo;interchanges_tt&rsquo;, &lsquo;maxinterchanges_tt&rsquo;] | N/A (optional) | The measure to use during the routing. |
+| --routing-measure.param1 _&lt;DOUBLE&gt;_ | N/A (optional) | The parameter for the first routing measure&apos;s variable. |
+| --routing-measure.param2 _&lt;DOUBLE&gt;_ | N/A (optional) | The parameter for the second routing measure&apos;s variable. |
+| --crossing-model _&lt;MODEL_NAME&gt;_ | N/A (optional) | The crossing model to use during the routing ['none', 'ctm1']. |
+| --crossing-model.param1 _&lt;DOUBLE&gt;_ | N/A (optional) | First parameter of the chosen crossing model. |
+| --crossing-model.param2 _&lt;DOUBLE&gt;_ | N/A (optional) | Second parameter of the chosen crossing model. |
+
+## Network Simplification Options
+| Option  | Default | Explanation |
+| ---- | ---- | ---- |
+| --prunning.remove-geometries | N/A (optional) | Removes edge geometries. |
+| --prunning.remove-dead-ends | N/A (optional) | Removes dead ends with no objects. |
+| --prunning.precompute-tt | N/A (optional) | Precomputes travel times. |
+| --prunning.join-similar | N/A (optional) | Joins edges with similar attributes. |
 
 ## Public Transport options
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
-| --pt-boundary _&lt;BOUNDARY_SOURCE&gt;_ | N/A (optional) | Defines the data source of the boundary for the PT offer. |
-| --date _&lt;DATE&gt;_ | N/A (optional); mandatory when using public transport | The date for which the accessibilities shall be computed. |
+| --date _&lt;DATE&gt;_ | N/A (optional); __mandatory__ when using public transport | The date for which the accessibilities shall be computed. |
 | --entrainment _&lt;ENTRAINMENT_SOURCE&gt;_<br>-E _&lt;ENTRAINMENT_SOURCE&gt;_ | N/A (optional) | Data source for entrainment description. |
 | --pt-restriction _&lt;CARRIERS&gt;_ | N/A (optional) | A list of carriers that shall be loaded (all are loaded if not given). |
 
-## Custom Mode options
+## Mode options
 | Option  | Default | Explanation |
 | ---- | ---- | ---- |
-| --custom.vmax _&lt;DOUBLE&gt;_ | N/A (optional) | Maximum velocity of the custom mode. |
+| --foot.vmax _&lt;DOUBLE&gt;_ | 3.6 | Maximum walking velocity (in km/h). |
+| --custom.vmax _&lt;DOUBLE&gt;_ | N/A (optional) | Maximum velocity of the custom mode (in km/h). |
 | --custom.kkc-per-hour _&lt;DOUBLE&gt;_ | N/A (optional) | kkc used per hour when using the custom mode. |
 | --custom.co2-per-km _&lt;DOUBLE&gt;_ | N/A (optional) | CO2 emitted per kilometer when using the custom mode. |
 | --custom.price-per-km _&lt;DOUBLE&gt;_ | N/A (optional) | Price for using the custom mode per kilometre. |
@@ -84,10 +107,12 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | --edges-output _&lt;OUTPUT&gt;_<br>-e _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the edges output. |
 | --pt-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the public transport output. |
 | --direct-output _&lt;OUTPUT&gt;_<br>-d _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the direct output. |
+| --process-output _&lt;OUTPUT&gt;_<br>-d _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the process output to generate. |
 | --origins-to-road-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines output of the mapping between from-objects to the road. |
 | --destinations-to-road-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines output of the mapping between to-objects to the road. |
-| --write.subnets _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the output of subnets |
-| --write.net-errors _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the output for network errors and warnings |
+| --subnets-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the output of subnets. |
+| --net-errors-output _&lt;OUTPUT&gt;_ | N/A (optional) | Defines the output for network errors and warnings. |
+| --crossings-output | N/A (optional) | Defines the output for crossing times. |
 | --dropprevious | N/A (optional) | When set, previous output with the same name is replaced. |
 | --precision _&lt;INTEGER&gt;_ | 2 | Defines the number of digits after the decimal point. |
 | --comment | N/A (optional) | Adds a comment with the used options into generated output dbs. |
@@ -97,6 +122,7 @@ Please note that some options may be defined using an abbreviation; non-abbrevia
 | ---- | ---- | ---- |
 | --threads _&lt;INTEGER&gt;_ | 1 | The number of threads to use. |
 | --verbose<br>-v | N/A (optional) | Prints what is being done. |
+| --net.report-all-errors | N/A (optional) | When set, all errors are printed. |
 | --subnets-summary | N/A (optional) | Prints a summary on found subnets |
 | --save-config _&lt;FILENAME&gt;_ | N/A (optional) | Saves the set options as a configuration file. |
 | --save-template _&lt;FILENAME&gt;_ | N/A (optional) | Saves a configuration template to add options to. |

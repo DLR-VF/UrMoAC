@@ -6,27 +6,37 @@
    <mode></mode>
    <from-agg></from-agg>
    <to-agg></to-agg>
+   <to-types></to-types>
    <pt></pt>
    <traveltimes></traveltimes>
    <epsg></epsg>
    <time></time>
    <od-connections></od-connections>
+   <mode-changes></mode-changes>
    <from.filter></from.filter>
    <from.id></from.id>
    <from.geom></from.geom>
+   <from.boundary></from.boundary>
    <to.filter></to.filter>
    <to.id></to.id>
    <to.geom></to.geom>
+   <to.boundary></to.boundary>
    <from-agg.filter></from-agg.filter>
    <from-agg.id></from-agg.id>
    <from-agg.geom></from-agg.geom>
+   <from-agg.boundary></from-agg.boundary>
    <to-agg.filter></to-agg.filter>
    <to-agg.id></to-agg.id>
    <to-agg.geom></to-agg.geom>
+   <to-agg.boundary></to-agg.boundary>
    <net.vmax></net.vmax>
+   <net.vmax-model></net.vmax-model>
    <net.geom></net.geom>
    <net.boundary></net.boundary>
-   <keep-subnets></keep-subnets>
+   <net.keep-subnets></net.keep-subnets>
+   <net.patch-errors></net.patch-errors>
+   <net.incline></net.incline>
+   <pt.boundary></pt.boundary>
    <weight></weight>
    <variable></variable>
    <max-number></max-number>
@@ -35,14 +45,20 @@
    <max-variable-sum></max-variable-sum>
    <shortest></shortest>
    <requirespt></requirespt>
-   <clip-to-net></clip-to-net>
-   <measure></measure>
-   <measure-param1></measure-param1>
-   <measure-param2></measure-param2>
-   <pt-boundary></pt-boundary>
+   <routing-measure></routing-measure>
+   <routing-measure.param1></routing-measure.param1>
+   <routing-measure.param2></routing-measure.param2>
+   <crossing-model></crossing-model>
+   <crossing-model.param1></crossing-model.param1>
+   <crossing-model.param2></crossing-model.param2>
+   <prunning.remove-geometries></prunning.remove-geometries>
+   <prunning.remove-dead-ends></prunning.remove-dead-ends>
+   <prunning.precompute-tt></prunning.precompute-tt>
+   <prunning.join-similar></prunning.join-similar>
    <date></date>
    <entrainment></entrainment>
    <pt-restriction></pt-restriction>
+   <foot.vmax></foot.vmax>
    <custom.vmax></custom.vmax>
    <custom.kkc-per-hour></custom.kkc-per-hour>
    <custom.co2-per-km></custom.co2-per-km>
@@ -55,15 +71,18 @@
    <edges-output></edges-output>
    <pt-output></pt-output>
    <direct-output></direct-output>
+   <process-output></process-output>
    <origins-to-road-output></origins-to-road-output>
    <destinations-to-road-output></destinations-to-road-output>
-   <write.subnets></write.subnets>
-   <write.net-errors></write.net-errors>
+   <subnets-output></subnets-output>
+   <net-errors-output></net-errors-output>
+   <crossings-output></crossings-output>
    <dropprevious></dropprevious>
    <precision></precision>
    <comment></comment>
    <threads></threads>
    <verbose></verbose>
+   <net.report-all-errors></net.report-all-errors>
    <subnets-summary></subnets-summary>
    <save-config></save-config>
    <save-template></save-template>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024
+ * Copyright (c) 2017-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -43,10 +43,11 @@ public class ODWriter extends AbstractResultsWriter<ODSingleResult> {
 	 * @param inputParts The definition of the input/output origin/destination
 	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
+	 * @param haveTypes Whether destinations may have different types 
 	 * @throws IOException When something fails
 	 */
-	public ODWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious) throws IOException {
-		super(format, inputParts, "od-output", precision, dropPrevious, 
+	public ODWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious, boolean haveTypes) throws IOException {
+		super(format, inputParts, "od-output", precision, dropPrevious, haveTypes,
 				"(fid bigint, sid bigint, avg_distance real, avg_tt real, avg_num real, avg_value real)");
 	}
 
@@ -65,10 +66,11 @@ public class ODWriter extends AbstractResultsWriter<ODSingleResult> {
 	/** 
 	 * @brief Writes the results to the open database / file
 	 * @param result The result to write
+	 * @param destType The type of the destination
 	 * @throws IOException When something fails
 	 */
 	@Override
-	public void writeResult(ODSingleResult result) throws IOException {
+	public void writeResult(ODSingleResult result, String destType) throws IOException {
 		if (intoDB()) {
 			try {
 				_ps.setLong(1, result.originID);
@@ -77,6 +79,9 @@ public class ODWriter extends AbstractResultsWriter<ODSingleResult> {
 				_ps.setFloat(4, (float) result.weightedTravelTime);
 				_ps.setFloat(5, (float) result.connectionsWeightSum);
 				_ps.setFloat(6, (float) result.weightedValue);
+				if(_haveTypes) {
+					_ps.setString(7, destType);
+				}
 				_ps.addBatch();
 				++batchCount;
 				if(batchCount>10000) {
@@ -87,11 +92,15 @@ public class ODWriter extends AbstractResultsWriter<ODSingleResult> {
 				throw new IOException(ex);
 			}
 		} else {
-			_fileWriter.append(result.originID + ";" + result.destID + ";" 
-					+ String.format(Locale.US, _FS, result.weightedDistance) + ";" 
-					+ String.format(Locale.US, _FS, result.weightedTravelTime) + ";"
-					+ String.format(Locale.US, _FS, result.connectionsWeightSum) + ";" 
-					+ String.format(Locale.US, _FS, result.weightedValue) + "\n");
+			_fileWriter.append(Long.toString(result.originID)).append(";").append(Long.toString(result.destID)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, result.weightedDistance)).append(";"); 
+			_fileWriter.append(String.format(Locale.US, _FS, result.weightedTravelTime)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, result.connectionsWeightSum)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, result.weightedValue));
+			if(_haveTypes) {
+				_fileWriter.append(";").append(destType);
+			}
+			_fileWriter.append("\n");
 		}
 	}
 

@@ -1,0 +1,14 @@
+# the function name is not given
+missing_function
+
+# an unknown name (foo) is given
+unknown_function
+
+# tests with a four-arms intersection (bidirectional)
+four_arms_unidir
+
+# tests with a four-arms intersection (bidirectional)
+four_arms_bidir
+
+
+

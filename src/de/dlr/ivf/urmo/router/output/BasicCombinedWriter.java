@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024
+ * Copyright (c) 2017-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -58,6 +58,8 @@ public abstract class BasicCombinedWriter {
 
 	/// @brief Whether comments are supported
 	boolean _allowsComments = false;
+	/// @brief Whether the type shall be stored
+	protected boolean _haveTypes = false;
 
 	
 	/**
@@ -69,12 +71,14 @@ public abstract class BasicCombinedWriter {
 	 * @param fileType The name of the input/output (option name)
 	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
+	 * @param haveTypes Whether destinations may have different types 
 	 * @param tableDef The definition of the database table 
 	 * @throws IOException When something fails
 	 */
 	public BasicCombinedWriter(Utils.Format format, String[] inputParts, String fileType, int precision, 
-			boolean dropPrevious, String tableDef) throws IOException {
+			boolean dropPrevious, boolean haveTypes, String tableDef) throws IOException {
 		_format = format;
+		_haveTypes = haveTypes;
 		switch(format) {
 		case FORMAT_POSTGRES:
 		case FORMAT_SQLITE:
@@ -96,6 +100,9 @@ public abstract class BasicCombinedWriter {
 				if(dropPrevious) {
 					String sql = "DROP TABLE IF EXISTS " + _tableName + ";";
 					_connection.createStatement().executeUpdate(sql);
+				}
+				if(haveTypes) {
+					tableDef = tableDef.substring(0, tableDef.length()-1) + ", dest_type varchar)";
 				}
 				String sql = "CREATE TABLE " + _tableName + " " + tableDef + ";";
 				Statement s = _connection.createStatement();
@@ -202,7 +209,11 @@ public abstract class BasicCombinedWriter {
 			return;
 		}
 		try {
-			_ps = _connection.prepareStatement("INSERT INTO " + _tableName + " " + getInsertStatement(_format, epsg) + ";");
+			String insertStatement = getInsertStatement(_format, epsg);
+			if(_haveTypes) {
+				insertStatement = insertStatement.substring(0, insertStatement.length()-1) + ", ?)";
+			}
+			_ps = _connection.prepareStatement("INSERT INTO " + _tableName + " " + insertStatement + ";");
 		} catch (SQLException e) {
 			throw new IOException(e);
 		}

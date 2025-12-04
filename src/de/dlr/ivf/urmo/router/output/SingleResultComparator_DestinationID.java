@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024
+ * Copyright (c) 2023-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -24,7 +24,7 @@ import java.util.Comparator;
 import de.dlr.ivf.urmo.router.algorithms.routing.SingleODResult;
 
 /**
- * @class AbstractSingleResultComparator_TT
+ * @class SingleResultComparator_DestinationID
  * @brief A comparator object for sorting AbstractSingleResult by their travel time (then by origin/destination IDs)
  * @author Daniel Krajzewicz
  */

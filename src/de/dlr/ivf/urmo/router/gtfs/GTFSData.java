@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024
+ * Copyright (c) 2016-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -148,7 +148,6 @@ public class GTFSData {
 			if(ie==ib) {
 				connections.elementAt(i).departureTime -= 15;
 				connections.elementAt(i).arrivalTime += 15;
-				
 			} else {
 				int timeSpan = connections.elementAt(ie).arrivalTime - connections.elementAt(ib).departureTime;
 				int dt = timeSpan / (ie-ib+1);

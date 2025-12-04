@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024
+ * Copyright (c) 2023-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -29,8 +29,8 @@ import de.dlr.ivf.urmo.router.io.Utils;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 
 /**
- * @class DirectWriter
- * @brief Writes PTODSingleResult results to a database / file
+ * @class NetClusterWriter
+ * @brief Writes the computed network cluster (unconnected sub graphs)
  * @author Daniel Krajzewicz
  */
 public class NetClusterWriter extends BasicCombinedWriter {
@@ -48,7 +48,7 @@ public class NetClusterWriter extends BasicCombinedWriter {
 	 * @throws IOException When something fails
 	 */
 	public NetClusterWriter(Utils.Format format, String[] inputParts, boolean dropPrevious) throws IOException {
-		super(format, inputParts, "write.subnets", 2, dropPrevious, "(edge_id text, cell_id integer, cell_size integer)");
+		super(format, inputParts, "write.subnets", 2, dropPrevious, false, "(edge_id text, cell_id integer, cell_size integer)");
 	}
 	
 	

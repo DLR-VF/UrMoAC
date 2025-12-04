@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024
+ * Copyright (c) 2016-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -19,13 +19,18 @@
 package de.dlr.ivf.urmo.router.shapes;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Vector;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.PrecisionModel;
 
 import de.dlr.ivf.urmo.router.algorithms.edgemapper.EdgeMappable;
+import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
 import de.dlr.ivf.urmo.router.modes.Mode;
 
 /**
@@ -95,14 +100,17 @@ public class DBEdge {
 	private LineString geom;
 	/// @brief The length of this edge
 	private double length;
+	/// @brief The incline of this edge
+	private double incline;
 	/// @brief Objects assigned to this edge
 	private HashSet<EdgeMappable> objects = null;
 	/// @brief The list of travel time informations for this edge
 	private Vector<V> speeds = null;
-	/// @brief The sum of attached values
-	private double attachedValuesSum = 0;
 	/// @brief The opposite direction
 	private DBEdge opposite = null;
+	/// @brief Crossing times to subsequent edges
+	private HashMap<DBEdge, Double> crossingTimes; 
+	private double precomputedTT = -1;
 
 
 	/**
@@ -114,8 +122,9 @@ public class DBEdge {
 	 * @param _vmax The maximum velocity allowed at this edge
 	 * @param _geom The geometry of this edge
 	 * @param _length The length of this edge
+	 * @param _incline The incline of the edge
 	 */
-	public DBEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length) {
+	public DBEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length, double _incline) {
 		id = _id;
 		from = _from;
 		to = _to;
@@ -123,14 +132,17 @@ public class DBEdge {
 		vmax = _vmax;
 		geom = _geom;
 		length = _length;
+		incline = _incline;
+		double height_diff = length * incline / 100.;   
+		length = Math.sqrt(length*length + height_diff*height_diff);
 		_from.addOutgoing(this);
 		_to.addIncoming(this);
 	}
 
 
 	/**
-	 * @brief Returns the node this edge starts at
-	 * @return This edge's starting node
+	 * @brief Sets the given edge as the opposite edge
+	 * @param e The new opposite edge
 	 */
 	public void setOppositeEdge(DBEdge e) {
 		if(opposite!=null&&opposite!=e) {
@@ -168,6 +180,15 @@ public class DBEdge {
 
 
 	/**
+	 * @brief Returns this edge's incline [%]
+	 * @return This edge's length
+	 */
+	public double getIncline() {
+		return incline;
+	}
+
+
+	/**
 	 * @brief Returns the modes allowed on this edge
 	 * @return The modes allowed on this edge
 	 */
@@ -199,7 +220,14 @@ public class DBEdge {
 	 * @return This edge's geometry
 	 */
 	public LineString getGeometry() {
-		return geom;
+		if(geom!=null) {
+			return geom;
+		}
+		Coordinate[] edgeCoords = new Coordinate[2];
+		edgeCoords[0] = from.getCoordinate();
+		edgeCoords[1] = to.getCoordinate();
+		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
+		return gf.createLineString(edgeCoords);
 	}
 
 
@@ -235,10 +263,20 @@ public class DBEdge {
 	/**
 	 * @brief Returns whether the given mode of transport is allowed on this edge
 	 * @param modes The transport modes to use
-	 * @return Whether this mode of transport is allowed
+	 * @return Whether any of the given modes of transport is allowed on this edge
 	 */
 	public boolean allowsAny(long modes) {
 		return (this.modes & modes) != 0;
+	}
+
+
+	/**
+	 * @brief Returns whether all given modes may be used at this edges
+	 * @param modes The transport modes to use
+	 * @return Whether all of the given modes of transport are allowed on this edge
+	 */
+	public boolean allowsAll(long modes) {
+		return (this.modes & modes) == modes;
 	}
 
 
@@ -252,6 +290,9 @@ public class DBEdge {
 	 * @return The travel time to pass this edge
 	 */
 	public double getTravelTime(double ivmax, double time) {
+		if(precomputedTT>=0) {
+			return precomputedTT;
+		}
 		if(speeds!=null) {
 			for(V v : speeds) {
 				if(v.ibeg<=time && v.iend>=time) {
@@ -263,8 +304,26 @@ public class DBEdge {
 				}
 			}
 		}
+		/*
+		// !!! per mode
+		if(incline!=0) {
+			if(incline>6) {
+				ivmax *= 0.9;
+			} else if(incline<-6) {
+				ivmax *= 1.05;
+			}
+		}
+		*/
 		double v = Math.min(vmax, ivmax);
 		return length / v;
+	}
+	
+	
+	/** @brief Computes the travel time
+	 * @param ivmax The maximum velocity of the mode
+	 */
+	public void precomputeTT(double ivmax) {
+		precomputedTT = getTravelTime(ivmax, 0);
 	}
 
 
@@ -277,7 +336,6 @@ public class DBEdge {
 			objects = new HashSet<>();
 		}
 		objects.add(em);
-		attachedValuesSum += ((LayerObject) em).getAttachedValue();
 	}
 
 
@@ -287,15 +345,6 @@ public class DBEdge {
 	 */
 	public Set<EdgeMappable> getMappedObjects() {
 		return objects;
-	}
-
-
-	/**
-	 * @brief Returns the sum of the attached object's values
-	 * @return Sum of the values of the objects attached to this edge
-	 */
-	public double getAttachedValues() {
-		return attachedValuesSum;
 	}
 
 
@@ -387,6 +436,15 @@ public class DBEdge {
 	}
 
 
+	/**
+	 * @brief "Joins" both edges
+	 * 
+	 * It is assumes that both edges have the same geometry and should be treated as one.
+	 * 
+	 * The method extends the allowed modes by the ones of the given edge and adapts
+	 * the allowed velocity to the maximum of both edges' allowed velocities.
+	 * @param e The edge to combine with this one
+	 */
 	public void adapt(DBEdge e) {
 		// geometry is same...
 		modes = modes | e.modes;
@@ -394,6 +452,11 @@ public class DBEdge {
 	}
 
 
+	/** @brief Returns whether both edges are overlapping
+	 * 
+	 * @param e The edge to compare the geometry to
+	 * @return Whether both edges overlap
+	 */
 	public double maxDistanceTo(DBEdge e) {
 		double maxDistance = 0;
 		LineString eg = e.getGeometry();
@@ -405,6 +468,139 @@ public class DBEdge {
 			maxDistance = Math.max(maxDistance, e.getGeometry().distance(eg.getPointN(i)));
 		}
 		return maxDistance;
+	}
+
+
+	/** @brief Sets the time needed to get to the other edge at the intersections
+	 * 
+	 * @param e The subsequent edge
+	 * @param value The crossing time
+	 */
+	public void setCrossingTimeTo(DBEdge e, double value) {
+		if (crossingTimes==null) {
+			crossingTimes = new HashMap<DBEdge, Double>();
+		}
+		crossingTimes.put(e, value);
+	}
+
+	
+	/** @brief Returns the time needed to get to the other edge at the intersections
+	 * 
+	 * @param e The subsequent edge
+	 * @return The time needed to cross the intersection
+	 */
+	public double getCrossingTimeTo(DBEdge e) {
+		if (crossingTimes==null) {
+			return 0;
+		}
+		if (!crossingTimes.containsKey(e)) {
+			return 0;
+		}
+		return crossingTimes.get(e);
+	}
+
+
+	/** @brief Sets a new maximum allowed velocity
+	 * @param value The new maximum allowed velocity
+	 */
+	public void setVMax(double value) {
+		vmax = value;
+	}
+	
+	
+	/** @brief Deletes geometry information
+	 */
+	public void nullifyGeometry() {
+		geom = null;
+	}
+	
+	
+	/** @brief Returns whether this edge is a dead-end with no assigned origin or destination
+	 * 
+	 * @param nearestFromEdges Origins storage
+	 * @param nearestToEdges Destinations storage
+	 * @param prior Already seen successor
+	 * @return Whether this edge is a dead-end with no origin / destination
+	 */
+	public boolean isUnusedDeadEnd(HashMap<DBEdge, Vector<MapResult>> nearestFromEdges, HashMap<DBEdge, Vector<MapResult>> nearestToEdges, DBEdge prior) {
+		if(nearestFromEdges.containsKey(this)||nearestToEdges.containsKey(this)) {
+			return false;
+		}
+		if(opposite!=null) {
+			if(nearestFromEdges.containsKey(opposite)||nearestToEdges.containsKey(opposite)) {
+				return false;
+			}
+		}
+		Set<DBEdge> followingEdges = new HashSet<DBEdge>(to.getOutgoing());
+		if(prior!=null) {
+			followingEdges.remove(prior);
+		}
+		if(opposite!=null) {
+			followingEdges.remove(opposite);
+		}
+		return followingEdges.size()==0; 
+	}
+
+
+	/** @brief Returns whether this edge can be joined with the given one
+	 * 
+	 * @param next The subsequent edge to verify joining possibilities for
+	 * @param ivmax The maximum velocity of the mode
+	 * @param mode The mode
+	 * @return Whether both edges can be joined
+	 */
+	public boolean canBeJoined(DBEdge next, double ivmax, long mode) {
+		return Math.min(ivmax, vmax)==Math.min(ivmax, next.vmax)
+				&& (mode&modes)==(mode&next.modes)
+				&& incline==next.incline;
+	}
+
+
+	/** @brief Extends this edge by the given one
+	 * 
+	 * @param next The edge to join this edge with
+	 * @param gf The geometry fctory to use
+	 * @return The new id of joined edges
+	 */
+	public String extendBy(DBEdge next, GeometryFactory gf) {
+		id = id + next.getID();
+		to = next.getToNode();
+		vmax = Math.min(vmax, next.vmax);
+		if(geom!=null&&next.geom!=null) {
+			int nCoordinates = geom.getNumPoints() + next.geom.getNumPoints() - 1;
+			Coordinate[] edgeCoords = new Coordinate[nCoordinates];
+			int j = 0;
+			for(int i=0; i<geom.getNumPoints(); ++i, ++j) {
+				edgeCoords[j] = geom.getPointN(i).getCoordinate();
+			}
+			for(int i=1; i<next.geom.getNumPoints(); ++i, ++j) {
+				edgeCoords[j] = next.geom.getPointN(i).getCoordinate();
+			}
+			geom = gf.createLineString(edgeCoords);
+		}
+		length += next.length;
+		precomputedTT += next.precomputedTT;
+		if(next.objects!=null) {
+			for(EdgeMappable em : next.objects) {
+				addMappedObject(em);
+			}
+		}
+		to = next.to;
+		return id;
+	}
+	
+	
+	/** @brief Replaced the first edge by the second one
+	 *  
+	 * @param e The edge to replace
+	 * @param by The edge to replace by
+	 */
+	public void replaceOutgoing(DBEdge e, DBEdge by) {
+		if(crossingTimes.containsKey(e)) {
+			double t = crossingTimes.get(e);
+			crossingTimes.remove(e);
+			crossingTimes.put(by, t);
+		}
 	}
 
 }

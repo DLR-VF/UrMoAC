@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024
+ * Copyright (c) 2016-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -45,10 +45,10 @@ public class Modes {
 	static public long customAllowedAt = 0;
 
 
-	/**
-	 * @brief Initialises the known modes information
+	/** @brief Initialises the known modes information
+	 * @param walkingSpeed The walking speed to use
 	 */
-	public static void init() {
+	public static void init(double walkingSpeed) {
 		mml2mode = new HashMap<>();
 		id2mode = new HashMap<>();
 		modes = new Vector<>();
@@ -56,7 +56,7 @@ public class Modes {
 		// _id, _mml, _vmax, _maxDist, _kkcPerHour, _co2PerKm, _pricePerKm
 		// costs: Eisenmann, Christine und Kuhnimhof, Tobias (2017) Vehicle cost imputation in travel surveys: Gaining insight into the fundamentals of (auto-) mobility choices. 11th International Conference on Transport Survey Methods, 24.-29. Sept. 2017, Est�rel, Kanada. 
 		add(new Mode(1, "custom", 0, 300, 0, 0, 0));
-		add(new Mode(2, "foot", 3.6, 50, 280, 0, 0)); // kcal: 17190
+		add(new Mode(2, "foot", walkingSpeed, 50, 280, 0, 0)); // kcal: 17190
 		add(new Mode(4, "bike", 13, 300, 510, 0, 0)); // kcal: 1020
 		add(new Mode(8, "car", 200, 500, 170, 150, 31)); // kcal: 16010
 		add(new Mode(16, "bus", 80, 500, 85, 75, 0)); // kcal: 16016
@@ -137,6 +137,22 @@ public class Modes {
 			ret |= m.id;
 		}
 		return ret;
+	}
+	
+	
+	/**
+	 * @brief Returns whether a named mode is included in the modes' list
+	 * @param modes The modes list
+	 * @param modeName The mode name to check
+	 * @return Whether the named mode is within the list
+	 */
+	public static boolean isIncluded(Vector<Mode> modes, String modeName) {
+		for(Mode m : modes) {
+			if(m.mml!=null&&m.mml.equals(modeName)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	

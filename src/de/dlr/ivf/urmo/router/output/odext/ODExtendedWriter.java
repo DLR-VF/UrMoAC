@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024
+ * Copyright (c) 2017-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -43,10 +43,11 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 	 * @param inputParts The definition of the input/output origin/destination
 	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
+	 * @param haveTypes Whether destinations may have different types 
 	 * @throws IOException When something fails
 	 */
-	public ODExtendedWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious) throws IOException {
-		super(format, inputParts, "ext-od-output", precision, dropPrevious, 
+	public ODExtendedWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious, boolean haveTypes) throws IOException {
+		super(format, inputParts, "ext-od-output", precision, dropPrevious, haveTypes,
 				"(fid bigint, sid bigint, avg_distance real, avg_tt real, avg_num real, avg_value real, "
 				+ "avg_kcal real, avg_price real, avg_co2 real, avg_interchanges real, avg_access real, avg_egress real, "
 				+ "avg_waiting_time real, avg_init_waiting_time real, avg_pt_tt real, avg_pt_interchange_time real, modes text,"
@@ -67,10 +68,11 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 	/** 
 	 * @brief Writes the results to the open database / file
 	 * @param result The result to write
+	 * @param destType The type of the destination
 	 * @throws IOException When something fails
 	 */
 	@Override
-	public void writeResult(ODSingleExtendedResult result) throws IOException {
+	public void writeResult(ODSingleExtendedResult result, String destType) throws IOException {
 		if (intoDB()) {
 			try {
 				_ps.setLong(1, result.originID);
@@ -92,6 +94,9 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 				_ps.setString(17, result.lines.toString()); // modes
 				_ps.setFloat(18, (float) result.weightedBeelineDistance);
 				_ps.setFloat(19, (float) result.weightedManhattenDistance);
+				if(_haveTypes) {
+					_ps.setString(20, destType);
+				}
 				_ps.addBatch();
 				++batchCount;
 				if(batchCount>10000) {
@@ -102,25 +107,28 @@ public class ODExtendedWriter extends AbstractResultsWriter<ODSingleExtendedResu
 				throw new IOException(ex);
 			}
 		} else {
-			_fileWriter.append(result.originID + ";" + result.destID + ";" 
-					+ String.format(Locale.US, _FS, result.weightedDistance) + ";" 
-					+ String.format(Locale.US, _FS, result.weightedTravelTime) + ";" 
-					+ String.format(Locale.US, _FS, result.connectionsWeightSum) + ";" 
-					+ String.format(Locale.US, _FS, result.weightedValue) + ";" 
-					+ String.format(Locale.US, _FS, result.weightedKCal) + ";" 
-					+ String.format(Locale.US, _FS, result.weightedPrice) + ";" 
-					+ String.format(Locale.US, _FS, result.weightedCO2) + ";"
-					+ String.format(Locale.US, _FS, result.weightedInterchanges) + ";" 
-					+ String.format(Locale.US, _FS, result.weightedAccess) + ";" 
-					+ String.format(Locale.US, _FS, result.weightedEgress) + ";" 
-					+ String.format(Locale.US, _FS, result.weightedWaitingTime) + ";" 
-					+ String.format(Locale.US, _FS, result.weightedInitialWaitingTime) + ";"
-					+ String.format(Locale.US, _FS, result.weightedPTTravelTime) + ";" 
-					+ String.format(Locale.US, _FS, result.weightedInterchangeTime) + ";" 
-					+ result.lines.toString() + ";"
-					+ String.format(Locale.US, _FS, result.weightedBeelineDistance) + ";" 
-					+ String.format(Locale.US, _FS, result.weightedManhattenDistance) 
-					+ "\n");
+			_fileWriter.append(Long.toString(result.originID)).append(";").append(Long.toString(result.destID)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, result.weightedDistance)).append(";"); 
+			_fileWriter.append(String.format(Locale.US, _FS, result.weightedTravelTime)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, result.connectionsWeightSum)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, result.weightedValue)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, result.weightedKCal)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, result.weightedPrice)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, result.weightedCO2)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, result.weightedInterchanges)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, result.weightedAccess)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, result.weightedEgress)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, result.weightedWaitingTime)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, result.weightedInitialWaitingTime)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, result.weightedPTTravelTime)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, result.weightedInterchangeTime)).append(";");
+			_fileWriter.append(result.lines.toString()).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, result.weightedBeelineDistance)).append(";");
+			_fileWriter.append(String.format(Locale.US, _FS, result.weightedManhattenDistance));
+			if(_haveTypes) {
+				_fileWriter.append(";").append(destType);
+			}
+			_fileWriter.append("\n");
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024
+ * Copyright (c) 2016-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -55,11 +55,12 @@ public class GTFSEdge extends DBEdge {
 	 * @param _vmax The maximum velocity allowed at this edge
 	 * @param _geom The geometry of this edge
 	 * @param _length The length of this edge
+	 * @param _incline The incline of the edge
 	 * @param _route The route that realises this connection between two nodes
 	 */
 	public GTFSEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom,
-			double _length, GTFSRoute _route) {
-		super(_id, _from, _to, _modes, _vmax, _geom, _length);
+			double _length, double _incline, GTFSRoute _route) {
+		super(_id, _from, _to, _modes, _vmax, _geom, _length, _incline);
 		route = _route;
 	}
 

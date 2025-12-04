@@ -1,3 +1,4 @@
+set PATH=%PATH%;C:\MehrProgramme\texttest-4.4.0
 set TEXTTEST_HOME=%~dp0
 set URMOAC_BINARY=%~dp0\..\bin\UrMoAC.jar
 set PYTHON=python

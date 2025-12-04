@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024
+ * Copyright (c) 2016-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -186,7 +186,7 @@ public class GTFSReader_File extends AbstractGTFSReader {
 		MathTransform transform = null;
 		try {
 			CoordinateReferenceSystem dataCRS = CRS.decode("EPSG:4326");
-	        CoordinateReferenceSystem worldCRS = CRS.decode("EPSG:" + _epsg);
+	        CoordinateReferenceSystem worldCRS = CRS.decode("EPSG:" + epsg);
 	        boolean lenient = true; // allow for some error due to different datums
 	        transform = CRS.findMathTransform(dataCRS, worldCRS, lenient);		
 		} catch (FactoryException e) {
@@ -204,7 +204,7 @@ public class GTFSReader_File extends AbstractGTFSReader {
 			// todo: check boundary
 			try {
 				Coordinate c = new Coordinate(Double.parseDouble(lat), Double.parseDouble(lon));
-				Point p = _net.getGeometryFactory().createPoint(c);
+				Point p = net.getGeometryFactory().createPoint(c);
 				p = (Point) JTS.transform(p, transform);
 				if(_bounds!=null&&!_bounds.contains(p)) {
 					continue;
@@ -212,8 +212,8 @@ public class GTFSReader_File extends AbstractGTFSReader {
 				c.x = p.getX();
 				c.y = p.getY();
 				// !!! projection
-				GTFSStop stop = new GTFSStop(_net.getNextID(), id, c, _net.getGeometryFactory().createPoint(c)); // !!! new id - the nodes should have a new id as well
-				if(!_net.addNode(stop)) {
+				GTFSStop stop = new GTFSStop(net.getNextID(), id, c, net.getGeometryFactory().createPoint(c)); // !!! new id - the nodes should have a new id as well
+				if(!net.addNode(stop, stop.mid)) {
 					throw new IOException("A node with id '" + stop.getID() + "' already exists.");
 				}
 				stops.put(stop.getID(), stop);
@@ -236,7 +236,7 @@ public class GTFSReader_File extends AbstractGTFSReader {
 		while(parser.readNext()) {
 			try {
 				GTFSRoute route = new GTFSRoute(parser.getField("route_id"), parser.getField("route_short_name"), Integer.parseInt(parser.getField("route_type")));
-				if(_allowedCarrier.size()==0 || _allowedCarrier.contains(route.type)) {
+				if(allowedCarrier.size()==0 || allowedCarrier.contains(route.type)) {
 					routes.put(parser.getField("route_id"), route);
 				}
 			} catch (NumberFormatException e) {

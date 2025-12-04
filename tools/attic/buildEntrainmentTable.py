@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-# ===========================================================================
 """This is a very simple tool to demonstrate how an entrainment table
 looks like.
 
@@ -9,10 +7,10 @@ In principle, it is outdated a bot as well as entrainment
 tables may as well be given as csv-files."""
 # ===========================================================================
 __author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright 2018-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__copyright__  = "Copyright 2018-2025, Institute of Transport Research, German Aerospace Center (DLR)"
 __credits__    = ["Daniel Krajzewicz"]
 __license__    = "EPL 2.0"
-__version__    = "0.8.2"
+__version__    = "0.10.0"
 __maintainer__ = "Daniel Krajzewicz"
 __email__      = "daniel.krajzewicz@dlr.de"
 __status__     = "Production"

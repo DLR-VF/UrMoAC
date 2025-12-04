@@ -1,1 +1,1 @@
-Unknown measure 'foo'; allowed are: 'tt_mode', 'price_tt', 'interchanges_tt', and 'maxinterchanges_tt'.
+Unknown routing measure 'foo'; allowed are: 'tt_mode', 'price_tt', 'interchanges_tt', and 'maxinterchanges_tt'.

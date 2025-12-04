@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024
+ * Copyright (c) 2016-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -29,8 +29,12 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.index.strtree.STRtree;
 
+import de.dlr.ivf.urmo.router.algorithms.edgemapper.MapResult;
+import de.dlr.ivf.urmo.router.algorithms.routing.CrossingTimesModel_CTM1;
+import de.dlr.ivf.urmo.router.mivspeeds.SpeedModel;
 import de.dlr.ivf.urmo.router.modes.Modes;
 import de.dlr.ivf.urmo.router.output.NetErrorsWriter;
 
@@ -53,21 +57,37 @@ public class DBNet {
 	/// @brief The resulting geometry factory
 	private GeometryFactory geometryFactory = null;
 	/// @brief The id supplier to use
-	private IDGiver idGiver;
-	
-	NetErrorsWriter log;
-	boolean reportAllIssues;
-	boolean hadDuplicateConnection = false;
+	private IDGiver idGiver = null;
+	/// @brief The logger used to store network errors
+	private NetErrorsWriter log = null;
+	/// @brief A state variable for reporting overwritten edges (0: report all, 1: report first, 2: report first, first reported)
+	private int stateDuplicateEdges = 0;
+	/// @brief A state variable for reporting edges with speed==0 (0: report all, 1: report first, 2: report first, first reported)
+	private int stateEdges0VMax = 0;
+	/// @brief A state variable for reporting edges with length==0 (0: report all, 1: report first, 2: report first, first reported)
+	private int stateEdges0Length = 0;
+	/// @brief A state variable for reporting duplicate edges (0: report all, 1: report first, 2: report first, first reported)
+	private int stateEdgesSameID = 0;
+	/// @brief Whether network errors (vmax=0, length=0) shall be patched
+	private boolean patchErrors;
 
 
 	/**
 	 * @brief Constructor
 	 * @param _idGiver The id supplier to use
+	 * @param _log The error writer
+	 * @param _reportAllIssues Whether all network errors shall be printed
+	 * @param _patchErrors Whether network errors shall be solved
 	 */
-	public DBNet(IDGiver _idGiver, NetErrorsWriter _log, boolean _reportAllIssues) {
+	public DBNet(IDGiver _idGiver, NetErrorsWriter _log, boolean _reportAllIssues, boolean _patchErrors) {
 		idGiver = _idGiver;
 		log = _log;
-		reportAllIssues = _reportAllIssues;
+		stateDuplicateEdges = _reportAllIssues==true ? 0 : 1;
+		stateEdges0VMax = _reportAllIssues==true ? 0 : 1;
+		stateEdges0Length = _reportAllIssues==true ? 0 : 1;
+		stateEdgesSameID = _reportAllIssues==true ? 0 : 1;
+		patchErrors = _patchErrors;
+		geometryFactory = new GeometryFactory(new PrecisionModel());
 	}
 
 	
@@ -79,28 +99,65 @@ public class DBNet {
 	 * @param _vmax Maximum velocity allowed at this edge
 	 * @param _geom The geometry of the edge
 	 * @param _length The length of the edge
-	 * @return The built edge
+	 * @param _incline The incline of the edge
+	 * @return Whether an error occurred
 	 * @throws IOException 
 	 */
-	public boolean addEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length) throws IOException {
+	public boolean addEdge(String _id, DBNode _from, DBNode _to, long _modes, double _vmax, LineString _geom, double _length, double _incline) throws IOException {
 		boolean hadError = false;
 		if(_length<=0) {
-			System.err.println("Error: Edge '" + _id + "' has a length of 0.");
+			if(stateEdges0Length!=2) {
+				if(patchErrors) {
+					System.err.println("Warning: Edge '" + _id + "' has a length of 0. Will be set to 0.1 m.");
+				} else {
+					System.err.println("Error: Edge '" + _id + "' has a length of 0.");
+				}
+				if(stateEdges0Length!=0) {
+					stateEdges0Length = 2;
+					System.err.println("Warning: Subsequent edges with length=0 will not be reported; use --write.net-errors or --net.report-all-errors to get the complete list.");
+				}
+			}
 			if(log!=null) log.writeNoLength(_id);
-			hadError = true;
+			if(patchErrors) {
+				_length = .1;
+			} else {
+				hadError = true;
+			}
 		}
 		if(_vmax<=0) {
-			System.err.println("Error: Edge '" + _id + "' has a speed of 0.");
+			if(stateEdges0VMax!=2) {
+				if(patchErrors) {
+					System.err.println("Warning: Edge '" + _id + "' has a speed of 0. Will be set to 0.1 m/s.");
+				} else {
+					System.err.println("Error: Edge '" + _id + "' has a speed of 0.");
+				}
+				if(stateEdges0VMax!=0) {
+					stateEdges0VMax = 2;
+					System.err.println("Warning: Subsequent edges with vmax=0 will not be reported; use --write.net-errors or --net.report-all-errors to get the complete list.");
+				}
+			}
 			if(log!=null) log.writeNoSpeed(_id);
-			hadError = true;
+			if(patchErrors) {
+				_vmax = .1;
+			} else {
+				hadError = true;
+			}
 		}
 		if(name2edge.containsKey(_id)) {
-			System.err.println("Error: Edge '" + _id + "' already exists.");
+			if(stateEdgesSameID!=2) {
+				System.err.println("Error: Edge '" + _id + "' already exists.");
+				if(stateEdgesSameID!=0) {
+					stateEdgesSameID = 2;
+					System.err.println("Warning: Subsequent edge with duplicate IDs will not be reported; use --write.net-errors or --net.report-all-errors to get the complete list.");
+				}
+			}
 			if(log!=null) log.writeDuplicate(_id);
 			hadError = true;
 		}
-		DBEdge e = new DBEdge(_id, _from, _to, _modes, _vmax, _geom, _length);
-		addEdge(e);
+		if(!hadError) {
+			DBEdge e = new DBEdge(_id, _from, _to, _modes, _vmax, _geom, _length, _incline);
+			addEdge(e);
+		}
 		return !hadError;
 	}
 
@@ -123,11 +180,11 @@ public class DBNet {
 				e2.adapt(e);
 				removeEdge(e);
 				if (log!=null) log.writeEdgeReplacement(e2.getID(), e.getID());
-				if(reportAllIssues||!hadDuplicateConnection) {
-					hadDuplicateConnection = true;
+				if(stateDuplicateEdges!=2) {
 					System.err.println("Warning: removed edge '" + e.getID() + "' as a duplicate of edge '" + e2.getID() + "'.");
-					if(!reportAllIssues) {
-						System.err.println("Warning: Subsequent replacements will not be reported; use --write.net-errors to get the complete list.");
+					if(stateDuplicateEdges!=0) {
+						stateDuplicateEdges = 2;
+						System.err.println("Warning: Subsequent replacements will not be reported; use --write.net-errors or --net.report-all-errors to get the complete list.");
 					}
 				}
 				return;
@@ -150,16 +207,15 @@ public class DBNet {
 			maxCorner.x = Math.max(maxCorner.x, c.x);
 			maxCorner.y = Math.max(maxCorner.y, c.y);
 		}
-		// store geometry settings
-		if(geometryFactory==null) {
-			geometryFactory = e.getGeometry().getFactory();
-		}
 	}
 
 
 	/**
 	 * @brief Adds a node to this road network
+	 * 
+	 * The node is added only, if no other node with the same ID exists
 	 * @param node The node to add
+	 * @return Whether the node was added
 	 */
 	public boolean addNode(DBNode node) {
 		if(nodes.containsKey(node.getID())) {
@@ -167,6 +223,22 @@ public class DBNet {
 		}
 		nodes.put(node.getID(), node);
 		return true;
+	}
+
+
+	/**
+	 * @brief Adds a node to this road network if it did not exist before
+	 * 
+	 * todo: recheck
+	 * @param node The node to add
+	 * @param origName The initial name of the node
+	 * @return Whether the node was added
+	 */
+	public boolean addNode(DBNode node, String origName) {
+		if(!name2nodeID.containsKey(origName)) {
+			name2nodeID.put(origName, node.getID());
+		}
+		return addNode(node);
 	}
 
 
@@ -202,6 +274,21 @@ public class DBNet {
 		return getNode(id, pos);
 	}
 
+
+	/** @brief Returns the node with the given ID if known
+	 * 
+	 * @param sid The ID of the node to return
+	 * @return null if the node is not known, the node otherwise
+	 */
+	public DBNode getExistingNode(String sid) {
+		if(!name2nodeID.containsKey(sid)) {
+			return null;
+		}
+		long id = name2nodeID.get(sid);
+		return nodes.get(id);
+	}
+	
+	
 
 	/**
 	 * @brief Returns the named edge (by name)
@@ -266,6 +353,7 @@ public class DBNet {
 	/**
 	 * @brief Checks which edges are not connected to the major part of the network and removes them
 	 * @param report Whether the removal of edges shall be reported
+	 * @return Clusters of removed unconnected edges
 	 */
 	public HashMap<Integer, Set<DBEdge>> dismissUnconnectedEdges(boolean report) {
 		HashMap<DBEdge, Integer> edge2cluster = new HashMap<>();
@@ -410,7 +498,7 @@ public class DBNet {
 			// add a reverse direction edge for pedestrians
 			if(addOppositePedestrianEdges && ((opposite==null && e.allows(modeFoot)))) {// || (opposite==e))) {
 				// todo: recheck whether opposite==e is correct - it happens, though maybe when using an external OSM importer
-				opposite = new DBEdge("opp_"+e.getID(), e.getToNode(), e.getFromNode(), modeFoot, e.getVMax(), (LineString) e.getGeometry().reverse(), e.getLength());
+				opposite = new DBEdge("opp_"+e.getID(), e.getToNode(), e.getFromNode(), modeFoot, e.getVMax(), (LineString) e.getGeometry().reverse(), e.getLength(), -e.getIncline());
 				newEdges.add(opposite);
 			}
 			// add the information about the opposite edge
@@ -449,5 +537,224 @@ public class DBNet {
 		cs[4] = minCorner;
 		return geometryFactory.createPolygon(cs);
 	}
+
+
+	/** @brief Computes the crossing times for all intersections
+	 * 
+	 * @param ctm The model used to compute the crossing times
+	 * @throws IOException When the crossing times writer fails
+	 */
+	public void computeCrossingTimes(CrossingTimesModel_CTM1 ctm) throws IOException {
+		if(ctm==null) {
+			return;
+		}
+		for(DBNode n : nodes.values()) {
+			n.computeCrossingTimes(ctm);
+		}
+	}
+
+
+	/** @brief Recomputed edge speeds
+	 * 
+	 * @param speedModel The speed model to use
+	 */
+	public void applyVMaxModel(SpeedModel speedModel) {
+		for (DBEdge e : name2edge.values()) {
+			e.setVMax(speedModel.compute(e, 0));
+		}
+	}
+	
+	
+	/** @brief Remoes all edge geometries
+	 */
+	public void nullifyEdgeGeometries() {
+		for (DBEdge e : name2edge.values()) {
+			e.nullifyGeometry();
+		}
+	}
+
+
+	/** @brief Removes all dead-end edges that do not have origins / destinations
+	 * @param nearestFromEdges The map of edges to origins
+	 * @param nearestToEdges The map of edges to destinations
+	 */
+	public void removeUnusedDeadEnds(HashMap<DBEdge, Vector<MapResult>> nearestFromEdges, HashMap<DBEdge, Vector<MapResult>> nearestToEdges) {
+		Set<DBEdge> toRemove = new HashSet<>();
+		for (DBEdge e : name2edge.values()) {
+			if(!e.isUnusedDeadEnd(nearestFromEdges, nearestToEdges, null)) {
+				continue;
+			}
+			toRemove.add(e);
+			if(e.getOppositeEdge()!=null) {
+				toRemove.add(e.getOppositeEdge());
+			}
+			// progress backwards
+			DBEdge prior = e;
+			while(prior!=null) {
+				Vector<DBEdge> candidates = new Vector<>();
+				for(DBEdge e2 : prior.getFromNode().getIncoming()) {
+					if(e2!=prior.getOppositeEdge()) {
+						candidates.add(e2);
+					}
+				}
+				if(candidates.size()!=1) {
+					break;
+				}
+				DBEdge candidate = candidates.get(0);
+				if(candidate.isUnusedDeadEnd(nearestFromEdges, nearestToEdges, prior)) {
+					prior = candidate;
+					toRemove.add(prior);
+					if(prior.getOppositeEdge()!=null) {
+						toRemove.add(prior.getOppositeEdge());
+					}
+				} else {
+					break;
+				}
+			}
+			
+		}
+		for (DBEdge e : toRemove) {
+			removeEdge(e);
+		}
+	}
+
+
+	/** @brief Precomputes travel time for all edges
+	 * 
+	 * @param ivmax The maximum velocity of the mode
+	 */
+	public void precomputeTTs(double ivmax) {
+		for (DBEdge e : name2edge.values()) {
+			e.precomputeTT(ivmax);
+		}		
+	}
+	
+	
+	/** @brief Joins similar edges
+	 * 	
+	 * @param ivmax The maximum velocity of the mode
+	 * @param mode The mode ID
+	 * @throws IOException When something fails
+	 */
+	public void joinSimilar(double ivmax, long mode) throws IOException {
+		// determine candidates
+		HashMap<DBEdge, DBEdge> candidates = new HashMap<>();
+		for (DBEdge e : name2edge.values()) {
+			if(e.getAttachedObjectsNumber()!=0) {
+				continue;
+			}
+			Vector<DBEdge> outgoing = e.getToNode().getOutgoing();
+			int nOutgoing = outgoing.size();
+			DBEdge opposite = e.getOppositeEdge();
+			if(opposite!=null&&outgoing.contains(opposite)) {
+				nOutgoing -= 1;
+			}
+			if(nOutgoing!=1) {
+				continue;
+			}
+			outgoing = new Vector<DBEdge>(outgoing);
+			if(opposite!=null&&outgoing.contains(opposite)) {
+				outgoing.remove(opposite);
+			}
+			if(outgoing.size()!=1) {
+				throw new IOException("fatal error#1 in joinSimilar");
+			}
+			DBEdge next = outgoing.get(0);
+			if(next.getAttachedObjectsNumber()!=0) {
+				continue;
+			}
+			if(!e.canBeJoined(next, ivmax, mode)) {
+				continue;
+			}
+			candidates.put(e, next);
+		}
+		// join
+		HashMap<DBEdge, DBEdge> replaced = new HashMap<>();
+		Set<DBEdge> skip = new HashSet<>();
+		for (DBEdge prev : candidates.keySet()) {
+			DBEdge next = candidates.get(prev);
+			prev = checkNextJoinReplacement(prev, skip, replaced);
+			next = checkNextJoinReplacement(next, skip, replaced);
+			if(prev==null||next==null) {
+				continue;
+			}
+			DBEdge prevOpposite = prev.getOppositeEdge();
+			DBEdge nextOpposite = next.getOppositeEdge();
+			if(prevOpposite!=null&&nextOpposite!=null) {
+				prevOpposite = checkNextJoinReplacement(prevOpposite, skip, replaced);
+				nextOpposite = checkNextJoinReplacement(nextOpposite, skip, replaced);
+				if(prevOpposite==null||nextOpposite==null) {
+					continue;
+				}
+			}
+			// check whether they can be joined
+			if((prevOpposite==null&&nextOpposite!=null) || (prevOpposite!=null&&nextOpposite==null)) {
+				continue;
+			}
+			if(!candidates.containsKey(nextOpposite)||candidates.get(nextOpposite)!=prevOpposite) {
+				continue;
+			}
+			skip.add(nextOpposite);
+			// remove in in-between node
+			DBNode n = prev.getToNode();
+			n.removeIncoming(prev);
+			n.removeOutgoing(next);
+			if(prevOpposite!=null) {
+				n.removeIncoming(nextOpposite);
+				n.removeOutgoing(prevOpposite);
+			}
+			if(n.getIncoming().size()!=0||n.getOutgoing().size()!=0) {
+				throw new IOException("fatal error#2 in joinSimilar");
+			}
+			nodes.remove(n.getID());
+			name2edge.remove(prev.getID());
+			name2edge.remove(next.getID());
+			if(prevOpposite!=null) {
+				name2edge.remove(prevOpposite.getID());
+				name2edge.remove(nextOpposite.getID());
+			}
+			// extend
+			String nid = prev.extendBy(next, geometryFactory);
+			String nidOpposite = null;
+			if(prevOpposite!=null) {
+				nidOpposite = nextOpposite.extendBy(prevOpposite, geometryFactory);
+			}
+			// replace in begin / end nodes
+			prev.getToNode().replaceIncoming(next, prev);
+			if(prevOpposite!=null) {
+				nextOpposite.getToNode().replaceIncoming(prevOpposite, nextOpposite);
+			}
+			// replace in name mapping
+			name2edge.put(nid, prev);
+			if(nidOpposite!=null) {
+				name2edge.put(nidOpposite, nextOpposite);
+			}
+			//
+			replaced.put(next, prev);
+			replaced.put(prevOpposite, nextOpposite);
+		}		
+	}
+
+
+	/** @brief Returns the edge the given edge was replaced by, if existing
+	 * 
+	 * @param e The edge
+	 * @param skip The set of edges to skip
+	 * @param replaced The map of already replaced edges
+	 * @return Returns the edge the given one was replaced by
+	 */
+	private DBEdge checkNextJoinReplacement(DBEdge e, Set<DBEdge> skip, HashMap<DBEdge, DBEdge> replaced) {
+		if(skip.contains(e)) {
+			return null;
+		}
+		if(replaced.containsKey(e)) {
+			e = replaced.get(e); 
+		}
+		if(skip.contains(e)) {
+			return null;
+		}
+		return e;
+	}
+	
 	
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024
+ * Copyright (c) 2016-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -24,7 +24,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import de.dlr.ivf.urmo.router.shapes.DBEdge;
 import de.dlr.ivf.urmo.router.shapes.DBNet;
 
-/** @class SUMOLayerHandler
+/** @class SUMOEdgeDumpHandler
  * @brief Parses a SUMO-edge dump-file 
  * @author Daniel Krajzewicz
  */
@@ -42,7 +42,6 @@ public class SUMOEdgeDumpHandler extends DefaultHandler {
 	
 	/** @brief Constructor
 	 * @param net The net to add read edges to
-	 * @param uModes The used modes of transport
 	 */
 	public SUMOEdgeDumpHandler(DBNet net) {
 		_net = net;

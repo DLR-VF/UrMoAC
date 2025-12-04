@@ -1,11 +1,33 @@
 # edge length=0
 edge_length_0
 
+# patching edge length=0
+edge_length_0_patch
+
+# multiple edges with length=0
+edge_length_0_multiple
+
+# multiple edges with length=0 - reporting to file
+edge_length_0_multiple_log
+
+
 # edge vmax=0
 edge_vmax_0
+
+# patching edge vmax=0
+edge_vmax_0_patch
+
+# multiple edges with vmax=0
+edge_vmax_0_multiple
+
+# multiple edges with vmax=0 - reporting to file
+edge_vmax_0_multiple_log
+
+
 
 # duplicate edge id
 duplicate_edge_id
 
 # correct network
 correct
+

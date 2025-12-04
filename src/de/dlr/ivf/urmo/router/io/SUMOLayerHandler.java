@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024
+ * Copyright (c) 2016-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -28,7 +28,6 @@ import org.locationtech.jts.geom.PrecisionModel;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
-import de.dlr.ivf.urmo.router.shapes.IDGiver;
 import de.dlr.ivf.urmo.router.shapes.Layer;
 import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
@@ -39,19 +38,15 @@ import de.dlr.ivf.urmo.router.shapes.LayerObject;
 public class SUMOLayerHandler extends DefaultHandler {
 	/// @brief The layer to fill
 	private Layer _layer;
-	/// @brief The object to get internal IDs from
-	private IDGiver _idGiver;
 	/// @brief The geometry factory to use
 	private GeometryFactory _gf;
 
 	
 	/** @brief Constructor
 	 * @param layer The layer to add the read objects to
-	 * @param idGiver Object that supports (running) IDs
 	 */
-	public SUMOLayerHandler(Layer layer, IDGiver idGiver) {
+	public SUMOLayerHandler(Layer layer) {
 		_layer = layer;
-		_idGiver = idGiver;
 		_gf = new GeometryFactory(new PrecisionModel());
 	}
 
@@ -70,7 +65,7 @@ public class SUMOLayerHandler extends DefaultHandler {
 			String yS = attributes.getValue("y");
 			Geometry geom2 = _gf.createPoint(new Coordinate(Double.parseDouble(xS), Double.parseDouble(yS)));
 			// @todo use string ids?
-			_layer.addObject(new LayerObject(_idGiver.getNextRunningID(), Long.parseLong(id), 1, geom2));
+			_layer.addObject(new LayerObject(Long.parseLong(id), 1, geom2));
 		}
 		if(localName.equals("poly")) {
 			String id = attributes.getValue("id");
@@ -88,7 +83,7 @@ public class SUMOLayerHandler extends DefaultHandler {
 			Coordinate[] arr = new Coordinate[geom.size()];
 			Geometry geom2 = _gf.createPolygon(geom.toArray(arr));
 			// @todo use string ids?
-			_layer.addObject(new LayerObject(_idGiver.getNextRunningID(), Long.parseLong(id), 1, geom2));
+			_layer.addObject(new LayerObject(Long.parseLong(id), 1, geom2));
 		}
 	}
 

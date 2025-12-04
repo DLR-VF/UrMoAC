@@ -1,0 +1,8 @@
+psycopg2
+mkdocs
+mkdocs-material
+pytest
+coverage
+matplotlib
+scipy
+python-markdown-math

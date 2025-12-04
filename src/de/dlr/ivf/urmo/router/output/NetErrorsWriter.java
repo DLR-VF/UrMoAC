@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2024
+ * Copyright (c) 2024-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -39,7 +39,7 @@ public class NetErrorsWriter extends BasicCombinedWriter {
 	 * @throws IOException When something fails
 	 */
 	public NetErrorsWriter(Utils.Format format, String[] inputParts, boolean dropPrevious) throws IOException {
-		super(format, inputParts, "net-errors", 1, dropPrevious, "(description text, edge1 text, edge2 text)");
+		super(format, inputParts, "net-errors", 1, dropPrevious, false, "(description text, edge1 text, edge2 text)");
 	}
 	
 

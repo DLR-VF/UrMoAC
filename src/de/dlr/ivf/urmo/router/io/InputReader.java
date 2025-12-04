@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024
+ * Copyright (c) 2016-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -26,6 +26,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Vector;
@@ -35,6 +36,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.PrecisionModel;
@@ -49,8 +51,9 @@ import de.dks.utils.options.OptionsCont;
 import de.dlr.ivf.urmo.router.modes.EntrainmentMap;
 import de.dlr.ivf.urmo.router.modes.Mode;
 import de.dlr.ivf.urmo.router.modes.Modes;
+import de.dlr.ivf.urmo.router.shapes.DBNet;
+import de.dlr.ivf.urmo.router.shapes.DBNode;
 import de.dlr.ivf.urmo.router.shapes.DBODRelation;
-import de.dlr.ivf.urmo.router.shapes.IDGiver;
 import de.dlr.ivf.urmo.router.shapes.Layer;
 import de.dlr.ivf.urmo.router.shapes.LayerObject;
 
@@ -71,12 +74,11 @@ public class InputReader {
 	 * @param base The layer/type ("from", "to") of the objects to load
 	 * @param varName Name of the variable field
 	 * @param dismissWeight Whether the weight shall be discarded
-	 * @param idGiver An instance to retrieve new ids from
 	 * @param epsg The used projection
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
-	public static Layer loadLayer(OptionsCont options, Geometry bounds, String base, String varName, boolean dismissWeight, IDGiver idGiver, int epsg) throws IOException {
+	public static Layer loadLayer(OptionsCont options, Geometry bounds, String base, String varName, boolean dismissWeight, int epsg) throws IOException {
 		String filter = options.isSet(base+".filter") ? options.getString(base + ".filter") : ""; // !!! use something different
 		varName = varName==null ? null : options.getString(varName);
 		String def = options.getString(base);
@@ -86,16 +88,16 @@ public class InputReader {
 		switch(format) {
 		case FORMAT_POSTGRES:
 		case FORMAT_SQLITE:
-			layer = loadLayerFromDB(base, bounds, format, inputParts, filter, varName, options.getString(base + ".id"), options.getString(base + ".geom"), idGiver, epsg, dismissWeight);
+			layer = loadLayerFromDB(base, bounds, format, inputParts, filter, varName, options.getString(base + ".id"), options.getString(base + ".geom"), epsg, dismissWeight);
 			break;
 		case FORMAT_CSV:
-			layer = loadLayerFromCSVFile(base, bounds, inputParts[0], idGiver, dismissWeight);
+			layer = loadLayerFromCSVFile(base, bounds, inputParts[0], dismissWeight);
 			break;
 		case FORMAT_WKT:
-			layer = loadLayerFromWKTFile(base, bounds, inputParts[0], idGiver, dismissWeight);
+			layer = loadLayerFromWKTFile(base, bounds, inputParts[0], dismissWeight);
 			break;
 		case FORMAT_SUMO:
-			layer = loadLayerFromSUMOPOIs(base, bounds, inputParts[0], idGiver, dismissWeight);
+			layer = loadLayerFromSUMOPOIs(base, bounds, inputParts[0], dismissWeight);
 			break;
 		case FORMAT_SHAPEFILE:
 		case FORMAT_GEOPACKAGE:
@@ -122,14 +124,13 @@ public class InputReader {
 	 * @param varName The name of the attached variable
 	 * @param idS The name of the column to read the IDs from
 	 * @param geomS The name of the column to read the geometry from
-	 * @param idGiver A reference to something that supports a running ID
 	 * @param epsg The EPSG of the projection to use
 	 * @param dismissWeight Whether the weight shall be discarded
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
 	private static Layer loadLayerFromDB(String layerName, Geometry bounds, Utils.Format format, String[] inputParts, String filter, String varName,
-			String idS, String geomS, IDGiver idGiver, int epsg, boolean dismissWeight) throws IOException {
+			String idS, String geomS, int epsg, boolean dismissWeight) throws IOException {
 		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
 		try {
 			Class.forName("org.sqlite.JDBC");
@@ -184,11 +185,11 @@ public class InputReader {
 					var = rs.getDouble(numColumns-1);
 				}
 				long id = rs.getLong(idS);
-				LayerObject o = new LayerObject(idGiver.getNextRunningID(), id, var, geom);
+				LayerObject o = new LayerObject(id, var, geom);
 				layer.addObject(o);
 				// check for duplicates
 				if(seen.contains(id)) {
-					System.err.println("Duplicate object '" + id + "' occured.");
+					System.err.println("Duplicate object '" + id + "' occurred.");
 					ok = false;
 					continue;
 				}
@@ -210,12 +211,11 @@ public class InputReader {
 	 * @param layerName The name of the layer to generate
 	 * @param bounds The bounds to clip the read thing to
 	 * @param fileName The name of the file to read
-	 * @param idGiver A reference to something that supports a running ID
 	 * @param dismissWeight Whether the weight shall be discarded
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
-	private static Layer loadLayerFromCSVFile(String layerName, Geometry bounds, String fileName, IDGiver idGiver, boolean dismissWeight) throws IOException { 
+	private static Layer loadLayerFromCSVFile(String layerName, Geometry bounds, String fileName, boolean dismissWeight) throws IOException { 
 		Layer layer = new Layer(layerName, bounds);
 		GeometryFactory gf = new GeometryFactory(new PrecisionModel());
 		BufferedReader br = new BufferedReader(new FileReader(fileName));
@@ -284,10 +284,10 @@ public class InputReader {
 					}
 				}
 			}
-			layer.addObject(new LayerObject(idGiver.getNextRunningID(), id, var, geom2));
+			layer.addObject(new LayerObject(id, var, geom2));
 			// check for duplicates
 			if(seen.contains(id)) {
-				System.err.println("Duplicate object '" + id + "' occured.");
+				System.err.println("Duplicate object '" + id + "' occurred.");
 				ok = false;
 			}
 			seen.add(id);
@@ -303,12 +303,11 @@ public class InputReader {
 	 * @param layerName The name of the layer to generate
 	 * @param bounds The bounds to clip the read thing to
 	 * @param fileName The name of the file to read
-	 * @param idGiver A reference to something that supports a running ID
 	 * @param dismissWeight Whether the weight shall be discarded
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
-	private static Layer loadLayerFromWKTFile(String layerName, Geometry bounds, String fileName, IDGiver idGiver, boolean dismissWeight) throws IOException { 
+	private static Layer loadLayerFromWKTFile(String layerName, Geometry bounds, String fileName, boolean dismissWeight) throws IOException { 
 		Set<Long> seen = new HashSet<Long>();
 		boolean ok = true;
 			Layer layer = new Layer(layerName, bounds);
@@ -355,10 +354,10 @@ public class InputReader {
 						}
 					}
 				}
-				layer.addObject(new LayerObject(idGiver.getNextRunningID(), id, var, geom));
+				layer.addObject(new LayerObject(id, var, geom));
 				// check for duplicates
 				if(seen.contains(id)) {
-					System.err.println("Duplicate object '" + id + "' occured.");
+					System.err.println("Duplicate object '" + id + "' occurred.");
 					ok = false;
 				}
 				seen.add(id);
@@ -374,12 +373,11 @@ public class InputReader {
 	 * @param layerName The name of the layer to generate
 	 * @param bounds The bounds to clip the read thing to
 	 * @param fileName The name of the file to read
-	 * @param idGiver A reference to something that supports a running ID
 	 * @param dismissWeight Whether the weight shall be discarded
 	 * @return The generated layer with the read objects
 	 * @throws IOException When something fails
 	 */
-	private static Layer loadLayerFromSUMOPOIs(String layerName, Geometry bounds, String fileName, IDGiver idGiver, boolean dismissWeight) throws IOException {
+	private static Layer loadLayerFromSUMOPOIs(String layerName, Geometry bounds, String fileName, boolean dismissWeight) throws IOException {
 		try {
 			Layer layer = new Layer(layerName, bounds);
 	        SAXParserFactory spf = SAXParserFactory.newInstance();
@@ -387,7 +385,7 @@ public class InputReader {
 	        SAXParser saxParser;
 				saxParser = spf.newSAXParser();
 	        XMLReader xmlReader = saxParser.getXMLReader();
-	        xmlReader.setContentHandler(new SUMOLayerHandler(layer, idGiver));
+	        xmlReader.setContentHandler(new SUMOLayerHandler(layer));
 	        xmlReader.parse(fileName);
 	        return layer;
 		} catch (ParserConfigurationException | SAXException e) {
@@ -502,6 +500,39 @@ public class InputReader {
 	// --------------------------------------------------------
 	// geometry loading
 	// --------------------------------------------------------
+	/** @brief Returns the defined geometry
+	 * 
+	 * If def is a tuple of four floats, the respective bounding box is returned.
+	 * Otherwise the geometry is loaded using the def, @see loadGeometry.
+	 * @param def The definition of the geometry (bounding box or source)
+	 * @param what The name of the loaded element
+	 * @param epsg The epsg to apply
+	 * @return The parsed / loaded geometry
+	 * @throws IOException
+	 */
+	public static Geometry getGeometry(String def, String what, int epsg) throws IOException {
+		if("".equals(def)) {
+			return null;
+		}
+		String[] vals = def.split(",");
+		if(vals.length==4) {
+			Vector<Double> bounds = new Vector<>();
+			for(int i=0; i<4; ++i) {
+				try {
+					double d = Double.parseDouble(vals[i]);
+					bounds.add(d);
+				} catch(NumberFormatException e) {
+					throw new IOException("Could not parse bounds for '" + what + "'.");
+				}
+			}
+			GeometryFactory gf = new GeometryFactory(new PrecisionModel());
+			Envelope env = new Envelope(bounds.get(0), bounds.get(2), bounds.get(1), bounds.get(3));
+			return gf.toGeometry(env);
+		}
+		return loadGeometry(def, what, epsg);
+	}
+	
+	
 	/** @brief Loads a geometry
 	 * @param def The source definition (unparsed)
 	 * @param what The name of the loaded thing for reporting
@@ -509,7 +540,7 @@ public class InputReader {
 	 * @return The loaded geometry
 	 * @throws IOException When something fails
 	 */
-	public static Geometry loadGeometry(String def, String what, int epsg)  throws IOException {
+	private static Geometry loadGeometry(String def, String what, int epsg) throws IOException {
 		Utils.Format format = Utils.getFormat(def);
 		String[] inputParts = Utils.getParts(format, def, "od-output");
 		switch(format) {
@@ -706,4 +737,211 @@ public class InputReader {
 		return ret;
 	}
 
+	
+	// --------------------------------------------------------
+	// mode change locations loading
+	// --------------------------------------------------------
+	/** @brief Loads mode change locations
+	 * @param def The source definition (unparsed)
+	 * @param net The network to add the locations to
+	 * @return Whether the locations could be loaded
+	 * @throws IOException When something fails
+	 */
+	public static boolean loadModeChangeLocations(String def, DBNet net) throws IOException {
+		Utils.Format format = Utils.getFormat(def);
+		String[] inputParts = Utils.getParts(format, def, "od-connections");
+		switch(format) {
+		case FORMAT_POSTGRES:
+		case FORMAT_SQLITE:
+			return loadModeChangeLocationsFromDB(format, inputParts, net);
+		case FORMAT_CSV:
+			return loadModeChangeLocationsFromCSVFile(inputParts[0], net);
+		case FORMAT_WKT:
+		case FORMAT_SHAPEFILE:
+		case FORMAT_GEOPACKAGE:
+		case FORMAT_SUMO:
+			throw new IOException("Reading 'od-connections' from " + Utils.getFormatMMLName(format) + " is not supported.");
+		default:
+			throw new IOException("Could not recognize the format used for 'od-connections'.");
+		}
+	}
+
+
+	/** @brief Loads mode change locations from a database
+	 * @param format The used format
+	 * @param inputParts The source definition
+	 * @param net The road network to add the mode change locations to
+	 * @return Whether the locations could be loaded
+	 * @throws IOException When something fails
+	 */
+	private static boolean loadModeChangeLocationsFromDB(Utils.Format format, String[] inputParts, DBNet net) throws IOException {
+		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
+		try {
+			Class.forName("org.sqlite.JDBC");
+			Class.forName("org.postgresql.Driver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		boolean hadError = false;
+		try {
+			Connection connection = Utils.getConnection(format, inputParts, "mode-changes");
+			connection.setAutoCommit(true);
+			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
+			String query = "SELECT node_id,from_mode,to_mode,duration,price FROM " + Utils.getTableName(format, inputParts, "mode-changes") + ";";
+			Statement s = connection.createStatement();
+			ResultSet rs = s.executeQuery(query);
+			while (rs.next()) {
+				DBNode node = net.getExistingNode(rs.getString("node_id"));
+				if (node!=null) {
+					node.addModeChange(rs.getLong("from_mode"), rs.getLong("to_mode"), rs.getDouble("duration"), rs.getDouble("price"));
+				} else {
+					System.err.println("Trying to add a mode change to a non-existing node '" + rs.getString("node_id") + "'.");
+					hadError = true;
+				}
+			}
+			rs.close();
+			s.close();
+			connection.close();
+		} catch (SQLException e) {
+			throw new IOException(e);
+		}
+		return !hadError;
+	}
+
+
+	/** @brief Loads mode change locations from a csv file
+	 * @param fileName The name of the file to read od-connections from
+	 * @param net The road network to add the mode change locations to
+	 * @return Whether the locations could be loaded
+	 * @throws IOException When something fails
+	 */
+	private static boolean loadModeChangeLocationsFromCSVFile(String fileName, DBNet net) throws IOException {
+		boolean hadError = false;
+		BufferedReader br = new BufferedReader(new FileReader(fileName));
+		String line = null;
+		do {
+			line = br.readLine();
+			if(line==null || line.length()==0 || line.charAt(0)=='#') {
+				continue;
+			}
+			String[] vals = line.split(";");
+			try {
+				DBNode node = net.getExistingNode(vals[0]);
+				if(node!=null) {
+					long fromModeID = Modes.getMode(vals[1]).id; // !!! catch errors
+					long toModeID = Modes.getMode(vals[2]).id; // !!! catch errors
+					node.addModeChange(fromModeID, toModeID, Double.parseDouble(vals[3]), Double.parseDouble(vals[4]));
+				} else {
+					System.err.println("Trying to add a mode change to a non-existing node '" + vals[0] + "'.");
+					hadError = true;
+				}
+			} catch(NumberFormatException e) {
+				System.err.println("Broken o/d relation in '" + fileName + "': " + line + ".");
+			}
+	    } while(line!=null);
+		br.close();
+		return !hadError;
+	}
+	
+	
+	
+	// --------------------------------------------------------
+	// types loading
+	// --------------------------------------------------------
+	/** @brief Loads od-connections
+	 * @param def The source definition (unparsed)
+	 * @param name The name of the loaded element
+	 * @return The loaded od-connections
+	 * @throws IOException When something fails
+	 */
+	public static HashMap<Long, Set<String>> loadTypes(String def, String name) throws IOException {
+		Utils.Format format = Utils.getFormat(def);
+		String[] inputParts = Utils.getParts(format, def, name);
+		switch(format) {
+		case FORMAT_POSTGRES:
+		case FORMAT_SQLITE:
+			return loadTypesFromDB(format, inputParts, name);
+		case FORMAT_CSV:
+			return loadTypesFromCSVFile(inputParts[0], name);
+		case FORMAT_WKT:
+		case FORMAT_SHAPEFILE:
+		case FORMAT_GEOPACKAGE:
+		case FORMAT_SUMO:
+			throw new IOException("Reading '" + name + "' from " + Utils.getFormatMMLName(format) + " is not supported.");
+		default:
+			throw new IOException("Could not recognize the format used for '" + name + "'.");
+		}
+	}
+
+
+	/** @brief Loads od-connections from a database
+	 * @param format The used format
+	 * @param inputParts The source definition
+	 * @return The loaded od-connections
+	 * @throws IOException When something fails
+	 */
+	private static HashMap<Long, Set<String>> loadTypesFromDB(Utils.Format format, String[] inputParts, String name) throws IOException {
+		// db jars issue, see https://stackoverflow.com/questions/999489/invalid-signature-file-when-attempting-to-run-a-jar
+		try {
+			Class.forName("org.sqlite.JDBC");
+			Class.forName("org.postgresql.Driver");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		try {
+			Connection connection = Utils.getConnection(format, inputParts, name);
+			connection.setAutoCommit(true);
+			connection.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
+			String query = "SELECT id,type FROM " + Utils.getTableName(format, inputParts, name) + ";";
+			Statement s = connection.createStatement();
+			ResultSet rs = s.executeQuery(query);
+			HashMap<Long, Set<String>> ret =  new HashMap<Long, Set<String>>();
+			while (rs.next()) {
+				long id = rs.getLong("id");
+				if(!ret.containsKey(id)) {
+					ret.put(id, new HashSet<String>());
+				}
+				ret.get(id).add(rs.getString("type"));
+			}
+			rs.close();
+			s.close();
+			connection.close();
+			return ret;
+		} catch (SQLException e) {
+			throw new IOException(e);
+		}
+	}
+
+
+	/** @brief Loads od-connections from a csv file
+	 * @param fileName The name of the file to read od-connections from
+	 * @return The loaded od-connections
+	 * @throws IOException When something fails
+	 */
+	private static HashMap<Long, Set<String>> loadTypesFromCSVFile(String fileName, String name) throws IOException {
+		HashMap<Long, Set<String>> ret =  new HashMap<Long, Set<String>>();
+		BufferedReader br = new BufferedReader(new FileReader(fileName));
+		String line = null;
+		do {
+			line = br.readLine();
+			if(line==null || line.length()==0 || line.charAt(0)=='#') {
+				continue;
+			}
+			String[] vals = line.trim().split(";");
+			try {
+				long id = Long.parseLong(vals[0]);
+				if(!ret.containsKey(id)) {
+					ret.put(id, new HashSet<String>());
+				}
+				ret.get(id).add(vals[1]);
+			} catch(NumberFormatException e) {
+				System.err.println("Broken type definition in '" + fileName + "': " + line + ".");
+			}
+	    } while(line!=null);
+		br.close();
+		return ret;
+	}
+	
+	
+	
 }

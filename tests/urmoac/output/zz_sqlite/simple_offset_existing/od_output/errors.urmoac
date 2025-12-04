@@ -1,2 +1,2 @@
-Exception 'org.sqlite.SQLiteException: [SQLITE_ERROR] SQL error or missing database (table test already exists)' occured while building the od-output.
+Exception 'org.sqlite.SQLiteException: [SQLITE_ERROR] SQL error or missing database (table test already exists)' occurred while building the od-output.
 Quitting on error...

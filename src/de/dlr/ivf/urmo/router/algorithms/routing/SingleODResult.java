@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024
+ * Copyright (c) 2016-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -74,7 +74,7 @@ public class SingleODResult {
 		}
 		
 		if(dist<0||tt<0) {
-			System.err.println("Negative distance or travel time occured between '" + origin.em.getOuterID() + "' to '" + destination.em.getOuterID() + "'.");
+			System.err.println("Negative distance or travel time occurred between '" + origin.em.getOuterID() + "' to '" + destination.em.getOuterID() + "'.");
 		}
 	}
 

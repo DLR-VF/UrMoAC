@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024
+ * Copyright (c) 2017-2025
  * Institute of Transport Research
  * German Aerospace Center
  * 
@@ -44,10 +44,11 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 	 * @param inputParts The definition of the input/output source/destination
 	 * @param precision The floating point precision to use
 	 * @param dropPrevious Whether a previous table with the name shall be dropped 
+	 * @param haveTypes Whether destinations may have different types 
 	 * @throws IOException When something fails
 	 */
-	public EUWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious) throws IOException {
-		super(format, inputParts, "edges-output", precision, dropPrevious, 
+	public EUWriter(Utils.Format format, String[] inputParts, int precision, boolean dropPrevious, boolean haveTypes) throws IOException {
+		super(format, inputParts, "edges-output", precision, dropPrevious, haveTypes,
 				"(fid bigint, sid bigint, eid text, num real, origins_weight real, normed real)");
 	}
 
@@ -65,10 +66,11 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 	/** 
 	 * @brief Writes the results to the open database / file
 	 * @param result The result to write
+	 * @param destType The type of the destination
 	 * @throws IOException When something fails
 	 */
 	@Override
-	public void writeResult(EUSingleResult result) throws IOException {
+	public void writeResult(EUSingleResult result, String destType) throws IOException {
 		if (intoDB()) {
 			try {
 				for(String id : result.stats.keySet()) {
@@ -79,6 +81,9 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 						_ps.setFloat(4, (float) ep.num);
 						_ps.setFloat(5, (float) ep.originsWeight);
 						_ps.setFloat(6, (float) (ep.num / ep.originsWeight));
+						if(_haveTypes) {
+							_ps.setString(7, destType);
+						}
 						_ps.addBatch();
 						++batchCount;
 						if(batchCount>10000) {
@@ -90,12 +95,16 @@ public class EUWriter extends AbstractResultsWriter<EUSingleResult> {
 				throw new IOException(ex);
 			}
 		} else {
-			for(String id : result.stats.keySet()) {
-				EdgeParam ep = result.stats.get(id);
-				_fileWriter.append(result.originID + ";" + result.destID + ";" + id + ";" 
-						+ String.format(Locale.US, _FS, ep.num) + ";" 
-						+ String.format(Locale.US, _FS, ep.originsWeight) + ";" 
-						+ String.format(Locale.US, _FS, (ep.num / ep.originsWeight)) + "\n");
+			for(String eid : result.stats.keySet()) {
+				EdgeParam ep = result.stats.get(eid);
+				_fileWriter.append(Long.toString(result.originID)).append(";").append(Long.toString(result.destID)).append(";").append(eid).append(";");
+				_fileWriter.append(String.format(Locale.US, _FS, ep.num)).append(";");
+				_fileWriter.append(String.format(Locale.US, _FS, ep.originsWeight)).append(";");
+				_fileWriter.append(String.format(Locale.US, _FS, (ep.num / ep.originsWeight)));
+				if(_haveTypes) {
+					_fileWriter.append(";").append(destType);
+				}
+				_fileWriter.append("\n");
 			}
 		}
 	}
