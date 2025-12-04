@@ -27,7 +27,7 @@ authors:
     affiliation: Deutsches Zentrum für Luft- und Raumfahrt
 identifiers:
   - type: doi
-    value: 10.5281/zenodo.13142701
+    value: 10.5281/zenodo.17814529
 repository-code: 'https://github.com/DLR-VF/UrMoAC'
 url: 'https://github.com/DLR-VF/UrMoAC'
 abstract: >-
