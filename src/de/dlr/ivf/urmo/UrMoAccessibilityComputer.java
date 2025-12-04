@@ -131,7 +131,7 @@ public class UrMoAccessibilityComputer implements IDGiver {
 	private static OptionsCont getCMDOptions(String[] args) {
 		// set up options
 		OptionsCont options = new OptionsCont();
-		options.setHelpHeadAndTail("Urban Mobility Accessibility Computer (UrMoAC) v0.8.2\n  (c) German Aerospace Center (DLR), 2016-2021\n  https://github.com/DLR-VF/UrMoAC\n\nUsage:\n"
+		options.setHelpHeadAndTail("Urban Mobility Accessibility Computer (UrMoAC) v0.10.0\n  (c) German Aerospace Center (DLR), 2016-2025\n  https://github.com/DLR-VF/UrMoAC\n\nUsage:\n"
 				+"  java -jar UrMoAC.jar --help\n"
 				+"  java -jar UrMoAC.jar --from origins.csv --to destinations.csv --net network.csv\n    --od-output nm_output.csv --mode bike --time 0\n", "");
 		
@@ -238,8 +238,6 @@ public class UrMoAccessibilityComputer implements IDGiver {
 		options.setDescription("shortest", "Searches only one destination per origin.");
 		options.add("requirespt", new Option_Bool());
 		options.setDescription("requirespt", "When set, only information that contains a PT part are stored.");
-		options.add("clip-to-net", new Option_Bool());
-		options.setDescription("clip-to-net", "When set, origins, destinations, and pt is clipped at the network boundaries.");
 		options.add("routing-measure", new Option_String());
 		options.setDescription("routing-measure", "The measure to use during the routing ['tt_mode', 'price_tt', 'interchanges_tt', 'maxinterchanges_tt'].");
 		options.add("routing-measure.param1", new Option_Double());
