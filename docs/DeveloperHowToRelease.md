@@ -2,9 +2,10 @@
 
 ## Building a release
 * check whether docs are up to date
+    * disable/remove incomplete docs
     * build docs as described at [Static Documentation](./DeveloperStaticDocumentation.md)
-    * disable incomplete docs
-    * compress it as &ldquo;site.zip&rdquo;
+	* rename the folder &ldquo;**docs**&rdquo; to &ldquo;**UrMoAC-&lt;*VERSION&gt;*-docs**&rdquo;
+    * compress it to .zip and to .tar.gz
 
 * check whether the code is clean
     * The methods should be documented
