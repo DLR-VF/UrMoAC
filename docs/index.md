@@ -1,6 +1,6 @@
 [![Logo](./images/UrMoAC.png)](./images/UrMoAC.png)
 [![License: EPL2](https://img.shields.io/badge/license-EPL2-green)](https://github.com/DLR-VF/UrMoAC/blob/master/LICENSE.md)
-[![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13234444-blue)](https://doi.org/10.5281/zenodo.13234444)
+[![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.17814529-blue)](https://doi.org/10.5281/zenodo.17814529)
 [![Documentation Status](https://readthedocs.org/projects/urmoac/badge/?version=latest)](https://urmoac.readthedocs.io/en/latest/?badge=latest)
 ![Build Status](https://github.com/DLR-VF/UrMoAC/actions/workflows/maven_build.yml/badge.svg)
 
@@ -34,8 +34,8 @@ Its methods are described in [[1]](Publications.md#1), yet this document might b
 
 [1] Krajzewicz, Daniel und Heinrichs, Dirk und Cyganski, Rita (2017) [_Intermodal Contour Accessibility Measures Computation Using the &lsquo;UrMo Accessibility Computer&rsquo;_](https://elib.dlr.de/118235/). International Journal On Advances in Systems and Measurements, 10 (3&4), pp. 111&ndash;123. IARIA.
 
-and/or use UrMoAC's DOI (v0.8.2): 
-[![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13234444-blue)](https://doi.org/10.5281/zenodo.13234444)
+and/or use UrMoAC's DOI (v0.10.0): 
+[![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.17814529-blue)](https://doi.org/10.5281/zenodo.17814529)
 
 
 

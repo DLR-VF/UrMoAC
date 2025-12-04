@@ -1,11 +1,14 @@
 # Change Log
 
-## UrMoAC-0.X.Y (to come)
+## UrMoAC-0.10.0 (04.12.2025)
+
+[![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.17814529-blue)](https://doi.org/10.5281/zenodo.17814529)
 
 ### Debugging and improvements
 
 * debugged mapping of public transport halts to edges
 * debugged and consolidated reporting of network errors
+* debugged search (view distance extension) massively reducing computation time...
 
 ### Documentation
 
@@ -28,7 +31,21 @@
 	* **--pt.boundary [_&lt;GEOM_SOURCE&gt;_ | _&lt;BOUNDING_BOX&gt;_]**
 * added option **--foot.vmax *&lt;SPEED&gt;*** for changing the default walking speed; *&lt;SPEED&gt;* is given in km/h
 
-### Changes in computation
+
+### Continuous Integration 
+
+* added an action for checking whether the current version builds
+
+
+### Tools
+
+* **osmdb_buildStructures.py**:
+    * It is no longer necessary to define all values for nodes, ways, and relations, each. You may use a '*' as the type qualify to set the subsequent extraction patterns for all.
+    * added an oid field to the output as nodes/ways/relations in OSM may have overlapping IDs. Together with the type field, one should be able to get the according source.
+* all tools: unified options parsing; synopsis was kept, but tools that generate tables now support deleting previously built tables and/or appending data to existing tables
+
+
+### Tentative extensions (under development/testing)
 
 * previously, intermodality was somehow covered by giving **UrMoAC** a list of modes to use. This has been replaced by distinct mode change points, defined using the option **--mode-changes *&lt;INPUT&gt;***
 * an initial model for adding penalties at crossing was added. It can be enabled using the option **--crossing-model *&lt;MODEL&gt;*** where ***&lt;MODEL&gt;*** may be one of "*none*" and "*ctm1*". (Floating point) parameter of the model can be set using the options ***--crossing-model.param1 *&lt;FLOAT&gt;***, and ***--crossing-model.param2 *&lt;FLOAT&gt;***.
@@ -41,16 +58,6 @@
 	* added option **--prunning.join-similar** which joins network edges with similar attributes
 * added incline to edges; being somehow under development, use **--net.incline** to enable it
 
-		
-### Continuous Integration 
-
-* added an action for checking whether the current version builds
-
-### Tools
-* **osmdb_buildStructures.py**:
-    * It is no longer necessary to define all values for nodes, ways, and relations, each. You may use a '*' as the type qualify to set the subsequent extraction patterns for all.
-    * added an oid field to the output as nodes/ways/relations in OSM may have overlapping IDs. Together with the type field, one should be able to get the according source.
-* all tools: unified options parsing; synopsis was kept, but tools that generate tables now support deleting previously built tables and/or appending data to existing tables
 
 
 
@@ -59,6 +66,7 @@
 [![DOI](https://img.shields.io/badge/doi-10.5281%2Fzenodo.13234444-blue)](https://doi.org/10.5281/zenodo.13234444)
 
 Re-release due to broken build. No further changes in comparison to v0.8.0.
+
 
 
 
@@ -97,6 +105,7 @@ Re-release due to broken build. No further changes in comparison to v0.8.0.
 ### Changes in computation
 
 * we moved from edge-based to origin-based computation. This solved some oddities and inexact results, but slowed down the computation. We will try to improve the speed back again, keeping the current quality.
+
 
 
 

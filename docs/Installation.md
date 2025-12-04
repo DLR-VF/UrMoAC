@@ -23,27 +23,19 @@ Open the command line. Go to the directory you just cloned. Type:
 
     mvn package
 
-et voila. All dependencies will be downloaded and there will be a new folder called target which includes the executable <span style="background-color: yellow">UrMoAccessibilityComputer-[VERSION]-SNAPSHOT-executable.jar</span>.
+et voila. All dependencies will be downloaded and there will be a new folder called target which includes the executable UrMoAccessibilityComputer-[VERSION]-SNAPSHOT-executable.jar.
 
 
 
 ## Shaded JAR using Maven
 
 You can build a shaded JAR file to execute UrMoAC. 
-<span style="background-color: yellow">UrMoAC contains the external library optionslib (see libs directory). </span>
 
-<span style="background-color: yellow">To build the JAR file correctly you need to add the optionslib to your local Maven repositories using the following command:</span>
-
-```shell
-mvn install:install-file -Dfile=libs/optionslib-1.2.jar -DgroupId=de.dks.utils.options -DartifactId=optionslib -Dversion=1.2 -Dpackaging=jar        
-```
-
-After that, you can build the final JAR using:
 ```shell
 mvn clean package
 ```
 
-<span style="background-color: yellow">After finishing the build process, you will see a target directory in your project directory that contains the shaded JAR file.</span>
+After finishing the build process, you will see a target directory in your project directory that contains the shaded JAR file.
 
 
 ## Eclipse import
