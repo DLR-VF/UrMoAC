@@ -194,18 +194,18 @@ class OSMExtractor:
         next_id = 0
         seenIDs = set()
         for subtype in ["node", "way", "rel"]:
-            for id in self._objectIDs[subtype]:
-                if id not in seenIDs:
-                    seenIDs.add(id)
+            for oid in self._objectIDs[subtype]:
+                if oid not in seenIDs:
+                    seenIDs.add(oid)
                     continue
-                pid = id
+                pid = oid
                 while True:
-                    id = next_id
+                    oid = next_id
                     next_id += 1
-                    if id not in seenIDs:
-                        seenIDs.add(id)
-                        self._idMapping[subtype][pid] = id
-                        print (f" Found duplicate id '{pid}'. Renaming {subtype} to '{id}'.")
+                    if oid not in seenIDs:
+                        seenIDs.add(oid)
+                        self._idMapping[subtype][pid] = oid
+                        print (f" Found duplicate id '{pid}'. Renaming {subtype} to '{oid}'.")
                         break
    
    
@@ -270,7 +270,7 @@ class OSMExtractor:
         npoints = [missingNODEids]
         if len(missingWAYids)!=0:
             for mWAYids in divide_chunks(list(missingWAYids), 10000):
-                idstr = ",".join([str(id) for id in mWAYids])
+                idstr = ",".join([str(oid) for oid in mWAYids])
                 cursor.execute(f"SELECT id,refs FROM {schema}.{prefix}_way WHERE id in ({idstr})")
                 conn.commit()
                 for r in cursor.fetchall():
@@ -281,7 +281,7 @@ class OSMExtractor:
         print (" ... for nodes")
         if len(missingNODEids)!=0:
             for mNODEids in divide_chunks(list(missingNODEids), 10000):
-                idstr = ",".join([str(id) for id in mNODEids])
+                idstr = ",".join([str(oid) for oid in mNODEids])
                 cursor.execute(f"SELECT id,ST_AsText(pos) FROM {schema}.{prefix}_node WHERE id in ({idstr})")
                 conn.commit()
                 for r in cursor.fetchall():
@@ -339,13 +339,13 @@ class OSMExtractor:
         :type name: str
         :todo: Make database connection an attribute of the class
         """
-        oid, type, polys, geom = item.get_description_with_polygons()
+        oid, otype, polys, geom = item.get_description_with_polygons()
         if len(geom)==0:
             print (f"Missing geometry for {geom[1]} {geom[0]}")
             return
         id = oid
-        if oid in self._idMapping[type]:
-            id = self._idMapping[type][oid]
+        if oid in self._idMapping[otype]:
+            id = self._idMapping[otype][oid]
         geom = "GEOMETRYCOLLECTION(" + geom + ")"
         centroid = geom
         if polys!=None and len(polys)!=0:
