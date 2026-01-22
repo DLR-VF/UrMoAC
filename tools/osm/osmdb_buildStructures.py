@@ -238,7 +238,7 @@ class OSMExtractor:
         while len(missingRELids)!=0:
             missingRELidsN = set()
             for mRELids in divide_chunks(missingRELids, 10000):
-                idstr = ",".join([str(id) for id in mRELids])
+                idstr = ",".join([str(oid) for oid in mRELids])
                 cursor.execute(f"SELECT rid,elemid,type,role FROM {schema}.{prefix}_member WHERE rid in ({idstr}) ORDER BY rid,role,idx")
                 conn.commit()
                 for r in cursor.fetchall():
