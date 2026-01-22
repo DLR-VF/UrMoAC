@@ -60,7 +60,7 @@ class OSMExtractor:
     @see osm2db.py  
     """
     
-    def __init__(self):
+    def __init__(self, verbose):
         """Constructor"""
         # ids of matching objects
         self._objectIDs = { "node": [], "way": [], "rel": [] }
@@ -73,6 +73,8 @@ class OSMExtractor:
         self._idMapping = { "node": {}, "way": {}, "rel": {} }
         # map of load definitions to ids
         self._id2type = { "node": {}, "way": {}, "rel": {} }
+        #
+        self.verbose = verbose
     
 
     def load_definitions(self, file_name):
@@ -146,7 +148,7 @@ class OSMExtractor:
         return ret
 
 
-    def get_object_ids(self, conn, cursor, schema, prefix):
+    def get_object_ids(self, srcdb):
         """Returns the IDs of the objects in the given OSM data that match the given definitions 
         :param conn: The connection to the database
         :type conn: psycopg2.extensions.connection
@@ -158,6 +160,12 @@ class OSMExtractor:
         :type prefix: str
         :todo: Make database connection an attribute of the class
         """
+        # open input connection
+        (host, db, schema_prefix, user, password) = srcdb.split(",")
+        schema, prefix = schema_prefix.split(".")
+        conn = psycopg2.connect(f"dbname='{db}' user='{user}' host='{host}' password='{password}'")
+        cursor = self.conn.cursor()
+        # collect objects
         for subtype in ["node", "way", "rel"]:
             for definition in self._defs[subtype]:
                 # get objects
@@ -207,10 +215,10 @@ class OSMExtractor:
                         self._idMapping[subtype][pid] = oid
                         print (f" Found duplicate id '{pid}'. Renaming {subtype} to '{oid}'.")
                         break
-   
+        conn.close()
    
     
-    def collect_referenced_objects(self, conn, cursor, schema, prefix):
+    def collect_referenced_objects(self, srcdb):
         """Collects all needed geometry information 
         :param conn: The connection to the database
         :type conn: psycopg2.extensions.connection
@@ -226,6 +234,12 @@ class OSMExtractor:
             for i in range(0, len(l), n):
                 yield l[i:i + n]
         
+        # open input connection
+        (host, db, schema_prefix, user, password) = srcdb.split(",")
+        schema, prefix = schema_prefix.split(".")
+        conn = psycopg2.connect(f"dbname='{db}' user='{user}' host='{host}' password='{password}'")
+        cursor = self.conn.cursor()
+        #
         missingRELids = list(self._objectIDs["rel"])
         missingWAYids = set(self._objectIDs["way"])
         missingNODEids = set(self._objectIDs["node"])
@@ -290,10 +304,11 @@ class OSMExtractor:
         missingNODEids = []
         missingWAYids = []
         missingRELids = []
+        conn.close()
         return area
 
 
-    def _check_commit(self, forced, entries, types, conn, cursor, schema, name):
+    def _check_commit(self, forced, entries, types, conn, cursor, schema, name, add_types):
         """Inserts read objects if forced or if their number is higher than 10000
         :param entries: Descriptions of the objects to insert
         :type entries: list[str]
@@ -312,16 +327,17 @@ class OSMExtractor:
         if len(entries)==0:
             return
         args = ','.join(cursor.mogrify("(%s, %s, %s, ST_GeomFromText(%s, 4326), ST_GeomFromText(%s, 4326), ST_Centroid(ST_ConvexHull(ST_GeomFromText(%s, 4326))))", i).decode('utf-8') for i in entries)
-        cursor.execute("INSERT INTO %s.%s(id, oid, type, polygon, geom_collection, centroid) VALUES " % (schema, name) + (args))
+        cursor.execute(f"INSERT INTO {schema}.{name}(id, oid, type, polygon, geom_collection, centroid) VALUES " + (args))
         conn.commit()
-        args = ','.join(cursor.mogrify("(%s, %s, %s)", i).decode('utf-8') for i in types)
-        cursor.execute("INSERT INTO %s.%s_types(id, oid, type) VALUES " % (schema, name) + (args))
-        conn.commit()
+        if add_types:
+            args = ','.join(cursor.mogrify("(%s, %s, %s)", i).decode('utf-8') for i in types)
+            cursor.execute(f"INSERT INTO {schema}.{name}_types(id, oid, type) VALUES " + (args))
+            conn.commit()
         del entries[:]
         del types[:]
         
 
-    def _add_item(self, entries, types, item, conn, cursor, schema, name):
+    def _add_item(self, entries, types, item, conn, cursor, schema, name, add_types):
         """Prebuilds the given item's insertion string and checks whether it shall be submitted
         :param entries: Descriptions of the objects to insert to extend
         :type entries: list[str]
@@ -368,18 +384,19 @@ class OSMExtractor:
                 for polypart in poly:
                     npolypart = "(" + ",".join(["%s %s" % (p[0], p[1]) for p in polypart]) + ")"
                     npoly.append(npolypart)
-                npolys.append("(" + ",".join(npoly) + ")")
-            polys = "MULTIPOLYGON(" + ",".join(npolys) + ")"
+                npolys.append(f"({",".join(npoly)})")
+            polys = f"MULTIPOLYGON({",".join(npolys)})"
             centroid = polys
         else:
             polys = "MULTIPOLYGON EMPTY"
         entries.append([id, oid, otype, polys, geom, centroid])
-        for t in self._id2type[otype][oid]:
-            types.append([id, oid, t])
-        self._check_commit(False, entries, types, conn, cursor, schema, name)
+        if add_types:
+            for t in self._id2type[otype][oid]:
+                types.append([id, oid, t])
+        self._check_commit(False, entries, types, conn, cursor, schema, name, add_types)
 
 
-    def store_objects(self, area, conn, cursor, schema, name):
+    def store_objects(self, area, dstdb, add_types):
         """Stores objects and their geometries in the given table(s)
         
         :param conn: The connection to the database
@@ -392,6 +409,11 @@ class OSMExtractor:
         :type name: str
         :todo: Make database connection an attribute of the class
         """
+        (host, db, schema_name, user, password) = dstdb.split(",")
+        schema, name = schema_name.split(".")
+        conn = psycopg2.connect(f"dbname='{db}' user='{user}' host='{host}' password='{password}'")
+        cursor = conn.cursor()
+        #
         entries = []
         types = []
         fr = 0
@@ -416,63 +438,64 @@ class OSMExtractor:
         :param filename: The file to save the mapping to
         :type filename: str
         """
-        if len(self._idMapping)==0:
+        n = 0
+        for otype in self._idMapping:
+            n += len(self._idMapping[otype])
+        if n==0:
             return
         with open(filename, "w") as fd:
-            for type in self._idMapping:
-                for id in self._idMapping[type]:
-                    fd.write(f"{type};{self._idMapping[type][id]};{id}\n")
+            for otype in self._idMapping:
+                for id in self._idMapping[otype]:
+                    fd.write(f"{otype};{self._idMapping[otype][id]};{id}\n")
 
 
 # --- function definitions --------------------------------------------------
 # --- main
-def build_structures(srcdb, deffile, dstdb, dropprevious, append, verbose):
+def build_structures(srcdb, deffile, dstdb, dropprevious, append, add_types, verbose):
     t1 = datetime.datetime.now()
-    # -- open connection
-    (host, db, schema_prefix, user, password) = srcdb.split(",")
-    schema, prefix = schema_prefix.split(".")
-    conn = psycopg2.connect(f"dbname='{db}' user='{user}' host='{host}' password='{password}'")
-    cursor = conn.cursor()
 
     # -- load definitions of things to extract
-    extractor = OSMExtractor()
+    extractor = OSMExtractor(verbose)
     print ("Loading definition of things to extract")
     extractor.load_definitions(deffile)
     print ("Determining object IDs")
-    extractor.get_object_ids(conn, cursor, schema, prefix)
+    extractor.get_object_ids(srcdb)
     print ("Collecting object geometries")
-    area = extractor.collect_referenced_objects(conn, cursor, schema, prefix)
+    area = extractor.collect_referenced_objects(srcdb)
 
     # -- write extracted objects
     # --- open connection
     print ("Building destination databases")
     (host, db, schema_name, user, password) = dstdb.split(",")
     schema, name = schema_name.split(".")
-    conn2 = psycopg2.connect(f"dbname='{db}' user='{user}' host='{host}' password='{password}'")
-    cursor2 = conn2.cursor()
-    # --- build tables
+    conn = psycopg2.connect(f"dbname='{db}' user='{user}' host='{host}' password='{password}'")
+    cursor = conn.cursor()
+    # --- (re-)build tables
     if dropprevious:
-        cursor2.execute("DROP TABLE IF EXISTS %s.%s" % (schema, name))
+        cursor.execute(f"DROP TABLE IF EXISTS {schema}.{name}")
+        cursor.execute(f"DROP TABLE IF EXISTS {schema}.{name}_types")
+        conn.commit()
     if not append:
-        cursor2.execute("CREATE TABLE %s.%s ( id bigint, oid bigint, type varchar(4) );" % (schema, name))
-        cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'centroid', 4326, 'POINT', 2);" % (schema, name))
-        cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'polygon', 4326, 'MULTIPOLYGON', 2);" % (schema, name))
-        cursor2.execute("SELECT AddGeometryColumn('%s', '%s', 'geom_collection', 4326, 'GEOMETRYCOLLECTION', 2);" % (schema, name))
-        cursor2.execute("DROP TABLE IF EXISTS %s.%s_types" % (schema, name))
-        cursor2.execute("CREATE TABLE %s.%s_types (id bigint, oid bigint, type text);" % (schema, name))
-        conn2.commit()
+        cursor.execute(f"CREATE TABLE {schema}.{name}(id bigint, oid bigint, type varchar(4))")
+        cursor.execute(f"SELECT AddGeometryColumn('{schema}', '{name}', 'centroid', 4326, 'POINT', 2)")
+        cursor.execute(f"SELECT AddGeometryColumn('{schema}', '{name}', 'polygon', 4326, 'MULTIPOLYGON', 2)")
+        cursor.execute(f"SELECT AddGeometryColumn('{schema}', '{name}', 'geom_collection', 4326, 'GEOMETRYCOLLECTION', 2)")
+        if add_types:
+            cursor.execute(f"CREATE TABLE {schema}.{name}_types(id bigint, oid bigint, pattern text)")
+        conn.commit()
+    conn.close()
     # --- insert objects
     print ("Building and storing objects")
-    num, fw, fr = extractor.store_objects(area, conn2, cursor2, schema, name)
+    num, fw, fr = extractor.store_objects(area, dstdb, add_types)
     # --- write mapping of duplicate ids
-    extractor.save_mapping_if_exists(name + "_mapping.txt")
+    extractor.save_mapping_if_exists(f"{name}_mapping.txt")
     # --- finish
     t2 = datetime.datetime.now()
     dt = t2-t1
-    print ("Built %s objects" % num)
-    print (" in %s" % dt)
-    if fw>0: print (" %s ways could not be build" % fw)
-    if fr>0: print (" %s relations could not be build" % fr)
+    print (f"Built {num} objects")
+    print (f" in {dt}")
+    if fw>0: print (f" {fw} ways could not be build")
+    if fr>0: print (f" {fr} relations could not be build")
 
 
 
@@ -490,7 +513,7 @@ def main(arguments=None):
     args, remaining_argv = conf_parser.parse_known_args(arguments)
     if args.config is not None:
         if not os.path.exists(args.config):
-            print ("osmdb_buildStructures: error: configuration file '%s' does not exist" % str(args.config), file=sys.stderr)
+            print (f"osmdb_buildStructures: error: configuration file '{args.config}' does not exist", file=sys.stderr)
             raise SystemExit(2)
         config = configparser.ConfigParser()
         config.read([args.config])
@@ -505,6 +528,7 @@ def main(arguments=None):
             + ' should be a string of the form <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>')
     parser.add_argument('-R', '--dropprevious', action='store_true', help="Delete destination tables if already existing")
     parser.add_argument('-A', '--append', action='store_true', help="Append read data to existing tables")
+    parser.add_argument('-T', '--add-types', action='store_true', help="Builds a second table with type information")
     parser.add_argument('--version', action='version', version='%(prog)s 0.10.0')
     parser.add_argument("-v", "--verbose", action="store_true", help="Print what is being done")
     parser.set_defaults(**defaults)
@@ -529,11 +553,11 @@ def main(arguments=None):
     if len(errors)!=0:
         parser.print_usage(sys.stderr)
         for e in errors:
-            print ("osmdb_buildStructures: error: %s" % e, file=sys.stderr)
-        print ("osmdb_buildStructures: quitting on error.", file=sys.stderr)
+            print (f"osmdb_buildStructures: error: {e}", file=sys.stderr)
+        print (f"osmdb_buildStructures: quitting on error.", file=sys.stderr)
         return 1
 
-    return build_structures(args.OSMdatabase, args.definition, args.output, args.dropprevious, args.append, args.verbose)
+    return build_structures(args.OSMdatabase, args.definition, args.output, args.dropprevious, args.append, args.add_types, args.verbose)
 
 
 # -- main check
