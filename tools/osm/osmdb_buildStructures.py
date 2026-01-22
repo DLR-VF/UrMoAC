@@ -164,7 +164,7 @@ class OSMExtractor:
         (host, db, schema_prefix, user, password) = srcdb.split(",")
         schema, prefix = schema_prefix.split(".")
         conn = psycopg2.connect(f"dbname='{db}' user='{user}' host='{host}' password='{password}'")
-        cursor = self.conn.cursor()
+        cursor = conn.cursor()
         # collect objects
         for subtype in ["node", "way", "rel"]:
             for definition in self._defs[subtype]:
@@ -238,7 +238,7 @@ class OSMExtractor:
         (host, db, schema_prefix, user, password) = srcdb.split(",")
         schema, prefix = schema_prefix.split(".")
         conn = psycopg2.connect(f"dbname='{db}' user='{user}' host='{host}' password='{password}'")
-        cursor = self.conn.cursor()
+        cursor = conn.cursor()
         #
         missingRELids = list(self._objectIDs["rel"])
         missingWAYids = set(self._objectIDs["way"])
@@ -331,7 +331,7 @@ class OSMExtractor:
         conn.commit()
         if add_types:
             args = ','.join(cursor.mogrify("(%s, %s, %s)", i).decode('utf-8') for i in types)
-            cursor.execute(f"INSERT INTO {schema}.{name}_types(id, oid, type) VALUES " + (args))
+            cursor.execute(f"INSERT INTO {schema}.{name}_types(id, oid, pattern) VALUES " + (args))
             conn.commit()
         del entries[:]
         del types[:]
@@ -419,16 +419,16 @@ class OSMExtractor:
         fr = 0
         for rID in self._objectIDs["rel"]:
             if area._relations[rID].build_geometry(area):
-                self._add_item(entries, types, area._relations[rID], conn, cursor, schema, name)
+                self._add_item(entries, types, area._relations[rID], conn, cursor, schema, name, add_types)
             else: fr += 1
         fw = 0
         for wID in self._objectIDs["way"]:
             if area._ways[wID].build_geometry(area):
-                self._add_item(entries, types, area._ways[wID], conn, cursor, schema, name)
+                self._add_item(entries, types, area._ways[wID], conn, cursor, schema, name, add_types)
             else: fw += 1
         for nID in self._objectIDs["node"]:
-            self._add_item(entries, types, area._nodes[nID], conn, cursor, schema, name)
-        self._check_commit(True, entries, types, conn, cursor, schema, name)
+            self._add_item(entries, types, area._nodes[nID], conn, cursor, schema, name, add_types)
+        self._check_commit(True, entries, types, conn, cursor, schema, name, add_types)
         #
         return len(self._objectIDs["node"])+len(self._objectIDs["way"])+len(self._objectIDs["rel"]), fw, fr
 
