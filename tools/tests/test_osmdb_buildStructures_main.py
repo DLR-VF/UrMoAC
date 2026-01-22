@@ -35,7 +35,7 @@ def test_main_empty(capsys):
         assert e.code==2
     captured = capsys.readouterr()
     assert captured.out == ""
-    assert captured.err.replace("__main__.py", "osm2db.py") == """usage: osmdb_buildStructures [-h] [-c FILE] [-R] [-A] [--version] [-v]
+    assert captured.err.replace("__main__.py", "osm2db.py") == """usage: osmdb_buildStructures [-h] [-c FILE] [-R] [-A] [-T] [--version] [-v]
                              OSM-database definition OSM-database
 osmdb_buildStructures: error: the following arguments are required: OSM-database, definition, OSM-database
 """
@@ -51,7 +51,7 @@ def test_main_help(capsys):
         assert e.code==0
     captured = capsys.readouterr()
     assert captured.err == ""
-    assert captured.out.replace("__main__.py", "osm2db.py") == """usage: osmdb_buildStructures [-h] [-c FILE] [-R] [-A] [--version] [-v]
+    assert captured.out.replace("__main__.py", "osm2db.py") == """usage: osmdb_buildStructures [-h] [-c FILE] [-R] [-A] [-T] [--version] [-v]
                              OSM-database definition OSM-database
 
 Extracts structures from an OSM database given a definition
@@ -72,6 +72,7 @@ options:
                         Reads the named configuration file
   -R, --dropprevious    Delete destination tables if already existing
   -A, --append          Append read data to existing tables
+  -T, --add-types       Builds a second table with type information
   --version             show program's version number and exit
   -v, --verbose         Print what is being done
 
