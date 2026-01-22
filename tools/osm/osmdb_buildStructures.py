@@ -373,8 +373,8 @@ class OSMExtractor:
             centroid = polys
         else:
             polys = "MULTIPOLYGON EMPTY"
-        entries.append([id, oid, type, polys, geom, centroid])
-        for t in self._id2type[type][oid]:
+        entries.append([id, oid, otype, polys, geom, centroid])
+        for t in self._id2type[otype][oid]:
             types.append([id, oid, t])
         self._check_commit(False, entries, types, conn, cursor, schema, name)
 
