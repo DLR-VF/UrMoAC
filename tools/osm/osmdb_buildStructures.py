@@ -496,7 +496,7 @@ def main(arguments=None):
         config.read([args.config])
         defaults.update(dict(config.items("DEFAULT")))
     parser = argparse.ArgumentParser(prog='osmdb_buildStructures', parents=[conf_parser], 
-        description='Builds an road network table using an OSM-database representation', 
+        description='Extracts structures from an OSM database given a definition', 
         epilog='(c) Copyright 2016-2025, German Aerospace Center (DLR)')
     parser.add_argument('OSMdatabase', metavar='OSM-database', help='The definition of the database to read data from;\n'
             + ' should be a string of the form <HOST>,<DB>,<SCHEMA>.<TABLE_PREFIX>,<USER>,<PASSWD>')

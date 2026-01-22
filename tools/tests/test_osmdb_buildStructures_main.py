@@ -54,7 +54,7 @@ def test_main_help(capsys):
     assert captured.out.replace("__main__.py", "osm2db.py") == """usage: osmdb_buildStructures [-h] [-c FILE] [-R] [-A] [--version] [-v]
                              OSM-database definition OSM-database
 
-Builds an road network table using an OSM-database representation
+Extracts structures from an OSM database given a definition
 
 positional arguments:
   OSM-database          The definition of the database to read data from;
