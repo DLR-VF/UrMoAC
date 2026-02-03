@@ -331,7 +331,7 @@ class OSMExtractor:
         conn.commit()
         if add_types:
             args = ','.join(cursor.mogrify("(%s, %s, %s)", i).decode('utf-8') for i in types)
-            cursor.execute(f"INSERT INTO {schema}.{name}_types(id, oid, pattern) VALUES " + (args))
+            cursor.execute(f"INSERT INTO {schema}.{name}_types(id, oid, type) VALUES " + (args))
             conn.commit()
         del entries[:]
         del types[:]
@@ -481,7 +481,7 @@ def build_structures(srcdb, deffile, dstdb, dropprevious, append, add_types, ver
         cursor.execute(f"SELECT AddGeometryColumn('{schema}', '{name}', 'polygon', 4326, 'MULTIPOLYGON', 2)")
         cursor.execute(f"SELECT AddGeometryColumn('{schema}', '{name}', 'geom_collection', 4326, 'GEOMETRYCOLLECTION', 2)")
         if add_types:
-            cursor.execute(f"CREATE TABLE {schema}.{name}_types(id bigint, oid bigint, pattern text)")
+            cursor.execute(f"CREATE TABLE {schema}.{name}_types(id bigint, oid bigint, type text)")
         conn.commit()
     conn.close()
     # --- insert objects
