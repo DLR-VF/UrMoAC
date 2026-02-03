@@ -717,8 +717,11 @@ def build_ways(src_def, dst_def, dropprevious, add_parking, append, unconsumed_f
             if len(storedRoads)>10000:
                 commit_roads(dst_db, add_parking)
     commit_roads(dst_db, add_parking)
-    dst_db.execute(f"UPDATE {dst_db.get_table_path()} SET length=ST_Length(geom::geography);")
-    dst_db.execute(f"UPDATE {dst_db.get_table_path()} SET vmax=5 WHERE vmax=0;")
+    dst_db.execute(f"UPDATE {dst_db.get_table_path()} SET length=ST_Length(geom::geography)")
+    dst_db.execute(f"UPDATE {dst_db.get_table_path()} SET vmax=5 WHERE vmax=0")
+    dst_db.commit()
+    # patching edges with length=0; !!! add user information
+    dst_db.execute(f"UPDATE {dst_db.get_table_path()} SET length=.1 WHERE length=0")
     dst_db.commit()
     if unconsumed_output is not None:
         unconsumed_output.close()
