@@ -77,7 +77,7 @@ class OSMNode(OSMElement):
         :return: A tuple of id, type, polygons, and WKT representation
         :rtype: tuple[int, str, list[str], str]
         """
-        return [self.id, "node", [], "POINT(%s %s)" % (self.pos[0], self.pos[1])]
+        return [self.id, "node", [], f"POINT({self.pos[0]} {self.pos[1]})"]
 
 
     def get_geometry_type(self):
@@ -125,7 +125,7 @@ class OSMWay(OSMElement):
         self.geom = []
         for r in self.refs:
             if r not in area._nodes:
-                print ("Missing node %s while building way %s." % (r, self.id))
+                print (f"Missing node {r} while building way {self.id}.")
                 self._ok = False
                 continue
             self.geom.append(area._nodes[r].pos)
@@ -140,9 +140,9 @@ class OSMWay(OSMElement):
         :rtype: tuple[int, str, list[str], str]
         """
         if self.geom[0]==self.geom[-1]:
-            p = ",".join(["%s %s" % (p[0], p[1]) for p in self.geom])
-            return [self.id, "way", [[self.geom]], "POLYGON((" + p + "))"]
-        return [self.id, "way", None, "LINESTRING(" + ",".join(["%s %s" % (p[0], p[1]) for p in self.geom]) + ")"]
+            p = ",".join([f"{p[0]} {p[1]}" for p in self.geom])
+            return [self.id, "way", [[self.geom]], f"POLYGON(({p}))"]
+        return [self.id, "way", None, f"LINESTRING({','.join([f'{p[0]} {p[1]}' for p in self.geom])})"]
 
 
     def get_geometry_type(self):
@@ -448,14 +448,14 @@ class OSMRelation(OSMElement):
             if m[1]=="node":
                 n = area.get_node(m[0])
                 if not n:
-                    print ("Missing node %s in relation %s" % (m[0], self.id))
+                    print (f"Missing node {m[0]} in relation {self.id}")
                     self._ok = False
                     continue
                 roles[m[2]].append(n)
             elif m[1]=="way":
                 w = area.get_way(m[0])
                 if not w:
-                    print ("Missing way %s in relation %s" % (m[0], self.id))
+                    print (f"Missing way {m[0]} in relation {self.id}")
                     self._ok = False
                     closeIfNeeded = True
                     continue
@@ -464,16 +464,16 @@ class OSMRelation(OSMElement):
                     roles[m[2]].append(w) # well, we append it even if it's not ok!?
             elif m[1]=="relation" or m[1]=="rel":
                 if self.id==m[0]:
-                    print ("Skipping self-referencing relation in %s" % self.id)
+                    print (f"Skipping self-referencing relation in {self.id}")
                     continue
                 r = area.get_relation(m[0])
                 if not r:
-                    print ("Missing relation %s in relation %s" % (m[0], self.id))
+                    print (f"Missing relation {m[0]} in relation {self.id}")
                     self._ok = False
                     continue
                 self._ok &= r.build_geometry(area)
                 if not self._ok:
-                    print ("Broken geometry of relation %s in relation %s" % (m[0], self.id))
+                    print (f"Broken geometry of relation {m[0]} in relation {self.id}")
                     self._ok = False
                     continue
                 roles[m[2]].append(r)

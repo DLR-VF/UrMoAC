@@ -100,18 +100,18 @@ class OSMDB(DB):
         :return: The node, given as ID and position
         :rtype: 
         """
-        query = "SELECT * from %s.%s_node WHERE id='%s';" % (self._schema, self._prefix, nID)
+        query = f"SELECT * from {self._schema}.{self._prefix}_node WHERE id='{nID}'"
         return self._execute_fetch_all(query)
   
   
-    def getNodeKV_forID(self, nid):
+    def getNodeKV_forID(self, nID):
         """Returns the parameter of a node
         :param nID: The ID of the node to retrieve
         :type nID: int
         :return: The parameter of the node as ID/key/value tuples
         :rtype: 
         """
-        query = "SELECT * from %s.%s_ntag WHERE id='%s';" % (self._schema, self._prefix, nid)
+        query = f"SELECT * from {self._schema}.{self._prefix}_ntag WHERE id='{nID}'"
         return self._execute_fetch_all(query)
   
   
@@ -122,7 +122,7 @@ class OSMDB(DB):
         :return: The ids and parameter with the given key as id/key/value tuples
         :rtype: 
         """
-        query = "SELECT * from %s.%s_ntag WHERE k='%s';" % (self._schema, self._prefix, key)
+        query = f"SELECT * from {self._schema}.{self._prefix}_ntag WHERE k='{key}'"
         return self._execute_fetch_all(query)
   
     
@@ -135,7 +135,7 @@ class OSMDB(DB):
         :return: The ids and parameter with the given key and value as id/key/value tuples
         :rtype: 
         """
-        query = "SELECT * from %s.%s_ntag WHERE (k='%s' AND v='%s');" % (self._schema, self._prefix, key, value)
+        query = f"SELECT * from {self._schema}.{self._prefix}_ntag WHERE (k='{key}' AND v='{value}')"
         return self._execute_fetch_all(query)
 
 
@@ -149,7 +149,7 @@ class OSMDB(DB):
         :return: The IDs and positions of the named nodes
         :rtype: 
         """
-        query = "SELECT id,ST_AsText(pos) from %s.%s_node WHERE id in ("+','.join([str(x) for x in nIDs])+");" % (self._schema, self._prefix)
+        query = f"SELECT id,ST_AsText(pos) from {self._schema}.{self._prefix}_node WHERE id in ({','.join([str(x) for x in nIDs])})"
         return self._execute_fetch_all(query)
   
   
@@ -165,7 +165,7 @@ class OSMDB(DB):
         """
         rep = ','.join([str(x) for x in nIDs])
         # http://stackoverflow.com/questions/866465/sql-order-by-the-in-value-list
-        query = "SELECT id, ST_AsText(pos) from %s.%s_node WHERE id in (%s);" % (self._schema, self._prefix, rep)
+        query = f"SELECT id, ST_AsText(pos) from {self._schema}.{self._prefix}_node WHERE id in ({rep})"
         nodes = self._execute_fetch_all(query)
         n2pos = {}
         for n in nodes:
@@ -173,7 +173,7 @@ class OSMDB(DB):
         ret = []
         for n in nIDs:
             if n not in n2pos:
-                print ("Warning: node %s is not known" % n)
+                print (f"Warning: node {n} is not known")
                 continue
             ret.append([n, n2pos[n]])
         return ret  
@@ -189,7 +189,7 @@ class OSMDB(DB):
         :return: The way, given as id and referenced items
         :rtype: 
         """
-        query = "SELECT id,refs from %s.%s_way WHERE id='%s';" % (self._schema, self._prefix, wID)
+        query = f"SELECT id,refs from {self._schema}.{self._prefix}_way WHERE id='{wID}'"
         return self._execute_fetch_all(query)
   
 
@@ -200,7 +200,7 @@ class OSMDB(DB):
         :return: The parameter of the way as id/key/value tuples
         :rtype: 
         """
-        query = "SELECT * from %s.%s_wtag WHERE id='%s';" % (self._schema, self._prefix, wID)
+        query = f"SELECT * from {self._schema}.{self._prefix}_wtag WHERE id='{wID}'"
         return self._execute_fetch_all(query)
 
   
@@ -211,7 +211,7 @@ class OSMDB(DB):
         :return: The IDs and parameter with the given key as id/key/value tuples
         :rtype: 
         """
-        query = "SELECT * from %s.%s_wtag WHERE k='%s';" % (self._schema, self._prefix, key)
+        query = f"SELECT * from {self._schema}.{self._prefix}_wtag WHERE k='{key}'"
         return self._execute_fetch_all(query)
   
   
@@ -224,7 +224,7 @@ class OSMDB(DB):
         :return: The IDs and parameter with the given key and value as id/key/value tuples
         :rtype: 
         """
-        query = "SELECT * from %s.%s_wtag WHERE k='%s' AND v='%s';" % (self._schema, self._prefix, key, value)
+        query = f"SELECT * from {self._schema}.{self._prefix}_wtag WHERE k='{key}' AND v='{value}';"
         return self._execute_fetch_all(query)
 
 
@@ -237,7 +237,7 @@ class OSMDB(DB):
         :return: The parameter of the node as id/key/value tuples
         :rtype: 
         """
-        query = "SELECT * from %s.%s_rtag WHERE id='%s';" % (self._schema, self._prefix, wID)
+        query = f"SELECT * from {self._schema}.{self._prefix}_rtag WHERE id='{wID}'"
         return self._execute_fetch_all(query)
   
   
@@ -248,7 +248,7 @@ class OSMDB(DB):
         :return: The IDs and parameter with the given key as id/key/value tuples
         :rtype: 
         """
-        query = "SELECT * from %s.%s_rtag WHERE k='%s';" % (self._schema, self._prefix, key)
+        query = f"SELECT * from {self._schema}.{self._prefix}_rtag WHERE k='{key}'"
         return self._execute_fetch_all(query)
   
 
@@ -261,7 +261,7 @@ class OSMDB(DB):
         :return: The IDs and parameter with the given key and value as id/key/value tuples
         :rtype: 
         """
-        query = "SELECT * from %s.%s_rtag WHERE k='%s' AND v='%s';" % (self._schema, self._prefix, key, value)
+        query = f"SELECT * from {self._schema}.{self._prefix}_rtag WHERE k='{key}' AND v='{value}'"
         return self._execute_fetch_all(query)
   
 
@@ -272,7 +272,7 @@ class OSMDB(DB):
         :return: The members of the given relation
         :rtype: 
         """
-        query = "SELECT * from %s.%s_member WHERE rid=%s ORDER BY idx;" % (self._schema, self._prefix, rID)
+        query = f"SELECT * from {self._schema}.{self._prefix}_member WHERE rid={rID} ORDER BY idx"
         return self._execute_fetch_all(query)
 
   

@@ -41,8 +41,8 @@ def toColor(val, colormap):
                 (colormap[i + 1][1][1] - colormap[i][1][1]) * scale
             b = colormap[i][1][2] + \
                 (colormap[i + 1][1][2] - colormap[i][1][2]) * scale
-            return "#" + toHex(r) + toHex(g) + toHex(b)
-    return "#" + toHex(colormap[-1][1][0]) + toHex(colormap[-1][1][1]) + toHex(colormap[-1][1][2])
+            return f"#{toHex(r)}{toHex(g)}{toHex(b)}"
+    return f"#{toHex(colormap[-1][1][0])}{toHex(colormap[-1][1][1])}{toHex(colormap[-1][1][2])}"
 
 
 def parseColorMap(mapDef):

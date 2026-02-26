@@ -226,7 +226,7 @@ class LineString(Geometry):
         """Returns the WKT representation of this geometry"""
         if self._shape is None:
             return "LINESTRING(EMPTY)"
-        npoly = ["%s %s" % (p[0], p[1]) for p in self._shape]
+        npoly = [f"{p[0]} {p[1]}" for p in self._shape]
         npoly = ", ".join(npoly)
         return f"LINESTRING({npoly})"
 
@@ -288,10 +288,10 @@ class Polygon(Geometry):
             return "POLYGON(EMPTY)"
         d = []
         for poly in self._shape:
-            npoly = ["%s %s" % (p[0], p[1]) for p in poly]
-            d.append("(" + ", ".join(npoly) + ")")
+            npoly = [f"{p[0]} {p[1]}" for p in poly]
+            d.append(f"({', '.join(npoly)})")
         d = ", ".join(d)
-        return "POLYGON(" + d + ")"
+        return f"POLYGON({d})"
 
 
     def reproject(self, transformer):
@@ -352,10 +352,10 @@ class MultiLineString(Geometry):
             return "MULTILINESTRING(EMPTY)"
         d = []
         for linestring in self._shape:
-            nls = ["%s %s" % (p[0], p[1]) for p in linestring]
-            d.append("(" + ", ".join(nls) + ")")
+            nls = [f"{p[0]} {p[1]}" for p in linestring]
+            d.append(f"({', '.join(nls)})")
         d = ", ".join(d)
-        return "MULTILINESTRING(" + d + ")"
+        return f"MULTILINESTRING({d})"
 
 
     def reproject(self, transformer):
@@ -431,11 +431,10 @@ class MultiPolygon(Geometry):
         for cpoly in self._shape:
             d = []
             for poly in cpoly:
-                npoly = ["%s %s" % (p[0], p[1]) for p in poly]
-                d.append("(" + ", ".join(npoly) + ")")
-            ds.append("(" + ", ".join(d) + ")")
-        ds = ", ".join(ds)
-        return "MULTIPOLYGON(" + ds + ")"
+                npoly = [f"{p[0]} {p[1]}" for p in poly]
+                d.append(f"({', '.join(npoly)})")
+            ds.append(f"({', '.join(d)})")
+        return f"MULTIPOLYGON({', '.join(ds)})"
 
 
     def reproject(self, transformer):
@@ -616,7 +615,7 @@ def wkt2geometry(wkt):
         if shape==None: return MultiPolygon(None)
         return MultiPolygon(shape)
     else:
-        raise ValueError("Unknown geometry '%s'" % wkt)
+        raise ValueError(f"Unknown geometry '{wkt}'")
 
 
 def wkt2lists(wkt):
@@ -637,6 +636,6 @@ def wkt2lists(wkt):
     elif wkt.startswith("MULTIPOLYGON"):
         return parse_MULTIPOLYGON2D(wkt)
     else:
-        raise ValueError("Unknown geometry '%s'" % wkt)
+        raise ValueError(f"Unknown geometry '{wkt}'")
 
 

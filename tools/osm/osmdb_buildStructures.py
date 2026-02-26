@@ -362,7 +362,7 @@ class OSMExtractor:
         id = oid
         if oid in self._idMapping[otype]:
             id = self._idMapping[otype][oid]
-        geom = "GEOMETRYCOLLECTION(" + geom + ")"
+        geom = f"GEOMETRYCOLLECTION({geom})"
         centroid = geom
         if polys!=None and len(polys)!=0:
             # remove polygons within other
@@ -382,7 +382,7 @@ class OSMExtractor:
             for poly in polys:
                 npoly = []
                 for polypart in poly:
-                    npolypart = "(" + ",".join(["%s %s" % (p[0], p[1]) for p in polypart]) + ")"
+                    npolypart = f"({','.join([f'{p[0]} {p[1]}' for p in polypart])})"
                     npoly.append(npolypart)
                 npolys.append(f"({",".join(npoly)})")
             polys = f"MULTIPOLYGON({",".join(npolys)})"

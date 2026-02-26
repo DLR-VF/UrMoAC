@@ -47,16 +47,16 @@ def csvnet2sumo(input_file, output_prefix):
             continue
         vals = l.strip().split(";")
         if vals[1] not in nodes:
-            fdoN.write('    <node id="%s" x="%s" y="%s"/>\n' % (vals[1], vals[8], vals[9]))
+            fdoN.write(f'    <node id="{vals[1]}" x="{vals[8]}" y="{vals[9]}"/>\n')
             nodes.add(vals[1])
         if vals[2] not in nodes:
-            fdoN.write('    <node id="%s" x="%s" y="%s"/>\n' % (vals[2], vals[-2], vals[-1]))
+            fdoN.write(f'    <node id="{vals[2]}" x="{vals[-2]}" y="{vals[-1]}"/>\n')
             nodes.add(vals[2])
         allowed = []
         if vals[3]=="true": allowed.append("pedestrian")
         if vals[4]=="true": allowed.append("bicycle")
         if vals[5]=="true": allowed.append("passenger")
-        fdoE.write('    <edge id="%s" from="%s" to="%s" numlanes="1" speed="%s" length="%s" allowed="%s" spreadType="center"/>\n' % (vals[0], vals[1], vals[2], float(vals[6])/3.6, vals[7], " ".join(allowed)))
+        fdoE.write(f'    <edge id="{vals[0]}" from="{vals[1]}" to="{vals[2]}" numlanes="1" speed="{float(vals[6])/3.6}" length="{vals[7]}" allowed="{' '.join(allowed)}" spreadType="center"/>\n')
     fdoE.write("</edges>\n")
     fdoN.write("</nodes>\n")
     fdi.close()

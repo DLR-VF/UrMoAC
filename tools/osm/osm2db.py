@@ -128,10 +128,10 @@ class OSMReader(handler.ContentHandler):
                 n_ntags = n_ntags + 1
         if len(nodes_to_add)>0:
             args = ','.join(self._cursor.mogrify("(%s, ST_GeomFromText('POINT(%s %s)', 4326))", i).decode('utf-8') for i in nodes_to_add)
-            self._cursor.execute("INSERT INTO %s_node(id, pos) VALUES " % (self._fname) + (args))
+            self._cursor.execute(f"INSERT INTO {self._fname}_node(id, pos) VALUES " + (args))
         if len(node_tags_to_add)>0:
             args = ','.join(self._cursor.mogrify("(%s, %s, %s)", i).decode('utf-8') for i in node_tags_to_add)
-            self._cursor.execute("INSERT INTO %s_ntag(id, k, v) VALUES " % (self._fname) + (args))
+            self._cursor.execute(f"INSERT INTO {self._fname}_ntag(id, k, v) VALUES " + (args))
         # ways
         ways_to_add = []
         way_tags_to_add = []
@@ -142,10 +142,10 @@ class OSMReader(handler.ContentHandler):
                 n_wtags = n_wtags + 1
         if len(ways_to_add)>0:
             args = ','.join(self._cursor.mogrify("(%s, %s)", i).decode('utf-8') for i in ways_to_add)
-            self._cursor.execute("INSERT INTO %s_way(id, refs) VALUES " % (self._fname) + (args))
+            self._cursor.execute(f"INSERT INTO {self._fname}_way(id, refs) VALUES " + (args))
         if len(way_tags_to_add)>0:
             args = ','.join(self._cursor.mogrify("(%s, %s, %s)", i).decode('utf-8') for i in way_tags_to_add)
-            self._cursor.execute("INSERT INTO %s_wtag(id, k, v) VALUES " % (self._fname) + (args))
+            self._cursor.execute(f"INSERT INTO {self._fname}_wtag(id, k, v) VALUES " + (args))
         # relations
         rels_to_add = []
         rel_tags_to_add = []
@@ -160,16 +160,16 @@ class OSMReader(handler.ContentHandler):
                 n_rmembers = n_rmembers + 1
         if len(rels_to_add)>0:
             args = ','.join(self._cursor.mogrify("(%s)", i).decode('utf-8') for i in rels_to_add)
-            self._cursor.execute("INSERT INTO %s_rel(id) VALUES " % (self._fname) + (args))
+            self._cursor.execute(f"INSERT INTO {self._fname}_rel(id) VALUES " + (args))
         if len(rel_tags_to_add)>0:
             args = ','.join(self._cursor.mogrify("(%s, %s, %s)", i).decode('utf-8') for i in rel_tags_to_add)
-            self._cursor.execute("INSERT INTO %s_rtag(id, k, v) VALUES " % (self._fname) + (args))
+            self._cursor.execute(f"INSERT INTO {self._fname}_rtag(id, k, v) VALUES " + (args))
         if len(members_to_add)>0:
             args = ','.join(self._cursor.mogrify("(%s, %s, %s, %s, %s)", i).decode('utf-8') for i in members_to_add)
-            self._cursor.execute("INSERT INTO %s_member(rid, elemID, type, role, idx) VALUES " % (self._fname) + (args))
+            self._cursor.execute(f"INSERT INTO {self._fname}_member(rid, elemID, type, role, idx) VALUES " + (args))
         #
         if self._verbose:
-            print (" %s nodes (%s keys), %s ways (%s keys), and %s relations (%s keys, %s members)" % (len(self._nodes), n_ntags, len(self._ways), n_wtags, len(self._relations), n_rtags, n_rmembers))
+            print (f" {len(self._nodes)} nodes ({n_ntags} keys), {len(self._ways)} ways ({n_wtags} keys), and {len(self._relations)} relations ({n_rtags} keys, {n_rmembers} members)")
         self.stats["nodes"] = self.stats["nodes"] + len(self._nodes)
         self.stats["ways"] = self.stats["ways"] + len(self._ways)
         self.stats["node_attrs"] = self.stats["node_attrs"] + n_ntags
@@ -198,9 +198,9 @@ def osm2db(db_def, input_file, dropprevious, append, verbose):
     schema, prefix = schema_prefix.split(".")
     t1 = datetime.datetime.now()
     print ("Connecting to the db...")
-    conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" % (db, user, host, password))
+    conn = psycopg2.connect(f"dbname='{db}' user='{user}' host='{host}' password='{password}'")
     cursor = conn.cursor()
-    print ("Building tables for %s..." % prefix)
+    print (f"Building tables for {prefix}...")
     
     # check whether the tables already exist
     # http://stackoverflow.com/questions/20582500/how-to-check-if-a-table-exists-in-a-given-schema
@@ -210,13 +210,13 @@ def osm2db(db_def, input_file, dropprevious, append, verbose):
     if ret[0][0]:
         if dropprevious:
             # delete if already existing
-            cursor.execute("DROP TABLE %s.%s_member;" % (schema, prefix))
-            cursor.execute("DROP TABLE %s.%s_rtag;" % (schema, prefix))
-            cursor.execute("DROP TABLE %s.%s_wtag;" % (schema, prefix))
-            cursor.execute("DROP TABLE %s.%s_ntag;" % (schema, prefix))
-            cursor.execute("DROP TABLE %s.%s_rel;" % (schema, prefix))
-            cursor.execute("DROP TABLE %s.%s_way;" % (schema, prefix))
-            cursor.execute("DROP TABLE %s.%s_node;" % (schema, prefix))
+            cursor.execute(f"DROP TABLE {schema}.{prefix}_member")
+            cursor.execute(f"DROP TABLE {schema}.{prefix}_rtag")
+            cursor.execute(f"DROP TABLE {schema}.{prefix}_wtag")
+            cursor.execute(f"DROP TABLE {schema}.{prefix}_ntag")
+            cursor.execute(f"DROP TABLE {schema}.{prefix}_rel")
+            cursor.execute(f"DROP TABLE {schema}.{prefix}_way")
+            cursor.execute(f"DROP TABLE {schema}.{prefix}_node")
             conn.commit()
         elif not append:
             print ("osm2db: error: destination tables already exist", file=sys.stderr)
@@ -224,20 +224,20 @@ def osm2db(db_def, input_file, dropprevious, append, verbose):
     
     # build the tables
     if not append:
-        cursor.execute("CREATE TABLE %s.%s_node (id bigint PRIMARY KEY);" % (schema, prefix))
-        cursor.execute("CREATE TABLE %s.%s_way (id bigint PRIMARY KEY, refs bigint[]);" % (schema, prefix))
-        cursor.execute("CREATE TABLE %s.%s_rel (id bigint PRIMARY KEY);" % (schema, prefix))
-        cursor.execute("SELECT AddGeometryColumn('%s', '%s_node', 'pos', 4326, 'POINT', 2, true);" % (schema, prefix))
+        cursor.execute(f"CREATE TABLE {schema}.{prefix}_node (id bigint PRIMARY KEY)")
+        cursor.execute(f"CREATE TABLE {schema}.{prefix}_way (id bigint PRIMARY KEY, refs bigint[])")
+        cursor.execute(f"CREATE TABLE {schema}.{prefix}_rel (id bigint PRIMARY KEY)")
+        cursor.execute(f"SELECT AddGeometryColumn('{schema}', '{prefix}_node', 'pos', 4326, 'POINT', 2, true)")
         # --- tags
-        cursor.execute("CREATE TABLE %s.%s_ntag ( id bigint REFERENCES %s.%s_node (id), k text, v text );" % (schema, prefix, schema, prefix))
-        cursor.execute("CREATE INDEX ON %s.%s_ntag (id);" % (schema, prefix))
-        cursor.execute("CREATE TABLE %s.%s_wtag ( id bigint REFERENCES %s.%s_way (id), k text, v text );" % (schema, prefix, schema, prefix))
-        cursor.execute("CREATE INDEX ON %s.%s_wtag (id);" % (schema, prefix))
-        cursor.execute("CREATE TABLE %s.%s_rtag ( id bigint REFERENCES %s.%s_rel (id), k text, v text );" % (schema, prefix, schema, prefix))
-        cursor.execute("CREATE INDEX ON %s.%s_rtag (id);" % (schema, prefix))
-        cursor.execute("CREATE TABLE %s.%s_member ( rid bigint REFERENCES %s.%s_rel (id), elemID bigint, type text, role text, idx integer );" % (schema, prefix, schema, prefix))
-        cursor.execute("CREATE INDEX ON %s.%s_member (rid);" % (schema, prefix))
-        cursor.execute("CREATE INDEX ON %s.%s_member (elemID);" % (schema, prefix))
+        cursor.execute(f"CREATE TABLE {schema}.{prefix}_ntag ( id bigint REFERENCES {schema}.{prefix}_node (id), k text, v text );")
+        cursor.execute(f"CREATE INDEX ON {schema}.{prefix}_ntag (id)")
+        cursor.execute("CREATE TABLE {schema}.{prefix}_wtag ( id bigint REFERENCES {schema}.{prefix}_way (id), k text, v text )")
+        cursor.execute(f"CREATE INDEX ON {schema}.{prefix}_wtag (id)")
+        cursor.execute(f"CREATE TABLE {schema}.{prefix}_rtag ( id bigint REFERENCES {schema}.{prefix}_rel (id), k text, v text )")
+        cursor.execute(f"CREATE INDEX ON {schema}.{prefix}_rtag (id)")
+        cursor.execute(f"CREATE TABLE {schema}.{prefix}_member ( rid bigint REFERENCES {schema}.{prefix}_rel (id), elemID bigint, type text, role text, idx integer )")
+        cursor.execute(f"CREATE INDEX ON {schema}.{prefix}_member (rid)")
+        cursor.execute(f"CREATE INDEX ON {schema}.{prefix}_member (elemID)")
         conn.commit()
 
     # parsing the document and adding contents to the db
@@ -254,11 +254,10 @@ def osm2db(db_def, input_file, dropprevious, append, verbose):
     t2 = datetime.datetime.now()
     print ("Finished.")
     print ("Summary:")
-    print (" %s nodes with %s attributes" % (r.stats["nodes"], r.stats["node_attrs"]))
-    print (" %s ways with %s attributes" % (r.stats["ways"], r.stats["way_attrs"]))
-    print (" %s relations with %s members and %s attributes" % (r.stats["rels"], r.stats["n_rmembers"], r.stats["rel_attrs"]))
-    dt = t2-t1
-    print ("In %s" % dt)
+    print (f" {r.stats['nodes']} nodes with {r.stats['node_attrs']} attributes")
+    print (f" {r.stats['ways']} ways with {r.stats['way_attrs']} attributes")
+    print (f" {r.stats['rels']} relations with {r.stats['n_rmembers']} members and {r.stats['rel_attrs']} attributes")
+    print ("In {t2-t1}")
     return 0
 
 
@@ -274,7 +273,7 @@ def main(arguments=None):
     args, remaining_argv = conf_parser.parse_known_args(arguments)
     if args.config is not None:
         if not os.path.exists(args.config):
-            print ("osm2db: error: configuration file '%s' does not exist" % str(args.config), file=sys.stderr)
+            print ("osm2db: error: configuration file '{args.config}' does not exist", file=sys.stderr)
             raise SystemExit(2)
         config = configparser.ConfigParser()
         config.read([args.config])
@@ -303,7 +302,7 @@ def main(arguments=None):
     if len(errors)!=0:
         parser.print_usage(sys.stderr)
         for e in errors:
-            print ("osm2db: error: %s" % e, file=sys.stderr)
+            print ("osm2db: error: {e}", file=sys.stderr)
         print ("osm2db: quitting on error.", file=sys.stderr)
         return 2
 

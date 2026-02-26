@@ -141,12 +141,12 @@ class Net:
 def _loadNetFromDB(d, proj, stringData=[], vmaxS="vmax", geom_field="geom"):
     import psycopg2, wkt
     dbd = d.split(",")
-    conn = psycopg2.connect("host='%s' dbname='%s' user='%s' password='%s'" % (dbd[0], dbd[1], dbd[3], dbd[4]))
+    conn = psycopg2.connect(f"host='{dbd[0]}' dbname='{dbd[1]}' user='{dbd[3]}' password='{dbd[4]}'")
     cursor = conn.cursor()
     add = ""
     if stringData:
         add = "," + ",".join(stringData)
-    cursor.execute("SELECT oid,ST_AsText(ST_TRANSFORM(%s, %s))%s FROM %s;" % (geom_field, proj, add, dbd[2]))
+    cursor.execute(f"SELECT oid,ST_AsText(ST_TRANSFORM({geom_field}, {proj})){add} FROM {dbd[2]}")
     net = Net()
     for r in cursor.fetchall():
         data = {}
@@ -161,7 +161,7 @@ def loadNet(d, proj, stringData=[], vmaxS="vmax"):
         return _loadNetFromDB(d[11:], proj, stringData)
     elif d.endswith("wkt"):
         return _loadNetFromWKT(d, proj, stringData)
-    raise ValueError("Unknown source '%s'" % d)
+    raise ValueError(f"Unknown source '{d}'")
 
 
 def plotNet(ax, net, color="#000000", alpha=1, widthmap = {

@@ -49,12 +49,12 @@ def csvshape2sumo(input_file, output_file):
             shape.append(pos)
             p += 2
         if len(shape)==1:
-            fdo.write('    <poi id="%s" color="1,1,0" x="%s" y="%s"/>\n' % (vals[0], shape[0][0], shape[0][1]))
+            fdo.write(f'    <poi id="{vals[0]}" color="1,1,0" x="{shape[0][0]}" y="{shape[0][1]}"/>\n')
         else:
             for i,p in enumerate(shape):
-                shape[i] = "%s,%s" % (p[0], p[1])
+                shape[i] = f"{p[0]},{p[1]}"
             shape = " ".join(shape)
-            fdo.write('    <poly id="%s" color="1,1,0" shape="%s"/>\n' % (vals[0], shape))
+            fdo.write(f'    <poly id="{vals[0]}" color="1,1,0" shape="{shape}"/>\n')
     fdo.write("</shapes>\n")
     fdo.close()
     fdi.close()

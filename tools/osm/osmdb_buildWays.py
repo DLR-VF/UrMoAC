@@ -695,7 +695,7 @@ def build_ways(src_def, dst_def, dropprevious, add_parking, append, unconsumed_f
                         add_road(upperType, f"b{hID}#{index}", nodeIDs[-1], nodeIDs[0], htype, modesB, lanesB, vmax, reversed(nodeIDs), sidewalk, cycleway, surface, lit, name, inclineB, parkingB, ",".join(reversed(hGeom)))
                         num += 1
                     hGeom = []
-                    hGeom.append("%s %s" % (p[0], p[1]))
+                    hGeom.append(f"{p[0]} {p[1]}")
                     nodeIDs = []
                     nodeIDs.append(n[0])
                     index = index + 1
