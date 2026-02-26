@@ -9,7 +9,7 @@ where
 """
 # ===========================================================================
 __author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright 2016-2025, Institute of Transport Research, German Aerospace Center (DLR)"
+__copyright__  = "Copyright 2016-2026, Institute of Transport Research, German Aerospace Center (DLR)"
 __credits__    = ["Daniel Krajzewicz"]
 __license__    = "EPL 2.0"
 __version__    = "0.10.0"
