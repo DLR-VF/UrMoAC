@@ -87,7 +87,7 @@ def parse_table(info, fdo, optional):
     tabName = info.contents[0].strip()
     print (tabName)
     tabName = tabName.replace(".txt", "")
-    fdo.write("    \"" + tabName + "\" : [\n")
+    fdo.write(f'    "{tabName}" : [\n')
     n = info.next_sibling.next_sibling
     #print (">%s<" % n.contents[1].contents[0])
     if n.contents[1].contents[0]=="Optional" or n.contents[1].contents[0]=="Conditionally Required":
@@ -111,8 +111,7 @@ def parse_table(info, fdo, optional):
 
         fieldType = fieldTypeMap[fieldType]
         fieldPresence = fieldPresenceMap[fieldPresence]
-        str = "        [ \"%s\", %s, %s ]" % (fieldName, fieldType, fieldPresence)
-        vals.append(str)
+        vals.append(f'        [ "{fieldName}", {fieldType}, {fieldPresence} ]')
     fdo.write(",\n".join(vals))
     fdo.write("\n    ]")
 
@@ -124,14 +123,12 @@ def write_header(fdo):
     """
     fdo.write("""#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-# ===========================================================================
 \"\"\"GTFS definitions built automatically using parse_reference.py\"\"\"
 # ===========================================================================
 __author__     = "Daniel Krajzewicz"
-__copyright__  = "Copyright 2023-2024, Institute of Transport Research, German Aerospace Center (DLR)"
+__copyright__  = "Copyright 2023-2026, Institute of Transport Research, German Aerospace Center (DLR)"
 __credits__    = ["Daniel Krajzewicz"]
-__license__    = "BSD"
+__license__    = "EPL 2.0"
 __version__    = "0.10.0"
 __maintainer__ = "Daniel Krajzewicz"
 __email__      = "daniel.krajzewicz@dlr.de"
@@ -211,7 +208,7 @@ def parse_reference():
         next_sibling = next_sibling.next_sibling
     fdo.write("\n}\n\n\n")
     optional = ['"' + o + '"' for o in optional]
-    fdo.write("optionalTables = [ %s ]\n\n" % ", ".join(optional))
+    fdo.write(f'optionalTables = [ {", ".join(optional)} ]\n\n')
     fdo.close()
 
 
